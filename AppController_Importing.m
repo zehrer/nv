@@ -239,7 +239,7 @@
                 }
                 [[[[AlienNoteImporter alloc] init] autorelease] importURLInBackground:theURL linkTitle:linkTitle receptionDelegate:self];
             }
-            return;
+            return YES;
         }else{
             if (title && (txtBody || htmlBody)) {
                 NSMutableAttributedString *attributedContents = nil;
@@ -302,7 +302,7 @@
 				//create double-bracketed links using these notes' titles
 				NSArray *existingArray = [existingNotes allObjects];
 				for (i=0; i<[existingArray count]; i++) {
-					[allURLsString appendFormat:@"[[%@]]%s", titleOfNote([existingArray objectAtIndex:i]), 
+					[allURLsString appendFormat:@"[[%@]]%s", [existingArray[i] title],
 					 (i < [existingArray count] - 1) || [unknownPaths count] ? "\n" : ""];
 				}
 			}

@@ -661,7 +661,7 @@ terminateApp:
 
 	} else if (selector == @selector(fixFileEncoding:)) {
 		
-		return (currentNote != nil && storageFormatOfNote(currentNote) == PlainTextFormat && ![currentNote contentsWere7Bit]);
+		return (currentNote != nil && currentNote.storageFormat == PlainTextFormat && ![currentNote contentsWere7Bit]);
   } else if (selector == @selector(editNoteExternally:)) {
     return (numberSelected > 0) && [[menuItem representedObject] canEditAllNotes:[notationController notesAtIndexes:[notesTableView selectedRowIndexes]]];
 	}
@@ -824,7 +824,7 @@ terminateApp:
 			[deleteObj retain];
 			NSString *warningSingleFormatString = NSLocalizedString(@"Delete the note titled quotemark%@quotemark?", @"alert title when asked to delete a note");
 			NSString *warningMultipleFormatString = NSLocalizedString(@"Delete %d notes?", @"alert title when asked to delete multiple notes");
-			NSString *warnString = currentNote ? [NSString stringWithFormat:warningSingleFormatString, titleOfNote(currentNote)] : 
+			NSString *warnString = currentNote ? [NSString stringWithFormat:warningSingleFormatString, currentNote.title] :
 			[NSString stringWithFormat:warningMultipleFormatString, [indexes count]];
 			
 			NSAlert *alert = [NSAlert alertWithMessageText:warnString defaultButton:NSLocalizedString(@"Delete", @"name of delete button")
@@ -1371,13 +1371,13 @@ terminateApp:
 				NSRange typingRange = [fieldEditor selectedRange];
 				
 				//fill in the remaining characters of the title and select
-				if ([field lastLengthReplaced] > 0 && typingRange.location < [titleOfNote(currentNote) length]) {
+				if ([field lastLengthReplaced] > 0 && typingRange.location < currentNote.title.length) {
 					
 					[self cacheTypedStringIfNecessary:fieldString];
 					
 					NSAssert([fieldString isEqualToString:[fieldEditor string]], @"I don't think it makes sense for fieldString to change");
 					
-					NSString *remainingTitle = [titleOfNote(currentNote) substringFromIndex:typingRange.location];
+					NSString *remainingTitle = [currentNote.title substringFromIndex:typingRange.location];
 					typingRange.length = [fieldString length] - typingRange.location;
 					typingRange.length = MAX(typingRange.length, 0U);
 					
@@ -1520,16 +1520,16 @@ terminateApp:
                     if ([self dualFieldIsVisible]) {
 						if (fieldEditor) {
 							//the field editor has focus--select text, too
-							[fieldEditor setString:titleOfNote(currentNote)];
-							NSUInteger strLen = [titleOfNote(currentNote) length];
+							fieldEditor.string = currentNote.title;
+							NSUInteger strLen = currentNote.title.length;
 							if (strLen != [fieldEditor selectedRange].length)
 								[fieldEditor setSelectedRange:NSMakeRange(0, strLen)];
 						} else {
 							//this could be faster
-							[field setStringValue:titleOfNote(currentNote)];
+							field.stringValue = currentNote.title;
 						}
 					} else {
-						[window setTitle:titleOfNote(currentNote)];
+						window.title = currentNote.title;
 					}
 				}
 			}
@@ -1928,8 +1928,7 @@ terminateApp:
 - (void)_expandToolbar {
 	if (![toolbar isVisible]) {
 		[window setTitle:@"Notation"];
-		if (currentNote)
-			[field setStringValue:titleOfNote(currentNote)];
+		if (currentNote) field.stringValue = currentNote.title;
 		[toolbar setVisible:YES];
 		//[window toggleToolbarShown:nil];
 	//	if (![splitView isDragging])
@@ -1943,8 +1942,7 @@ terminateApp:
 
 - (void)_collapseToolbar {
 	if ([toolbar isVisible]) {
-	//	if (currentNote)
-	//		[window setTitle:titleOfNote(currentNote)];
+	//	if (currentNote) window.title = currentNote.title;
 //		[window toggleToolbarShown:nil];
 		
 		[toolbar setVisible:NO];
@@ -2069,9 +2067,9 @@ terminateApp:
     if (aNoteObject == currentNote) {
 	//	if ([toolbar isVisible]) {
         if ([self dualFieldIsVisible]) {
-			[field setStringValue:titleOfNote(currentNote)];
+			field.stringValue = currentNote.title;
 		} else {
-			[window setTitle:titleOfNote(currentNote)];
+			window.title = currentNote.title;
 		}
     }
 	[[prefsController bookmarksController] updateBookmarksUI];
@@ -2329,20 +2327,18 @@ terminateApp:
 	NSCharacterSet *tagSeparators = [NSCharacterSet  characterSetWithCharactersInString:@", "];
 	NSArray *retArray = [[[NSArray alloc]initWithObjects:@"",nil]retain];
 	NSIndexSet *indexes = [notesTableView selectedRowIndexes];
-	NSString *existTags;
-	NSSet *tagsForNote;
-	NSEnumerator *noteEnum = [[[notationController notesAtIndexes:indexes] objectEnumerator] retain];
-	NoteObject *aNote;	
-	NSMutableSet *commonTags = [[[NSMutableSet alloc]initWithCapacity:1] retain];
-	NSArray *tagArray;
-	aNote = [noteEnum nextObject];
-	existTags = labelsOfNote(aNote);
+	NSEnumerator *noteEnum = [[[[notationController notesAtIndexes:indexes] objectEnumerator] retain] autorelease];
+	NoteObject *aNote = [noteEnum nextObject];
+	NSString *existTags = aNote.labels;
+	NSSet *tagsForNote = nil;
+	NSMutableSet *commonTags = [NSMutableSet setWithCapacity: 1];
+	NSArray *tagArray = nil;
 	if (![existTags isEqualToString:@""]) {
 		tagArray = [existTags componentsSeparatedByCharactersInSet:tagSeparators];
 		[commonTags addObjectsFromArray:tagArray];
 		
 		while (((aNote = [noteEnum nextObject]))&&([commonTags count]>0)) {
-			existTags = labelsOfNote(aNote);
+			existTags = aNote.labels;
 			if (![existTags isEqualToString:@""]) {
 				tagArray = [existTags componentsSeparatedByCharactersInSet:tagSeparators];
 				@try {
@@ -2374,9 +2370,6 @@ terminateApp:
 			retArray = [commonTags allObjects];
 		}
 	}
-	[noteEnum release];
-	[commonTags release];
-	
 	return retArray;
 }
 
@@ -2405,7 +2398,7 @@ terminateApp:
 	NoteObject *aNote;	
     NSArray *selNotes = [notationController notesAtIndexes:[notesTableView selectedRowIndexes]];
     for (aNote in selNotes) {
-        existTagString = labelsOfNote(aNote);
+        existTagString = aNote.labels;
         
 		NSMutableArray *finalTags = [[[NSMutableArray alloc] init] autorelease];
 		[finalTags addObjectsFromArray:theTags];
@@ -2489,8 +2482,7 @@ terminateApp:
 //    NSLog(@"settin' df vis:%d",isVis);
     if (isVis) {
 		[window setTitle:@"nvALT"];
-		if (currentNote)
-			[field setStringValue:titleOfNote(currentNote)];
+		if (currentNote) field.stringValue = currentNote.title;
         
         if ([mainView isInFullScreenMode]) {
             NSSize wSize = [mainView frame].size;
@@ -2506,8 +2498,7 @@ terminateApp:
         [window setInitialFirstResponder:field];
         
     }else {
-		if (currentNote)
-			[window setTitle:titleOfNote(currentNote)];
+		if (currentNote) window.title = currentNote.title;
         
         if ([mainView isInFullScreenMode]) {
             [dualFieldView setHidden:YES];            

@@ -347,7 +347,7 @@ unsigned int SetPerDiskInfoWithTableIndex(UTCDateTime *dateTime, UInt32 *nodeID,
 	//diskID not found in existing buffer; add a new entry one or both attributes
 	ResizeArray(perDiskGroups, count + 1, groupCount);
 	
-	//items not currently being set are initialized to a known value, so that they can be initialized later by attrsModifiedDateOfNote and fileNodeIDOfNote
+	//items not currently being set are initialized to a known value, so that they can be initialized later by NoteObject's attrsModifiedDate and fileNodeID properties
 	//although those functions do not initialize these to anything particularly useful, anyway
 	groups = *perDiskGroups;
 	groups[count].attrTime = dateTime ? *dateTime : (UTCDateTime){0, 0, 0};

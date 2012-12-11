@@ -791,7 +791,7 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 		for (i=0;i<[notes count]; i++) {
 			NoteObject *note = [notes objectAtIndex:i];
 			//for now, allow option-dragging-out only for notes with separate file-backing stores
-			if (storageFormatOfNote(note) != SingleDatabaseFormat) {
+			if (note.storageFormat != SingleDatabaseFormat) {
 				NSString *aPath = [note noteFilePath];
 				if (aPath) [paths addObject:aPath];
 			}
@@ -1150,7 +1150,7 @@ enum { kNext_Tag = 'j', kPrev_Tag = 'k' };
 		NoteObject *note = [(FastListDataSource*)[self dataSource] immutableObjects][rowIndex];
 		
 		NSTextView *editor = (NSTextView*)[self currentEditor];
-		[editor setString: tagsInTitleColumn ? labelsOfNote(note) : titleOfNote(note)];
+		[editor setString: tagsInTitleColumn ? note.labels : note.title];
 		
 		NSRange range = NSMakeRange(0, [[editor string] length]);
 #if 0

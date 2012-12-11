@@ -800,7 +800,7 @@ bail:
 		//NSLog(@"registering %s", _cmd);
 		[undoManager registerUndoWithTarget:self selector:@selector(removeNote:) object:note];
 		if (! [[self undoManager] isUndoing] && ! [[self undoManager] isRedoing])
-			[undoManager setActionName:[NSString stringWithFormat:NSLocalizedString(@"Create Note quotemark%@quotemark",@"undo action name for creating a single note"), titleOfNote(note)]];
+			[undoManager setActionName:[NSString stringWithFormat:NSLocalizedString(@"Create Note quotemark%@quotemark",@"undo action name for creating a single note"), note.title]];
 	}
     
 	[self resortAllNotes];
@@ -1129,7 +1129,7 @@ bail:
 - (void)_registerDeletionUndoForNote:(NoteObject*)aNote {	
 	[undoManager registerUndoWithTarget:self selector:@selector(addNewNote:) object:aNote];			
 	if (![undoManager isUndoing] && ![undoManager isRedoing])
-		[undoManager setActionName:[NSString stringWithFormat:NSLocalizedString(@"Delete quotemark%@quotemark",@"undo action name for deleting a single note"), titleOfNote(aNote)]];				
+		[undoManager setActionName:[NSString stringWithFormat:NSLocalizedString(@"Delete quotemark%@quotemark",@"undo action name for deleting a single note"), aNote.title]];
 }			
 
 
@@ -1346,7 +1346,7 @@ bail:
 				//this note matches, but what if there are other note-titles that are prefixes of both this one and the search string?
 				//find the first prefix-parent of which searchString is also a prefix
 				NSUInteger j = 0, prefixParentIndex = NSNotFound;
-				NSArray *prefixParents = prefixParentsOfNote(notesBuffer[i]);
+				NSArray *prefixParents = notesBuffer[i].prefixParents;
 				
 				for (j=0; j<[prefixParents count]; j++) {
 					NoteObject *obj = [prefixParents objectAtIndex:j];
@@ -1385,8 +1385,8 @@ bail:
 	for (i=0; i<[allNotes count]; i++) {
 		NoteObject *thisNote = [allNotes objectAtIndex:i];
 		if (noteTitleHasPrefixOfUTF8String(thisNote, searchString, strLen)) {
-			[objs addObject:titleOfNote(thisNote)];
-			if (anIndex && (titleLen = CFStringGetLength((CFStringRef)titleOfNote(thisNote))) < shortestTitleLen) {
+			[objs addObject: thisNote.title];
+			if (anIndex && (titleLen = thisNote.title.length) < shortestTitleLen) {
 				*anIndex = j;
 				shortestTitleLen = titleLen;
 			}

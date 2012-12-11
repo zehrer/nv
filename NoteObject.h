@@ -108,25 +108,21 @@ NSInteger compareFileSize(id *a, id *b);
 
 - (BOOL)youngerThanLogObject:(id<SynchronizedNote>)obj;
 
-	//syncing w/ files in directory
-	int storageFormatOfNote(NoteObject *note);
-	NSString* filenameOfNote(NoteObject *note);
-	UInt32 fileNodeIDOfNote(NoteObject *note);
-	UInt32 fileSizeOfNote(NoteObject *note);
-	UTCDateTime fileModifiedDateOfNote(NoteObject *note);
-	UTCDateTime *attrsModifiedDateOfNote(NoteObject *note);
-	CFAbsoluteTime modifiedDateOfNote(NoteObject *note);
-	CFAbsoluteTime createdDateOfNote(NoteObject *note);
-
-	NSStringEncoding fileEncodingOfNote(NoteObject *note);
-	
-	NSString* titleOfNote(NoteObject *note);
-	NSString* labelsOfNote(NoteObject *note);
-
-	NSMutableArray* prefixParentsOfNote(NoteObject *note);
+//syncing w/ files in directory
+@property (nonatomic, copy, readonly) NSString *filename;
+@property (nonatomic, readonly) int storageFormat;
+@property (nonatomic, readonly) UInt32 fileNodeID;
+@property (nonatomic, readonly) UInt32 fileSize;
+@property (nonatomic, readonly) UTCDateTime fileModifiedDate;
+@property (nonatomic, readonly) UTCDateTime *attrsModifiedDate;
+@property (nonatomic, copy, readonly) NSString *title;
+@property (nonatomic, copy, readonly) NSString *labels;
+@property (nonatomic, readonly) CFAbsoluteTime modifiedDate;
+@property (nonatomic, readonly) CFAbsoluteTime createdDate;
+@property (nonatomic, readonly) NSStringEncoding fileEncoding;
+@property (nonatomic, retain, readonly) NSMutableArray *prefixParents;
 
 #define DefColAttrAccessor(__FName, __IVar) force_inline id __FName(NotesTableView *tv, NoteObject *note, NSInteger row) { return note->__IVar; }
-#define DefModelAttrAccessor(__FName, __IVar) force_inline typeof (((NoteObject *)0)->__IVar) __FName(NoteObject *note) { return note->__IVar; }
 
 	//return types are NSString or NSAttributedString, satisifying NSTableDataSource protocol otherwise
 	id titleOfNote2(NotesTableView *tv, NoteObject *note, NSInteger row);

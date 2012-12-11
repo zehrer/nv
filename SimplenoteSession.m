@@ -211,12 +211,10 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 	NSDictionary *aDict = [[aNote syncServicesMD] objectForKey:SimplenoteServiceName];
 	if (aDict) {
 		NSAssert([aNote isKindOfClass:[NoteObject class]], @"can't modify a non-note!");
-		[aNote setSyncObjectAndKeyMD:[NSDictionary dictionaryWithObjectsAndKeys:
-									  [NSNumber numberWithDouble:modifiedDateOfNote((NoteObject*)aNote)], @"modify",
-									  [NSNumber numberWithBool:YES], @"dirty",
-									  nil]
-						  forService:SimplenoteServiceName];
-		
+		[aNote setSyncObjectAndKeyMD: @{
+		 @"modify": @([(NoteObject*)aNote modifiedDate]),
+		 @"dirty": @YES
+		 } forService:SimplenoteServiceName];
 	} //if note has no metadata for this service, mod times don't matter because it will be added, anyway
 }
 
@@ -624,7 +622,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 			NSUInteger bodyLoc = 0;
 			NSString *separator = nil;
 			NSString *combinedContent = [info objectForKey:@"content"];
-			NSString *newTitle = [combinedContent syntheticTitleAndSeparatorWithContext:&separator bodyLoc:&bodyLoc oldTitle:titleOfNote(aNote) maxTitleLen:60];
+			NSString *newTitle = [combinedContent syntheticTitleAndSeparatorWithContext:&separator bodyLoc:&bodyLoc oldTitle:aNote.title maxTitleLen:60];
 			
 			[aNote updateWithSyncBody:[combinedContent substringFromIndex:bodyLoc] andTitle:newTitle];
 			NSMutableSet *labelTitles = [NSMutableSet setWithArray:[info objectForKey:@"tags"]];
@@ -661,8 +659,8 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 	//build two kinds of dicts:
 	for (i=0; i<[notes count]; i++) {
 		NoteObject *aNote = [notes objectAtIndex:i];
-		NSMutableString *combined = [[NSMutableString alloc] initWithCapacity:[[aNote contentString] length] + [titleOfNote(aNote) length] + [sep length]];
-		[combined appendString:titleOfNote(aNote)];
+		NSMutableString *combined = [[NSMutableString alloc] initWithCapacity:[[aNote contentString] length] + aNote.title.length + [sep length]];
+		[combined appendString: aNote.title];
 		[combined appendString:sep];
 		[combined appendString:[[aNote contentString] string]];
 #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5

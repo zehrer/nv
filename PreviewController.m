@@ -338,8 +338,8 @@
 	NSString *processedString = [NSString performSelector:mode withObject:rawString];
   NSString *previewString = processedString;
 	NSMutableString *outputString = [NSMutableString stringWithString:(NSString *)htmlString];
-	NSString *noteTitle =  ([app selectedNoteObject]) ? [NSString stringWithFormat:@"%@",titleOfNote([app selectedNoteObject])] : @"";
-
+	NSString *noteTitle = app.selectedNoteObject ? [app.selectedNoteObject.title copy] : @"";
+	
 	if (lastNote == [app selectedNoteObject]) {
 		NSString *restoreScrollPosition = [NSString stringWithFormat:@"\n<script>var body = document.getElementsByTagName('body')[0],oldscroll = %@;body.scrollTop = oldscroll;</script>",lastScrollPosition];
 		previewString = [processedString stringByAppendingString:restoreScrollPosition];
@@ -457,7 +457,7 @@
 -(IBAction)shareNote:(id)sender
 {
   AppController *app = [NSApp delegate];
-	NSString *noteTitle = [NSString stringWithFormat:@"%@",titleOfNote([app selectedNoteObject])];
+	NSString *noteTitle = app.selectedNoteObject ? [app.selectedNoteObject.title copy] : @"";
   NSString *rawString = [app noteContent];
   SEL mode = [self markupProcessorSelector:[app currentPreviewMode]];
   NSString *processedString = [NSString performSelector:mode withObject:rawString];

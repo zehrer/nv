@@ -56,7 +56,7 @@
 		[super drawWithFrame:cellFrame inView:controlView];	
 	}
 	
-	if (!isEditing && [labelsOfNote(noteObject) length]) {
+	if (!isEditing && noteObject.labels.length) {
 
 		[[NSGraphicsContext currentContext] saveGraphicsState];
 		NSRectClip(cellFrame);

@@ -204,7 +204,7 @@
 				NSString *truncatedURLString = [urlString length] > 60 ? [[urlString substringToIndex: 60] stringByAppendingString:NSLocalizedString(@"...", @"ellipsis character")] : urlString;
 				NSMutableAttributedString *titleString = [[NSMutableAttributedString alloc] initWithString:[NSLocalizedString(@"Copy ",@"menu item prefix to copy a URL") stringByAppendingString:truncatedURLString] attributes:blackAttrs];
 				
-				NSAttributedString *titleDesc = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@" (%@)", titleOfNote(aNote)] attributes:grayAttrs];
+				NSAttributedString *titleDesc = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@" (%@)", aNote.title] attributes:grayAttrs];
 				[titleString appendAttributedString:titleDesc];
 				[item setAttributedTitle:titleString];
 				[titleDesc release];
