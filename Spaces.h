@@ -15,7 +15,7 @@
    - Neither the name of Notational Velocity nor the names of its contributors may be used to endorse 
      or promote products derived from this software without specific prior written permission. */
 
-#include <Carbon/Carbon.h>
+#import <Foundation/Foundation.h>
 
 typedef int CGSConnection;
 typedef int CGSWorkspace;

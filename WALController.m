@@ -38,7 +38,7 @@
 @implementation WALController
 
 - (id)initWithParentFSRep:(const char*)path encryptionKey:(NSData*)key {
-    if ([super init]) {
+    if ((self = [super init])) {
 		logFD = -1;
 		
 		char filename[] = "Interim Note-Changes";
@@ -125,7 +125,7 @@
 
 
 - (id)initWithParentFSRep:(const char*)path encryptionKey:(NSData*)key {
-    if ([super initWithParentFSRep:path encryptionKey:key]) {
+    if ((self = [super initWithParentFSRep:path encryptionKey:key])) {
 	
 	//we could make parent dir writable just in case, but that might be a security hazard depending on ownership
 	//chmod(path, S_IRWXU | S_IRWXG | S_IRWXO);
@@ -341,7 +341,7 @@
 //if that works, then remove the log file
 
 - (id)initWithParentFSRep:(const char*)path encryptionKey:(NSData*)key {
-    if ([super initWithParentFSRep:path encryptionKey:key]) {
+    if ((self = [super initWithParentFSRep:path encryptionKey:key])) {
 	fileLength = totalBytesRead = 0;
 	
 	//make file readable just in case

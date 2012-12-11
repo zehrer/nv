@@ -45,7 +45,7 @@
 @implementation NotationController
 
 - (id)init {
-    if ([super init]) {
+    if ((self = [super init])) {
 		directoryChangesFound = notesChanged = aliasNeedsUpdating = NO;
 		
 		allNotes = [[NSMutableArray alloc] init]; //<--the authoritative list of all memory-accessible notes
@@ -66,11 +66,7 @@
 		catalogEntries = NULL;
 		sortedCatalogEntries = NULL;
 		catEntriesCount = totalCatEntriesCount = 0;
-
-#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
-		subscriptionCallback = NewFNSubscriptionUPP(NotesDirFNSubscriptionProc);
-		bzero(&noteDirSubscription, sizeof(FNSubscriptionRef));
-#endif
+		
 		bzero(&noteDatabaseRef, sizeof(FSRef));
 		bzero(&noteDirectoryRef, sizeof(FSRef));
 		volumeSupportsExchangeObjects = -1;
@@ -95,7 +91,7 @@
 	Boolean changed;
 	
 	if ((anErr = FSResolveAliasWithMountFlags(NULL, aliasHandle, &targetRef, &changed, 0)) == noErr) {
-	    if ([self initWithDirectoryRef:&targetRef error:&anErr]) {
+	    if ((self = [self initWithDirectoryRef:&targetRef error:&anErr])) {
 		aliasNeedsUpdating = changed;
 		*err = noErr;
 		
@@ -115,7 +111,7 @@
     OSStatus anErr = noErr;
     if ((anErr = [NotationController getDefaultNotesDirectoryRef:&targetRef]) == noErr) {
 		
-		if ([self initWithDirectoryRef:&targetRef error:&anErr]) {
+		if ((self = [self initWithDirectoryRef:&targetRef error:&anErr])) {
 			*err = noErr;
 			return self;
 		}
@@ -130,7 +126,7 @@
     
     *err = noErr;
     
-    if ([self init]) {
+    if ((self = [self init])) {		
 		aliasNeedsUpdating = YES; //we don't know if we have an alias yet
 		
 		noteDirectoryRef = *directoryRef;
@@ -347,14 +343,20 @@ returnResult:
     UInt8 *convertedPath = (UInt8*)malloc(maxPathSize * sizeof(UInt8));
     OSStatus err = noErr;
 	NSData *walSessionKey = [notationPrefs WALSessionKey];
+	BOOL success = NO;
 	
-    if ((err = FSRefMakePath(&noteDirectoryRef, convertedPath, maxPathSize)) == noErr) {
+	if ((err = FSRefMakePath(&noteDirectoryRef, convertedPath, maxPathSize)) == noErr) {
 		//initialize the journal if necessary
-		if (!(walWriter = [[WALStorageController alloc] initWithParentFSRep:(char*)convertedPath encryptionKey:walSessionKey])) {
+		if (walWriter = [[WALStorageController alloc] initWithParentFSRep:(char*)convertedPath encryptionKey:walSessionKey]) {
+			[walWriter setDelegate:self];
+			
+			success = YES;
+		} else {
 			//journal file probably already exists, so try to recover it
+			
 			WALRecoveryController *walReader = [[[WALRecoveryController alloc] initWithParentFSRep:(char*)convertedPath encryptionKey:walSessionKey] autorelease];
+
 			if (walReader) {
-				
 				BOOL databaseCouldNotBeFlushed = NO;
 				NSDictionary *recoveredNotes = [walReader recoveredNotes];
 				if ([recoveredNotes count] > 0) {
@@ -366,7 +368,6 @@ returnResult:
 						//in this case the WAL should be destroyed, re-initialized, and the recovered (and de-duped) notes added back
 						NSLog(@"Unable to flush recovered notes back to database");
 						databaseCouldNotBeFlushed = YES;
-						//goto bail;
 					}
 				}
 				//is there a way that recoverNextObject could fail that would indicate a failure with the file as opposed to simple non-recovery?
@@ -374,59 +375,59 @@ returnResult:
 				
 				//there could be other issues, too (1)
 				
-				if (![walReader destroyLogFile]) {
+				if ([walReader destroyLogFile]) {
+					if (walWriter = [[WALStorageController alloc] initWithParentFSRep:(char*)convertedPath encryptionKey:walSessionKey]) {
+						if ([recoveredNotes count] > 0) {
+							if (databaseCouldNotBeFlushed) {
+								//re-add the contents of recoveredNotes to walWriter; LSNs should take care of the order; no need to sort
+								//this allows for an ever-growing journal in the case of broken database serialization
+								//it should not be an acceptable condition for permanent use; hopefully an update would come soon
+								//warn the user, perhaps
+								[walWriter writeNoteObjects:[recoveredNotes allValues]];
+							}
+							[self refilterNotes];
+						}
+					} else {
+						//couldn't create a journal after recovering the old one
+						//if databaseCouldNotBeFlushed is true here, then we've potentially lost notes; perhaps exchangeobjects would be better here?
+						NSLog(@"Unable to create a new write-ahead-log after deleting the old one");
+					}
+				} else {
 					//couldn't delete the log file, so we can't create a new one
 					NSLog(@"Unable to delete the old write-ahead-log file");
-					goto bail;
-				}
-				
-				if (!(walWriter = [[WALStorageController alloc] initWithParentFSRep:(char*)convertedPath encryptionKey:walSessionKey])) {
-					//couldn't create a journal after recovering the old one
-					//if databaseCouldNotBeFlushed is true here, then we've potentially lost notes; perhaps exchangeobjects would be better here?
-					NSLog(@"Unable to create a new write-ahead-log after deleting the old one");
-					goto bail;
-				}
-				
-				if ([recoveredNotes count] > 0) {
-					if (databaseCouldNotBeFlushed) {
-						//re-add the contents of recoveredNotes to walWriter; LSNs should take care of the order; no need to sort
-						//this allows for an ever-growing journal in the case of broken database serialization
-						//it should not be an acceptable condition for permanent use; hopefully an update would come soon
-						//warn the user, perhaps
-						[walWriter writeNoteObjects:[recoveredNotes allValues]];
-					}
-					[self refilterNotes];
 				}
 			} else {
 				NSLog(@"Unable to recover unsaved notes from write-ahead-log");
 				//1) should we let the user attempt to remove it without recovery?
-				goto bail;
 			}
 		}
-		[walWriter setDelegate:self];
-		
-		return YES;
-    } else {
+	} else {
 		NSLog(@"FSRefMakePath error: %d", err);
-		goto bail;
-    }
-    
-bail:
-		free(convertedPath);	
-    return NO;
+	}
+	
+	free(convertedPath);
+	return success;
 }
 
 //stick the newest unique recovered notes into allNotes
 - (void)processRecoveredNotes:(NSDictionary*)dict {
+	if (!dict) return;
     const unsigned int vListBufCount = 16;
     void* keysBuffer[vListBufCount], *valuesBuffer[vListBufCount];
     NSUInteger i, count = [dict count];
+	
+	void **keys = NULL, **values = NULL;
+	
+	if (count > vListBufCount) {
+		keys = keysBuffer;
+		values = valuesBuffer;
+	} else {
+		keys = malloc(sizeof(void*) * count);
+		values = malloc(sizeof(void*) * count);
+	}
     
-    void **keys = (count <= vListBufCount) ? keysBuffer : (void **)malloc(sizeof(void*) * count);
-    void **values = (count <= vListBufCount) ? valuesBuffer : (void **)malloc(sizeof(void*) * count);
-    
-    if (keys && values && dict) {
-	CFDictionaryGetKeysAndValues((CFDictionaryRef)dict, (const void **)keys, (const void **)values);
+    if (keys && values) {
+		CFDictionaryGetKeysAndValues((CFDictionaryRef)dict, (const void **)keys, (const void **)values);
 	
 		for (i=0; i<count; i++) {
 			
@@ -477,15 +478,13 @@ bail:
 				[(NoteObject*)obj updateLabelConnectionsAfterDecoding];
 			}
 		}
-		
-	if (keys != keysBuffer)
-	    free(keys);
-	if (values != valuesBuffer)
-	    free(values);
-	
     } else {
-	NSLog(@"_makeChangesInDictionary: Could not get values or keys!");
+		NSLog(@"_makeChangesInDictionary: Could not get values or keys!");
     }
+	
+	if (keys && keys != keysBuffer) free(keys);
+	if (values && values != valuesBuffer) free(values);
+
 }
 
 - (void)closeJournal {
@@ -1547,9 +1546,6 @@ bail:
 	[notationPrefs setDelegate:nil];
 	[allNotes makeObjectsPerformSelector:@selector(setDelegate:) withObject:nil];
 
-#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
-    DisposeFNSubscriptionUPP(subscriptionCallback);
-#endif
 	if (fsCatInfoArray)
 		free(fsCatInfoArray);
 	if (HFSUniNameArray)

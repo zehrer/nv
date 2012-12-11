@@ -43,7 +43,7 @@ NSString *NotationPrefsDidChangeNotification = @"NotationPrefsDidChangeNotificat
 
 NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serviceName) {
 	NSMutableDictionary *accountDict = [prefs->syncServiceAccounts objectForKey:serviceName];
-	if (!accountDict) [prefs->syncServiceAccounts setObject:(accountDict = [[NSMutableDictionary alloc] init]) forKey:serviceName];
+	if (!accountDict) [prefs->syncServiceAccounts setObject:(accountDict = [NSMutableDictionary dictionary]) forKey:serviceName];
 	return accountDict;
 }
 
@@ -52,7 +52,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 }
 
 - (id)init {
-    if ([super init]) {
+    if ((self = [super init])) {
 		allowedTypes = NULL;
 		
 		unsigned int i;
@@ -83,7 +83,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 }
 
 - (id)initWithCoder:(NSCoder*)decoder {
-    if ([super init]) {
+    if ((self = [super init])) {
 		NSAssert([decoder allowsKeyedCoding], @"Keyed decoding only!");
 		
 		//if we're initializing from an archive, we've obviously been run at least once before

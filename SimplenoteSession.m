@@ -224,8 +224,8 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		return nil;
 	}
 	
-	if ([self initWithUsername:[[prefs syncAccountForServiceName:SimplenoteServiceName] objectForKey:@"username"] 
-				   andPassword:[prefs syncPasswordForServiceName:SimplenoteServiceName]]) {
+	if ((self = [self initWithUsername:[[prefs syncAccountForServiceName:SimplenoteServiceName] objectForKey:@"username"]
+				   andPassword:[prefs syncPasswordForServiceName:SimplenoteServiceName]])) {
 		
 		//create a reachability ref to trigger a sync upon network reestablishment
 		reachableRef = [[self class] createReachabilityRefWithCallback:SNReachabilityCallback target:self];
@@ -237,7 +237,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 
 - (id)initWithUsername:(NSString*)aUserString andPassword:(NSString*)aPassString {
 	
-	if ([super init]) {
+	if ((self = [super init])) {
 		lastSyncedTime = 0.0;
 		reachabilityFailed = NO;
 
@@ -663,11 +663,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		[combined appendString: aNote.title];
 		[combined appendString:sep];
 		[combined appendString:[[aNote contentString] string]];
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
 		[dict setObject:aNote forKey:[NSNumber numberWithUnsignedInteger:[combined hash]]];
-#else
-		[dict setObject:aNote forKey:[NSNumber numberWithUnsignedInt:[combined hash]]];
-#endif
 		[combined release];
 	}
 	return dict;
@@ -703,11 +699,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 	for (i=0; i<[serverNotes count]; i++) {
 		NoteObject *serverNote = [serverNotes objectAtIndex:i];
 		NSDictionary *info = [[collector entriesCollected] objectAtIndex:i];
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
 		NSNumber *contentHashNum = [NSNumber numberWithUnsignedInteger:[[info objectForKey:@"content"] hash]];
-#else
-		NSNumber *contentHashNum = [NSNumber numberWithUnsignedInt:[[info objectForKey:@"content"] hash]];
-#endif
 		NoteObject *matchingLocalNote = [singleNewlineLocalNotes objectForKey:contentHashNum];
 		if (matchingLocalNote || (matchingLocalNote = [doubleNewlineLocalNotes objectForKey:contentHashNum])) {
 			//update matchingLocalNote in place with the sync info from this entry

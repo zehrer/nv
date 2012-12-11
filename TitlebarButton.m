@@ -21,7 +21,7 @@
 @implementation TitlebarButtonCell
 
 - (id)initTextCell:(NSString *)stringValue pullsDown:(BOOL)pullDown {
-	if ([super initTextCell:stringValue pullsDown:pullDown]) {
+	if ((self = [super initTextCell:stringValue pullsDown:pullDown])) {
 		[self setBordered:NO];
 		[self setArrowPosition:NSPopUpNoArrow];
 	}
@@ -133,7 +133,7 @@
 }
 
 - (id)initWithFrame:(NSRect)frameRect pullsDown:(BOOL)flag {
-	if ([super initWithFrame:NSMakeRect(frameRect.origin.x, frameRect.origin.y, 17.0, 17.0) pullsDown:flag]) {
+	if ((self = [super initWithFrame:NSMakeRect(frameRect.origin.x, frameRect.origin.y, 17.0, 17.0) pullsDown:flag])) {
 		
 		TitlebarButtonCell *buttonCell = [[[TitlebarButtonCell alloc] initTextCell:@"" pullsDown:flag] autorelease];
 		[buttonCell setAction:[[self cell] action]];
@@ -199,31 +199,12 @@
 
 
 - (void)mouseDown:(NSEvent *)theEvent {
-		
 	NSRect frame = [[self window] frame];
     _initialDragPoint = [[self window] convertBaseToScreen:[theEvent locationInWindow]];
     _initialDragPoint.x -= frame.origin.x;
     _initialDragPoint.y -= frame.origin.y;
 	
-	//on 10.4 prevent the menu from appearing until mouse-up
-	
-	if (IsLeopardOrLater) {
-		[super mouseDown:theEvent];
-		return;
-	}
-    while (1) {
-        theEvent = [[self window] nextEventMatchingMask: NSLeftMouseUpMask | NSLeftMouseDraggedMask | 
-					NSRightMouseUpMask | NSRightMouseDragged];
-		NSEventType type = [theEvent type];
-		
-		if (type == NSLeftMouseUp || type == NSRightMouseUp) {
-			
-			if ([self mouse:[self convertPoint:[theEvent locationInWindow] fromView:nil] inRect:[self bounds]]) {
-				[[self cell] performClickWithFrame:[self bounds] inView:self];
-			}
-			break;
-		}		
-    }	
+	[super mouseDown:theEvent];
 }
 
 - (BOOL)mouseDownCanMoveWindow {

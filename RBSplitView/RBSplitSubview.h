@@ -20,21 +20,20 @@ typedef enum {
 } RBSSubviewStatus;
 
 @interface RBSplitSubview : NSView {
-    // Subclasses normally should use setter methods instead of changing instance variables by assignment.
-    // Most getter methods simply return the corresponding instance variable, so with some care, subclasses
-    // could reference them directly.
-	NSString* identifier;			// An identifier string for the subview, default is @"".
+// Subclasses normally should use setter methods instead of changing instance variables by assignment.
+// Most getter methods simply return the corresponding instance variable, so with some care, subclasses
+// could reference them directly.
 	NSInteger tag;					// A tag integer for the subview, default is 0.
 	CGFloat minDimension;			// The minimum dimension. Must be 1.0 or any larger integer.
 	CGFloat maxDimension;			// The maximum dimension. Must be at least equal to the minDimension.
-    // Set to a large number if there's no maximum.
+									// Set to a large number if there's no maximum.
 	double fraction;				// A fractional part of the dimension, used for proportional resizing.
-    // Normally varies between -0.999... and 0.999...
-    // When collapsed, holds the proportion of the RBSplitView's dimension
-    // the view was occupying before collapsing.
+									// Normally varies between -0.999... and 0.999...
+									// When collapsed, holds the proportion of the RBSplitView's dimension
+									// the view was occupying before collapsing.
 	NSRect previous;				// Holds the frame rect for the last delegate notification.
 	NSSize savedSize;				// This holds the size the subview had before it was resized beyond
-    // its minimum or maximum limits. Valid if notInLimits is YES.
+									// its minimum or maximum limits. Valid if notInLimits is YES.
 	NSUInteger actDivider;			// This is set temporarily while an alternate drag view is being dragged.
 	BOOL canDragWindow;				// This is set temporarily during a mouseDown on a non-opaque subview.
 	BOOL canCollapse;				// YES if the subview can be collapsed.
@@ -75,10 +74,6 @@ typedef enum {
 // Sets and gets the tag.
 - (void)setTag:(NSInteger)theTag;
 - (NSInteger)tag;
-
-// Sets and gets the identifier string. Will never be nil.
-- (void)setIdentifier:(NSString*)aString;
-- (NSString*)identifier;
 
 // Position means the subview's position within the RBSplitView - counts from zero left to right
 // or top to bottom. Setting it will move the subview to another position without changing its size,

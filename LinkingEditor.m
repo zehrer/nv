@@ -24,11 +24,8 @@
 #import "ETClipView.h"
 //#import "NVTextFinderAdditions.h"
 
-
-#include <CoreServices/CoreServices.h>
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
-#include <Carbon/Carbon.h>
-#endif
+#import <CoreServices/CoreServices.h>
+#import <Carbon/Carbon.h>
 
 #define PASSWORD_SUGGESTIONS 0
 
@@ -69,10 +66,7 @@ CGFloat _perceptualDarkness(NSColor*a);
     prefsController = [GlobalPrefs defaultPrefs];
 	
     [self setContinuousSpellCheckingEnabled:[prefsController checkSpellingAsYouType]];
-	if (IsSnowLeopardOrLater) {
-		[self setAutomaticTextReplacementEnabled:[prefsController useTextReplacement]];
-	}
-
+	[self setAutomaticTextReplacementEnabled:[prefsController useTextReplacement]];
     
     [prefsController registerWithTarget:self forChangesInSettings:
 	 @selector(setCheckSpellingAsYouType:sender:),
@@ -97,10 +91,8 @@ CGFloat _perceptualDarkness(NSColor*a);
     
 	[self updateTextColors];
 	[[self window] setAcceptsMouseMovedEvents:YES];
-	if (IsLeopardOrLater) {
-		defaultIBeamCursorIMP = method_getImplementation(class_getClassMethod([NSCursor class], @selector(IBeamCursor)));
-		whiteIBeamCursorIMP = method_getImplementation(class_getClassMethod([NSCursor class], @selector(whiteIBeamCursor)));
-	}
+	defaultIBeamCursorIMP = method_getImplementation(class_getClassMethod([NSCursor class], @selector(IBeamCursor)));
+	whiteIBeamCursorIMP = method_getImplementation(class_getClassMethod([NSCursor class], @selector(whiteIBeamCursor)));
 	
 	didRenderFully = NO;
 	[[self layoutManager] setDelegate:self];
@@ -123,9 +115,8 @@ CGFloat _perceptualDarkness(NSColor*a);
 		
 	} else if ([selectorString isEqualToString:SEL_STR(setUseTextReplacement:sender:)]) {
 		
-		if (IsSnowLeopardOrLater) {
-			[self setAutomaticTextReplacementEnabled:[prefsController useTextReplacement]];
-		}
+		[self setAutomaticTextReplacementEnabled:[prefsController useTextReplacement]];
+
     } else if ([selectorString isEqualToString:SEL_STR(setNoteBodyFont:sender:)]) {
 
 		[self setTypingAttributes:[prefsController noteBodyAttributes]];
@@ -220,9 +211,7 @@ CGFloat _perceptualDarkness(NSColor*a);
 }
 
 - (void)indicateRange:(NSValue*)rangeValue {
-	if (IsLeopardOrLater) {
-		[self showFindIndicatorForRange:[rangeValue rangeValue]];
-	}
+	[self showFindIndicatorForRange:[rangeValue rangeValue]];
 }
 
 - (BOOL)resignFirstResponder {
@@ -431,9 +420,13 @@ CGFloat _perceptualColorDifference(NSColor*a, NSColor*b) {
 	if ([type isEqualToString:NSRTFPboardType] || [type isEqualToString:NVPTFPboardType] || [type isEqualToString:NSHTMLPboardType]) {
 		//strip formatting if RTF and stick it into a new pboard
 		
-		NSMutableAttributedString *newString = [[[NSMutableAttributedString alloc] performSelector:[type isEqualToString:NSHTMLPboardType] ? 
-												 @selector(initWithHTML:documentAttributes:) : @selector(initWithRTF:documentAttributes:) 
-																						withObject:[pboard dataForType:type] withObject:nil] autorelease];
+		NSMutableAttributedString *newString = nil;
+		if ([type isEqualToString:NSHTMLPboardType]) {
+			newString = [[[NSMutableAttributedString alloc] initWithHTML: [pboard dataForType: type] documentAttributes: nil] autorelease];
+		} else {
+			newString = [[[NSMutableAttributedString alloc] initWithRTF: [pboard dataForType: type] documentAttributes: nil] autorelease];
+		}
+		
 		if ([newString length]) {
 			NSRange selectedRange = [self rangeForUserTextChange];
 			if ([self shouldChangeTextInRange:selectedRange replacementString:[newString string]]) {
@@ -1016,7 +1009,7 @@ copyRTFType:
         NSUInteger closer=[self cursorIsInsidePair:@"]"];   
         if ((closer!=NSNotFound)||([self cursorIsImmediatelyPastPair:@"]"])){ 
             NSUInteger insertPt=selectedRange.location;
-            NSRange selRange=NSMakeRange(NSNotFound, 0);
+            NSRange selRange;
             NSString *insertString;
             NSString *testString=self.activeParagraphPastCursor;
             if (closer!=NSNotFound) {
@@ -1300,8 +1293,7 @@ copyRTFType:
 }
 
 - (void)fixCursorForBackgroundUpdatingMouseInside:(BOOL)setMouseInside {
-	
-	if (IsLeopardOrLater && whiteIBeamCursorIMP && defaultIBeamCursorIMP) {
+	if (whiteIBeamCursorIMP && defaultIBeamCursorIMP) {
 		if (setMouseInside)
 			mouseInside = [self mouse:[self convertPoint:[[self window] mouseLocationOutsideOfEventStream] fromView:nil] inRect:[self bounds]];
 		
@@ -1383,19 +1375,12 @@ copyRTFType:
 	}else if (action==@selector(performFindPanelAction:)) {
         //for ElasticThreads Find... fix. Also make sure all Find menuItems point their targets to LinkingEditor instead of firstResponder
         
-        //hide Find and Replace... on Pre-Lion machines
-        if (!IsLionOrLater){
-            if([menuItem tag]==12) {
-            [menuItem setHidden:YES];
-            return NO;
-            }
-        }else{
-            if ([menuItem tag]==7) {
-                if (![textFinder validateAction:[menuItem tag]]) {
-                    return NO;
-                }
-            }
-        }
+        //hide Find and Replace...
+		if ([menuItem tag]==7) {
+			if (![textFinder validateAction:[menuItem tag]]) {
+				return NO;
+			}
+		}
         return YES;
     }else if (action==@selector(pasteMarkdownLink:)) {
         
@@ -1626,15 +1611,11 @@ static long (*GetGetScriptManagerVariablePointer())(short) {
 	
 	BOOL currentKeyboardInputIsSystemLanguage = NO;
 	
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     TISInputSourceRef inputRef = TISCopyCurrentKeyboardInputSource();
     NSArray* inputLangs = [[(NSArray*)TISGetInputSourceProperty(inputRef, kTISPropertyInputSourceLanguages) retain] autorelease];
     CFRelease(inputRef);
     NSString *preferredLang = [[NSLocale autoupdatingCurrentLocale] objectForKey:NSLocaleLanguageCode];
     currentKeyboardInputIsSystemLanguage = nil != preferredLang && [inputLangs containsObject:preferredLang];
-#else
-	currentKeyboardInputIsSystemLanguage = GetScriptManagerVariable(smSysScript) == GetScriptManagerVariable(smKeyScript);
-#endif
 	
 	if (currentKeyboardInputIsSystemLanguage) {
 		//only attempt to restore fonts (with styles of course) if the current script is system default--that is, not using an input method that would change the font
@@ -1685,13 +1666,9 @@ static long (*GetGetScriptManagerVariablePointer())(short) {
 		
 		//sometimes the temporary attributes are split across juxtaposing characters for some reason, so longest-effective-range is necessary
 		//unfortunately there is no such method on Tiger, and I'm not about to emulate its coalescing behavior here
-		if (IsLeopardOrLater) {
-			bulletIndicator = [[self layoutManager] temporaryAttribute:NVHiddenBulletIndentAttributeName atCharacterIndex:NSMaxRange(effectiveRange) 
+		bulletIndicator = [[self layoutManager] temporaryAttribute:NVHiddenBulletIndentAttributeName atCharacterIndex:NSMaxRange(effectiveRange)
 												 longestEffectiveRange:&effectiveRange inRange:aRange];
-		} else {
-			NSDictionary *dict = [[self layoutManager] temporaryAttributesAtCharacterIndex:NSMaxRange(effectiveRange) effectiveRange:&effectiveRange];
-			bulletIndicator = [dict objectForKey:NVHiddenBulletIndentAttributeName];
-		}
+		
 		if (bulletIndicator && NSEqualRanges(effectiveRange, aRange)) {
 			return YES;
 		}
@@ -1766,12 +1743,11 @@ static long (*GetGetScriptManagerVariablePointer())(short) {
 - (void)setupFontMenu {
 	NSMenu *theMenu = [[[NSMenu alloc] initWithTitle:@"NVFontMenu"] autorelease];
 	NSMenuItem *theMenuItem;
-	if(IsLeopardOrLater){
-        
-        theMenuItem = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Enter Full Screen",@"menu item title for entering fullscreen") action:@selector(switchFullScreen:) keyEquivalent:@""] autorelease];
-        [theMenuItem setTarget:[NSApp delegate]];
-        [theMenu addItem:theMenuItem];         
-	}
+	
+	theMenuItem = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Enter Full Screen",@"menu item title for entering fullscreen") action:@selector(switchFullScreen:) keyEquivalent:@""] autorelease];
+	[theMenuItem setTarget:[NSApp delegate]];
+	[theMenu addItem:theMenuItem];
+
     theMenuItem = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Insert Link",@"insert link menu item title") action:@selector(insertLink:) keyEquivalent:@""] autorelease];
 	[theMenuItem setTarget:self];
 	[theMenu addItem:theMenuItem];
@@ -1829,14 +1805,11 @@ static long (*GetGetScriptManagerVariablePointer())(short) {
 		
         NSMenu *editMenu = [[NSApp mainMenu] numberOfItems] > 2 ? [[[NSApp mainMenu] itemAtIndex:2] submenu] : nil;
 		
-//		if (IsSnowLeopardOrLater) {
-//            
-//			theMenuItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Use Automatic Text Replacement", "use-text-replacement command in the edit menu")
-//													 action:@selector(toggleAutomaticTextReplacement:) keyEquivalent:@""];
-//			[theMenuItem setTarget:self];
-//			[editMenu addItem:theMenuItem];
-//			[theMenuItem release];
-//		}
+//		theMenuItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Use Automatic Text Replacement", "use-text-replacement command in the edit menu") action:@selector(toggleAutomaticTextReplacement:) keyEquivalent:@""];
+//		[theMenuItem setTarget:self];
+//		[editMenu addItem:theMenuItem];
+//		[theMenuItem release];
+
 		theMenuItem = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Insert Link",@"insert link menu item title") action:@selector(insertLink:) keyEquivalent:@"L"] autorelease];
         [theMenuItem setTarget:self];
         [editMenu addItem:theMenuItem];
@@ -1870,14 +1843,9 @@ static long (*GetGetScriptManagerVariablePointer())(short) {
     [self insertText:password];
     @try {
     NSPasteboard *pb = [NSPasteboard generalPasteboard];
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
     NSPasteboardItem *pbitem = [[[NSPasteboardItem alloc] init] autorelease];
     [pbitem setData:[password dataUsingEncoding:NSUTF8StringEncoding] forType:@"public.plain-text"];
     [pb writeObjects:[NSArray arrayWithObject:pbitem]];
-    #else
-    [pb declareTypes:[NSArray arrayWithObject:NSStringPboardType] owner:nil];
-    [pb setString:password forType:NSStringPboardType];
-    #endif
     } @catch (NSException *e) {}
 }
 
@@ -1900,9 +1868,7 @@ static long (*GetGetScriptManagerVariablePointer())(short) {
 
 - (void)dealloc {
 	[[NSNotificationCenter defaultCenter] removeObserver: self];
-    if (IsLionOrLater) {
-        [textFinder release];
-    }
+    [textFinder release];
     [activeParagraphPastCursor release];
     [activeParagraph release];
     [activeParagraphBeforeCursor release];
@@ -2183,24 +2149,15 @@ static long (*GetGetScriptManagerVariablePointer())(short) {
 
 #pragma mark ElasticThreads Lion Find... implementation
 - (void)prepareTextFinder{        
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
-    if (IsLionOrLater) {
-        
-        
-        [self setUsesFindBar:YES];
-        
-        [self setIncrementalSearchingEnabled:YES];
-        textFinder=[[[NSTextFinder alloc]init]retain];
-        [textFinder setClient:self];
-        
-        [textFinder setIncrementalSearchingEnabled:YES];
-//        [textFinder setIncrementalSearchingShouldDimContentView:NO];
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(textFinderShouldUpdateContext:) name:@"TextFindContextDidChange" object:nil];
-         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(hideTextFinderIfNecessary:) name:@"TextFinderShouldHide" object:nil];
-        return;       
-    }
-#endif
-    [self prepareTextFinderPreLion];
+	[self setUsesFindBar:YES];
+	
+	[self setIncrementalSearchingEnabled:YES];
+	textFinder=[[[NSTextFinder alloc]init]retain];
+	[textFinder setClient:self];
+	
+	[textFinder setIncrementalSearchingEnabled:YES];
+	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(textFinderShouldUpdateContext:) name:@"TextFindContextDidChange" object:nil];
+	 [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(hideTextFinderIfNecessary:) name:@"TextFinderShouldHide" object:nil];
 }
 
 - (void)prepareTextFinderPreLion{
@@ -2221,32 +2178,22 @@ static long (*GetGetScriptManagerVariablePointer())(short) {
 }
 
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
 - (void)textFinderShouldUpdateContext:(NSNotification *)aNotification{
-    
-    if (IsLionOrLater){        
-        [textFinder setFindIndicatorNeedsUpdate:YES];
-    }
+	[textFinder setFindIndicatorNeedsUpdate:YES];
 }
 
 - (void)hideTextFinderIfNecessary:(NSNotification *)aNotification{
-    if (IsLionOrLater){        
-        if([self textFinderIsVisible]){            
-            [textFinder setFindIndicatorNeedsUpdate:YES];
-            [textFinder cancelFindIndicator];
-            [textFinder performAction:NSTextFinderActionHideFindInterface];
-            //                [[NSNotificationCenter defaultCenter] removeObserver:self name:@"TextFindContextDidChange" object:nil];
-        }
-    }
+	if([self textFinderIsVisible]){            
+		[textFinder setFindIndicatorNeedsUpdate:YES];
+		[textFinder cancelFindIndicator];
+		[textFinder performAction:NSTextFinderActionHideFindInterface];
+	}
 }
-#endif
 
 - (BOOL)textFinderIsVisible{
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
-    if ((IsLionOrLater)&&([[self enclosingScrollView]findBarView]!=nil)) {
+    if ([[self enclosingScrollView]findBarView]!=nil) {
         return [[[self enclosingScrollView] subviews]containsObject:[[self enclosingScrollView]findBarView]];
     }
-#endif
     return NO;
 }
 
@@ -2258,13 +2205,8 @@ static long (*GetGetScriptManagerVariablePointer())(short) {
     NSInteger findTag=[sender tag];
     
     [sender setTarget:self];
-    if(!IsLionOrLater||([sender tag]!=7)){
-        NSString *pbType;
-        if (IsSnowLeopardOrLater) {
-            pbType=NSPasteboardTypeString;
-        }else{
-            pbType=NSStringPboardType;
-        }
+    if ([sender tag]!=7){
+        NSString *pbType=NSPasteboardTypeString;
         NSString *typedString = [controller typedString];
         if (!typedString) typedString = [controlField stringValue];
         if (!typedString||([typedString length]==0)) {
@@ -2288,63 +2230,46 @@ static long (*GetGetScriptManagerVariablePointer())(short) {
     if ([[self window] firstResponder]!=self) {
         [[self window]makeFirstResponder:self];
     }
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
-    if (IsLionOrLater) {
         
-        id newSender=[sender copy];
-        if((findTag!=1)&&(findTag!=12)&&(findTag!=7)&&(![self textFinderIsVisible])){            
-            [newSender setTag:NSTextFinderActionShowFindInterface];
-            [super performTextFinderAction:newSender];
-        } 
-        if (findTag==1) {
-            findTag=NSTextFinderActionShowFindInterface;
-        }else if (findTag==2) {            
-            findTag=NSTextFinderActionNextMatch;
-        }else if (findTag==3) {
-            findTag=NSTextFinderActionPreviousMatch;
-        }else if (findTag==4) {
-            findTag=NSTextFinderActionReplaceAll;
-        }else if (findTag==5) {
-            findTag=NSTextFinderActionReplace;
-        }else if (findTag==6) {
-            findTag=NSTextFinderActionReplaceAndFind;
-        }else if (findTag==7) {
+	id newSender=[sender copy];
+	if((findTag!=1)&&(findTag!=12)&&(findTag!=7)&&(![self textFinderIsVisible])){            
+		[newSender setTag:NSTextFinderActionShowFindInterface];
+		[super performTextFinderAction:newSender];
+	} 
+	if (findTag==1) {
+		findTag=NSTextFinderActionShowFindInterface;
+	}else if (findTag==2) {            
+		findTag=NSTextFinderActionNextMatch;
+	}else if (findTag==3) {
+		findTag=NSTextFinderActionPreviousMatch;
+	}else if (findTag==4) {
+		findTag=NSTextFinderActionReplaceAll;
+	}else if (findTag==5) {
+		findTag=NSTextFinderActionReplace;
+	}else if (findTag==6) {
+		findTag=NSTextFinderActionReplaceAndFind;
+	}else if (findTag==7) {
 //            NSLog(@"aqui2");
-            findTag=(NSTextFinderActionSetSearchString);
-        }else if (findTag==9) {
-            findTag=NSTextFinderActionSelectAll;
-        }else if (findTag==12) {
-            findTag=NSTextFinderActionShowReplaceInterface;
-        }//NSTextFinderActionSelectAll = 9,
-        [newSender setTag:findTag];
-        
-        if ([textFinder validateAction:findTag]) {
-            [super performTextFinderAction:newSender]; 
-            if ((findTag==NSTextFinderActionSetSearchString)&&(![self textFinderIsVisible])) {
-                [newSender setTag:NSTextFinderActionShowFindInterface];
-                [super performTextFinderAction:newSender];
-            }
-            
+		findTag=(NSTextFinderActionSetSearchString);
+	}else if (findTag==9) {
+		findTag=NSTextFinderActionSelectAll;
+	}else if (findTag==12) {
+		findTag=NSTextFinderActionShowReplaceInterface;
+	}//NSTextFinderActionSelectAll = 9,
+	[newSender setTag:findTag];
+	
+	if ([textFinder validateAction:findTag]) {
+		[super performTextFinderAction:newSender]; 
+		if ((findTag==NSTextFinderActionSetSearchString)&&(![self textFinderIsVisible])) {
+			[newSender setTag:NSTextFinderActionShowFindInterface];
+			[super performTextFinderAction:newSender];
+		}
+		
 //            [textFinder setFindIndicatorNeedsUpdate:YES];
-        }else{
-            NSLog(@"find action was invalid");
-        }
-        [newSender release];
-        return;
-    }
-#endif
-    //not lion do it the old, hacky way
-    if([sender tag]==1){
-        if(lastImportedFindString&&(lastImportedFindString.length>0)&&([textFinder respondsToSelector:@selector(loadFindStringFromPasteboard)])){                
-            if(![textFinder loadFindStringFromPasteboard]){
-                [textFinder setFindString:lastImportedFindString writeToPasteboard:YES updateUI:YES];
-            }
-        }
-//        else{
-//            NSLog(@"Apple changed NSTextFinder (loadFindStringFromPasteboard)");
-//        }	
-    }
-    [super performFindPanelAction:sender];    
+	}else{
+		NSLog(@"find action was invalid");
+	}
+	[newSender release];
 }
 
 - (IBAction)toggleLayoutOrientation:(id)sender {

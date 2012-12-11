@@ -35,7 +35,7 @@ static NSString *RAMDiskMountPath();
 static NSString *TempDirectoryPathForEditing();
 
 - (id)init {
-	if ([super init]) {
+	if ((self = [super init])) {
 		
 		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(taskTerminated:) 
 													 name:NSTaskDidTerminateNotification object:nil];
@@ -198,13 +198,8 @@ static NSString *TempDirectoryPathForEditing() {
 	NSError *err = nil;
 	NSFileManager *fileMan = [NSFileManager defaultManager];
 	BOOL isDirectory = NO, didCreate = ([fileMan fileExistsAtPath:path isDirectory:&isDirectory] && isDirectory) ? YES : 
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
 	[fileMan createDirectoryAtPath:path withIntermediateDirectories:NO attributes:
 	 [NSDictionary dictionaryWithObject:[NSNumber numberWithUnsignedLong:0700] forKey:NSFilePosixPermissions] error:&err];
-#else
-	[fileMan createDirectoryAtPath:path attributes:
-	 [NSDictionary dictionaryWithObject:[NSNumber numberWithUnsignedLong:0700] forKey:NSFilePosixPermissions]];
-#endif
 	if (!didCreate) NSLog(@"couldn't create directory '%@': %@", path, (err ? [err localizedDescription] : @"(unknown error)"));
 	return didCreate;
 }

@@ -49,10 +49,7 @@
 #define TextilePreview 13373
 #endif
 
-@interface AppController : NSObject 
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
-<NSToolbarDelegate, NSTableViewDelegate, NSWindowDelegate, NSTextFieldDelegate, NSTextViewDelegate>
-#endif
+@interface AppController : NSObject <NSToolbarDelegate, NSTableViewDelegate, NSWindowDelegate, NSTextFieldDelegate, NSTextViewDelegate>
 {
 	IBOutlet NSMenuItem *fsMenuItem;
 	BOOL wasVert;
@@ -232,9 +229,6 @@ void outletObjectAwoke(id sender);
 - (void)reActivate:(id)sender;
 - (NSArray *)referenceLinksInString:(NSString *)contentString;
 - (IBAction)testThing:(id)sender;
-
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
 - (void)postToggleToolbar:(NSNumber *)boolNum;
-#endif
 
 @end

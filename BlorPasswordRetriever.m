@@ -27,7 +27,7 @@
 @implementation BlorPasswordRetriever
 
 - (id)initWithBlor:(NSString*)blorPath {
-	if ([super init]) {
+	if ((self = [super init])) {
 		path = [blorPath retain];
 		
 		couldRetrieveFromKeychain = NO;
@@ -168,7 +168,7 @@
 @implementation BlorNoteEnumerator
 
 - (id)initWithBlor:(NSString*)blorPath passwordHashData:(NSData*)passwordHashData {
-	if ([super init]) {
+	if ((self = [super init])) {
 		path = [blorPath retain];
 		
 		if (!(keyData = [passwordHashData retain]))
@@ -240,7 +240,7 @@
 	ASSERT_CAN_READ_BYTE_COUNT(titleBytesLength);
 	[self decryptNextBytesOfLength:titleBytesLength];
 	NSData *titleData = [NSData dataWithBytesNoCopy:[blorData mutableBytes] + currentByteOffset length:titleBytesLength freeWhenDone:NO];
-	NSString *titleString = [[NSString alloc] initWithData:titleData encoding:NSUnicodeStringEncoding];
+	NSString *titleString = [[[NSString alloc] initWithData:titleData encoding:NSUnicodeStringEncoding] autorelease];
 	currentByteOffset += titleBytesLength;
 	
 	int bodyBufferBytesLength, bodyBytesLength;
@@ -273,7 +273,6 @@
 
 	[bodyString release];
 	[attributedBody release];
-	[titleString release];
 	
 	successfullyReadNoteCount++;
 	

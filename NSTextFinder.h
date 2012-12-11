@@ -11,13 +11,8 @@
 //
 //#import <Cocoa/Cocoa.h>
 //
-//#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
 //@interface NVTextFinder : NSTextFinder
-//#else
-//@interface NSTextFinder : NSObject
-//#endif
 //{
-//#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
 //    //10.6
 //    NSComboBox *findComboBox;
 //    NSComboBox *replaceComboBox;
@@ -42,26 +37,6 @@
 //    NSMutableArray *recentFindOptions;
 //    NSMutableArray *recentReplaceStrings;
 //    NSInteger numberOfRecentStrings;
-//#else
-//    // 10.4
-//    NSTextField *findTextField;
-//    NSTextField *replaceTextField;
-//    NSTextField *statusField;
-//    NSButton *ignoreCaseButton;
-//    NSButton *replaceAllButton;
-//    NSButton *replaceButton;
-//    NSButton *findNextButton;
-//    NSButton *findPreviousButton;
-//    NSButton *replaceAndFindButton;
-//    NSButton *wrapAroundButton;
-//    NSPopUpButton *matchPopUp;
-//    NSTextView *fieldEditor;
-//    NSString *findString;
-//@public
-//    BOOL lastFindWasSuccessful;
-//    BOOL findStringChangedInUI;
-//    BOOL findStringNeedsToBeRefreshedFromPB;
-//#endif
 //}
 //
 //+ (id)sharedTextFinder;

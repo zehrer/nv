@@ -208,7 +208,7 @@ static BOOL VolumeSupportsExchangeObjects(NotationController *controller) {
 		//ah but what happens when a non-hfs disk is first mounted on leopard+, and then moves to a tiger machine?
 		//or vise-versa; that calls for tracking how the UUIDs were generated, and grouping them together when others are found;
 		//this is probably unnecessary for now
-		if (!diskUUID && IsLeopardOrLater) {
+		if (!diskUUID) {
 			//this is not an hfs disk, and this computer is new enough to have FSEvents	
 			diskUUID = FSEventsCopyUUIDForDevice(sfsb->f_fsid.val[0]);
 		}
@@ -662,26 +662,28 @@ terminate:
 			
 			FSRef duplicateFile;
 			err = FSMakeFSRefUnicode(&folder, name.length, name.unicode, kTextEncodingUnknown, &duplicateFile);
-			int i = 1, j;
-			while (1) {
-				i++;
-				// attempt to create new unique name
-				HFSUniStr255 newName = name;
-				char num[16];
-				int numLen;
-				
-				numLen = sprintf(num, "%d", i);
-				newName.unicode[origLen] = ' ';
-				for (j=0; j < numLen; j++)
-					newName.unicode[origLen + j + 1] = num[j];
-				newName.length = origLen + numLen + 1;
-				
-				err = FSRenameUnicode(&duplicateFile, newName.length, newName.unicode, kTextEncodingUnknown, NULL);
-				if (err != dupFNErr)
-					break;
-			}    
-			if (err == noErr)
-				err = FSMoveObject(childRef, &folder, NULL);    
+			
+			if (err == noErr) {
+				int i = 1, j;
+				while (1) {
+					i++;
+					// attempt to create new unique name
+					HFSUniStr255 newName = name;
+					char num[16];
+					int numLen;
+					
+					numLen = sprintf(num, "%d", i);
+					newName.unicode[origLen] = ' ';
+					for (j=0; j < numLen; j++)
+						newName.unicode[origLen + j + 1] = num[j];
+					newName.length = origLen + numLen + 1;
+					
+					err = FSRenameUnicode(&duplicateFile, newName.length, newName.unicode, kTextEncodingUnknown, NULL);
+					if (err != dupFNErr)
+						break;
+				}
+				if (err == noErr) err = FSMoveObject(childRef, &folder, NULL);
+			}
 		}
 	}
 	

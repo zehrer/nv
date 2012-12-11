@@ -26,19 +26,13 @@
 @implementation UnifiedCell
 
 - (id)init {
-	if ([super init]) {
+	if ((self = [super init])) {
 
 		//should be handled by NSParagraphStyle in our string, as it is more complex than this
-//		[self setLineBreakMode:NSLineBreakByTruncatingTail];
-		if (IsLeopardOrLater)
-			[self setTruncatesLastVisibleLine:YES];
+		[self setTruncatesLastVisibleLine:YES];
 		[self setEditable:YES];
 	}
 	return self;
-}
-
-- (void)dealloc {
-	[super dealloc];
 }
 
 #if 0
@@ -179,12 +173,12 @@ NSAttributedString *AttributedStringForSelection(NSAttributedString *str, BOOL w
 	//draw note date and tags
 
 	NSMutableDictionary *baseAttrs = [self baseTextAttributes];
-	BOOL isActive = (IsLeopardOrLater && [tv selectionHighlightStyle] == NSTableViewSelectionHighlightStyleSourceList) ? YES : [tv isActiveStyle];
+	BOOL isActive = ([tv selectionHighlightStyle] == NSTableViewSelectionHighlightStyleSourceList) ? YES : [tv isActiveStyle];
 	
 	NSColor *textColor = ([self isHighlighted] && isActive) ? [NSColor whiteColor] : (![self isHighlighted] ? [[self class] dateColorForTint]/*[NSColor grayColor]*/ : nil);
 	if (textColor)
 		[baseAttrs setObject:textColor forKey:NSForegroundColorAttributeName];
-	if (IsSnowLeopardOrLater && [self isHighlighted] && ([tv selectionHighlightStyle] == NSTableViewSelectionHighlightStyleSourceList)) {
+	if ([self isHighlighted] && ([tv selectionHighlightStyle] == NSTableViewSelectionHighlightStyleSourceList)) {
 		[baseAttrs setObject:ShadowForSnowLeopard() forKey:NSShadowAttributeName];
 	}
 	

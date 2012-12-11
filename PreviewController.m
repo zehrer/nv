@@ -166,13 +166,9 @@
     [scrlView setVerticalScroller:theScroller];
     [theScroller release];
     [scrlView setScrollsDynamically:YES];
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
-    if (IsLionOrLater) {
-        [scrlView setHorizontalScrollElasticity:NSScrollElasticityNone];
-        [scrlView setVerticalScrollElasticity:NSScrollElasticityAutomatic];
-        [scrlView setScrollerStyle:NSScrollerStyleOverlay];
-    }
-#endif
+	[scrlView setHorizontalScrollElasticity:NSScrollElasticityNone];
+	[scrlView setVerticalScrollElasticity:NSScrollElasticityAutomatic];
+	[scrlView setScrollerStyle:NSScrollerStyleOverlay];  
 }
 
 //this returns a nice name for the method in the JavaScript environment
@@ -358,16 +354,14 @@
 	[outputString replaceOccurrencesOfString:@"{%style%}" withString:cssString options:0 range:NSMakeRange(0, [outputString length])];
 
 	[[preview mainFrame] loadHTMLString:outputString baseURL:nil];
-  [[preview window] setTitle:noteTitle];
-
-	[sourceView replaceCharactersInRange:NSMakeRange(0, [[sourceView string] length]) withString:processedString];
+	preview.window.title = noteTitle;
+	[sourceView replaceCharactersInRange:NSMakeRange(0, sourceView.string.length) withString:processedString];
     self.isPreviewOutdated = NO;
 }
 
 -(SEL)markupProcessorSelector:(NSInteger)previewMode
 {
     if (previewMode == MarkdownPreview) {
-		previewMode = MultiMarkdownPreview;
         return @selector(stringWithProcessedMultiMarkdown:);
     } else if (previewMode == MultiMarkdownPreview) {
         return @selector(stringWithProcessedMultiMarkdown:);
@@ -457,7 +451,7 @@
 -(IBAction)shareNote:(id)sender
 {
   AppController *app = [NSApp delegate];
-	NSString *noteTitle = app.selectedNoteObject ? [app.selectedNoteObject.title copy] : @"";
+	NSString *noteTitle = app.selectedNoteObject ? [[app.selectedNoteObject.title copy] autorelease] : @"";
   NSString *rawString = [app noteContent];
   SEL mode = [self markupProcessorSelector:[app currentPreviewMode]];
   NSString *processedString = [NSString performSelector:mode withObject:rawString];
@@ -564,9 +558,9 @@
     [includeTemplate setEnabled:YES];
     [templateNote setStringValue:@"Select this to embed the ouput within your current preview HTML and CSS"];
   }
-
-	NSString *noteTitle =  ([app selectedNoteObject]) ? [NSString stringWithFormat:@"%@",titleOfNote([app selectedNoteObject])] : @"";
-	[savePanel beginSheetForDirectory:nil file:noteTitle modalForWindow:[self window] modalDelegate:self
+  
+	NSString *noteTitle = app.selectedNoteObject ? [[app.selectedNoteObject.title copy] autorelease] : @"";
+	[savePanel beginSheetForDirectory:nil file:noteTitle modalForWindow:[self window] modalDelegate:self 
 					   didEndSelector:@selector(savePanelDidEnd:returnCode:contextInfo:) contextInfo:nil];
 
 

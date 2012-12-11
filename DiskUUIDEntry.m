@@ -22,7 +22,7 @@
 @implementation DiskUUIDEntry
 
 - (id)initWithUUIDRef:(CFUUIDRef)aUUIDRef {
-	if ([super init]) {
+	if ((self = [super init])) {
 		NSAssert(aUUIDRef != nil, @"need a real UUID");
 		uuidRef = CFRetain(aUUIDRef);
 		lastAccessed = [[NSDate date] retain];
@@ -48,7 +48,7 @@
 - (id)initWithCoder:(NSCoder*)decoder {
 	NSAssert([decoder allowsKeyedCoding], @"keyed-decoding only!");
 	
-    if ([super init]) {
+    if ((self = [super init])) {
 
 		lastAccessed = [[decoder decodeObjectForKey:VAR_STR(lastAccessed)] retain];
 		

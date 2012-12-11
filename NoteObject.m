@@ -311,7 +311,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	[cell setPreviewIsHidden:NO];
 
 	BOOL rowSelected = [tv isRowSelected:row];
-	BOOL drawShadow = IsSnowLeopardOrLater || (IsLeopardOrLater && rowSelected && [tv currentEditor]);
+	BOOL drawShadow = YES;
 	
 	id obj = note->tableTitleString ? (rowSelected ? (id)AttributedStringForSelection(note->tableTitleString, drawShadow) : 
 									   (id)note->tableTitleString) : note.title;
@@ -327,7 +327,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 #define DECODE_INDIVIDUALLY 1
 
 - (id)initWithCoder:(NSCoder*)decoder {
-	if ([self init]) {
+	if ((self = [self init])) {
 		
 		if ([decoder allowsKeyedCoding]) {
 			//(hopefully?) no versioning necessary here
@@ -454,7 +454,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		[coder encodeInt32:currentFormatID forKey:VAR_STR(currentFormatID)];
 		[coder encodeInt32:logicalSize forKey:VAR_STR(logicalSize)];
 
-		uint8_t *flippedPerDiskInfoGroups = calloc(perDiskInfoGroupCount, sizeof(PerDiskInfo));
+		void *flippedPerDiskInfoGroups = calloc(perDiskInfoGroupCount, sizeof(PerDiskInfo));
 		CopyPerDiskInfoGroupsToOrder((PerDiskInfo**)&flippedPerDiskInfoGroups, &perDiskInfoGroupCount, perDiskInfoGroups, perDiskInfoGroupCount * sizeof(PerDiskInfo), 0);
 		
 		[coder encodeBytes:flippedPerDiskInfoGroups length:perDiskInfoGroupCount * sizeof(PerDiskInfo) forKey:VAR_STR(perDiskInfoGroups)];
@@ -511,7 +511,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 
 - (id)initWithNoteBody:(NSAttributedString*)bodyText title:(NSString*)aNoteTitle delegate:(id)aDelegate format:(int)formatID labels:(NSString*)aLabelString {
 	//delegate optional here
-    if ([self init]) {
+    if ((self = [self init])) {
 		
 		if (!bodyText || !aNoteTitle) {
 			return nil;
@@ -625,7 +625,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		
 		//could cache dumbwordcount here for faster launch, but string creation takes more time, anyway
 		//if (wordCountString) CFRelease((CFStringRef*)wordCountString); //this is CFString, so bridge will just call back to CFRelease, anyway
-		//wordCountString = (NSString*)CFStringFromBase10Integer(DumbWordCount(cContents, len));
+		//wordCountString = (NSString*)CFStringCreateFromBase10Integer(DumbWordCount(cContents, len));
 	}
 }
 
@@ -646,7 +646,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	}
 	
 	//if (len < 0) len = strlen(cContents);
-	//wordCountString = (NSString*)CFStringFromBase10Integer(DumbWordCount(cContents, len));
+	//wordCountString = (NSString*)CFStringCreateFromBase10Integer(DumbWordCount(cContents, len));
 	
 	contentCacheNeedsUpdate = NO;
 }
@@ -948,6 +948,8 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		//these end up calling replaceMatchingLabel*
 		[delegate note:self didRemoveLabelSet:oldLabels];
 		[delegate note:self didAddLabelSet:newLabels];
+		
+		[oldLabels release];
 	}
 }
 
@@ -1734,11 +1736,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 }
 -(void)odbEditor:(ODBEditor *)editor didClosefile:(NSString *)path context:(NSDictionary *)context {
 	//remove the temp file	
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
 	[[NSFileManager defaultManager] removeItemAtPath:path error:NULL];
-#else
-	[[NSFileManager defaultManager] removeFileAtPath:path handler:nil];
-#endif
 }
 
 - (NSRange)nextRangeForWords:(NSArray*)words options:(unsigned)opts range:(NSRange)inRange {

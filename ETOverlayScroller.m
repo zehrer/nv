@@ -10,11 +10,9 @@
 
 @implementation ETOverlayScroller
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
 + (BOOL)isCompatibleWithOverlayScrollers {
     return self == [ETOverlayScroller class];
 }
-#endif
 
 - (id)initWithFrame:(NSRect)frameRect{
 	if ((self=[super initWithFrame:frameRect])) {	

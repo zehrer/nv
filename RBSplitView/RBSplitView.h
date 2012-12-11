@@ -19,9 +19,9 @@ typedef enum {
 } RBSVCursorType;
 
 @interface RBSplitView : RBSplitSubview {
-    // Subclasses normally should use setter methods instead of changing instance variables by assignment.
-    // Most getter methods simply return the corresponding instance variable, so with some care, subclasses
-    // could reference them directly.
+// Subclasses normally should use setter methods instead of changing instance variables by assignment.
+// Most getter methods simply return the corresponding instance variable, so with some care, subclasses
+// could reference them directly.
 	IBOutlet id delegate;		// The delegate (may be nil).
 	NSString* autosaveName;		// This name is used for storing subview proportions in user defaults.
 	NSColor* background;		// The color used to paint the view's background (may be nil).

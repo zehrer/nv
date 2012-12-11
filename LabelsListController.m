@@ -32,7 +32,7 @@
 @implementation LabelsListController
 
 - (id)init {
-	if ([super init]) {
+	if ((self = [super init])) {
 	    
 	    allLabels = [[NSCountedSet alloc] init]; //authoritative
 	    //for faster(?) filtering during search
@@ -104,13 +104,6 @@
 	return titles;
 }
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_5
-static CGRect NSRectToCGRect(NSRect nsrect) {
-    union _ {NSRect ns; CGRect cg;};
-    return ((union _ *)&nsrect)->cg;
-}
-#endif
-
 - (void)invalidateCachedLabelImages {
 	//used when the list font size changes
 	[labelImages removeAllObjects];
@@ -171,9 +164,11 @@ static CGRect NSRectToCGRect(NSRect nsrect) {
     NSMutableSet *notesOfLabels = [[NSMutableSet alloc] init];
 
     for (i=0; i<numLabels; i++) {
-	NSUInteger labelIndex = labelsBuffer[i];
-	[notesOfLabels unionSet:[objects[labelIndex] noteSet]];
+		NSUInteger labelIndex = labelsBuffer[i];
+		[notesOfLabels unionSet:[objects[labelIndex] noteSet]];
     }
+	
+	free(labelsBuffer);
     
     return [notesOfLabels autorelease];
 }

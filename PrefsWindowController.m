@@ -26,7 +26,7 @@
 @implementation PrefsWindowController
 
 - (id)init {
-    if ([super init]) {
+    if ((self = [super init])) {
 		prefsController = [GlobalPrefs defaultPrefs];
 		fontPanelWasOpen = NO;
       // remove opacity slider from color pickers -bt
@@ -426,21 +426,14 @@
 	[backgroundColorWell setColor:[prefsController backgroundTextColor]];
     [maxWidthSlider setDoubleValue:[[NSUserDefaults standardUserDefaults] doubleForKey:@"NoteBodyMaxWidth"]];
 	//for elasticthreads' hide dock icon option, check if OS compatible
-	if (IsSnowLeopardOrLater) {
-		[togDockButton setEnabled:YES];
-		
-		if ([[NSUserDefaults standardUserDefaults] boolForKey:@"ShowDockIcon"]) {
-            [togDockButton setTitle:@"Hide Dock Icon"];
-			[togDockLabel setStringValue:@"This will immediately restart NV"];		
-		}else {			
-            [togDockButton setTitle:@"Show Dock Icon"];
-			[togDockLabel setStringValue:@""];
-		}
-
-	}else {	
-		[togDockButton setEnabled:NO];
-		[togDockButton setHidden:YES];
-		[togDockLabel setHidden:YES];
+	[togDockButton setEnabled:YES];
+	
+	if ([[NSUserDefaults standardUserDefaults] boolForKey:@"ShowDockIcon"]) {
+		[togDockButton setTitle:@"Hide Dock Icon"];
+		[togDockLabel setStringValue:@"This will immediately restart NV"];		
+	}else {			
+		[togDockButton setTitle:@"Show Dock Icon"];
+		[togDockLabel setStringValue:@""];
 	}
     //for Brett's Markdownify/Readability import
 	[useMarkdownImportButton setState:[prefsController useMarkdownImport]];
@@ -466,7 +459,7 @@
 	
 	[window setShowsToolbarButton:NO];
     [useETScrollbarsOnLionButton setState:[prefsController useETScrollbarsOnLion]];
-    [useETScrollbarsOnLionButton setHidden:!IsLionOrLater];
+    [useETScrollbarsOnLionButton setHidden: NO];
     [self switchViews:nil];  //select last selected pane by default
     
 }

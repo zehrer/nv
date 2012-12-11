@@ -80,7 +80,9 @@ static int dayFromAbsoluteTime(CFAbsoluteTime absTime) {
     static NSString *days[3] = { NULL };
     
     if (!timeOnlyFormatter) {
-		timeOnlyFormatter = CFDateFormatterCreate(kCFAllocatorDefault, CFLocaleCopyCurrent(), kCFDateFormatterNoStyle, kCFDateFormatterShortStyle);
+		CFLocaleRef locale = CFLocaleCopyCurrent();
+		timeOnlyFormatter = CFDateFormatterCreate(kCFAllocatorDefault, locale, kCFDateFormatterNoStyle, kCFDateFormatterShortStyle);
+		CFRelease(locale);
     }
     
     if (!days[ThisDay]) {
@@ -89,19 +91,16 @@ static int dayFromAbsoluteTime(CFAbsoluteTime absTime) {
 		days[PriorDay] = [NSLocalizedString(@"Yesterday", nil) retain];
     }
 
-    CFStringRef dateString = CFDateFormatterCreateStringWithDate(kCFAllocatorDefault, timeOnlyFormatter, date);
+    NSString *dateString = [(NSString *)CFDateFormatterCreateStringWithDate(kCFAllocatorDefault, timeOnlyFormatter, date) autorelease];
 	
 	if ([[GlobalPrefs defaultPrefs] horizontalLayout]) {
 		//if today, return the time only; otherwise say "Yesterday", etc.; and this method shouldn't be called unless day != NoSpecialDay
 		if (day == PriorDay || day == NextDay)
 			return days[day];
-		return [(id)dateString autorelease];
+		return dateString;
 	}
-    
-    NSString *relativeTimeString = [days[day] stringByAppendingFormat:@"  %@", dateString];
-	CFRelease(dateString);
-	
-	return relativeTimeString;
+    	
+	return [days[day] stringByAppendingFormat:@"  %@", dateString];
 }
 
 //take into account yesterday/today thing
@@ -121,9 +120,11 @@ static int dayFromAbsoluteTime(CFAbsoluteTime absTime) {
 		
 		if (!dateAndTimeFormatter) {
 			BOOL horiz = [[GlobalPrefs defaultPrefs] horizontalLayout];
-			dateAndTimeFormatter = CFDateFormatterCreate(kCFAllocatorDefault, CFLocaleCopyCurrent(), 
+			CFLocaleRef locale = CFLocaleCopyCurrent();
+			dateAndTimeFormatter = CFDateFormatterCreate(kCFAllocatorDefault, locale,
 														 horiz ? kCFDateFormatterShortStyle : kCFDateFormatterMediumStyle, 
 														 horiz ? kCFDateFormatterNoStyle : kCFDateFormatterShortStyle);
+			CFRelease(locale);
 		}
 		
 		CFDateRef date = CFDateCreate(kCFAllocatorDefault, absTime);
@@ -183,13 +184,7 @@ CFDateFormatterRef simplenoteDateFormatter(int lowPrecision) {
 }
 
 - (NSArray*)labelCompatibleWords {
-	NSArray *array = nil;
-	if (IsLeopardOrLater) {
-		array = [self componentsSeparatedByCharactersInSet:[NSCharacterSet labelSeparatorCharacterSet]];
-	} else {
-		BOOL lacksSpace = [self rangeOfString:@" " options:NSLiteralSearch].location == NSNotFound;
-		array = [self componentsSeparatedByString: lacksSpace ? @"," : @" "];
-	}
+	NSArray *array = [self componentsSeparatedByCharactersInSet:[NSCharacterSet labelSeparatorCharacterSet]];
 	NSMutableArray *titles = [NSMutableArray arrayWithCapacity:[array count]];
 	
 	NSUInteger i;
@@ -259,16 +254,6 @@ CFDateFormatterRef simplenoteDateFormatter(int lowPrecision) {
 	[self hasPrefix:@"@import "] || [self hasPrefix:@"<?php"] || [self hasPrefix:@"bplist0"]; 
 	
 }
-
-#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
-- (NSString*)stringByReplacingOccurrencesOfString:(NSString*)stringToReplace withString:(NSString*)replacementString {
-	//NSLog(@"NSString_NV: %s", _cmd);
-	NSMutableString *sanitizedName = [[self mutableCopy] autorelease];
-	[sanitizedName replaceOccurrencesOfString:stringToReplace withString:replacementString options:NSLiteralSearch range:NSMakeRange(0, [sanitizedName length])];
-
-	return sanitizedName;
-}
-#endif
 
 - (NSString*)fourCharTypeString {
 	if ([[self dataUsingEncoding:NSMacOSRomanStringEncoding allowLossyConversion:YES] length] >= 4) {
@@ -638,7 +623,7 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, unsigned charIndex) {
 	
 #define AddIfUnique(enc) if (!ContainsUInteger(encodingsToTry, encodingIndex, (enc))) encodingsToTry[encodingIndex++] = (enc)
 	
-	NSStringEncoding encodingsToTry[5];
+	NSStringEncoding encodingsToTry[5] = { 0, 0, 0, 0, 0};
 	NSUInteger encodingIndex = 0;
 	
 	AddIfUnique(firstEncodingToTry);
@@ -735,12 +720,6 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, unsigned charIndex) {
 	return charSet;
 	
 }
-
-#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
-+ (id)newlineCharacterSet {
-	return [NSCharacterSet characterSetWithCharactersInString:[NSString stringWithFormat:@"%C%C%C",0x000A,0x000D,0x0085]];
-}
-#endif
 
 @end
 

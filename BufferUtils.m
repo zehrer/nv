@@ -72,7 +72,7 @@ char *replaceString(char *oldString, const char *newString) {
 void _ResizeBuffer(void ***buffer, unsigned int objCount, unsigned int *bufObjCount, unsigned int elemSize) {
 	assert(buffer && bufObjCount);
 	
-	if (*bufObjCount < objCount || !*buffer) {
+	if ((*bufObjCount < objCount || !*buffer) && elemSize && objCount) {
 		*buffer = (void **)realloc(*buffer, elemSize * objCount);
 		*bufObjCount = objCount;
 	}
@@ -236,7 +236,7 @@ int ContainsHighAscii(const void *s1, size_t n) {
 	return 0;
 }
 
-CFStringRef CFStringFromBase10Integer(int quantity) {
+CFStringRef CFStringCreateFromBase10Integer(int quantity) {
 	char *buffer = NULL;
 	if (asprintf(&buffer, "%d", quantity) < 0 || !buffer)
 		return nil;

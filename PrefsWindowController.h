@@ -17,10 +17,7 @@
 @class NotationPrefsViewController;
 @class GlobalPrefs;
 
-@interface PrefsWindowController : NSObject 
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
-<NSWindowDelegate, NSToolbarDelegate>
-#endif
+@interface PrefsWindowController : NSObject  <NSWindowDelegate, NSToolbarDelegate>
 {
     IBOutlet NSButton *useETScrollbarsOnLionButton;
     IBOutlet NSPopUpButton *folderLocationsMenuButton;

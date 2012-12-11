@@ -34,7 +34,7 @@ NSString *ExternalEditorsChangedNotification = @"ExternalEditorsChanged";
 @implementation ExternalEditor
 
 - (id)initWithBundleID:(NSString*)aBundleIdentifier resolvedURL:(NSURL*)aURL {
-	if ([self init]) {
+	if ((self = [self init])) {
 		bundleIdentifier = [aBundleIdentifier retain];
 		resolvedURL = [aURL retain];
 		
@@ -187,7 +187,7 @@ static ExternalEditorListController* sharedInstance = nil;
 }
 
 - (id)initWithUserDefaults {
-	if ([self init]) {
+	if ((self = [self init])) {
 		//TextEdit is not an ODB editor, but can be used to open files directly
 		[[NSUserDefaults standardUserDefaults] registerDefaults:
 		 [NSDictionary dictionaryWithObject:[NSArray arrayWithObject:@"com.apple.TextEdit"] forKey:UserEEIdentifiersKey]];
@@ -198,8 +198,7 @@ static ExternalEditorListController* sharedInstance = nil;
 }
 
 - (id)init {
-	if ([super init]) {
-		
+	if ((self = [super init])) {
 		userEditorList = [[NSMutableArray alloc] init];		
 	}
 	return self;
@@ -264,12 +263,19 @@ static ExternalEditorListController* sharedInstance = nil;
     [openPanel setAllowsMultipleSelection:NO];
     
     if ([openPanel runModalForDirectory:@"/Applications" file:nil types:[NSArray arrayWithObject:@"app"]] == NSOKButton) {
-		if (![openPanel filename]) goto errorReturn;
-		NSURL *appURL = [NSURL fileURLWithPath:[openPanel filename]];
-		if (!appURL) goto errorReturn;
 		
-		ExternalEditor *ed = [[ExternalEditor alloc] initWithBundleID:nil resolvedURL:appURL];
-		if (!ed) goto errorReturn;
+		NSString *filename = openPanel.filename;		
+		NSURL *appURL = nil; 
+		ExternalEditor *ed = nil;
+
+		if (filename) appURL = [NSURL fileURLWithPath:[openPanel filename]];
+		if (appURL) ed = [[ExternalEditor alloc] initWithBundleID:nil resolvedURL:appURL];
+		
+		if (!appURL || !ed) {
+			NSBeep();
+			NSLog(@"Unable to add external editor");
+			return;
+		}
 
 		//check against lists of all known editors, installed or not
 		if (![self editorIsMember:ed]) {
@@ -277,12 +283,8 @@ static ExternalEditorListController* sharedInstance = nil;
 			[[NSUserDefaults standardUserDefaults] setObject:[self userEditorIdentifiers] forKey:UserEEIdentifiersKey];
 		}
 		
-		[self setDefaultEditor:ed];
+		[self setDefaultEditor: [ed autorelease]];
     }
-	return;
-errorReturn:
-	NSBeep();
-	NSLog(@"Unable to add external editor");
 }
 
 - (void)resetUserEditors:(id)sender {
@@ -343,13 +345,7 @@ errorReturn:
 
 - (void)_updateMenu:(NSMenu*)theMenu {
 	//for allowing the user to configure external editors in the preferences window
-
-	if (IsSnowLeopardOrLater) {
-		[theMenu performSelector:@selector(removeAllItems)];
-	} else {
-		while ([theMenu numberOfItems])
-			[theMenu removeItemAtIndex:0];
-	}
+	[theMenu removeAllItems];
 	
 	BOOL isPrefsMenu = [editorPrefsMenus containsObject:theMenu];
 	BOOL didAddItem = NO;

@@ -48,7 +48,7 @@
 }
 
 - (id)initWithURL:(NSURL*)aURL POSTData:(NSData*)POSTData contentType:(NSString*)contentType delegate:(id)aDelegate {
-	if ([self init]) {
+	if ((self = [self init])) {
 		receivedData = [[NSMutableData alloc] init];
 		requestURL = [aURL retain];
 		delegate = aDelegate;

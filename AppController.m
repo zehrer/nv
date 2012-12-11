@@ -120,17 +120,7 @@ BOOL isEd;
 
 - (void)awakeFromNib {
 	if ([[NSUserDefaults standardUserDefaults] boolForKey:@"ShowDockIcon"]){		
-		
-        if((IsSnowLeopardOrLater)&&([[NSApplication sharedApplication] respondsToSelector: @selector(setActivationPolicy:)])) {
-            enum {NSApplicationActivationPolicyRegular};	
-            [[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyRegular];
-        }else {
-            ProcessSerialNumber psn = { 0, kCurrentProcess }; 
-            OSStatus returnCode = TransformProcessType(&psn, kProcessTransformToForegroundApplication);
-            if( returnCode != 0) {
-                NSLog(@"Could not bring the application to front. Error %d", returnCode);
-            }
-        }	
+		[[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyRegular];
     }
     theFieldEditor = [[[NSTextView alloc]initWithFrame:[window frame]] retain];
 	[theFieldEditor setFieldEditor:YES];
@@ -344,39 +334,18 @@ void outletObjectAwoke(id sender) {
 	// add elasticthreads' menuitems
 	NSMenuItem *theMenuItem = [[[NSMenuItem alloc] init] autorelease];
 	[theMenuItem setTarget:self];
-//	NSMenu *notesMenu = [[[NSApp mainMenu] itemWithTag:NOTES_MENU_ID] submenu];
 	theMenuItem = [theMenuItem copy];
-//	[statBarMenu insertItem:theMenuItem atIndex:4];
 	[theMenuItem release];
-    //theMenuItem = [[viewMenu itemWithTag:801] copy];
-	//[statBarMenu insertItem:theMenuItem atIndex:11];
-    //[theMenuItem release];
-    if(IsLeopardOrLater){
-        //theMenuItem =[viewMenu itemWithTag:314];
-        [fsMenuItem setEnabled:YES];
-        [fsMenuItem setHidden:NO];
-		
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
-        if (IsLionOrLater) {
-            //  [window setCollectionBehavior:NSWindowCollectionBehaviorTransient|NSWindowCollectionBehaviorMoveToActiveSpace];
-//            
-            [window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
-//            [window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenAuxiliary];
-            [NSApp setPresentationOptions:NSApplicationPresentationFullScreen];
 
-       
-        }else{
-#endif   
-            [fsMenuItem setTarget:self];
-            [fsMenuItem setAction:@selector(switchFullScreen:)];
+	[fsMenuItem setEnabled:YES];
+	[fsMenuItem setHidden:NO];
+	
+	[window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
+	[NSApp setPresentationOptions:NSApplicationPresentationFullScreen];
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
-        }
-#endif
-        theMenuItem = [fsMenuItem copy];
-        [statBarMenu insertItem:theMenuItem atIndex:12];
-        [theMenuItem release];
-    }
+	theMenuItem = [fsMenuItem copy];
+	[statBarMenu insertItem:theMenuItem atIndex:12];
+	[theMenuItem release];
 
 	if (![prefsController showWordCount]) {
 		[wordCounter setHidden:NO];
@@ -406,10 +375,10 @@ void outletObjectAwoke(id sender) {
 	}
 	
 	if (aliasData) {
-	    newNotation = [[NotationController alloc] initWithAliasData:aliasData error:&err];//autorelease]
+	    newNotation = [[[NotationController alloc] initWithAliasData:aliasData error:&err] autorelease];
 	    subMessage = NSLocalizedString(@"Please choose a different folder in which to store your notes.",nil);
 	} else {
-	    newNotation = [[NotationController alloc] initWithDefaultDirectoryReturningError:&err];
+	    newNotation = [[[NotationController alloc] initWithDefaultDirectoryReturningError:&err] autorelease];
 	    subMessage = NSLocalizedString(@"Please choose a folder in which your notes will be stored.",nil);
 	}
 	//no need to display an alert if the error wasn't real
@@ -438,7 +407,7 @@ void outletObjectAwoke(id sender) {
 			if (![prefsWindowController getNewNotesRefFromOpenPanel:&notesDirectoryRef returnedPath:&location]) {
 				//they cancelled the open panel, or it was unable to get the path/FSRef of the file
 				goto terminateApp;
-			} else if ((newNotation = [[NotationController alloc] initWithDirectoryRef:&notesDirectoryRef error:&err])) {
+			} else if ((newNotation = [[[NotationController alloc] initWithDirectoryRef:&notesDirectoryRef error:&err] autorelease])) {
 				//have to make sure alias data is saved from setNotationController
 				[newNotation setAliasNeedsUpdating:YES];
 				break;
@@ -456,7 +425,6 @@ void outletObjectAwoke(id sender) {
 	//import old database(s) here if necessary
 	[AlienNoteImporter importBlorOrHelpFilesIfNecessaryIntoNotation:newNotation];
 	
-	[newNotation release];
 	if (pathsToOpenOnLaunch) {
 		[notationController openFiles:[pathsToOpenOnLaunch autorelease]];//autorelease
 		pathsToOpenOnLaunch = nil;
@@ -479,7 +447,7 @@ void outletObjectAwoke(id sender) {
 	 @selector(removeTableColumn:sender:),  //ditto
 	 @selector(setTableColumnsShowPreview:sender:),  //when to tell notationcontroller to generate or disable note-body previews
 	 @selector(setConfirmNoteDeletion:sender:),  //whether "delete note" should have an ellipsis
-	 @selector(setAutoCompleteSearches:sender:),@selector(setUseETScrollbarsOnLion:sender:), nil];   //when to tell notationcontroller to build its title-prefix connections
+	 @selector(setAutoCompleteSearches:sender:), nil];   //when to tell notationcontroller to build its title-prefix connections
 	
 	[self performSelector:@selector(runDelayedUIActionsAfterLaunch) withObject:nil afterDelay:0.0];
 			
@@ -645,19 +613,14 @@ terminateApp:
             }
         }
 	} else if ((selector == @selector(toggleFullScreen:))||(selector == @selector(switchFullScreen:))) {
-
-        if (IsLeopardOrLater) {
           
-            if([NSApp presentationOptions]>0){
-                [menuItem setTitle:NSLocalizedString(@"Exit Full Screen",@"menu item title for exiting fullscreen")];
-            }else{
-                
-                [menuItem setTitle:NSLocalizedString(@"Enter Full Screen",@"menu item title for entering fullscreen")]; 
-                
-            } 
-            
-        }
-
+		if([NSApp presentationOptions]>0){
+			[menuItem setTitle:NSLocalizedString(@"Exit Full Screen",@"menu item title for exiting fullscreen")];
+		}else{
+			
+			[menuItem setTitle:NSLocalizedString(@"Enter Full Screen",@"menu item title for entering fullscreen")]; 
+			
+		} 
 
 	} else if (selector == @selector(fixFileEncoding:)) {
 		
@@ -806,7 +769,7 @@ terminateApp:
 			[notationController removeNote:retainedDeleteObj];
 		}
 		
-		if (IsLeopardOrLater && [[alert suppressionButton] state] == NSOnState) {
+		if ([[alert suppressionButton] state] == NSOnState) {
 			[prefsController setConfirmNoteDeletion:NO sender:self];
 		}
 	}
@@ -830,7 +793,7 @@ terminateApp:
 			NSAlert *alert = [NSAlert alertWithMessageText:warnString defaultButton:NSLocalizedString(@"Delete", @"name of delete button")
 										   alternateButton:NSLocalizedString(@"Cancel", @"name of cancel button") otherButton:nil 
 								 informativeTextWithFormat:NSLocalizedString(@"Press Command-Z to undo this action later.", @"informational delete-this-note? text")];
-			if (IsLeopardOrLater) [alert setShowsSuppressionButton:YES];
+			[alert setShowsSuppressionButton:YES];
 			
 			[alert beginSheetModalForWindow:window modalDelegate:self didEndSelector:@selector(deleteAlertDidEnd:returnCode:contextInfo:) contextInfo:(void*)deleteObj];
 		} else {
@@ -1076,17 +1039,15 @@ terminateApp:
 
 - (void)applicationWillBecomeActive:(NSNotification *)aNotification {
 	
-	if (IsLeopardOrLater) {
-		SpaceSwitchingContext thisSpaceSwitchCtx;
-		CurrentContextForWindowNumber([window windowNumber], &thisSpaceSwitchCtx);
-		//what if the app is switched-to in another way? then the last-stored spaceSwitchCtx will cause us to return to the wrong app
-		//unfortunately this notification occurs only after NV has become the front process, but we can still verify the space number
-		
-		if (thisSpaceSwitchCtx.userSpace != spaceSwitchCtx.userSpace || 
-			thisSpaceSwitchCtx.windowSpace != spaceSwitchCtx.windowSpace) {
-			//forget the last space-switch info if it's effectively different from how we're switching into the app now
-			bzero(&spaceSwitchCtx, sizeof(SpaceSwitchingContext));
-		}
+	SpaceSwitchingContext thisSpaceSwitchCtx;
+	CurrentContextForWindowNumber([window windowNumber], &thisSpaceSwitchCtx);
+	//what if the app is switched-to in another way? then the last-stored spaceSwitchCtx will cause us to return to the wrong app
+	//unfortunately this notification occurs only after NV has become the front process, but we can still verify the space number
+	
+	if (thisSpaceSwitchCtx.userSpace != spaceSwitchCtx.userSpace || 
+		thisSpaceSwitchCtx.windowSpace != spaceSwitchCtx.windowSpace) {
+		//forget the last space-switch info if it's effectively different from how we're switching into the app now
+		bzero(&spaceSwitchCtx, sizeof(SpaceSwitchingContext));
 	}
 }
 
@@ -1126,7 +1087,7 @@ terminateApp:
 - (void)cancelOperation:(id)sender {
 	//simulate a search for nothing
 	if ([window isKeyWindow]) {
-		if (IsLionOrLater&&([textView textFinderIsVisible])) {
+		if ([textView textFinderIsVisible]) {
             [[NSNotificationCenter defaultCenter] postNotificationName:@"TextFinderShouldHide" object:self];
             return;
         }
@@ -1479,9 +1440,7 @@ terminateApp:
 }
 
 - (void)tableViewSelectionDidChange:(NSNotification *)aNotification {
-    if (IsLionOrLater) {
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"TextFindContextDidChange" object:self];
-    }
+	[[NSNotificationCenter defaultCenter] postNotificationName:@"TextFindContextDidChange" object:self];
     isEd = NO;
 	NSEventType type = [[window currentEvent] type];
 	if (type != NSKeyDown && type != NSKeyUp) {
@@ -1682,9 +1641,7 @@ terminateApp:
 		[self postTextUpdate];
 		[self updateWordCount:(![prefsController showWordCount])];
 	}
-    if (IsLionOrLater) {
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"TextFindContextDidChange" object:self];
-    }
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"TextFindContextDidChange" object:self];
 }
 
 - (void)textDidBeginEditing:(NSNotification *)aNotification {
@@ -1746,7 +1703,7 @@ terminateApp:
 - (NSUndoManager *)windowWillReturnUndoManager:(NSWindow *)sender {
 	
 	if ([sender firstResponder] == textView) {
-		if ((floor(NSAppKitVersionNumber) > NSAppKitVersionNumber10_3) && currentNote) {
+		if (currentNote) {
 			NSLog(@"windowWillReturnUndoManager should not be called when textView is first responder on Tiger or higher");
 		}
 		
@@ -1828,8 +1785,7 @@ terminateApp:
 		if (opts & NVOrderFrontWindow) {
 			//for external url-handling, often the app will already have been brought to the foreground
 			if (![NSApp isActive]) {
-				if (IsLeopardOrLater)
-					CurrentContextForWindowNumber([window windowNumber], &spaceSwitchCtx);
+				CurrentContextForWindowNumber([window windowNumber], &spaceSwitchCtx);
 				[NSApp activateIgnoringOtherApps:YES];
 			}
 			if (![window isKeyWindow])
@@ -2235,10 +2191,9 @@ terminateApp:
 	if ([NSApp isActive] && [window isMainWindow]) {
 		
 		SpaceSwitchingContext laterSpaceSwitchCtx;
-		if (IsLeopardOrLater)
-			CurrentContextForWindowNumber([window windowNumber], &laterSpaceSwitchCtx);
+		CurrentContextForWindowNumber([window windowNumber], &laterSpaceSwitchCtx);
 		
-		if (!IsLeopardOrLater || !CompareContextsAndSwitch(&spaceSwitchCtx, &laterSpaceSwitchCtx)) {
+		if (!CompareContextsAndSwitch(&spaceSwitchCtx, &laterSpaceSwitchCtx)) {
 			//hide only if we didn't need to or weren't able to switch spaces
 			[NSApp hide:sender];
 		}
@@ -2252,9 +2207,7 @@ terminateApp:
 - (IBAction)bringFocusToControlField:(id)sender {
 	//For ElasticThreads' fullscreen mode use this if/else otherwise uncomment the expand toolbar
     
-    if (IsLionOrLater) {
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"TextFinderShouldHide" object:sender];        
-    }
+	[[NSNotificationCenter defaultCenter] postNotificationName:@"TextFinderShouldHide" object:sender];
 	if ([notesSubview isCollapsed]) {
 		[self toggleCollapse:self];
 	}else if (![self dualFieldIsVisible]){
@@ -2567,8 +2520,6 @@ terminateApp:
     [mainView setNeedsDisplay:YES];
 }
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
-
 /*
  - (NSApplicationPresentationOptions)window:(NSWindow *)window 
  willUseFullScreenPresentationOptions:(NSApplicationPresentationOptions)rect{
@@ -2618,102 +2569,16 @@ terminateApp:
     [self setDualFieldIsVisible:[boolNum boolValue]];
 }
 
-#endif
-
 - (BOOL)isInFullScreen{
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
-    if (IsLionOrLater) {
-       return (([window styleMask]&NSFullScreenWindowMask)>0);
-    }
-#endif
-    return [mainView isInFullScreenMode];
+	return (([window styleMask]&NSFullScreenWindowMask)>0);
 
 }
 
 - (IBAction)switchFullScreen:(id)sender
 {		
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
-    if (IsLionOrLater) {        
-//        BOOL inFS=[self isInFullScreen];
-        [window toggleFullScreen:nil];       
-	}else if(IsLeopardOrLater){
-#else
-	 if(IsLeopardOrLater){
-#endif
-		//@try {			
-        
-        isEd = NO;
-        NSResponder *currentResponder = [window firstResponder];
-        NSDictionary* options;
-        if (([[NSUserDefaults standardUserDefaults] boolForKey:@"ShowDockIcon"])&&(IsSnowLeopardOrLater)) {
-            options = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithInt:(NSApplicationPresentationAutoHideMenuBar | NSApplicationPresentationHideDock)],@"NSFullScreenModeApplicationPresentationOptions", nil];
-        }else {
-            options = [NSDictionary dictionaryWithObjectsAndKeys:nil];
-        }
-        CGFloat colW = [notesSubview dimension];
-        
-        if ([mainView isInFullScreenMode]) {
-            window = normalWindow;
-            [mainView exitFullScreenModeWithOptions:options];
-            
-            [notesSubview setDimension:colW];   
-            [self setDualFieldInToolbar];
-            [splitView setFrameSize:[mainView frame].size];
-            if ((!wasVert)&&([splitView isVertical])) {
-                [self switchViewLayout:self];
-            }else{
-                [splitView adjustSubviews];
-            }
-            [window makeKeyAndOrderFront:self];
-        }else {
-            [mainView enterFullScreenMode:[window screen]  withOptions:options];
-            [notesSubview setDimension:colW];
-            [self setDualFieldInView];
-            if (![splitView isVertical]) {
-                [self switchViewLayout:self];
-                wasVert = NO;
-            }else {
-                wasVert = YES;
-                [splitView adjustSubviews];
-            }
-            normalWindow = window;
-            [normalWindow orderOut:self];
-            window = [mainView window];
-            //[NSApp setDelegate:self];
-            [notesTableView setDelegate:self];
-            [window setDelegate:self];
-            // [window setInitialFirstResponder:field];
-            [field setDelegate:self];
-            [textView setDelegate:self];
-            [splitView setDelegate:self];
-            NSSize wSize = [mainView frame].size;
-            wSize.height = [splitView frame].size.height;
-            [splitView setFrameSize:wSize];
-        }	
-        [window setBackgroundColor:backgrndColor];  	
-        
-        if ([[currentResponder description] rangeOfString:@"_NSFullScreenWindow"].length>0){
-            currentResponder = textView;
-        }
-        if (([currentResponder isKindOfClass:[NSTextView class]])&&(![currentResponder isKindOfClass:[LinkingEditor class]])) {
-            currentResponder = field;
-        }
-        
-        [splitView setNextKeyView:notesTableView];
-        [field setNextKeyView:textView];
-        [textView setNextKeyView:field];
-        [window setAutorecalculatesKeyViewLoop:NO];
-        [window makeFirstResponder:currentResponder];       
-        [mainView setNeedsDisplay:YES];
-        if (![NSApp isActive]) {
-            [NSApp activateIgnoringOtherApps:YES];
-        }
-		/*}
-         @catch (NSException * e) {
-         NSLog(@"fullscreen issues >%@<",[e name]);
-         }*/
-	}
+    [window toggleFullScreen:nil];       
 }
+
 //
 //
 //- (IBAction)openFileInEditor:(id)sender { 
@@ -2874,12 +2739,7 @@ terminateApp:
 }
 
 - (void)updateColorScheme{
-	@try {		
-        if (!IsLionOrLater) {
-            
-            [window setBackgroundColor:backgrndColor];//[NSColor blueColor]
-            [dualFieldView setBackgroundColor:backgrndColor];
-        }
+	@try {
         [mainView setBackgroundColor:backgrndColor];
 		[notesTableView setBackgroundColor:backgrndColor];
 		
@@ -3321,16 +3181,7 @@ terminateApp:
 
 - (void)reactivateAfterDelay{
     [NSApp hide:self];
-    if((IsSnowLeopardOrLater)&&([NSApp respondsToSelector: @selector(setActivationPolicy:)])) {
-        enum {NSApplicationActivationPolicyRegular};	
-        [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
-    }else {
-        ProcessSerialNumber psn = { 0, kCurrentProcess }; 
-        OSStatus returnCode = TransformProcessType(&psn, kProcessTransformToForegroundApplication);
-        if( returnCode != 0) {
-            NSLog(@"Could not bring the application to front. Error %d", returnCode);
-        }
-    }
+    [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
     [self performSelector:@selector(reActivate:) withObject:self afterDelay:0.16];
 }
 

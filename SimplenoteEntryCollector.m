@@ -32,7 +32,7 @@
 //instances this short-lived class are intended to be started only once, and then deallocated
 
 - (id)initWithEntriesToCollect:(NSArray*)wantedEntries authToken:(NSString*)anAuthToken email:(NSString*)anEmail {
-	if ([super init]) {
+	if ((self = [super init])) {
 		authToken = [anAuthToken retain];
 		email = [anEmail retain];
 		entriesToCollect = [wantedEntries retain];
@@ -226,7 +226,7 @@
 //and to ensure we know what the time was for the next time we compare dates
 
 - (id)initWithEntries:(NSArray*)wantedEntries operation:(SEL)opSEL authToken:(NSString*)anAuthToken email:(NSString*)anEmail {
-	if ([super initWithEntriesToCollect:wantedEntries authToken:anAuthToken email:anEmail]) {
+	if ((self = [super initWithEntriesToCollect:wantedEntries authToken:anAuthToken email:anEmail])) {
 		//set creation and modification date when creating
 		//set modification date when updating
 		//need to check for success when deleting
