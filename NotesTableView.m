@@ -77,9 +77,9 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 		
 		NSString *colStrings[] = { NoteTitleColumnString, NoteLabelsColumnString, NoteDateModifiedColumnString, NoteDateCreatedColumnString };
 		SEL colMutators[] = { @selector(setTitleString:), @selector(setLabelString:), NULL, NULL };
-		id (*colReferencors[])(id, id, NSInteger) = {titleReferencor, labelColumnCellForNote, dateModifiedStringOfNote, dateCreatedStringOfNote };
+		NSInteger (*attrFunctions[])(id*, id*) = { titleReferencor, labelColumnCellForNote, dateModifiedStringOfNote, dateCreatedStringOfNote };
 		NSInteger (*sortFunctions[])(id*, id*) = { compareTitleString, compareLabelString, compareDateModified, compareDateCreated };
-		NSInteger (*reverseSortFunctions[])(id*, id*) = { compareTitleStringReverse, compareLabelStringReverse, compareDateModifiedReverse, 
+		NSInteger (*reverseSortFunctions[])(id*, id*) = { compareTitleStringReverse, compareLabelStringReverse, compareDateModifiedReverse,
 			compareDateCreatedReverse };
 		
 		unsigned int i;
@@ -88,10 +88,10 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 			[column setEditable:(colMutators[i] != NULL)];
 			[column setHeaderCell:[[[NotesTableHeaderCell alloc] initTextCell:[[NSBundle mainBundle] localizedStringForKey:colStrings[i] value:@"" table:nil]] autorelease]];
 			
-			[column setMutatingSelector:colMutators[i]];
-			[column setDereferencingFunction:colReferencors[i]];
-			[column setSortingFunction:sortFunctions[i]];
-			[column setReverseSortingFunction:reverseSortFunctions[i]];
+			column.mutatingSelector = colMutators[i];
+			column.attributeFunction = attrFunctions[i];
+			column.sortingFunction = sortFunctions[i];
+			column.reverseSortingFunction = reverseSortFunctions[i];
 			[column setResizingMask:NSTableColumnUserResizingMask];
 			
 			[allColsDict setObject:column forKey:colStrings[i]];
@@ -224,8 +224,8 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 	activeStyle = YES;
 #endif
 	isActiveStyle = activeStyle;
-	[col setDereferencingFunction: [globalPrefs horizontalLayout] ? ([globalPrefs tableColumnsShowPreview] ? unifiedCellForNote : unifiedCellSingleLineForNote) : 
-	 ([globalPrefs tableColumnsShowPreview] ? (activeStyle ? properlyHighlightingTableTitleOfNote : tableTitleOfNote) : titleOfNote2)];
+	col.attributeFunction = [globalPrefs horizontalLayout] ? ([globalPrefs tableColumnsShowPreview] ? unifiedCellForNote : unifiedCellSingleLineForNote) :
+	([globalPrefs tableColumnsShowPreview] ? (activeStyle ? properlyHighlightingTableTitleOfNote : tableTitleOfNote) : titleOfNote2);
 }
 
 - (void)updateTitleDereferencorState {
@@ -1114,6 +1114,7 @@ enum { kNext_Tag = 'j', kPrev_Tag = 'k' };
 	if ([globalPrefs horizontalLayout] && [self columnWithIdentifier:[col identifier]] == 0) {
 		return lastEventActivatedTagEdit ? @selector(setLabelString:) : @selector(setTitleString:);
 	}
+	return col.mutatingSelector;
 	return columnAttributeMutator(col);
 }
 

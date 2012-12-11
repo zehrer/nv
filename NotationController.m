@@ -1459,7 +1459,7 @@ bail:
 	NoteAttributeColumn *col = sortColumn;
 	if (col) {
 		BOOL reversed = [prefsController tableIsReverseSorted];
-		NSInteger (*sortFunction) (id *, id *) = (reversed ? [col reverseSortFunction] : [col sortFunction]);
+		NSInteger (*sortFunction) (id *, id *) = (reversed ? col.reverseSortingFunction : col.sortingFunction);
 		NSInteger (*stringSortFunction) (id*, id*) = (reversed ? compareTitleStringReverse : compareTitleString);
 		
 		[allNotes sortStableUsingFunction:stringSortFunction usingBuffer:&allNotesBuffer ofSize:&allNotesBufferSize];
@@ -1489,7 +1489,7 @@ bail:
 	if (col) {
 		BOOL reversed = [prefsController tableIsReverseSorted];
 	
-		NSInteger (*sortFunction) (id*, id*) = (reversed ? [col reverseSortFunction] : [col sortFunction]);
+		NSInteger (*sortFunction) (id*, id*) = (reversed ? col.reverseSortingFunction : col.sortingFunction);
 		NSInteger (*stringSortFunction) (id*, id*) = (reversed ? compareTitleStringReverse : compareTitleString);
 
 		[allNotes sortStableUsingFunction:stringSortFunction usingBuffer:&allNotesBuffer ofSize:&allNotesBufferSize];

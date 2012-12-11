@@ -64,9 +64,7 @@
 		unsigned int i;
 		for (i=0; i<count; i++) {
 			NoteObject *curNote = [deletedNotes objectAtIndex:i];
-			if (compareFilename(&curNote, &aNote) == kCFCompareEqualTo) {
-				return YES;
-			}
+			if ([curNote.filename.lowercaseString isEqualToString: aNote.filename.lowercaseString]) return YES;
 		}
 	}
 	return NO;

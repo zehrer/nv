@@ -406,7 +406,12 @@ void NotesDirFNSubscriptionProc(FNMessage message, OptionBits flags, void * refc
     NoteObject **currentNotes = allNotesBuffer;
     [allNotes getObjects:(id*)currentNotes];
 	
-	mergesort((void *)allNotesBuffer, (size_t)aSize, sizeof(id), (int (*)(const void *, const void *))compareFilename);
+	mergesort_b(allNotesBuffer, aSize, sizeof(id), ^int(const void *aPtr, const void *bPtr) {
+		NoteObject *a = *(NoteObject**)aPtr;
+		NoteObject *b = *(NoteObject**)bPtr;
+		return [a.filename caseInsensitiveCompare: b.filename];
+	});
+	
 	mergesort((void *)catEntriesPtrs, (size_t)bSize, sizeof(NoteCatalogEntry*), (int (*)(const void *, const void *))compareCatalogEntryName);
 	
     NSMutableArray *addedEntries = [NSMutableArray array];

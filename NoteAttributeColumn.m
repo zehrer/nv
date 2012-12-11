@@ -25,9 +25,7 @@
 @implementation NoteAttributeColumn
 
 - (id)initWithIdentifier:(id)anObject {
-	
-	if ([super initWithIdentifier:anObject]) {
-
+	if ((self = [super initWithIdentifier:anObject])) {
 		absoluteMinimumWidth = [anObject sizeWithAttributes:[NoteAttributeColumn standardDictionary]].width + 5;
 		[self setMinWidth:absoluteMinimumWidth];
 	}
@@ -52,41 +50,6 @@
 - (void)updateWidthForHighlight {
 	[self setMinWidth:absoluteMinimumWidth + ([[self tableView] highlightedTableColumn] == self ? 10 : 0)];
   
-}
-
-SEL columnAttributeMutator(NoteAttributeColumn *col) {
-	return col->mutateObjectSelector;
-}
-
-- (void)setMutatingSelector:(SEL)selector {
-	mutateObjectSelector = selector;
-}
-
-id columnAttributeForObject(NotesTableView *tv, NoteAttributeColumn *col, id object, NSInteger row) {
-	return col->objectAttribute(tv, object, row);
-}
-
-- (void)setDereferencingFunction:(id (*)(id, id, NSInteger))attributeFunction {
-    objectAttribute = attributeFunction;
-}
-
-- (void)setSortingFunction:(NSInteger (*)(id *, id *))aFunction {
-    sortFunction = aFunction;
-}
-
-- (NSInteger (*)(id *, id *))sortFunction {
-    return sortFunction;
-}
-
-- (void)setReverseSortingFunction:(NSInteger (*)(id*, id*))aFunction {
-    reverseSortFunction = aFunction;
-}
-
-- (NSInteger (*)(id*, id*))reverseSortFunction {
-    return reverseSortFunction;
-}
-id (*dereferencingFunction(NoteAttributeColumn *col))(id, id, NSInteger) {
-	return col->objectAttribute;
 }
 
 - (void)setResizingMaskNumber:(NSNumber*)resizingMaskNumber {

@@ -96,7 +96,6 @@ NSInteger compareDateCreatedReverse(id *a, id *b);
 NSInteger compareLabelStringReverse(id *a, id *b);
 NSInteger compareTitleStringReverse(id *a, id *b);
 
-NSInteger compareFilename(id *a, id *b);
 NSInteger compareNodeID(id *a, id *b);
 NSInteger compareFileSize(id *a, id *b);
 

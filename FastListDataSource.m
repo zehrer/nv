@@ -127,13 +127,14 @@
 	//allow the tableview to override the selector destination for this object value
 	SEL colAttributeMutator = [(NotesTableView*)aTableView attributeSetterForColumn:(NoteAttributeColumn*)aTableColumn];
 	
-	[objects[rowIndex] performSelector:colAttributeMutator ? colAttributeMutator : columnAttributeMutator((NoteAttributeColumn*)aTableColumn) withObject:anObject];
+	[objects[rowIndex] performSelector:colAttributeMutator ? colAttributeMutator : ((NoteAttributeColumn*)aTableColumn).mutatingSelector withObject:anObject];
 }
 
 
 - (id)tableView:(NSTableView *)aTableView objectValueForTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex {
-	
-	return columnAttributeForObject((NotesTableView*)aTableView, (NoteAttributeColumn*)aTableColumn, objects[rowIndex], rowIndex);
+	NoteAttributeColumn *col = aTableColumn;
+	if (!col.attributeFunction) return nil;
+	return col.attributeFunction(aTableView, objects[rowIndex], rowIndex);
 }
 
 - (NSInteger)numberOfRowsInTableView:(NSTableView *)aTableView {
