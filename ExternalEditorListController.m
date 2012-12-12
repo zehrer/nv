@@ -110,7 +110,9 @@ NSString *ExternalEditorsChangedNotification = @"ExternalEditorsChanged";
 
 - (NSString*)displayName {
 	if (!displayName) {
-		LSCopyDisplayNameForURL((CFURLRef)[self resolvedURL], (CFStringRef*)&displayName);
+		CFStringRef newDisplayName = nil;
+		LSCopyDisplayNameForURL((CFURLRef)[self resolvedURL], &newDisplayName);
+		displayName = (__bridge NSString *)newDisplayName;
 	}
 	return displayName;
 }
@@ -118,7 +120,7 @@ NSString *ExternalEditorsChangedNotification = @"ExternalEditorsChanged";
 - (NSURL*)resolvedURL {
 	if (!resolvedURL && !installCheckFailed) {
 		
-		OSStatus err = LSFindApplicationForInfo(kLSUnknownCreator, (CFStringRef)bundleIdentifier, NULL, NULL, (CFURLRef*)&resolvedURL);
+		OSStatus err = LSFindApplicationForInfo(kLSUnknownCreator, (__bridge CFStringRef)bundleIdentifier, NULL, NULL, (CFURLRef*)&resolvedURL);
 		
 		if (kLSApplicationNotFoundErr == err) {
 			installCheckFailed = YES;

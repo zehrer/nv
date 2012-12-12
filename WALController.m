@@ -522,9 +522,12 @@ static Boolean SynchronizedNoteIsEqual(const void *o, const void *p) {
 			if ([obj conformsToProtocol:@protocol(SynchronizedNote)]) {
 				objUUIDBytes = [obj uniqueNoteIDBytes];
 				id <SynchronizedNote> foundNote = nil;
+				const void *outValue = NULL;
+				
 				
 				//if the note already exists, then insert this note only if it's newer, and always insert it if it doesn't exist
-				if (CFDictionaryGetValueIfPresent(recoveredNotes, (const void *)objUUIDBytes, (const void **)&foundNote)) {
+				if (CFDictionaryGetValueIfPresent(recoveredNotes, (const void *)objUUIDBytes, &outValue)) {
+					foundNote = (__bridge id)outValue;
 					
 					//note is already here, overwrite it only if our LSN is greater or equal
 					if (foundNote && ![foundNote youngerThanLogObject:obj])
@@ -538,7 +541,7 @@ static Boolean SynchronizedNoteIsEqual(const void *o, const void *p) {
     } while (obj); //|| this note failed because of a deserialization problem, but everything else was fine
     
     
-	return [(NSDictionary*)recoveredNotes autorelease];
+	return [(__bridge NSDictionary*)recoveredNotes autorelease];
 }
 
 @end

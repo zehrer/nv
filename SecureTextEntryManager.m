@@ -126,7 +126,7 @@ NSString *ShouldHideSecureTextEntryWarningKey = @"ShouldHideSecureTextEntryWarni
 		if (infoDict != NULL) {
 			
 			CFTypeRef identifier = CFDictionaryGetValue(infoDict, kCFBundleIdentifierKey);
-			if ((identifier != NULL) && [identifiers containsObject:(id)identifier]) {
+			if ((identifier != NULL) && [identifiers containsObject:(__bridge id)identifier]) {
 				
 				CFStringRef offendingAppName = CFDictionaryGetValue(infoDict, kCFBundleNameKey);
 				NSAlert *alert = [NSAlert alertWithMessageText:

@@ -557,7 +557,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	NSAssert(aDelegate != nil, @"must supply a delegate");
     if ((self = [self init])) {
 		self.delegate = aDelegate;
-		self.filename = (NSString*)entry->filename;
+		self.filename = (__bridge NSString*)entry->filename;
 		self.storageFormat = [delegate currentNoteStorageFormat];
 		self.fileModifiedDate = entry->lastModified;
 		self.attrsModifiedDate = &(entry->lastAttrModified);
@@ -840,7 +840,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	CFMutableStringRef normalizedString = CFStringCreateMutableCopy(NULL, 0, (CFStringRef)titleString);
 	CFStringNormalize(normalizedString, kCFStringNormalizationFormC);
 	
-	[self _setTitleString:(NSString*)normalizedString];
+	[self _setTitleString:(__bridge NSString*)normalizedString];
 	CFRelease(normalizedString);
 	
 	if ([delegate currentNoteStorageFormat] == RTFTextFormat)
@@ -1420,7 +1420,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
     if (![self updateFromData:data inFormat:currentFormatID])
 		return NO;
 	
-	[self setFilename:(NSString*)catEntry->filename withExternalTrigger:YES];
+	[self setFilename:(__bridge NSString*)catEntry->filename withExternalTrigger:YES];
     
     self.fileModifiedDate = catEntry->lastModified;
 	self.attrsModifiedDate = &(catEntry->lastAttrModified);
@@ -1679,7 +1679,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	BOOL fileWasCreated = NO;
 	
 	FSRef fileRef;
-	OSStatus err = FSCreateFileIfNotPresentInDirectory(directoryRef, &fileRef, (CFStringRef)newfilename, (Boolean*)&fileWasCreated);
+	OSStatus err = FSCreateFileIfNotPresentInDirectory(directoryRef, &fileRef, (__bridge CFStringRef)newfilename, (Boolean*)&fileWasCreated);
 	if (err != noErr) {
 		NSLog(@"FSCreateFileIfNotPresentInDirectory: %d", err);
 		return err;

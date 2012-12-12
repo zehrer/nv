@@ -381,8 +381,11 @@ void outletObjectAwoke(id sender) {
 			location = (aliasData ? [[[NSFileManager defaultManager] pathCopiedFromAliasData:aliasData] autorelease] : NSLocalizedString(@"your Application Support directory",nil));
 			if (!location) { //fscopyaliasinfo sucks
 				FSRef locationRef;
-				if (![aliasData fsRefAsAlias:&locationRef] || LSCopyDisplayNameForRef(&locationRef, (CFStringRef*)&location) != noErr) {
+				CFStringRef newLocation = NULL;
+				if (![aliasData fsRefAsAlias:&locationRef] || LSCopyDisplayNameForRef(&locationRef, &newLocation) != noErr) {
 					location = NSLocalizedString(@"its current location",nil);
+				} else {
+					location = (__bridge_transfer NSString *)newLocation;
 				}
 			}
 		}
@@ -745,7 +748,7 @@ void outletObjectAwoke(id sender) {
 
 - (void)deleteAlertDidEnd:(NSAlert *)alert returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo {
 
-	id retainedDeleteObj = (id)contextInfo;
+	id retainedDeleteObj = (__bridge id)contextInfo;
 	
 	if (returnCode == NSAlertDefaultReturn) {
 		//delete! nil-msgsnd-checking

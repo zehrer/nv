@@ -928,7 +928,7 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
     }
     CFStringRef displayName = NULL;
     if (LSCopyDisplayNameForRef(fsRef, &displayName) == noErr) {
-	return [(NSString*)displayName autorelease];
+	return [(__bridge NSString*)displayName autorelease];
     }
     return nil;
 }
@@ -952,7 +952,7 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
 		if ((err = LSCopyDisplayNameForRef(currentRef, &displayName)) == noErr) {
 		    
 		    if (displayName) {
-			[directoryNames insertObject:(id)displayName atIndex:0];
+			[directoryNames insertObject:(__bridge id)displayName atIndex:0];
 			CFRelease(displayName);
 		    }
 		}

@@ -167,7 +167,7 @@ CFDateFormatterRef simplenoteDateFormatter(int lowPrecision) {
 // TODO: possibly obsolete? SN api2 formats dates as doubles from start of unix epoch
 + (NSString*)simplenoteDateWithAbsoluteTime:(CFAbsoluteTime)absTime {
 	CFStringRef str = CFDateFormatterCreateStringWithAbsoluteTime(NULL, simplenoteDateFormatter(0), absTime);
-	return [(id)str autorelease];
+	return [(__bridge id)str autorelease];
 }
 
 // TODO: possibly obsolete? SN api2 formats dates as doubles from start of unix epoch
@@ -471,7 +471,7 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, unsigned charIndex) {
 	CFMutableStringRef str2 = CFStringCreateMutableCopy(NULL, 0, (CFStringRef)self);
 	CFStringLowercase(str2, NULL);
 	
-	const char *utf8String = [(NSString*)str2 UTF8String];
+	const char *utf8String = [(__bridge NSString*)str2 UTF8String];
 	
 	CFRelease(str2);
 	return utf8String;
@@ -505,7 +505,7 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, unsigned charIndex) {
 	if (FSPathMakeRef((const UInt8 *)[self fileSystemRepresentation], &fileRef, NULL) == noErr) {
 		if (LSCopyItemAttribute(&fileRef, kLSRolesAll, kLSItemContentType, (CFTypeRef*)&fileUTI) == noErr) {
 			if (fileUTI) {
-				BOOL conforms = UTTypeConformsTo(fileUTI, (CFStringRef)type);
+				BOOL conforms = UTTypeConformsTo(fileUTI, (__bridge CFStringRef)type);
 				CFRelease(fileUTI);
 				return conforms;
 			}
@@ -534,7 +534,7 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, unsigned charIndex) {
 		CFRelease(uuidRef);
 	}
 	
-	return [(NSString*)uuidString autorelease];	
+	return [(__bridge NSString*)uuidString autorelease];
 }
 
 

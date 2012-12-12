@@ -84,7 +84,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 	
 	if ((reachableRef = SCNetworkReachabilityCreateWithName(NULL, [[[SimplenoteSession servletURLWithPath:
 																   @"/" parameters:nil] host] UTF8String]))) {
-		SCNetworkReachabilityContext context = {0, aTarget, NULL, NULL, NULL};
+		SCNetworkReachabilityContext context = {0, (__bridge void *)aTarget, NULL, NULL, NULL};
 		if (SCNetworkReachabilitySetCallback(reachableRef, callout, &context)) {
 			if (!SCNetworkReachabilityScheduleWithRunLoop(reachableRef, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode)) {
 				NSLog(@"SCNetworkReachabilityScheduleWithRunLoop error: %d", SCError());
@@ -107,15 +107,15 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 
 static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkConnectionFlags flags, void * info) {
     
-	SimplenoteSession *self = (SimplenoteSession *)info;
+	SimplenoteSession *session = (__bridge SimplenoteSession *)info;
 	BOOL reachable = ((flags & kSCNetworkFlagsReachable) && (!(flags & kSCNetworkFlagsConnectionRequired) || (flags & kSCNetworkFlagsConnectionAutomatic)));
 	
-	self->reachabilityFailed = !reachable;
+	session->reachabilityFailed = !reachable;
 	
 	if (reachable) {
-		[self startFetchingListForFullSyncManual];
+		[session startFetchingListForFullSyncManual];
 	}
-	//NSLog(@"self->reachabilityFailed: %d, flags: %u", self->reachabilityFailed, flags);
+	//NSLog(@"self->reachabilityFailed: %d, flags: %u", session->reachabilityFailed, flags);
 }
 
 - (BOOL)reachabilityFailed {

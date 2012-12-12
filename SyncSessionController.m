@@ -69,26 +69,26 @@ static void SleepCallBack(void *refcon, io_service_t y, natural_t messageType, v
 
 static void SleepCallBack(void *refcon, io_service_t y, natural_t messageType, void * messageArgument) {
 	
-    SyncSessionController *self = (SyncSessionController*)refcon;
+    SyncSessionController *controller = (__bridge SyncSessionController*)refcon;
 	InvocationRecorder *invRecorder = nil;
 	
 	switch (messageType) {
 		case kIOMessageSystemWillSleep:
-			[[(invRecorder = [InvocationRecorder invocationRecorder]) prepareWithInvocationTarget:self] endDelayingSleepWithMessage:messageArgument];
+			[[(invRecorder = [InvocationRecorder invocationRecorder]) prepareWithInvocationTarget:controller] endDelayingSleepWithMessage:messageArgument];
 			
-			if (![self waitForUncommitedChangesWithInvocation:[invRecorder invocation]]) {
+			if (![controller waitForUncommitedChangesWithInvocation:[invRecorder invocation]]) {
 				//if we don't have to wait, then do not delay sleep
-				[self endDelayingSleepWithMessage:messageArgument];
+				[controller endDelayingSleepWithMessage:messageArgument];
 			} else {
 				NSLog(@"delaying sleep for uncommitted changes");
 			}
 			break;
 		case kIOMessageCanSystemSleep:
 			//pevent idle sleep if a session is currently running
-			if ([self hasRunningSessions]) {
-				IOCancelPowerChange(self->fRootPort, (long)messageArgument);
+			if ([controller hasRunningSessions]) {
+				IOCancelPowerChange(controller->fRootPort, (long)messageArgument);
 			} else {
-				IOAllowPowerChange(self->fRootPort, (long)messageArgument);
+				IOAllowPowerChange(controller->fRootPort, (long)messageArgument);
 			}
 			break;
 		case kIOMessageSystemHasPoweredOn:

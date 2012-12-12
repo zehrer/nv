@@ -180,7 +180,7 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 
 
 - (void)openPanelDidEnd:(NSOpenPanel *)panel returnCode:(int)returnCode contextInfo:(void  *)contextInfo {
-	id delegate = (id)contextInfo;
+	id delegate = (__bridge id)contextInfo;
 	
 	if (delegate && [delegate respondsToSelector:@selector(noteImporter:importedNotes:)]) {
 		
@@ -216,7 +216,7 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 	[self retain];
 	
 	[openPanel beginSheetForDirectory:nil file:nil types:nil modalForWindow:mainWindow modalDelegate:self 
-					   didEndSelector:@selector(openPanelDidEnd:returnCode:contextInfo:) contextInfo:receiver];
+					   didEndSelector:@selector(openPanelDidEnd:returnCode:contextInfo:) contextInfo:(__bridge void *)(receiver)];
 }
 
 - (void)URLGetter:(URLGetter*)getter returnedDownloadedFile:(NSString*)filename {

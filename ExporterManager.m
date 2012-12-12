@@ -39,7 +39,7 @@
 }
 
 - (void)exportPanelDidEnd:(NSSavePanel *)sheet returnCode:(int)returnCode contextInfo:(void  *)contextInfo {
-	NSArray *notes = (NSArray *)contextInfo;
+	NSArray *notes = (__bridge NSArray *)contextInfo;
 	if (returnCode == NSFileHandlingPanelOKButton && notes) {
 		//write notes in chosen format
 		unsigned int i;

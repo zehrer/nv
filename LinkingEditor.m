@@ -1613,7 +1613,7 @@ static long (*GetGetScriptManagerVariablePointer())(short) {
 	BOOL currentKeyboardInputIsSystemLanguage = NO;
 	
     TISInputSourceRef inputRef = TISCopyCurrentKeyboardInputSource();
-    NSArray* inputLangs = [[(NSArray*)TISGetInputSourceProperty(inputRef, kTISPropertyInputSourceLanguages) retain] autorelease];
+    NSArray* inputLangs = [[(__bridge NSArray*)TISGetInputSourceProperty(inputRef, kTISPropertyInputSourceLanguages) retain] autorelease];
     CFRelease(inputRef);
     NSString *preferredLang = [[NSLocale autoupdatingCurrentLocale] objectForKey:NSLocaleLanguageCode];
     currentKeyboardInputIsSystemLanguage = nil != preferredLang && [inputLangs containsObject:preferredLang];

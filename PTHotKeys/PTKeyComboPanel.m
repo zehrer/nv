@@ -66,7 +66,7 @@ static id _sharedKeyComboPanel = nil;
 }
 
 - (void)chooseHotKeyDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void  *)contextInfo {
-	PTHotKey *hotKey = (PTHotKey *)contextInfo;
+	PTHotKey *hotKey = (__bridge PTHotKey *)contextInfo;
 	
 	[[self window] close];
 	
@@ -93,7 +93,7 @@ static id _sharedKeyComboPanel = nil;
 	[hotKey retain];
 
 	[NSApp beginSheet:[self window] modalForWindow:mainWindow modalDelegate:self 
-	   didEndSelector:@selector(chooseHotKeyDidEnd:returnCode:contextInfo:) contextInfo:hotKey];
+	   didEndSelector:@selector(chooseHotKeyDidEnd:returnCode:contextInfo:) contextInfo:(__bridge void *)(hotKey)];
 }
 
 - (void)runModalForHotKey: (PTHotKey*)hotKey {

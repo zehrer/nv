@@ -262,7 +262,7 @@ long BlockSizeForNotation(NotationController *controller) {
 	BOOL isOwned = NO;
 	if (IsZeros(childRef, sizeof(FSRef)) || [self fileInNotesDirectory:childRef isOwnedByUs:&isOwned hasCatalogInfo:NULL] != noErr || !isOwned) {
 		OSStatus err = noErr;
-		if ((err = FSRefMakeInDirectoryWithString(&noteDirectoryRef, childRef, (CFStringRef)filename, charsBuffer)) != noErr) {
+		if ((err = FSRefMakeInDirectoryWithString(&noteDirectoryRef, childRef, (__bridge CFStringRef)filename, charsBuffer)) != noErr) {
 			NSLog(@"Could not get an fsref for file with name %@: %d\n", filename, err);
 			return err;
 		}
@@ -282,7 +282,7 @@ long BlockSizeForNotation(NotationController *controller) {
 	UniChar chars[256];
 	if (!filename) return NO;
 	
-	return FSRefMakeInDirectoryWithString(&noteDirectoryRef, childRef, (CFStringRef)filename, chars) == noErr;
+	return FSRefMakeInDirectoryWithString(&noteDirectoryRef, childRef, (__bridge CFStringRef)filename, chars) == noErr;
 }
 
 - (OSStatus)renameAndForgetNoteDatabaseFile:(NSString*)newfilename {
@@ -511,7 +511,7 @@ terminate:
 }
 
 - (NSMutableData*)dataFromFileInNotesDirectory:(FSRef*)childRef forCatalogEntry:(NoteCatalogEntry*)catEntry {
-    return [self dataFromFileInNotesDirectory:childRef forFilename:(NSString*)catEntry->filename fileSize:catEntry->logicalSize];
+    return [self dataFromFileInNotesDirectory:childRef forFilename:(__bridge NSString*)catEntry->filename fileSize:catEntry->logicalSize];
 }
 
 - (NSMutableData*)dataFromFileInNotesDirectory:(FSRef*)childRef forFilename:(NSString*)filename fileSize:(UInt64)givenFileSize {
@@ -535,7 +535,7 @@ terminate:
 
 - (OSStatus)createFileIfNotPresentInNotesDirectory:(FSRef*)childRef forFilename:(NSString*)filename fileWasCreated:(BOOL*)created {
 	
-	return FSCreateFileIfNotPresentInDirectory(&noteDirectoryRef, childRef, (CFStringRef)filename, (Boolean*)created);
+	return FSCreateFileIfNotPresentInDirectory(&noteDirectoryRef, childRef, (__bridge CFStringRef)filename, (Boolean*)created);
 }
 
 - (OSStatus)storeDataAtomicallyInNotesDirectory:(NSData*)data withName:(NSString*)filename destinationRef:(FSRef*)destRef {

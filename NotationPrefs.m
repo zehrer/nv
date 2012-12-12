@@ -625,7 +625,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 	NSAssert([(id)contextInfo respondsToSelector:@selector(notesStorageFormatInProgress)],
 			 @"can't get notesStorageFormatInProgress method for changing");
 
-	int newNoteStorageFormat = [(NotationPrefsViewController*)contextInfo notesStorageFormatInProgress];
+	int newNoteStorageFormat = [(__bridge NotationPrefsViewController*)contextInfo notesStorageFormatInProgress];
 	
 	if (returnCode != NSAlertAlternateReturn)
 		//didn't cancel
@@ -637,15 +637,15 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 	//but what if the files remain after switching to a single-db format--and then the user deletes a bunch of the files themselves?
 	//should we switch the currentFormatIDs of those notes to single-db? I guess.
 	
-	if ([(id)contextInfo respondsToSelector:@selector(notesStorageFormatDidChange)])
-		[(NotationPrefsViewController*)contextInfo notesStorageFormatDidChange];
+	if ([(__bridge id)contextInfo respondsToSelector:@selector(notesStorageFormatDidChange)])
+		[(__bridge NotationPrefsViewController*)contextInfo notesStorageFormatDidChange];
 	
 	if (returnCode != NSAlertAlternateReturn) {
 		//run queued method
 		NSAssert([(id)contextInfo respondsToSelector:@selector(runQueuedStorageFormatChangeInvocation)],
 				 @"can't get runQueuedStorageFormatChangeInvocation method for changing");
 
-		[(NotationPrefsViewController*)contextInfo runQueuedStorageFormatChangeInvocation];
+		[(__bridge NotationPrefsViewController*)contextInfo runQueuedStorageFormatChangeInvocation];
 	}
 }
 
@@ -1044,7 +1044,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 }
 
 - (BOOL)catalogEntryAllowed:(NoteCatalogEntry*)catEntry {
-    NSString *filename = (NSString*)catEntry->filename;
+    NSString *filename = (__bridge NSString*)catEntry->filename;
 	
 	if (![filename length])
 		return NO;
