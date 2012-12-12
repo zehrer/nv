@@ -349,12 +349,13 @@ long BlockSizeForNotation(NotationController *controller) {
 				
 				FSRef newParentRef;
 				CFURLRef url = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, filename, kCFURLPOSIXPathStyle, true);
-				[(id)url autorelease];
 				if (!url || !CFURLGetFSRef(url, &newParentRef)) {
 					NSRunAlertPanel(NSLocalizedString(@"Unable to create an FSRef from the chosen directory.",nil), 
 									NSLocalizedString(@"Your notes were not moved.",nil), NSLocalizedString(@"OK",nil), NULL, NULL);
+					CFRelease(url);
 					continue;
 				}
+				CFRelease(url);
 				
 				FSRef newNotesDirectory;
 				OSErr err = FSMoveObject(&noteDirectoryRef,  &newParentRef, &newNotesDirectory);

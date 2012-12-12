@@ -258,8 +258,8 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 				NoteObject *noteObject = [[NoteObject alloc] initWithNoteBody:newString title:[getter userData] ? [getter userData] : urlString
 																	 delegate:nil format:SingleDatabaseFormat labels:nil];
 				
-				[receptionDelegate noteImporter:self importedNotes:[NSArray arrayWithObject:noteObject]];
-				[noteObject autorelease];
+				[receptionDelegate noteImporter:self importedNotes: @[noteObject]];
+				[noteObject release];
 			}
 		}			
 		
@@ -279,7 +279,7 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 		
 	[self retain];
 	
-	[[[URLGetter alloc] initWithURL:aURL delegate:self userData:linkTitle] autorelease];
+	[[[URLGetter alloc] initWithURL:aURL delegate:self userData:linkTitle] release];
 }
 
 - (NSArray*)importedNotes {
@@ -378,7 +378,7 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 					} else {
 						NSLog(@"Couldn't get entire doc selection for PDF");
 					}
-					[doc autorelease];
+					[doc release];
 				} else {
 					NSLog(@"Couldn't parse data into PDF");
 				}
@@ -424,27 +424,26 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 		if ([sourceIdentifierString length])
 			prefixedSourceLength = [[attributedStringFromData prefixWithSourceString:sourceIdentifierString] length];
 		[attributedStringFromData santizeForeignStylesForImporting];
-		
-		[attributedStringFromData autorelease];
-		
+				
 		//transfer any openmeta tags associated with this file as tags for the new note
 		NSArray *openMetaTags = [[NSFileManager defaultManager] getOpenMetaTagsAtFSPath:[filename fileSystemRepresentation]];
 		
 		//we do not also use filename as uniqueFilename, as we are only importing--not taking ownership
-		NoteObject *noteObject = [[NoteObject alloc] initWithNoteBody:attributedStringFromData title:title delegate:nil 
-															   format:SingleDatabaseFormat labels:[openMetaTags componentsJoinedByString:@" "]];				
+		NoteObject *noteObject = [[NoteObject alloc] initWithNoteBody:attributedStringFromData title:title delegate:nil
+															   format:SingleDatabaseFormat labels:[openMetaTags componentsJoinedByString:@" "]];
 		if (noteObject) {
 			if (bodyLoc > 0 && [attributedStringFromData length] >= bodyLoc + prefixedSourceLength) [noteObject setSelectedRange:NSMakeRange(prefixedSourceLength, bodyLoc)];
 			if (shouldGrabCreationDates) {
 				[noteObject setDateAdded:CFDateGetAbsoluteTime((CFDateRef)[attributes objectForKey:NSFileCreationDate])];
 			}
 			[noteObject setDateModified:CFDateGetAbsoluteTime((CFDateRef)[attributes objectForKey:NSFileModificationDate])];
-			
-			return [noteObject autorelease];
 		} else {
 			NSLog(@"couldn't generate note object from imported attributed string??");
 		}
 		
+		[attributedStringFromData release];
+		
+		return [noteObject autorelease];
 	}
 	return nil;
 }
@@ -599,9 +598,8 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 	
     [task release];
     [data release];
-    [strippedString autorelease];
 	
-    return (strippedString);
+    return [strippedString autorelease];
 }
 -(BOOL)shouldUseReadability
 {

@@ -386,12 +386,10 @@ void outletObjectAwoke(id sender) {
 		if (err == kPassCanceledErr) {
 			showError = NO;
 		} else {
-			location = (aliasData ? [[NSFileManager defaultManager] pathCopiedFromAliasData:aliasData] : NSLocalizedString(@"your Application Support directory",nil));
+			location = (aliasData ? [[[NSFileManager defaultManager] pathCopiedFromAliasData:aliasData] autorelease] : NSLocalizedString(@"your Application Support directory",nil));
 			if (!location) { //fscopyaliasinfo sucks
 				FSRef locationRef;
-				if ([aliasData fsRefAsAlias:&locationRef] && LSCopyDisplayNameForRef(&locationRef, (CFStringRef*)&location) == noErr) {
-					[location autorelease];
-				} else {
+				if (![aliasData fsRefAsAlias:&locationRef] || LSCopyDisplayNameForRef(&locationRef, (CFStringRef*)&location) != noErr) {
 					location = NSLocalizedString(@"its current location",nil);
 				}
 			}
@@ -531,7 +529,7 @@ void outletObjectAwoke(id sender) {
 		
 		[field selectText:nil];
 		
-		[oldNotation autorelease];
+		[oldNotation release];
     }
 }
 
@@ -892,9 +890,7 @@ void outletObjectAwoke(id sender) {
 	[notationController addNotes:notes];
 }
 - (IBAction)importNotes:(id)sender {
-	AlienNoteImporter *importer = [[AlienNoteImporter alloc] init];
-	[importer importNotesFromDialogAroundWindow:window receptionDelegate:self];
-	[importer autorelease];
+	[[[[AlienNoteImporter alloc] init] autorelease] importNotesFromDialogAroundWindow:window receptionDelegate:self];
 }
 
 - (void)settingChangedForSelectorString:(NSString*)selectorString {

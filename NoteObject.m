@@ -957,7 +957,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	//when removing this note from NotationController, other LabelObjects as well as the label controller should know not to list it
 	if (delegate) {
 		[delegate note:self didRemoveLabelSet:labelSet];
-		[labelSet autorelease];
+		[labelSet release];
 		labelSet = nil;
 	} else {
 		NSLog(@"not disconnecting labels because no delegate exists");
@@ -1005,9 +1005,8 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		if ([aWord length] > 0) {
 			LabelObject *aLabel = [[LabelObject alloc] initWithTitle:aWord];
 			[aLabel addNote:self];
-			
 			[newLabelSet addObject:aLabel];
-			[aLabel autorelease];
+			[aLabel release];
 		}
 	}
 	

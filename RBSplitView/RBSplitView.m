@@ -377,7 +377,7 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 
 - (void)setBackground:(NSColor*)color {
 	if (![self couplingSplitView]) {
-		[background autorelease];
+		[background release];
 		background = color?([color alphaComponent]>0.0?[color retain]:nil):nil;
 		[self setNeedsDisplay:YES];
 	}
@@ -461,7 +461,7 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 
 - (void)setDivider:(NSImage*)image {
 	if (![self couplingSplitView]) {
-		[divider autorelease];
+		[divider release];
 		if ([image isFlipped]) {
 // If the image is flipped, we just retain it.
 			divider = [image retain];

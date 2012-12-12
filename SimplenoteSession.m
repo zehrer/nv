@@ -488,17 +488,14 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 }
 
 - (void)_clearAuthTokenAndDependencies {
-	[listFetcher autorelease];
-	listFetcher = nil;
-	[authToken autorelease];
-	authToken = nil;	
+	[listFetcher release]; listFetcher = nil;
+	[authToken release]; authToken = nil;	
 }
 
 - (void)clearErrors {
 	//effectively reset what the session knows about itself, in preparation for another sync
 	lastIndexAuthFailed = NO;
-	[lastErrorString autorelease];
-	lastErrorString = nil;
+	[lastErrorString release]; lastErrorString = nil;
 	lastSyncedTime = 0.0;
 }
 
@@ -564,7 +561,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		
 		[collector startCollectingWithCallback:[notesToMerge count] ? 
 		 @selector(addedEntriesToMergeCollectorDidFinish:) : @selector(addedEntryCollectorDidFinish:) collectionDelegate:self];
-		[collector autorelease];
+		[collector release];
 	}
 }
 
@@ -590,7 +587,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		SimplenoteEntryCollector *collector = [[SimplenoteEntryCollector alloc] initWithEntriesToCollect:entries authToken:authToken email:emailAddress];
 		[self _registerCollector:collector];
 		[collector startCollectingWithCallback:@selector(changedEntryCollectorDidFinish:) collectionDelegate:self];
-		[collector autorelease];
+		[collector release];
 	}
 }
 
@@ -897,7 +894,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 			
 			[self _registerCollector:modifier];
 			[modifier startCollectingWithCallback:callback collectionDelegate:self];
-			[modifier autorelease];
+			[modifier release];
 		}
 	}
 }
@@ -1046,8 +1043,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 			}
 		}
 		
-		[lastErrorString autorelease];
-		lastErrorString = nil;
+		[lastErrorString release]; lastErrorString = nil;
 		
 		reachabilityFailed = NO;
 		
@@ -1067,8 +1063,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		//we can no longer rely on the URL for listFetcher remaining constant,
 		//so we don't reuse it. (we could consider extending SyncResponseFetcher to support
 		//dynamic URLS instead)
-		[listFetcher autorelease];
-		listFetcher = nil;
+		[listFetcher release]; listFetcher = nil;
 		[indexMark release];
 		indexMark = [[responseDictionary objectForKey:@"mark"] copy];
 		if (indexMark) {
@@ -1076,8 +1071,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		} else {
 			[self _updateSyncTime];
 			[delegate syncSession:self receivedFullNoteList:indexEntryBuffer];
-			[indexEntryBuffer autorelease];
-			indexEntryBuffer = nil;
+			[indexEntryBuffer release]; indexEntryBuffer = nil;
 		}
 		
 	} else {

@@ -66,12 +66,15 @@
 		
 		FSRef directoryRef;
 		CFURLRef url = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, (CFStringRef)directory, kCFURLPOSIXPathStyle, true);
-		[(id)url autorelease];
+
 		if (!url || !CFURLGetFSRef(url, &directoryRef)) {
 			NSRunAlertPanel([NSString stringWithFormat:NSLocalizedString(@"The notes couldn't be exported because the directory quotemark%@quotemark couldn't be accessed.",nil),
 				[directory stringByAbbreviatingWithTildeInPath]], @"", NSLocalizedString(@"OK",nil), nil, nil);
+			if (url) CFRelease(url);
 			return;
 		}
+		
+		CFRelease(url);
 		
 		//re-uniqify file names here (if [notes count] > 1)?
 		

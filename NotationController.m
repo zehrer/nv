@@ -303,7 +303,7 @@
 			return kCoderErr;
 		}
 	
-		[archivedNotation autorelease];
+		[archivedNotation release];
 	}
 	
 	
@@ -442,7 +442,7 @@
 		for (i=0; i<count; i++) {
 			
 			CFUUIDBytes *objUUIDBytes = (CFUUIDBytes *)keys[i];
-			id<SynchronizedNote> obj = (id)values[i];
+			id<SynchronizedNote> obj = (__bridge id)values[i];
 			
 			NSUInteger existingNoteIndex = [allNotes indexOfNoteWithUUIDBytes:objUUIDBytes];
 			

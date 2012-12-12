@@ -124,7 +124,6 @@
 		if (pboardString) newString = [[NSMutableAttributedString alloc] initWithString:pboardString];
 	}
 	
-	[newString autorelease];
 	if ([newString length] > 0) {
 		[newString removeAttachments];
 		
@@ -144,10 +143,13 @@
 		if (bodyLoc > 0 && [newString length] >= bodyLoc + prefixedSourceLength) [note setSelectedRange:NSMakeRange(prefixedSourceLength, bodyLoc)];
 		[notationController addNewNote:note];
 		
+		[newString release];
+		
 		return note != nil;
+	} else {
+		[newString release];
+		return NO;
 	}
-	
-	return NO;
 }
 
 - (BOOL)interpretNVURL:(NSURL*)aURL {

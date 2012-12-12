@@ -138,7 +138,7 @@
 	[[bodyTextFontField cell] setAttributedStringValue:attributedString];
     [bodyTextFontField updateCell:[bodyTextFontField cell]];
 	
-	[attributedString autorelease];
+	[attributedString release];
 	
 }
 
@@ -347,12 +347,11 @@
 			*path = [[[openPanel filename] copy] autorelease];
 		
 		//yes, I know that navigation services uses uses FSRefs, but NSSavePanel saves us much more work
-		CFURLRef url = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, filename, kCFURLPOSIXPathStyle, true);
-		[(id)url autorelease];
-		if (!url || !CFURLGetFSRef(url, notesDirectoryRef))
-			return NO;
-		
-		return YES;
+		CFURLRef url = CFURLCreateWithFileSystemPath(NULL, filename, kCFURLPOSIXPathStyle, true);
+		if (!url) return NO;
+		BOOL success = CFURLGetFSRef(url, notesDirectoryRef);
+		CFRelease(url);
+		return success;
     }
     
     return NO;

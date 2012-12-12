@@ -211,7 +211,7 @@ static NSString *TempDirectoryPathForEditing() {
 		
 		if (task == attachTask || task == newfsTask || task == mountTask) {
 			//each launched task retains self, so as long as each task triggers this method, then each retain should be balanced with an autorelease
-			[self autorelease];
+			[self release];
 			
 			if ([task terminationStatus]) {
 				//assume an exit status of 0 means success

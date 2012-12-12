@@ -100,15 +100,12 @@
 + (NSData*)frozenDataWithExistingNotes:(NSMutableArray*)notes 
 						  deletedNotes:(NSMutableSet*)antiNotes 
 								 prefs:(NotationPrefs*)prefs {
-	FrozenNotation *frozenNotation = [[FrozenNotation alloc] initWithNotes:notes deletedNotes:antiNotes prefs:prefs];
+	FrozenNotation *frozenNotation = [[[FrozenNotation alloc] initWithNotes:notes deletedNotes:antiNotes prefs:prefs] autorelease];
 
 	if (!frozenNotation)
 		return nil;
 	
-	NSData *encodedNotationData = [NSKeyedArchiver archivedDataWithRootObject:frozenNotation];
-	[frozenNotation autorelease];
-	
-	return encodedNotationData;
+	return [NSKeyedArchiver archivedDataWithRootObject:frozenNotation];
 }
 
 - (NSMutableArray*)unpackedNotesWithPrefs:(NotationPrefs*)somePrefs returningError:(OSStatus*)err {
@@ -126,9 +123,8 @@
 			}
 		}
 		
-		NSMutableData *oldNotesData = notesData;
+		[notesData release];
 		notesData = [[notesData uncompressedData] retain];
-		[oldNotesData autorelease];
 		
 		if (!notesData) {
 			*err = kCompressionErr;
@@ -137,7 +133,7 @@
 		}
 		NSKeyedUnarchiver *unarchiver = [[NSKeyedUnarchiver alloc] initForReadingWithData:notesData];
 		allNotes = [[unarchiver decodeObjectForKey:@"notes"] retain];
-		[unarchiver autorelease];
+		[unarchiver release];
 		
 	} @catch (NSException *e) {
 		*err = kCoderErr;
@@ -182,11 +178,8 @@
 				}
 			}
 			
-			//[notesData reverseBytes];
-			
-			NSMutableData *oldNotesData = notesData;
+			[notesData release];
 			notesData = [[notesData uncompressedData] retain];
-			[oldNotesData autorelease];
 			
 			if (!notesData) {
 				*err = kCompressionErr;
@@ -197,7 +190,7 @@
             @try {
                 NSKeyedUnarchiver *unarchiver = [[NSKeyedUnarchiver alloc] initForReadingWithData:notesData];
                 allNotes = [[unarchiver decodeObjectForKey:@"notes"] retain];
-                [unarchiver autorelease];
+                [unarchiver release];
             } @catch (NSException *e) {
                 keyedArchiveFailed = YES;
             }

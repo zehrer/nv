@@ -7,10 +7,10 @@
 
 #import "NotesTableHeaderCell.h"
 
-NSColor *bColor;
-NSColor *tColor;
-NSColor *hColor;
-NSGradient *gradient;
+static NSColor *bColor;
+static NSColor *tColor;
+static NSColor *hColor;
+static NSGradient *gradient;
 
 @implementation NotesTableHeaderCell
 
@@ -51,9 +51,6 @@ NSGradient *gradient;
 }
 
 + (void)setBackgroundColor:(NSColor *)inColor{
-    if (bColor) {
-        [bColor release];
-    }
 	bColor = [inColor retain];
 	CGFloat fWhite;
 	CGFloat endWhite;
@@ -65,14 +62,10 @@ NSGradient *gradient;
 	}else {		
 		endWhite = fWhite - .27f;
 	}
-	[hColor release];
 	hColor = [[inColor blendedColorWithFraction:0.60f ofColor:[NSColor colorWithCalibratedWhite:endWhite alpha:0.98f]] retain];
 }
 
 + (void)setForegroundColor:(NSColor *)inColor{
-    if (tColor) {
-        [tColor release];
-    }
 	tColor = [inColor retain];
 }
 

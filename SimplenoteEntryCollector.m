@@ -202,8 +202,8 @@
 		//no more entries to collect!
 		currentFetcher = nil;
 		[collectionDelegate performSelector:entriesFinishedCallback withObject:self];
-		[self autorelease];
-		[collectionDelegate autorelease];
+		[self release];
+		[collectionDelegate release];
 	} else {
 		//queue next entry
 		[(currentFetcher = [self fetcherForEntry:[entriesToCollect objectAtIndex:entryFinishedCount++]]) start];

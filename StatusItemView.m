@@ -9,7 +9,15 @@
 #import "StatusItemView.h"
 #import "AppController.h"
 
-NSString *imageName = @"nvMenuDark";
+@interface StatusItemView () {
+	NSImage *_menuDarkImage;
+	NSImage *_menuClickedImage;
+}
+
+@property (nonatomic, readonly) NSImage *menuDarkImage;
+@property (nonatomic, readonly) NSImage *menuClickedImage;
+
+@end
 
 @implementation StatusItemView
 
@@ -29,29 +37,40 @@ NSString *imageName = @"nvMenuDark";
     [super dealloc];
 }
 
+- (NSImage *)menuClickedImage {
+	if (!_menuClickedImage) {
+		NSBundle *bundle = [NSBundle bundleForClass:[self class]];
+		NSString *path = [bundle pathForResource: @"nvMenuC" ofType:@"png"];
+		_menuClickedImage = [[NSImage alloc] initWithContentsOfFile: path];
+	}
+	return _menuClickedImage;
+}
+
+- (NSImage *)menuDarkImage {
+	if (!_menuDarkImage) {
+		NSBundle *bundle = [NSBundle bundleForClass:[self class]];
+		NSString *path = [bundle pathForResource: @"nvMenuDark" ofType:@"png"];
+		_menuDarkImage = [[NSImage alloc] initWithContentsOfFile: path];
+	}
+	return _menuDarkImage;
+}
+
 - (void)drawRect:(NSRect)rect {
+	NSImage *menuIcon = nil;
 	if (clicked) {
-        imageName=@"nvMenuC";
+        menuIcon = self.menuClickedImage;
         [[NSColor selectedMenuItemColor] set];
 		NSRectFill(rect);
     }else {
-        if ([NSApp isActive]) {
-            imageName = @"nvMenuDark";
-        }else{
-        imageName = @"nvMenuDark";
-        }
+        menuIcon = self.menuDarkImage;
 		[[NSColor clearColor] set];
         NSRectFill(rect);
 	}
-	NSBundle *bundle = [NSBundle bundleForClass:[self class]];
-	NSString *path = [bundle pathForResource:imageName ofType:@"png"];
-	NSImage *menuIcon = [[NSImage alloc] initWithContentsOfFile:path];
 	NSSize msgSize = [menuIcon size];
     NSRect msgRect = NSMakeRect(0, 0, msgSize.width, msgSize.height);
     msgRect.origin.x = ([self frame].size.width - msgSize.width)/2;
     msgRect.origin.y = ([self frame].size.height - msgSize.height)/2;
 	[menuIcon drawInRect:msgRect fromRect:NSZeroRect operation: NSCompositeSourceOver fraction:1.0];
-	[menuIcon autorelease];
 }
 
 - (void)mouseDown:(NSEvent *)event
@@ -92,12 +111,10 @@ NSString *imageName = @"nvMenuDark";
 }
 
 - (void)setInactiveIcon:(id)sender{
-	imageName = @"nvMenuDark";
 	[self setNeedsDisplay:YES];
 }
 
 - (void)setActiveIcon:(id)sender{
-    imageName=@"nvMenuDark";;
 	[self setNeedsDisplay:YES];
 }
 
