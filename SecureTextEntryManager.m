@@ -21,25 +21,15 @@
 
 NSString *ShouldHideSecureTextEntryWarningKey = @"ShouldHideSecureTextEntryWarning";
 
-static SecureTextEntryManager *sharedInstance = nil;
-
 @implementation SecureTextEntryManager
 
 + (SecureTextEntryManager*)sharedInstance {
-	//not synchronized because there should be no need for non-main threads to access this class
-	//also, NSThread access potentially enables a locking 
-	
-	if (sharedInstance == nil)
+	static dispatch_once_t onceToken;
+	static SecureTextEntryManager *sharedInstance = nil;
+	dispatch_once(&onceToken, ^{
 		sharedInstance = [[SecureTextEntryManager alloc] init];
+	});
     return sharedInstance;
-}
-
-+ (id)allocWithZone:(NSZone *)zone {
-	if (sharedInstance == nil) {
-		sharedInstance = [super allocWithZone:zone];
-		return sharedInstance;  // assignment and return on first allocation
-	}
-    return nil; // on subsequent allocation attempts return nil
 }
 
 - (id)init {
@@ -154,26 +144,6 @@ static SecureTextEntryManager *sharedInstance = nil;
 			CFRelease(infoDict);
 		}
 	}
-}
-
-- (id)copyWithZone:(NSZone *)zone {
-    return self;
-}
-
-- (id)retain {
-    return self;
-}
-
-- (NSUInteger)retainCount {
-    return UINT_MAX;  // denotes an object that cannot be released
-}
-
-- (void)release {
-    //do nothing
-}
-
-- (id)autorelease {
-    return self;
 }
 
 @end
