@@ -57,6 +57,7 @@ extern NSString *RetrievedPasswordKey;
 - (NSArray*)importedNotes;
 
 - (NSArray*)notesWithPaths:(NSArray*)paths;
+- (NSArray*)notesWithURLs:(NSArray*)paths;
 //where filename is a file expected to contain a single note (e.g., text, RTF, word)
 - (NoteObject*)noteWithFile:(NSString*)filename;
 

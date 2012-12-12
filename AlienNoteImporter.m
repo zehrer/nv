@@ -29,6 +29,8 @@
 #import "NotationPrefs.h"
 #import "NotationController.h"
 #import "NoteObject.h"
+#import <objc/message.h>
+#import <Quartz/Quartz.h>
 
 NSString *PasswordWasRetrievedFromKeychainKey = @"PasswordRetrievedFromKeychain";
 NSString *RetrievedPasswordKey = @"RetrievedPassword";
@@ -112,8 +114,7 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 		if ((source = filename)) {
 			
 			//auto-detect based on bundle/extension/metadata
-			
-			NSDictionary *pathAttributes = [[NSFileManager defaultManager] fileAttributesAtPath:filename traverseLink:YES];
+			NSDictionary *pathAttributes = [[NSFileManager defaultManager] attributesOfItemAtPath: filename error: NULL];;
 			if ([[filename pathExtension] caseInsensitiveCompare:@"rtfd"] != NSOrderedSame &&
 				[[pathAttributes objectForKey:NSFileType] isEqualToString:NSFileTypeDirectory]) {
 				
@@ -172,29 +173,6 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 	return importAccessoryView;
 }
 
-
-- (void)openPanelDidEnd:(NSOpenPanel *)panel returnCode:(int)returnCode contextInfo:(void  *)contextInfo {
-	id delegate = (__bridge id)contextInfo;
-	
-	if (delegate && [delegate respondsToSelector:@selector(noteImporter:importedNotes:)]) {
-		
-		if (returnCode == NSOKButton) {
-			shouldGrabCreationDates = [grabCreationDatesButton state] == NSOnState;
-			[[NSUserDefaults standardUserDefaults] setBool:shouldGrabCreationDates forKey:ShouldImportCreationDates];
-			NSArray *notes = [self notesWithPaths:[panel filenames]];
-			if (notes && [notes count])
-				[delegate noteImporter:self importedNotes:notes];
-			else
-				NSRunAlertPanel(NSLocalizedString(@"None of the selected files could be imported.",nil), 
-								NSLocalizedString(@"Please choose other files.",nil), NSLocalizedString(@"OK",nil),nil,nil);
-		}
-	} else {
-		NSLog(@"Where's my note importing delegate?");
-		NSBeep();
-	}
-	
-}
-
 - (void)importNotesFromDialogAroundWindow:(NSWindow*)mainWindow receptionDelegate:(id)receiver {
 	NSOpenPanel *openPanel = [NSOpenPanel openPanel];
 	[openPanel setCanChooseFiles:YES];
@@ -206,9 +184,24 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 	[openPanel setAccessoryView:[self accessoryView]];
 	[grabCreationDatesButton setState:[[NSUserDefaults standardUserDefaults] boolForKey:ShouldImportCreationDates]];
 	
-	
-	[openPanel beginSheetForDirectory:nil file:nil types:nil modalForWindow:mainWindow modalDelegate:self 
-					   didEndSelector:@selector(openPanelDidEnd:returnCode:contextInfo:) contextInfo:(__bridge void *)(receiver)];
+	[openPanel beginSheetModalForWindow: mainWindow completionHandler:^(NSInteger result) {
+		if (receiver && [receiver respondsToSelector:@selector(noteImporter:importedNotes:)]) {
+			
+			if (result == NSOKButton) {
+				shouldGrabCreationDates = [grabCreationDatesButton state] == NSOnState;
+				[[NSUserDefaults standardUserDefaults] setBool:shouldGrabCreationDates forKey:ShouldImportCreationDates];
+				NSArray *notes = [self notesWithURLs: openPanel.URLs];
+				if (notes && [notes count])
+					[receiver noteImporter:self importedNotes:notes];
+				else
+					NSRunAlertPanel(NSLocalizedString(@"None of the selected files could be imported.",nil),
+									NSLocalizedString(@"Please choose other files.",nil), NSLocalizedString(@"OK",nil),nil,nil);
+			}
+		} else {
+			NSLog(@"Where's my note importing delegate?");
+			NSBeep();
+		}
+	}];
 }
 
 - (void)URLGetter:(URLGetter*)getter returnedDownloadedFile:(NSString*)filename {
@@ -271,7 +264,7 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 
 - (NSArray*)importedNotes {
 	if (!importerSelector) return nil;
-	return [self performSelector:importerSelector withObject:source];
+	return objc_msgSend(self, importerSelector, source);
 }
 
 - (NSArray*)notesWithPaths:(NSArray*)paths {
@@ -284,7 +277,7 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 			NSString *path = [paths objectAtIndex:i];
 			NSArray *notes = nil;
 			
-			NSDictionary *pathAttributes = [fileMan fileAttributesAtPath:path traverseLink:YES];
+			NSDictionary *pathAttributes = [fileMan attributesOfItemAtPath: path error: NULL];
 			if ([[path pathExtension] caseInsensitiveCompare:@"rtfd"] != NSOrderedSame &&
 				[[pathAttributes objectForKey:NSFileType] isEqualToString:NSFileTypeDirectory]) {
 				notes = [self notesInDirectory:path];
@@ -304,12 +297,42 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 	return nil;
 }
 
+- (NSArray*)notesWithURLs:(NSArray*)paths {
+	if ([paths isKindOfClass:[NSArray class]]) {
+		
+		NSMutableArray *array = [NSMutableArray array];
+		NSFileManager *fileMan = [NSFileManager defaultManager];
+		for (NSURL *URL in paths) {
+			NSArray *notes = nil;
+			NSString *path = URL.path;
+			NSDictionary *pathAttributes = [fileMan attributesOfItemAtPath: path error: NULL];
+			
+			if ([URL.pathExtension caseInsensitiveCompare:@"rtfd"] != NSOrderedSame &&
+				[[pathAttributes objectForKey:NSFileType] isEqualToString:NSFileTypeDirectory]) {
+				notes = [self notesInDirectory:path];
+			} else {
+				notes = [self notesInFile:path];
+			}
+			
+			if (notes)
+				[array addObjectsFromArray:notes];
+		}
+		
+		return array;
+	} else {
+		NSLog(@"notesWithPaths: has the wrong kind of object!");
+	}
+	
+	return nil;
+	
+}
+
 //auto-detect based on file type/extension/header
 //if unable to find, revert to spotlight importer
 - (NoteObject*)noteWithFile:(NSString*)filename {
 	//RTF, Text, Word, HTML, and anything else we can do without too much effort
 	NSString *extension = [[filename pathExtension] lowercaseString];
-	NSDictionary *attributes = [[NSFileManager defaultManager] fileAttributesAtPath:filename traverseLink:YES];
+	NSDictionary *attributes = [[NSFileManager defaultManager] attributesOfItemAtPath: filename error: NULL];
 	unsigned long fileType = [[attributes objectForKey:NSFileHFSTypeCode] unsignedLongValue];
 	NSString *sourceIdentifierString = nil;
 	
@@ -353,23 +376,17 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 	} else if (fileType == PDF_TYPE_ID || [extension isEqualToString:@"pdf"]) {
 		//try PDFKit loading lazily
 		@try {
-			Class PdfDocClass = [[self class] PDFDocClass];
-			if (PdfDocClass != Nil) {
-				id doc = [[PdfDocClass alloc] initWithURL:[NSURL fileURLWithPath:filename]];
-				if (doc) {
-					//this method reliably crashes in 64-bit Leopard, and sometimes elsewhere as well
-					id sel = [doc performSelector:@selector(selectionForEntireDocument)];
-					if (sel) {
-						attributedStringFromData = [[NSMutableAttributedString alloc] initWithAttributedString:[sel attributedString]];
-						//maybe we could check pages and boundsForPage: to try to determine where a line was soft-wrapped in the document?
-					} else {
-						NSLog(@"Couldn't get entire doc selection for PDF");
-					}
+			PDFDocument *doc = [[PDFDocument alloc] initWithURL: [NSURL fileURLWithPath:filename]];
+			if (doc) {
+				PDFSelection *selection = [doc selectionForEntireDocument];
+				if (selection) {
+					//maybe we could check pages and boundsForPage: to try to determine where a line was soft-wrapped in the document?
+					attributedStringFromData = [selection.attributedString mutableCopy];
 				} else {
-					NSLog(@"Couldn't parse data into PDF");
+					NSLog(@"Couldn't get entire doc selection for PDF");
 				}
 			} else {
-				NSLog(@"No PDFDocument!");
+				NSLog(@"Couldn't parse data into PDF");
 			}
 		} @catch (NSException *e) {
 			NSLog(@"Error importing PDF %@ (%@, %@)", filename, [e name], [e reason]);
@@ -433,22 +450,21 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 }
 
 - (NSArray*)notesInDirectory:(NSString*)filename {
-	
+	NSFileManager *fileMan = [NSFileManager defaultManager];
+
 	//recurse through all subdirectories calling notesInFile where appropriate and collecting arrays into one
-	//NSDirectoryEnumerator *enumerator  = [[NSFileManager defaultManager] enumeratorAtPath:filename];
-	NSArray *filenames = [[NSFileManager defaultManager] directoryContentsAtPath:filename];
+	NSArray *filenames = [[NSFileManager defaultManager] contentsOfDirectoryAtPath: filename error: NULL];
 	NSEnumerator *enumerator = [filenames objectEnumerator];
 	
 	NSMutableArray *array = [NSMutableArray array];
 	
 	NSString *curObject = nil;
-	NSFileManager *fileMan = [NSFileManager defaultManager];
 	while ((curObject = [enumerator nextObject])) {
 		@autoreleasepool {
 		
 			NSString *itemPath = [filename stringByAppendingPathComponent:curObject];
-				
-			if ([[[fileMan fileAttributesAtPath:itemPath traverseLink:YES] objectForKey:NSFileType] isEqualToString:NSFileTypeRegular]) {
+
+			if ([[fileMan attributesOfItemAtPath: itemPath error: NULL][NSFileType] isEqual: NSFileTypeRegular]) {
 				NSArray *notes = [self notesInFile:itemPath];
 				if (notes)
 					[array addObjectsFromArray:notes];
@@ -656,7 +672,7 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 						 forKey:PasswordWasRetrievedFromKeychainKey];
 	[documentSettings setObject:[retriever originalPasswordString] forKey:RetrievedPasswordKey];
 	
-	NSDictionary *dbAttrs = [[NSFileManager defaultManager] fileAttributesAtPath:filename traverseLink:YES];
+	NSDictionary *dbAttrs = [[NSFileManager defaultManager] attributesOfItemAtPath: filename error: NULL];
 	NSDate *creationDate = [dbAttrs objectForKey:NSFileCreationDate];
 	NSDate *modificationDate = [dbAttrs objectForKey:NSFileModificationDate];
 	

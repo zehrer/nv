@@ -32,6 +32,13 @@ static NSString *UserEEIdentifiersKey = @"UserEEIdentifiers";
 static NSString *DefaultEEIdentifierKey = @"DefaultEEIdentifier";
 NSString *ExternalEditorsChangedNotification = @"ExternalEditorsChanged";
 
+
+//this category exists because I want to use -makeObjectsPerformSelector: in -menusChanged
+
+@interface NSMenu (ExternalEditorListMenu)
+- (void)_updateMenuForEEListController:(ExternalEditorListController*)controller;
+@end
+
 @implementation ExternalEditor
 
 - (id)initWithBundleID:(NSString*)aBundleIdentifier resolvedURL:(NSURL*)aURL {
@@ -405,13 +412,6 @@ static ExternalEditorListController* sharedInstance = nil;
 	}
 }
 
-@end
-
-
-//this category exists because I want to use -makeObjectsPerformSelector: in -menusChanged
-
-@interface NSMenu (ExternalEditorListMenu)
-- (void)_updateMenuForEEListController:(ExternalEditorListController*)controller;
 @end
 
 @implementation NSMenu (ExternalEditorListMenu)

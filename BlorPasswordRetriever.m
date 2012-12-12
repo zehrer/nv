@@ -75,19 +75,21 @@
 - (NSData*)keychainPasswordData {
 	
 	NSString *keychainAccountString = [[path stringByAbbreviatingWithTildeInPath] lowercaseString];
-    if ([keychainAccountString length] > 255) keychainAccountString = [keychainAccountString substringToIndex:255];
 	
-    const char *keychainAccountCString = [[keychainAccountString dataUsingEncoding:
-				[NSString defaultCStringEncoding] allowLossyConversion:YES] bytes];
+	const char *serviceName = "NV";
 	
-	UInt32 len;
-	void *p = (void *)calloc(256, sizeof(char));
-	if (kcfindgenericpassword("NV", keychainAccountCString, 255, p, &len, NULL) != noErr) {
-		free(p);
-		return NULL;
+	UInt32 passwordLength;
+	void *passwordData;
+	
+	NSData *output = nil;
+	
+	if (SecKeychainFindGenericPassword(NULL, strlen(serviceName), serviceName, keychainAccountString.length, keychainAccountString.UTF8String, &passwordLength, &passwordData, NULL) == noErr) {
+		output = [NSData dataWithBytesNoCopy: passwordData length: passwordLength freeWhenDone: YES];
 	}
 	
-	return [NSData dataWithBytesNoCopy:p length:len freeWhenDone:YES];
+	if (passwordData) SecKeychainItemFreeContent(NULL, passwordData);
+		
+	return output;
 }
 
 - (NSData*)validPasswordHashData {

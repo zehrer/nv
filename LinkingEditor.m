@@ -259,6 +259,7 @@ CGFloat _perceptualDarkness(NSColor*a) {
 
 	return 1 - (0.299 * _CM(aRed) + 0.587 * _CM(aGreen) + 0.114 * _CM(aBlue))/255;
 }
+CGFloat _perceptualColorDifference(NSColor*a, NSColor*b);
 CGFloat _perceptualColorDifference(NSColor*a, NSColor*b) {
 	//acceptable: 500
 	CGFloat aRed, aGreen, aBlue, bRed, bGreen, bBlue;

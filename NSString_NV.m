@@ -514,13 +514,9 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, unsigned charIndex) {
 }
 
 - (CFUUIDBytes)uuidBytes {
-	CFUUIDBytes bytes = {0};
 	CFUUIDRef uuidRef = CFUUIDCreateFromString(NULL, (CFStringRef)self);
-	if (uuidRef) {
-		bytes = CFUUIDGetUUIDBytes(uuidRef);
-		CFRelease(uuidRef);
-	}
-
+	CFUUIDBytes bytes = CFUUIDGetUUIDBytes(uuidRef);
+	CFRelease(uuidRef);
 	return bytes;
 }
 

@@ -335,21 +335,20 @@
     [openPanel setTitle:NSLocalizedString(@"Select a folder",@"title of open panel for selecting a notes folder")];
     [openPanel setPrompt:NSLocalizedString(@"Select", @"title of open panel button to select a folder")];
     [openPanel setMessage:NSLocalizedString(@"Select the folder that Notational Velocity should use for reading and storing notes.",nil)];
-    
-    if ([openPanel runModalForDirectory:startingDirectory file:@"Notational Data" types:nil] == NSOKButton) {
-		CFStringRef filename = (__bridge CFStringRef)[openPanel filename];
-		if (!filename)
+	
+	NSURL *startingDirectoryURL = [[NSURL fileURLWithPath: startingDirectory isDirectory: YES] URLByAppendingPathComponent: @"Notational Data" isDirectory: YES];
+	openPanel.directoryURL = startingDirectoryURL;
+
+    if ([openPanel runModal] == NSOKButton) {
+		NSURL *URL = openPanel.URL;
+		
+		if (!URL)
 			return NO;
 		
 		if (path)
-			*path = [[openPanel filename] copy];
+			*path = URL.path.copy;
 		
-		//yes, I know that navigation services uses uses FSRefs, but NSSavePanel saves us much more work
-		CFURLRef url = CFURLCreateWithFileSystemPath(NULL, filename, kCFURLPOSIXPathStyle, true);
-		if (!url) return NO;
-		BOOL success = CFURLGetFSRef(url, notesDirectoryRef);
-		CFRelease(url);
-		return success;
+		return CFURLGetFSRef((__bridge CFURLRef)URL, notesDirectoryRef);
     }
     
     return NO;

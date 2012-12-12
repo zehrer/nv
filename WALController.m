@@ -221,7 +221,7 @@
 }
 
 - (BOOL)_encryptAndWriteData:(NSMutableData*)data {
-    WALRecordHeader record = {{0}};
+    WALRecordHeader record;
 	
 	record.originalDataLength = CFSwapInt32HostToBig([data length]);
 	
@@ -378,7 +378,7 @@
 
 //log enumerating method
 - (id <SynchronizedNote>)recoverNextObject {
-    WALRecordHeader record = {{0}};
+    WALRecordHeader record;
     
     //attempt to read size of log record and checksum
     //if it's smaller than the remaining bytes to read

@@ -61,16 +61,15 @@ int popped;
 BOOL splitViewAwoke;
 BOOL isEd;
 
-@implementation AppController
 
-//an instance of this class is designated in the nib as the delegate of the window, nstextfield and two nstextviews
-/*
-+ (void)initialize
-{
-    NSDictionary *appDefaults = [NSDictionary dictionaryWithObject:[NSNumber numberWithInt:MultiMarkdownPreview] forKey:kDefaultMarkupPreviewMode];
-    
-    [[NSUserDefaults standardUserDefaults] registerDefaults:appDefaults];
-} // initialize*/
+
+@interface NSObject ()
+
+- (void)_removeLinkFromMenu:(NSMenu *)menu;
+
+@end
+
+@implementation AppController
 
 
 - (id)init {
@@ -88,8 +87,7 @@ BOOL isEd;
 				
 				if ([fileManager fileExistsAtPath: folder] == NO)
 				{
-						[fileManager createDirectoryAtPath: folder attributes: nil];
-						
+					[fileManager createDirectoryAtPath: folder withIntermediateDirectories: YES attributes: nil error: nil];
 				}
 				
 				NSNotificationCenter *nc=[NSNotificationCenter defaultCenter];
@@ -304,7 +302,7 @@ void outletObjectAwoke(id sender) {
 	if (!NSClassFromString(@"SUUpdater")) {
 		NSString *frameworkPath = [[[NSBundle bundleForClass:[self class]] privateFrameworksPath] stringByAppendingPathComponent:@"Sparkle.framework"];
 		if ([[NSBundle bundleWithPath:frameworkPath] load]) {
-			id updater = [NSClassFromString(@"SUUpdater") performSelector: NSSelectorFromString(@"sharedUpdater")];
+			id updater = objc_msgSend(NSClassFromString(@"SUUpdater"), NSSelectorFromString(@"sharedUpdater"));
 			[sparkleUpdateItem setTarget:updater];
 			[sparkleUpdateItem setAction: NSSelectorFromString(@"checkForUpdates:")];
 			NSMenuItem *siSparkle = [statBarMenu itemWithTag:902];
@@ -312,7 +310,7 @@ void outletObjectAwoke(id sender) {
 			[siSparkle setAction: NSSelectorFromString(@"checkForUpdates:")];
 			if (![[prefsController notationPrefs] firstTimeUsed]) {
 				//don't do anything automatically on the first launch; afterwards, check every 4 days, as specified in Info.plist
-				objc_msgSend(updater, @selector(setAutomaticallyChecksForUpdates:), YES);
+				objc_msgSend(updater, NSSelectorFromString(@"setAutomaticallyChecksForUpdates:"), YES);
 			}
 		} else {
 			NSLog(@"Could not load %@!", frameworkPath);
@@ -777,14 +775,15 @@ void outletObjectAwoke(id sender) {
 			[NSString stringWithFormat:warningMultipleFormatString, [indexes count]];
 			
 			NSAlert *alert = [NSAlert alertWithMessageText:warnString defaultButton:NSLocalizedString(@"Delete", @"name of delete button")
-										   alternateButton:NSLocalizedString(@"Cancel", @"name of cancel button") otherButton:nil 
+										   alternateButton:NSLocalizedString(@"Cancel", @"name of cancel button") otherButton:nil
 								 informativeTextWithFormat:NSLocalizedString(@"Press Command-Z to undo this action later.", @"informational delete-this-note? text")];
 			[alert setShowsSuppressionButton:YES];
 			
 			[alert beginSheetModalForWindow:window modalDelegate:self didEndSelector:@selector(deleteAlertDidEnd:returnCode:contextInfo:) contextInfo:(void*)deleteObj];
 		} else {
-			//just delete the notes outright			
-			[notationController performSelector:[indexes count] > 1 ? @selector(removeNotes:) : @selector(removeNote:) withObject:deleteObj];
+			//just delete the notes outright
+			SEL cmd = [indexes count] > 1 ? @selector(removeNotes:) : @selector(removeNote:);
+			objc_msgSend(notationController, cmd, deleteObj);
 		}
 	}
 }
@@ -1177,7 +1176,7 @@ void outletObjectAwoke(id sender) {
 			[aTextView deleteWordBackward:nil];
 			return YES;
 		}
-		if (command == @selector(noop:)) {
+		if (command == NSSelectorFromString(@"noop:")) {
 			//control-U is not set to anything by default, so we have to check the event itself for noops
 			NSEvent *event = [window currentEvent];
 			if ([event modifierFlags] & NSControlKeyMask) {

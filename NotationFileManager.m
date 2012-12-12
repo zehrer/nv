@@ -25,9 +25,11 @@
 #import "NSData_transformations.h"
 #include <sys/param.h>
 #include <sys/mount.h>
+#import "BufferUtils.h"
+#import <objc/message.h>
 
 #import <Foundation/Foundation.h>
-#include <openssl/md5.h>
+#import <CommonCrypto/CommonCrypto.h>
 
 NSString *NotesDatabaseFileName = @"Notes & Settings";
 
@@ -117,12 +119,12 @@ static void uuid_create_md5_from_name(unsigned char result_uuid[16], const void 
 		0x97, 0xA4, 0x00, 0x30, 0x65, 0x43, 0xEC, 0xAC
 	};
 	
-    MD5_CTX c;
+	CC_MD5_CTX c;
 	
-    MD5_Init(&c);
-    MD5_Update(&c, FSUUIDNamespaceSHA1, sizeof(FSUUIDNamespaceSHA1));
-    MD5_Update(&c, name, namelen);
-    MD5_Final(result_uuid, &c);
+	CC_MD5_Init(&c);
+	CC_MD5_Update(&c, FSUUIDNamespaceSHA1, sizeof(FSUUIDNamespaceSHA1));
+	CC_MD5_Update(&c, name, namelen);
+	CC_MD5_Final(result_uuid, &c);
 	
     result_uuid[6] = (result_uuid[6] & 0x0F) | 0x30;
     result_uuid[8] = (result_uuid[8] & 0x3F) | 0x80;
@@ -146,6 +148,7 @@ CFUUIDRef CopyHFSVolumeUUIDForMount(const char *mntonname) {
 	return CFUUIDCreateFromUUIDBytes(NULL, uuidBytes);
 }
 
+CFUUIDRef CopySyntheticUUIDForVolumeCreationDate(FSRef *fsRef);
 CFUUIDRef CopySyntheticUUIDForVolumeCreationDate(FSRef *fsRef) {
 	
 	FSCatalogInfo fileInfo;
@@ -344,11 +347,11 @@ long BlockSizeForNotation(NotationController *controller) {
 		[openPanel setMessage:NSLocalizedString(@"Select a new location for your Notational Velocity notes.",nil)];
 		
 		if ([openPanel runModal] == NSOKButton) {
-			CFStringRef filename = (__bridge CFStringRef)[openPanel filename];
+			NSString *filename = openPanel.URL.path;
 			if (filename) {
 				
 				FSRef newParentRef;
-				CFURLRef url = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, filename, kCFURLPOSIXPathStyle, true);
+				CFURLRef url = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, (__bridge CFStringRef)filename, kCFURLPOSIXPathStyle, true);
 				if (!url || !CFURLGetFSRef(url, &newParentRef)) {
 					NSRunAlertPanel(NSLocalizedString(@"Unable to create an FSRef from the chosen directory.",nil), 
 									NSLocalizedString(@"Your notes were not moved.",nil), NSLocalizedString(@"OK",nil), NULL, NULL);
@@ -565,7 +568,7 @@ terminate:
 	//try to read it back and see if it can be decrypted and decoded:
 	if (verifyDelegate && verificationSel) {
 		NSValue *pointerRef = [NSValue valueWithPointer:&tempFileRef];
-		if (noErr != (err = [[verifyDelegate performSelector:verificationSel withObject: pointerRef withObject:filename] intValue])) {
+		if (noErr != (err = [(NSNumber *)objc_msgSend(verifyDelegate, verificationSel, pointerRef, filename) intValue])) {
 			NSLog(@"couldn't verify written notes, so not continuing to save");
 			(void)FSDeleteObject(&tempFileRef);
 			return err;

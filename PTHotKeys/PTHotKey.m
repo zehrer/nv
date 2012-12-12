@@ -10,6 +10,7 @@
 
 #import "PTHotKeyCenter.h"
 #import "PTKeyCombo.h"
+#import <objc/message.h>
 
 @implementation PTHotKey
 
@@ -83,7 +84,12 @@
 
 - (void)invoke
 {
-	[mTarget performSelector: mAction withObject: self];
+	NSInvocation *inv = [NSInvocation invocationWithMethodSignature: [mTarget methodSignatureForSelector: mAction]];
+	inv.target = mTarget;
+	inv.selector = mAction;
+	__weak id weakSelf = self;
+	[inv setArgument: &weakSelf atIndex:2];
+	[inv invoke];
 }
 
 @end

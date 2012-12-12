@@ -35,88 +35,10 @@
 	NSSavePanel *panel = (NSSavePanel *)[sender window];
 	
 	int storageFormat = [[formatSelectorPopup selectedItem] tag];
-	[panel setRequiredFileType:[NotationPrefs pathExtensionForFormat:storageFormat]];
-}
-
-- (void)exportPanelDidEnd:(NSSavePanel *)sheet returnCode:(int)returnCode contextInfo:(void  *)contextInfo {
-	NSArray *notes = (__bridge NSArray *)contextInfo;
-	if (returnCode == NSFileHandlingPanelOKButton && notes) {
-		//write notes in chosen format
-		unsigned int i;
-		int result, storageFormat = [[formatSelectorPopup selectedItem] tag];
-		NSString *directory = nil, *filename = nil;
-		BOOL overwriteNotes = NO;
-		
-		if ([sheet isKindOfClass:[NSOpenPanel class]]) {
-			directory = [sheet filename];
-		} else {
-			filename = [[sheet filename] lastPathComponent];
-			directory = [[sheet filename] stringByDeletingLastPathComponent];
-			
-			NSAssert([notes count] == 1, @"We returned from a save panel with more than one note?!");
-			
-			//user wanted us to overwrite this one--otherwise dialog would have been cancelled
-			if ([[NSFileManager defaultManager] fileExistsAtPath:[sheet filename]]) overwriteNotes = YES;
-			
-			if ([filename compare:[notes.lastObject filename] options:NSCaseInsensitiveSearch] != NSOrderedSame) {
-				//undo any POSIX-safe crap NSSavePanel gave us--otherwise FSCreateFileUnicode will fail
-				filename = [filename stringByReplacingOccurrencesOfString:@":" withString:@"/"];
-			}
-		}
-		
-		FSRef directoryRef;
-		CFURLRef url = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, (CFStringRef)directory, kCFURLPOSIXPathStyle, true);
-
-		if (!url || !CFURLGetFSRef(url, &directoryRef)) {
-			NSRunAlertPanel([NSString stringWithFormat:NSLocalizedString(@"The notes couldn't be exported because the directory quotemark%@quotemark couldn't be accessed.",nil),
-				[directory stringByAbbreviatingWithTildeInPath]], @"", NSLocalizedString(@"OK",nil), nil, nil);
-			if (url) CFRelease(url);
-			return;
-		}
-		
-		CFRelease(url);
-		
-		//re-uniqify file names here (if [notes count] > 1)?
-		
-		for (i=0; i<[notes count]; i++) {
-			BOOL lastNote = i != [notes count] - 1;
-			NoteObject *note = [notes objectAtIndex:i];
-			
-			OSStatus err = [note exportToDirectoryRef:&directoryRef withFilename:filename usingFormat:storageFormat overwrite:overwriteNotes];
-			
-			if (err == dupFNErr) {
-				//ask about overwriting
-				NSString *existingName = filename ?: note.filename;
-				existingName = [[existingName stringByDeletingPathExtension] stringByAppendingPathExtension:[NotationPrefs pathExtensionForFormat:storageFormat]];
-				result = NSRunAlertPanel([NSString stringWithFormat:NSLocalizedString(@"A file named quotemark%@quotemark already exists.",nil), existingName],
-										 NSLocalizedString(@"Replace its current contents with that of the note?", @"replace the file's contents?"),
-										 NSLocalizedString(@"Replace",nil), NSLocalizedString(@"Don't Replace",nil), lastNote ? NSLocalizedString(@"Replace All",nil) : nil, nil);
-				if (result == NSAlertDefaultReturn || result == NSAlertOtherReturn) {
-					if (result == NSAlertOtherReturn) overwriteNotes = YES;
-					err = [note exportToDirectoryRef:&directoryRef withFilename:filename usingFormat:storageFormat overwrite:YES];
-				} else continue;
-			}
-			
-			if (err != noErr) {
-				NSString *exportErrorTitleString = [NSString stringWithFormat:NSLocalizedString(@"The note quotemark%@quotemark couldn't be exported because %@.",nil), 
-					note.title, [NSString reasonStringFromCarbonFSError:err]];
-				if (!lastNote) {
-					NSRunAlertPanel(exportErrorTitleString, NULL, NSLocalizedString(@"OK",nil), nil, nil, nil);
-				} else {
-					result = NSRunAlertPanel(exportErrorTitleString, NSLocalizedString(@"Continue exporting?", @"alert title for exporter interruption"), 
-											 NSLocalizedString(@"Continue", @"(exporting notes?)"), NSLocalizedString(@"Stop Exporting", @"(notes?)"), nil);
-					if (result != NSAlertDefaultReturn) break;
-				}
-			}
-		}
-		
-		FNNotify(&directoryRef, kFNDirectoryModifiedMessage, kFNNoImplicitAllSubscription);
-		
-	}
+	[panel setAllowedFileTypes: @[ [NotationPrefs pathExtensionForFormat:storageFormat] ]];
 }
 
 - (void)exportNotes:(NSArray*)notes forWindow:(NSWindow*)window {
-	
 	if (!accessoryView) {
 		if (![NSBundle loadNibNamed:@"ExporterManager" owner:self]) {
 			NSLog(@"Failed to load ExporterManager.nib");
@@ -124,6 +46,61 @@
 			return;
 		}
 	}
+	
+	void (^completionHandler)(NSSavePanel *,NSInteger) = ^(NSSavePanel *sheet, NSInteger returnCode){
+		if (returnCode == NSFileHandlingPanelOKButton && notes) {
+			//write notes in chosen format
+			unsigned int i;
+			int result, storageFormat = [[formatSelectorPopup selectedItem] tag];
+			NSURL *URL = sheet.URL;
+			NSString *filename = URL.lastPathComponent;
+			BOOL overwriteNotes = NO;
+			FSRef directoryRef;
+			
+			if (!URL || !CFURLGetFSRef((__bridge CFURLRef)URL, &directoryRef)) {
+				NSRunAlertPanel([NSString stringWithFormat:NSLocalizedString(@"The notes couldn't be exported because the directory \"%@\" couldn't be accessed.",nil),
+								 URL.URLByDeletingLastPathComponent.path.stringByAbbreviatingWithTildeInPath], @"", NSLocalizedString(@"OK",nil), nil, nil);
+				return;
+			}
+			
+			//re-uniqify file names here (if [notes count] > 1)?
+			
+			for (i=0; i<[notes count]; i++) {
+				BOOL lastNote = i != [notes count] - 1;
+				NoteObject *note = [notes objectAtIndex:i];
+				
+				OSStatus err = [note exportToDirectoryRef:&directoryRef withFilename:filename usingFormat:storageFormat overwrite:overwriteNotes];
+				
+				if (err == dupFNErr) {
+					//ask about overwriting
+					NSString *existingName = filename ?: note.filename;
+					existingName = [[existingName stringByDeletingPathExtension] stringByAppendingPathExtension:[NotationPrefs pathExtensionForFormat:storageFormat]];
+					result = NSRunAlertPanel([NSString stringWithFormat:NSLocalizedString(@"A file named quotemark%@quotemark already exists.",nil), existingName],
+											 NSLocalizedString(@"Replace its current contents with that of the note?", @"replace the file's contents?"),
+											 NSLocalizedString(@"Replace",nil), NSLocalizedString(@"Don't Replace",nil), lastNote ? NSLocalizedString(@"Replace All",nil) : nil, nil);
+					if (result == NSAlertDefaultReturn || result == NSAlertOtherReturn) {
+						if (result == NSAlertOtherReturn) overwriteNotes = YES;
+						err = [note exportToDirectoryRef:&directoryRef withFilename:filename usingFormat:storageFormat overwrite:YES];
+					} else continue;
+				}
+				
+				if (err != noErr) {
+					NSString *exportErrorTitleString = [NSString stringWithFormat:NSLocalizedString(@"The note quotemark%@quotemark couldn't be exported because %@.",nil),
+														note.title, [NSString reasonStringFromCarbonFSError:err]];
+					if (!lastNote) {
+						NSRunAlertPanel(exportErrorTitleString, NULL, NSLocalizedString(@"OK",nil), nil, nil, nil);
+					} else {
+						result = NSRunAlertPanel(exportErrorTitleString, NSLocalizedString(@"Continue exporting?", @"alert title for exporter interruption"),
+												 NSLocalizedString(@"Continue", @"(exporting notes?)"), NSLocalizedString(@"Stop Exporting", @"(notes?)"), nil);
+						if (result != NSAlertDefaultReturn) break;
+					}
+				}
+			}
+			
+			FNNotify(&directoryRef, kFNDirectoryModifiedMessage, kFNNoImplicitAllSubscription);
+			
+		}
+	};
 	
 	if ([notes count] == 1) {
 		NSSavePanel *savePanel = [NSSavePanel savePanel];
@@ -136,10 +113,10 @@
 		NSString *filename = [notes.lastObject filename];
 		filename = [filename stringByDeletingPathExtension];
 		filename = [filename stringByAppendingPathExtension:[NotationPrefs pathExtensionForFormat:[[formatSelectorPopup selectedItem] tag]]];
-			
-		[savePanel beginSheetForDirectory:nil file:filename modalForWindow:window modalDelegate:self 
-						   didEndSelector:@selector(exportPanelDidEnd:returnCode:contextInfo:) contextInfo:CFBridgingRetain(notes)];
 		
+		[savePanel beginSheetModalForWindow: window completionHandler:^(NSInteger result) {
+			completionHandler(savePanel, result);
+		}];
 	} else if ([notes count] > 1) {
 		NSOpenPanel *openPanel = [NSOpenPanel openPanel];
 		[openPanel setAccessoryView:accessoryView];
@@ -149,9 +126,10 @@
 		[openPanel setPrompt:NSLocalizedString(@"Export",@"title of button to export notes from folder selection dialog")];
 		[openPanel setTitle:NSLocalizedString(@"Export Notes", @"title of export notes dialog")];
 		[openPanel setMessage:[NSString stringWithFormat:NSLocalizedString(@"Choose a folder into which %d notes will be exported",nil), [notes count]]];
-
-		[openPanel beginSheetForDirectory:nil file:nil types:nil modalForWindow:window modalDelegate:self 
-						   didEndSelector:@selector(exportPanelDidEnd:returnCode:contextInfo:) contextInfo:CFBridgingRetain(notes)];
+		
+		[openPanel beginSheetModalForWindow: window completionHandler:^(NSInteger result) {
+			completionHandler(openPanel, result);
+		}];
 	} else {
 		NSRunAlertPanel(NSLocalizedString(@"No notes were selected for exporting.",nil), 
 						NSLocalizedString(@"You must select at least one note to export.",nil), NSLocalizedString(@"OK",nil), NULL, NULL);

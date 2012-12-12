@@ -375,8 +375,7 @@
 		NSString *folder = [[NSFileManager defaultManager] applicationSupportDirectory];
 		if ([fileManager fileExistsAtPath: folder] == NO)
 		{
-				[fileManager createDirectoryAtPath: folder attributes: nil];
-
+			[fileManager createDirectoryAtPath: folder withIntermediateDirectories: YES attributes: nil error: NULL];
 		}
 
 		NSString *cssFileName = @"custom.css";
@@ -500,26 +499,6 @@
 	NSLog(@"RESPONSE STRING: %@", responseString);
 }
 
-- (void)savePanelDidEnd:(NSSavePanel *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo {
-	if (returnCode == NSFileHandlingPanelOKButton) {
-		
-		AppController *app = (AppController *)[[NSApplication sharedApplication] delegate];
-		NSString *rawString = [app noteContent];
-		NSString *processedString = [[NSString alloc] init];
-		
-		if ([app currentPreviewMode] == MarkdownPreview) {
-			processedString = [NSString stringWithProcessedMarkdown:rawString];
-		} else if ([app currentPreviewMode] == MultiMarkdownPreview) {
-			processedString = ( [includeTemplate state] == NSOnState ) ? [NSString documentWithProcessedMultiMarkdown:rawString] : [NSString xhtmlWithProcessedMultiMarkdown:rawString];
-		} else if ([app currentPreviewMode] == TextilePreview) {
-			processedString = ( [includeTemplate state] == NSOnState ) ? [NSString documentWithProcessedTextile:rawString] : [NSString xhtmlWithProcessedTextile:rawString];
-		}
-    NSURL *file = [sheet URL];
-    NSError *error;
-    [processedString writeToURL:file atomically:YES encoding:NSUTF8StringEncoding error:&error];
-  }
-}
-
 -(IBAction)saveHTML:(id)sender
 {
 	if (!accessoryView) {
@@ -552,13 +531,26 @@
     [includeTemplate setEnabled:YES];
     [templateNote setStringValue:@"Select this to embed the ouput within your current preview HTML and CSS"];
   }
-  
-	NSString *noteTitle = app.selectedNoteObject ? [app.selectedNoteObject.title copy] : @"";
-	[savePanel beginSheetForDirectory:nil file:noteTitle modalForWindow:[self window] modalDelegate:self 
-					   didEndSelector:@selector(savePanelDidEnd:returnCode:contextInfo:) contextInfo:nil];
 
-  
+	savePanel.nameFieldStringValue = app.selectedNoteObject ? [app.selectedNoteObject.title copy] : @"";
 	
+	[savePanel beginSheetModalForWindow: self.window completionHandler:^(NSInteger result) {
+		if (result == NSFileHandlingPanelOKButton) {			
+			NSString *processedString = [[NSString alloc] init];
+			
+			if ([app currentPreviewMode] == MarkdownPreview) {
+				processedString = [NSString stringWithProcessedMarkdown:rawString];
+			} else if ([app currentPreviewMode] == MultiMarkdownPreview) {
+				processedString = ( [includeTemplate state] == NSOnState ) ? [NSString documentWithProcessedMultiMarkdown:rawString] : [NSString xhtmlWithProcessedMultiMarkdown:rawString];
+			} else if ([app currentPreviewMode] == TextilePreview) {
+				processedString = ( [includeTemplate state] == NSOnState ) ? [NSString documentWithProcessedTextile:rawString] : [NSString xhtmlWithProcessedTextile:rawString];
+			}
+			
+			NSURL *file = [savePanel URL];
+			NSError *error;
+			[processedString writeToURL:file atomically:YES encoding:NSUTF8StringEncoding error:&error];
+		}
+	}];
 }
 
 -(IBAction)switchTabs:(id)sender

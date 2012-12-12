@@ -147,14 +147,14 @@
 	//clean up after ourselves
 	NSFileManager *fileMan = [NSFileManager defaultManager];
 	if (downloadPath) {
-		[fileMan removeFileAtPath:downloadPath handler:NULL];
+		[fileMan removeItemAtPath: downloadPath error: NULL];
 		downloadPath = nil;
 	}
 	
 	if (tempDirectory) {
 		//only remove temporary directory if there's nothing in it
-		if (![[fileMan directoryContentsAtPath:tempDirectory] count])
-			[fileMan removeFileAtPath:tempDirectory handler:NULL];
+		if (![[fileMan contentsOfDirectoryAtPath: tempDirectory error: NULL] count])
+			[fileMan removeItemAtPath: tempDirectory error: NULL];
 		else
 			NSLog(@"note removing %@ because it still contains files!", tempDirectory);
 		tempDirectory = nil;
