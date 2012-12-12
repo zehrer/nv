@@ -378,116 +378,71 @@
 		[self increaseLengthBy:difference];	
 }
 
+- (BOOL)nv_performAESCryptOperation:(CCOperation)op withKey:(NSData*)key iv:(NSData*)iv {
+	CCCryptorRef cryptor = NULL;
+	CCCryptorStatus cryptStatus = CCCryptorCreate(op, kCCAlgorithmAES128, kCCOptionPKCS7Padding,
+												  key.bytes, kCCKeySizeAES256, iv.bytes,
+												  &cryptor);
+	BOOL success = YES;
+	
+	if (cryptStatus != kCCSuccess)  {
+		success = NO;
+	} else {
+		static const NSUInteger kChunkSize = 16;
+		
+		size_t dataOutMov;
+		size_t dataOutLen = CCCryptorGetOutputLength(cryptor, kChunkSize, FALSE);
+		
+		void* dataIn = malloc(kChunkSize);
+		void* dataOut = malloc(dataOutLen);
+		for (NSUInteger start = 0; start <= [self length]; start += kChunkSize) {
+			
+			size_t dataInLen = 0;
+			if ((start + kChunkSize) > self.length)
+				dataInLen = self.length - start;
+			else
+				dataInLen = kChunkSize;
+			
+			NSRange bytesRange = NSMakeRange(start, dataInLen);
+			
+			[self getBytes: dataIn range: bytesRange];
+			
+			cryptStatus = CCCryptorUpdate(cryptor, dataIn, dataInLen, dataOut, dataOutLen, &dataOutMov);
+			
+			if (dataOutMov != dataOutLen) NSLog(@"dataOutMoved != dataOutLength");
+			
+			if (cryptStatus == kCCSuccess) {
+				[self replaceBytesInRange: bytesRange withBytes: dataOut];
+			} else {
+				success = NO;
+				break;
+			}
+		}
+		
+		if (success) {
+			cryptStatus = CCCryptorFinal(cryptor, dataOut, dataOutLen, &dataOutMov);
+			if (cryptStatus == kCCSuccess) {
+				[self appendBytes: dataOut length: dataOutMov];
+			} else {
+				success = NO;
+			}
+		}
+		
+		free(dataIn);
+		free(dataOut);
+	}
+	
+	CCCryptorRelease(cryptor);
+	return success;
+
+}
+
 - (BOOL)encryptAESDataWithKey:(NSData*)key iv:(NSData*)iv {
-	return [self encryptDataWithCipher:EVP_aes_256_cbc() key:key iv:iv];
+	return [self nv_performAESCryptOperation: kCCEncrypt withKey: key iv: iv];
 }
 
 - (BOOL)decryptAESDataWithKey:(NSData*)key iv:(NSData*)iv {
-	return [self decryptDataWithCipher:EVP_aes_256_cbc() key:key iv:iv];
-}
-
-
-//these two methods will change the size of the data, but at large sizes that should be well within the malloc'ed block padding, anyway
-- (BOOL)encryptDataWithCipher:(const EVP_CIPHER*)cipher key:(NSData*)key iv:(NSData*)iv {
-	int originalDataLength = [self length];
-	
-	EVP_CIPHER_CTX cipherContext;
-	if (!EVP_EncryptInit(&cipherContext, cipher /*EVP_aes_256_cbc()*/, NULL, NULL)) {
-		NSLog(@"Couldn't initialization encryption?");
-		return NO;
-	}
-	//check IV and key lengths
-	if ((int)[iv length] != EVP_CIPHER_CTX_iv_length(&cipherContext)) {
-		NSLog(@"initialization vector length was wrong size: %lu", [iv length]);
-		return NO;
-	}
-	if ((int)[key length] != EVP_CIPHER_CTX_key_length(&cipherContext)) {
-		NSLog(@"encryption key length was wrong size: %lu", [key length]);
-		return NO;
-	}
-	
-	//actually init the IV and key
-	if (!EVP_EncryptInit( &cipherContext, NULL, [key bytes], [iv bytes])) {
-		NSLog(@"Couldn't init cipher context with IV and key");
-		return NO;
-	}
-	
-	//[self alignForBlockSize:EVP_CIPHER_CTX_block_size(&cipherContext)];
-	[self increaseLengthBy:EVP_CIPHER_CTX_block_size(&cipherContext)];
-	int encLen, finalLen = 0;
-	
-	encLen = [self length];
-	if (!EVP_EncryptUpdate(&cipherContext, [self mutableBytes], &encLen,
-						   (unsigned char *)[self bytes], originalDataLength)) {
-		NSLog(@"Couldn't encrypt data--buffer is wrong size?");
-		return NO;
-	}
-	
-	finalLen = encLen;
-	encLen = [self length] - finalLen;
-	if (!EVP_EncryptFinal(&cipherContext, (unsigned char *)[self mutableBytes] + finalLen, &encLen)) {
-		NSLog(@"Couldn't encrypt final buffer--buffer is wrong size?");
-		return NO;
-	}
-	finalLen += encLen;
-	
-	[self setLength:finalLen];
-	
-	EVP_CIPHER_CTX_cleanup(&cipherContext);
-	
-	return YES;
-}
-
-- (BOOL)decryptDataWithCipher:(const EVP_CIPHER*)cipher key:(NSData*)key iv:(NSData*)iv {
-	int originalDataLength = [self length];
-	
-	EVP_CIPHER_CTX cipherContext;
-	if (!EVP_DecryptInit(&cipherContext, cipher /*EVP_aes_256_cbc()*/, NULL, NULL)) {
-		NSLog(@"Couldn't initialize decryption?");
-		return NO;
-	}
-	//check IV and key lengths
-	if ((int)[iv length] != EVP_CIPHER_CTX_iv_length(&cipherContext)) {
-		NSLog(@"initialization vector length was wrong size: %lu", [iv length]);
-		return NO;
-	}
-	if ((int)[key length] != EVP_CIPHER_CTX_key_length(&cipherContext)) {
-		NSLog(@"decryption key length was wrong size: %lu", [key length]);
-		return NO;
-	}
-	
-	//actually init the IV and key
-	if (!EVP_DecryptInit( &cipherContext, NULL, [key bytes], [iv bytes])) {
-		NSLog(@"Couldn't init cipher context with IV and key");
-		return NO;
-	}
-	
-	//[self alignForBlockSize:EVP_CIPHER_CTX_block_size(&cipherContext)];
-	[self increaseLengthBy:EVP_CIPHER_CTX_block_size(&cipherContext)];
-	int decLen, finalLen = 0;
-	
-	decLen = [self length];
-	if (!EVP_DecryptUpdate(&cipherContext, [self mutableBytes], &decLen,
-						   (unsigned char *)[self bytes], originalDataLength)) {
-		NSLog(@"Couldn't decrypt data--buffer is wrong size?");
-		return NO;
-	}
-	
-	finalLen = decLen;
-	decLen = [self length] - finalLen;
-	if (!EVP_DecryptFinal(&cipherContext, (unsigned char *)[self mutableBytes] + finalLen, &decLen)) {
-		char buf[256];
-		NSLog(@"Couldn't decrypt final buffer: %s", buf);
-		return NO;
-	}
-	finalLen += decLen;
-	
-	[self setLength:finalLen];
-	
-	EVP_CIPHER_CTX_cleanup(&cipherContext);
-	
-	
-	return YES;
+	return [self nv_performAESCryptOperation: kCCDecrypt withKey: key iv: iv];
 }
 
 @end

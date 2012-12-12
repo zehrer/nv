@@ -42,7 +42,4 @@
 - (BOOL)encryptAESDataWithKey:(NSData*)key iv:(NSData*)iv;
 - (BOOL)decryptAESDataWithKey:(NSData*)key iv:(NSData*)iv;
 
-- (BOOL)encryptDataWithCipher:(const EVP_CIPHER*)cipher key:(NSData*)key iv:(NSData*)iv;
-- (BOOL)decryptDataWithCipher:(const EVP_CIPHER*)cipher key:(NSData*)key iv:(NSData*)iv;
-
 @end
