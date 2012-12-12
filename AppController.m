@@ -50,16 +50,8 @@
 #import "ETClipView.h"
 #import "ETScrollView.h"
 #import "NSFileManager+DirectoryLocations.h"
-
-#define NSApplicationPresentationAutoHideMenuBar (1 <<  2)
-#define NSApplicationPresentationHideMenuBar (1 <<  3)
-//#define NSApplicationPresentationAutoHideDock (1 <<  0)
-#define NSApplicationPresentationHideDock (1 <<  1)
-//#define NSApplicationActivationPolicyAccessory
-
-//#define NSTextViewChangedNotification @"TextView has changed contents"
-//#define kDefaultMarkupPreviewMode @"markupPreviewMode"
-
+#import "NoteObject.h"
+#import "WordCountToken.h"
 
 NSWindow *normalWindow;
 int ModFlagger;

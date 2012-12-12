@@ -41,6 +41,7 @@
 #import "SyncSessionController.h"
 #import "BookmarksController.h"
 #import "DeletionManager.h"
+#import "NSBezierPath_NV.h"
 
 @interface NotationController ()
 
