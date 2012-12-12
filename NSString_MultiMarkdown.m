@@ -39,7 +39,7 @@
 {
 	NSString* mdScriptPath = [[self class] tp2mdDirectory];
 
-	NSTask* task = [[[NSTask alloc] init] autorelease];
+	NSTask* task = [[NSTask alloc] init];
 	NSMutableArray* args = [NSMutableArray array];
 	
 	[task setArguments:args];
@@ -59,7 +59,7 @@
 	[stdinFileHandle closeFile];
 	
 	NSData* outputData = [stdoutFileHandle readDataToEndOfFile];
-	NSString* outputString = [[[NSString alloc] initWithData:outputData encoding:NSUTF8StringEncoding] autorelease];
+	NSString* outputString = [[NSString alloc] initWithData:outputData encoding:NSUTF8StringEncoding];
 	[stdoutFileHandle closeFile];
 	
 	[task waitUntilExit];
@@ -78,7 +78,7 @@
   }
 	NSString* mdScriptPath = [[self class] mmdDirectory];
 //    NSString* tpScriptPath = [[self class] tp2mdDirectory];
-	NSTask* task = [[[NSTask alloc] init] autorelease];
+	NSTask* task = [[NSTask alloc] init];
 	NSMutableArray* args = [NSMutableArray array];
 	
 	[task setArguments:args];
@@ -98,7 +98,7 @@
 	[stdinFileHandle closeFile];
 	
 	NSData* outputData = [stdoutFileHandle readDataToEndOfFile];
-	NSString* outputString = [[[NSString alloc] initWithData:outputData encoding:NSUTF8StringEncoding] autorelease];
+	NSString* outputString = [[NSString alloc] initWithData:outputData encoding:NSUTF8StringEncoding];
 	[stdoutFileHandle closeFile];
 	
 	[task waitUntilExit];
@@ -114,7 +114,7 @@
   NSString *htmlString = [[PreviewController class] html];
   NSString *cssString = [[PreviewController class] css];
   NSMutableString *outputString = [NSMutableString stringWithString:(NSString *)htmlString];
-  NSString *noteTitle = app.selectedNoteObject ? [[app.selectedNoteObject.title copy] autorelease] : @"";
+  NSString *noteTitle = app.selectedNoteObject ? [app.selectedNoteObject.title copy] : @"";
 	NSString *nvSupportPath = [[NSFileManager defaultManager] applicationSupportDirectory];
 
   [outputString replaceOccurrencesOfString:@"{%support%}" withString:nvSupportPath options:0 range:NSMakeRange(0, [outputString length])];

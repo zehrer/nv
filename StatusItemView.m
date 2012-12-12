@@ -14,8 +14,8 @@
 	NSImage *_menuClickedImage;
 }
 
-@property (nonatomic, readonly) NSImage *menuDarkImage;
-@property (nonatomic, readonly) NSImage *menuClickedImage;
+@property (weak, nonatomic, readonly) NSImage *menuDarkImage;
+@property (weak, nonatomic, readonly) NSImage *menuClickedImage;
 
 @end
 
@@ -34,7 +34,6 @@
 - (void)dealloc
 {
     controller = nil;
-    [super dealloc];
 }
 
 - (NSImage *)menuClickedImage {

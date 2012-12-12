@@ -23,8 +23,8 @@
 		maxExpectedByteCount = 0;
 		isImporting = isIndicating = NO;
 		delegate = aDelegate;
-		url = [aUrl retain];
-		userData = [someObj retain];
+		url = aUrl;
+		userData = someObj;
 		
 		downloader = [[NSURLDownload alloc] initWithRequest:[NSURLRequest requestWithURL:url] delegate:self];
 		
@@ -34,14 +34,6 @@
 	return self;
 }
 
-- (void)dealloc {
-	[downloader release];
-	[downloadPath release];
-	[url release];
-	[userData release];
-	
-	[super dealloc];
-}
 
 - (NSURL*)url {
 	return url;
@@ -119,16 +111,14 @@
 
 - (void)download:(NSURLDownload *)download decideDestinationWithSuggestedFilename:(NSString *)name {
 	
-	[tempDirectory autorelease];
-	tempDirectory = [[NSTemporaryDirectory() stringByAppendingPathComponent:[[NSProcessInfo processInfo] globallyUniqueString]] retain];
+	tempDirectory = [NSTemporaryDirectory() stringByAppendingPathComponent:[[NSProcessInfo processInfo] globallyUniqueString]];
 	if (![[NSFileManager defaultManager] createDirectoryAtPath:tempDirectory attributes:nil]) {
 		NSLog(@"URLGetter: Couldn't create temporary directory!");
 		[download cancel];
 		NSBeep();
 	}
 	
-	[downloadPath autorelease];
-	downloadPath = [[tempDirectory stringByAppendingPathComponent:name] retain];
+	downloadPath = [tempDirectory stringByAppendingPathComponent:name];
 	[download setDestination:downloadPath allowOverwrite:YES];
 	
 	//need to delete this stuff eventually
@@ -154,14 +144,12 @@
 	isImporting = YES;
 	[self updateProgress];
 	
-	[self retain];
 	[delegate URLGetter:self returnedDownloadedFile:path];
 	
 	//clean up after ourselves
 	NSFileManager *fileMan = [NSFileManager defaultManager];
 	if (downloadPath) {
 		[fileMan removeFileAtPath:downloadPath handler:NULL];
-		[downloadPath release];
 		downloadPath = nil;
 	}
 	
@@ -171,7 +159,6 @@
 			[fileMan removeFileAtPath:tempDirectory handler:NULL];
 		else
 			NSLog(@"note removing %@ because it still contains files!", tempDirectory);
-		[tempDirectory release];
 		tempDirectory = nil;
 	}
 	
@@ -179,7 +166,6 @@
     [self stopProgressIndication];
 
 	
-	[self release];
 }
 
 - (NSString*)downloadPath {

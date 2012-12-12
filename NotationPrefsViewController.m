@@ -57,7 +57,7 @@ enum {VERIFY_NOT_ATTEMPTED, VERIFY_FAILED, VERIFY_IN_PROGRESS, VERIFY_SUCCESS};
 - (id)init {
     if ((self = [super init])) {
 		didAwakeFromNib = NO;
-		notationPrefs = [[[GlobalPrefs defaultPrefs] notationPrefs] retain];
+		notationPrefs = [[GlobalPrefs defaultPrefs] notationPrefs];
 		
 		disableEncryptionString = NSLocalizedString(@"Turn Off Note Encryption...",nil);
 		enableEncryptionString = NSLocalizedString(@"Turn On Note Encryption...",nil);
@@ -67,14 +67,9 @@ enum {VERIFY_NOT_ATTEMPTED, VERIFY_FAILED, VERIFY_IN_PROGRESS, VERIFY_SUCCESS};
     return self;
 }
 - (void)dealloc {
-	[picker release];
-	[changer release];
-	[notationPrefs release];
-	[postStorageFormatInvocation release];
 	
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	
-	[super dealloc];
 }
 
 - (void)awakeFromNib {
@@ -121,11 +116,10 @@ enum {VERIFY_NOT_ATTEMPTED, VERIFY_FAILED, VERIFY_IN_PROGRESS, VERIFY_SUCCESS};
 	if ([selectorString isEqualToString:SEL_STR(setNotationPrefs:sender:)]) {
 		
 		//force these objects to re-init with the new notationprefs
-		[changer release]; changer = nil;
-		[picker release]; picker = nil;
+		 changer = nil;
+		 picker = nil;
 		
-		[notationPrefs release];
-		notationPrefs = [[[GlobalPrefs defaultPrefs] notationPrefs] retain];
+		notationPrefs = [[GlobalPrefs defaultPrefs] notationPrefs];
 		
 		if (didAwakeFromNib)
 			[self initializeControls];
@@ -239,9 +233,9 @@ enum {VERIFY_NOT_ATTEMPTED, VERIFY_FAILED, VERIFY_IN_PROGRESS, VERIFY_SUCCESS};
 		NSString *extension = [notationPrefs pathExtensionAtIndex:rowIndex];
 		
 		if ([notationPrefs indexOfChosenPathExtension] == (unsigned int)rowIndex) {
-			return [[[NSAttributedString alloc] initWithString:extension attributes:
+			return [[NSAttributedString alloc] initWithString:extension attributes:
 					[NSDictionary dictionaryWithObjectsAndKeys:
-					 [NSFont boldSystemFontOfSize:[NSFont smallSystemFontSize]], NSFontAttributeName, nil]] autorelease];
+					 [NSFont boldSystemFontOfSize:[NSFont smallSystemFontSize]], NSFontAttributeName, nil]];
 		}
 		return extension;
 			
@@ -310,7 +304,6 @@ enum {VERIFY_NOT_ATTEMPTED, VERIFY_FAILED, VERIFY_IN_PROGRESS, VERIFY_SUCCESS};
 
 - (void)runQueuedStorageFormatChangeInvocation {
 	[postStorageFormatInvocation performSelector:@selector(invoke) withObject:nil afterDelay:0.0];
-	[postStorageFormatInvocation release];
 	postStorageFormatInvocation = nil;
 }
 
@@ -349,7 +342,7 @@ enum {VERIFY_NOT_ATTEMPTED, VERIFY_FAILED, VERIFY_IN_PROGRESS, VERIFY_SUCCESS};
 							 informativeTextWithFormat:NSLocalizedString(@"When notes are stored in a single database individual files become redundant.",nil)];
 		
 		[alert beginSheetModalForWindow:[view window] modalDelegate:notationPrefs 
-						 didEndSelector:@selector(noteFilesCleanupSheetDidEnd:returnCode:contextInfo:) contextInfo:self];
+						 didEndSelector:@selector(noteFilesCleanupSheetDidEnd:returnCode:contextInfo:) contextInfo:(__bridge void *)(self)];
 		//will ultimately call -notesStorageFormatDidChange
 	} else {
 		//just call setNotesStorageFormat straight-out
@@ -439,7 +432,6 @@ enum {VERIFY_NOT_ATTEMPTED, VERIFY_FAILED, VERIFY_IN_PROGRESS, VERIFY_SUCCESS};
 
 - (void)cancelLoginVerifier {
 	[loginVerifier cancel];
-	[loginVerifier release];
 	loginVerifier = nil;
 	[self setVerificationStatus:VERIFY_NOT_ATTEMPTED withString:@""];
 	
@@ -534,12 +526,11 @@ enum {VERIFY_NOT_ATTEMPTED, VERIFY_FAILED, VERIFY_IN_PROGRESS, VERIFY_SUCCESS};
 		
 		//[picker showAroundWindow:[view window] resultDelegate:self];
 		
-		[postStorageFormatInvocation release];
 		
 		//so queue it up:
 		InvocationRecorder *invRecorder = [InvocationRecorder invocationRecorder];
 		[[invRecorder prepareWithInvocationTarget:picker] showAroundWindow:[view window] resultDelegate:self];
-		postStorageFormatInvocation = [[invRecorder invocation] retain];
+		postStorageFormatInvocation = [invRecorder invocation];
 	}
 }
 
@@ -573,7 +564,7 @@ enum {VERIFY_NOT_ATTEMPTED, VERIFY_FAILED, VERIFY_IN_PROGRESS, VERIFY_SUCCESS};
 	[notationPrefs setDoesEncryption:NO];
 	[self updateRemoveKeychainItemStatus];
 	
-	[picker release]; picker = nil;		
+	 picker = nil;		
 }
 
 - (void)disableEncryptionWithWarning:(BOOL)warning {

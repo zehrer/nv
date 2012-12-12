@@ -115,13 +115,11 @@ static const NSStringEncoding AllowedEncodings[] = {
 - (void)showPanelForNote:(NoteObject*)aNote {
 	currentEncoding = aNote.fileEncoding;
 	
-	[note release];
-	note = [aNote retain];
+	note = aNote;
 	
 	bzero(&fsRef, sizeof(FSRef));
 	
-	[noteData release];
-	if (!(noteData = [[[note delegate] dataFromFileInNotesDirectory:&fsRef forFilename:note.filename] retain])) {
+	if (!(noteData = [[note delegate] dataFromFileInNotesDirectory:&fsRef forFilename:note.filename])) {
 		NSRunAlertPanel([NSString stringWithFormat:NSLocalizedString(@"Error: unable to read the contents of the file quotemark%@.quotemark",nil), aNote.filename],
 						NSLocalizedString(@"The file may no longer exist or has incorrect permissions.",nil), NSLocalizedString(@"OK",nil), NULL, NULL);
 		return;
@@ -151,13 +149,12 @@ static const NSStringEncoding AllowedEncodings[] = {
 }
 
 - (void)sheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode  contextInfo:(void  *)contextInfo {
-	[note release];
 	note = nil;
 }
 
 
 - (NSMenu*)textConversionsMenu {
-	NSMenu *menu = [[[NSMenu alloc] initWithTitle:@""] autorelease];
+	NSMenu *menu = [[NSMenu alloc] initWithTitle:@""];
 	NSMenuItem *menuItem = nil;
 	unsigned int i = 0;
 	
@@ -169,16 +166,15 @@ static const NSStringEncoding AllowedEncodings[] = {
 			continue;
 		}
 		
-		menuItem = [[[NSMenuItem alloc] initWithTitle:[NSString localizedNameOfStringEncoding:thisEncoding] 
-											   action:@selector(setFileEncodingFromMenu:) keyEquivalent:@""] autorelease];
+		menuItem = [[NSMenuItem alloc] initWithTitle:[NSString localizedNameOfStringEncoding:thisEncoding] 
+											   action:@selector(setFileEncodingFromMenu:) keyEquivalent:@""];
 		if (currentEncoding == thisEncoding)
 			[menuItem setState:NSOnState];
 		
-		NSString *noteString = (NSString*)CFStringCreateFromExternalRepresentation(kCFAllocatorDefault, (CFDataRef)noteData, 
-																				   CFStringConvertNSStringEncodingToEncoding(thisEncoding));
+		NSString *noteString = (NSString*)CFBridgingRelease(CFStringCreateFromExternalRepresentation(kCFAllocatorDefault, (CFDataRef)noteData, 
+																				   CFStringConvertNSStringEncodingToEncoding(thisEncoding)));
 		//make sure that the conversion works both ways
 		[menuItem setEnabled:(noteString != nil && [noteString canBeConvertedToEncoding:thisEncoding])];
-		[noteString release];
 		
 		[menuItem setTag:(int)thisEncoding];
 		[menuItem setTarget:self];
@@ -209,15 +205,13 @@ static const NSStringEncoding AllowedEncodings[] = {
 
 - (BOOL)tryToUpdateTextForEncoding:(NSStringEncoding)encoding {
 	
-	NSString *stringFromData = (NSString*)CFStringCreateFromExternalRepresentation(kCFAllocatorDefault, (CFDataRef)noteData, CFStringConvertNSStringEncodingToEncoding(encoding));
+	NSString *stringFromData = (NSString*)CFBridgingRelease(CFStringCreateFromExternalRepresentation(kCFAllocatorDefault, (CFDataRef)noteData, CFStringConvertNSStringEncodingToEncoding(encoding)));
 	
 	if (stringFromData) {
 		NSAttributedString *attributedStringFromData = [[NSAttributedString alloc] initWithString:stringFromData];
 		NSTextStorage *storage = [textView textStorage];
 		[storage setAttributedString:attributedStringFromData];
 		
-		[stringFromData release];
-		[attributedStringFromData release];
 		
 		currentEncoding = encoding;
 		

@@ -44,19 +44,19 @@
 	IMP defaultIBeamCursorIMP, whiteIBeamCursorIMP;
     
     
-	NSString *beforeString;
-	NSString *afterString;
-    NSString *activeParagraph;
-    NSString *activeParagraphPastCursor;
-    NSString *activeParagraphBeforeCursor;
+	NSString *__weak beforeString;
+	NSString *__weak afterString;
+    NSString *__weak activeParagraph;
+    NSString *__weak activeParagraphPastCursor;
+    NSString *__weak activeParagraphBeforeCursor;
 //    BOOL clipboardHasLink;
 }
 
-@property (readonly) NSString *activeParagraphBeforeCursor;
-@property (readonly) NSString *activeParagraphPastCursor;
-@property (readonly) NSString *beforeString;
-@property (readonly) NSString *afterString;
-@property (readonly) NSString *activeParagraph;
+@property (weak, readonly) NSString *activeParagraphBeforeCursor;
+@property (weak, readonly) NSString *activeParagraphPastCursor;
+@property (weak, readonly) NSString *beforeString;
+@property (weak, readonly) NSString *afterString;
+@property (weak, readonly) NSString *activeParagraph;
 //@property (readonly) BOOL clipboardHasLink;
 
 - (NSColor*)_insertionPointColorForForegroundColor:(NSColor*)fgColor backgroundColor:(NSColor*)bgColor;

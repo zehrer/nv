@@ -69,7 +69,7 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 		} else {
 			//add localized RTF help notes (how do we handle initializing a new NV copy when the owner just wants to re-sync from web? they will get new help notes each time?)
 			NSArray *paths = [[NSBundle mainBundle] pathsForResourcesOfType:@"nvhelp" inDirectory:nil];
-			NSArray *helpNotes = [[[[AlienNoteImporter alloc] initWithStoragePaths:paths] autorelease] importedNotes];
+			NSArray *helpNotes = [[[AlienNoteImporter alloc] initWithStoragePaths:paths] importedNotes];
 			if ([helpNotes count] > 0) {
 				[notation addNotes:helpNotes];
 				[[notation delegate] notation:notation revealNote:[helpNotes lastObject] options:NVEditNoteToReveal];
@@ -81,7 +81,7 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 
 + (AlienNoteImporter *)importerWithPath:(NSString*)path {
 	AlienNoteImporter *importer = [[AlienNoteImporter alloc] initWithStoragePath:path];
-	return [importer autorelease];
+	return importer;
 }
 
 + (NSString*)blorPath {
@@ -96,7 +96,7 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 
 - (id)initWithStoragePaths:(NSArray*)filenames {
 	if ((self = [self init])) {
-		if ((source = [filenames retain])) {
+		if ((source = filenames)) {
 		
 			importerSelector = @selector(notesWithPaths:);
 		} else {
@@ -109,7 +109,7 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 
 - (id)initWithStoragePath:(NSString*)filename {
 	if ((self = [self init])) {
-		if ((source = [filename retain])) {
+		if ((source = filename)) {
 			
 			//auto-detect based on bundle/extension/metadata
 			
@@ -129,12 +129,6 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 	return self;
 }
 
-- (void)dealloc {
-	[documentSettings release];
-	[source release];
-	
-	[super dealloc];
-}
 
 + (NSBundle *)PDFKitBundle {
 	static NSBundle *PDFKitBundle = nil;
@@ -199,7 +193,6 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 		NSBeep();
 	}
 	
-	[self release];
 }
 
 - (void)importNotesFromDialogAroundWindow:(NSWindow*)mainWindow receptionDelegate:(id)receiver {
@@ -213,7 +206,6 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 	[openPanel setAccessoryView:[self accessoryView]];
 	[grabCreationDatesButton setState:[[NSUserDefaults standardUserDefaults] boolForKey:ShouldImportCreationDates]];
 	
-	[self retain];
 	
 	[openPanel beginSheetForDirectory:nil file:nil types:nil modalForWindow:mainWindow modalDelegate:self 
 					   didEndSelector:@selector(openPanelDidEnd:returnCode:contextInfo:) contextInfo:(__bridge void *)(receiver)];
@@ -227,8 +219,8 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 		if (filename) {
 			NSArray *notes = [self notesInFile:filename];
 			if ([notes count]) {
-				NSMutableAttributedString *content = [[[GlobalPrefs defaultPrefs] pastePreservesStyle] ? [[[notes lastObject] contentString] mutableCopy] :
-													  [[NSMutableAttributedString alloc] initWithString:[[[notes lastObject] contentString] string]] autorelease];
+				NSMutableAttributedString *content = [[GlobalPrefs defaultPrefs] pastePreservesStyle] ? [[[notes lastObject] contentString] mutableCopy] :
+													  [[NSMutableAttributedString alloc] initWithString:[[[notes lastObject] contentString] string]];
 				if ([[[content string] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] length]) {
 					//only add string if it has at least one non-whitespace character
 					NSUInteger prefixedSourceLength = [[content prefixWithSourceString:[[getter url] absoluteString]] length];
@@ -252,14 +244,13 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 			//no notes recovered from downloaded file--just add the URL as a string?
 			NSString *urlString = [[getter url] absoluteString];			
 			if (urlString) {
-				NSMutableAttributedString *newString = [[[NSMutableAttributedString alloc] initWithString:urlString] autorelease];
+				NSMutableAttributedString *newString = [[NSMutableAttributedString alloc] initWithString:urlString];
 				[newString santizeForeignStylesForImporting];
 				
 				NoteObject *noteObject = [[NoteObject alloc] initWithNoteBody:newString title:[getter userData] ? [getter userData] : urlString
 																	 delegate:nil format:SingleDatabaseFormat labels:nil];
 				
 				[receptionDelegate noteImporter:self importedNotes: @[noteObject]];
-				[noteObject release];
 			}
 		}			
 		
@@ -268,18 +259,15 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 		NSBeep();
 	}
 	
-	[getter release];
 	
-	[self release];
 }
 
 - (void)importURLInBackground:(NSURL*)aURL linkTitle:(NSString*)linkTitle receptionDelegate:(id)receiver {
 	
 	receptionDelegate = receiver;
 		
-	[self retain];
 	
-	[[[URLGetter alloc] initWithURL:aURL delegate:self userData:linkTitle] release];
+	[[URLGetter alloc] initWithURL:aURL delegate:self userData:linkTitle];
 }
 
 - (NSArray*)importedNotes {
@@ -346,7 +334,7 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 		attributedStringFromData = [[NSMutableAttributedString alloc] initWithRTF:[NSData uncachedDataFromFile:filename] documentAttributes:NULL];
 		
 	} else if (fileType == RTFD_TYPE_ID || [extension isEqualToString:@"rtfd"]) {
-		NSFileWrapper *wrapper = [[[NSFileWrapper alloc] initWithPath:filename] autorelease];
+		NSFileWrapper *wrapper = [[NSFileWrapper alloc] initWithPath:filename];
 		if ([[attributes objectForKey:NSFileType] isEqualToString:NSFileTypeDirectory])
 			attributedStringFromData = [[NSMutableAttributedString alloc] initWithRTFDFileWrapper:wrapper documentAttributes:NULL];
 		else
@@ -378,7 +366,6 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 					} else {
 						NSLog(@"Couldn't get entire doc selection for PDF");
 					}
-					[doc release];
 				} else {
 					NSLog(@"Couldn't parse data into PDF");
 				}
@@ -395,7 +382,6 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 		if (stringFromData) {
 			attributedStringFromData = [[NSMutableAttributedString alloc] initWithString:stringFromData 
 																			  attributes:[[GlobalPrefs defaultPrefs] noteBodyAttributes]];
-			[stringFromData release];
 		}
 		
 	}
@@ -441,9 +427,8 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 			NSLog(@"couldn't generate note object from imported attributed string??");
 		}
 		
-		[attributedStringFromData release];
 		
-		return [noteObject autorelease];
+		return noteObject;
 	}
 	return nil;
 }
@@ -460,16 +445,16 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 	NSString *curObject = nil;
 	NSFileManager *fileMan = [NSFileManager defaultManager];
 	while ((curObject = [enumerator nextObject])) {
-		NSAutoreleasePool *innerPool = [[NSAutoreleasePool alloc] init];
+		@autoreleasepool {
 		
-		NSString *itemPath = [filename stringByAppendingPathComponent:curObject];
-			
-		if ([[[fileMan fileAttributesAtPath:itemPath traverseLink:YES] objectForKey:NSFileType] isEqualToString:NSFileTypeRegular]) {
-			NSArray *notes = [self notesInFile:itemPath];
-			if (notes)
-				[array addObjectsFromArray:notes];
+			NSString *itemPath = [filename stringByAppendingPathComponent:curObject];
+				
+			if ([[[fileMan fileAttributesAtPath:itemPath traverseLink:YES] objectForKey:NSFileType] isEqualToString:NSFileTypeRegular]) {
+				NSArray *notes = [self notesInFile:itemPath];
+				if (notes)
+					[array addObjectsFromArray:notes];
+			}
 		}
-		[innerPool release];
 	}
 	
 	return array;
@@ -519,9 +504,8 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
     NSData *data;
     data = [file readDataToEndOfFile];
 	
-    NSString *string = [[[NSString alloc] initWithData: data encoding: NSUTF8StringEncoding] autorelease];
+    NSString *string = [[NSString alloc] initWithData: data encoding: NSUTF8StringEncoding];
 	
-	[task release];
 
 	return [self markdownFromSource:string];
 }
@@ -555,9 +539,8 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
     string = [[NSString alloc] initWithData: data
 								   encoding: NSUTF8StringEncoding];
 	
-	[task release];
 	
-	return [string autorelease];
+	return string;
 }
 
 - (NSString *) markdownFromSource: (NSString *)htmlString
@@ -596,10 +579,8 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 					  initWithData: data
 					  encoding: NSUTF8StringEncoding];
 	
-    [task release];
-    [data release];
 	
-    return [strippedString autorelease];
+    return strippedString;
 }
 -(BOOL)shouldUseReadability
 {
@@ -621,8 +602,7 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 		NSData *stickyData = [NSData uncachedDataFromFile:filename];
 		NSUnarchiver *unarchiver = [[NSUnarchiver alloc] initForReadingWithData:stickyData];
 		[unarchiver decodeClassName:@"Document" asClassName:@"StickiesDocument"];
-		stickyNotes = [[unarchiver decodeObject] retain];
-		[unarchiver release];
+		stickyNotes = [unarchiver decodeObject];
 	NS_HANDLER
 		stickyNotes = nil;
 		NSLog(@"Error parsing stickies database: %@", [localException reason]);
@@ -635,13 +615,13 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 		for (i=0; i<[stickyNotes count]; i++) {
 			StickiesDocument *doc = [stickyNotes objectAtIndex:i];
 			if ([doc isKindOfClass:[StickiesDocument class]]) {
-				NSMutableAttributedString *attributedString = [[[NSMutableAttributedString alloc] initWithRTFD:[doc RTFDData] documentAttributes:NULL] autorelease];
+				NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithRTFD:[doc RTFDData] documentAttributes:NULL];
 				[attributedString removeAttachments];
 				[attributedString santizeForeignStylesForImporting];
 				NSString *syntheticTitle = [attributedString trimLeadingSyntheticTitle];
 				
-				NoteObject *noteObject = [[[NoteObject alloc] initWithNoteBody:attributedString title:syntheticTitle 
-																	  delegate:nil format:SingleDatabaseFormat labels:nil] autorelease];
+				NoteObject *noteObject = [[NoteObject alloc] initWithNoteBody:attributedString title:syntheticTitle 
+																	  delegate:nil format:SingleDatabaseFormat labels:nil];
 				if (noteObject) {
 					[noteObject setDateAdded:CFDateGetAbsoluteTime((CFDateRef)[doc creationDate])];
 					[noteObject setDateModified:CFDateGetAbsoluteTime((CFDateRef)[doc modificationDate])];
@@ -655,7 +635,6 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 			}
 		}
 		
-		[stickyNotes release];
 		
 		return notes;
 	} else {
@@ -667,7 +646,7 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 
 - (NSArray*)_importBlorNotes:(NSString*)filename {
 	
-	BlorPasswordRetriever *retriever = [[[BlorPasswordRetriever alloc] initWithBlor:filename] autorelease];
+	BlorPasswordRetriever *retriever = [[BlorPasswordRetriever alloc] initWithBlor:filename];
 	NSData *keyData = [retriever validPasswordHashData];
 	if (!keyData) {
 		NSLog(@"Couldn't get a valid pass-key to decrypt the blor!");
@@ -709,7 +688,6 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 		NSLog(@"read notes (%d) != stated note count (%d)!", count, [enumerator suspectedNoteCount]);
 	}
 	
-	[enumerator release];
 	
 	return array;
 }
@@ -754,11 +732,11 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
                 continue;
             
             NSString *title = [fields objectAtIndex:0];
-			NSMutableAttributedString *attributedBody = [[[NSMutableAttributedString alloc] initWithString:s attributes:[[GlobalPrefs defaultPrefs] noteBodyAttributes]] autorelease];
+			NSMutableAttributedString *attributedBody = [[NSMutableAttributedString alloc] initWithString:s attributes:[[GlobalPrefs defaultPrefs] noteBodyAttributes]];
 			[attributedBody addLinkAttributesForRange:NSMakeRange(0, [attributedBody length])];
 			[attributedBody addStrikethroughNearDoneTagsForRange:NSMakeRange(0, [attributedBody length])];
 			
-            NoteObject *note = [[[NoteObject alloc] initWithNoteBody:attributedBody title:title delegate:nil format:SingleDatabaseFormat labels:nil] autorelease];
+            NoteObject *note = [[NoteObject alloc] initWithNoteBody:attributedBody title:title delegate:nil format:SingleDatabaseFormat labels:nil];
 			if (note) {
 				now += 1.0; //to ensure a consistent sort order
 				[note setDateAdded:now];
@@ -767,7 +745,6 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 			}
         }
     }
-	[contents release];
     
     return (notes);
 }

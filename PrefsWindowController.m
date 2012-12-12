@@ -79,7 +79,7 @@
 }
 
 - (void)keyComboPanelEnded:(PTKeyComboPanel*)panel {
-	PTKeyCombo *oldKeyCombo = [[prefsController appActivationKeyCombo] retain];
+	PTKeyCombo *oldKeyCombo = [prefsController appActivationKeyCombo];
 	[prefsController setAppActivationKeyCombo:[panel keyCombo] sender:self];
 	
 	[appShortcutField setStringValue:[[prefsController appActivationKeyCombo] description]];
@@ -89,7 +89,6 @@
 		NSLog(@"reverting to old (hopefully working key combo");
 	}
 	
-	[oldKeyCombo release];
 }
 
 - (IBAction)changeBodyFont:(id)sender {
@@ -138,7 +137,6 @@
 	[[bodyTextFontField cell] setAttributedStringValue:attributedString];
     [bodyTextFontField updateCell:[bodyTextFontField cell]];
 	
-	[attributedString release];
 	
 }
 
@@ -250,7 +248,7 @@
 }
 
 - (NSMenu*)directorySelectionMenu {
-    NSMenu *theMenu = [[[NSMenu alloc] initWithTitle:@"Note Directory Menu"] autorelease];
+    NSMenu *theMenu = [[NSMenu alloc] initWithTitle:@"Note Directory Menu"];
     
     FSRef targetRef = {{0}};
     NSString *name = [prefsController displayNameForDefaultDirectoryWithFSRef:&targetRef];
@@ -259,7 +257,7 @@
 	
     NSImage *iconImage = [prefsController iconForDefaultDirectoryWithFSRef:&targetRef];
 	
-    NSMenuItem *theMenuItem = [[[NSMenuItem alloc] initWithTitle:name action:nil keyEquivalent:@""] autorelease];
+    NSMenuItem *theMenuItem = [[NSMenuItem alloc] initWithTitle:name action:nil keyEquivalent:@""];
     
     if (iconImage)
 		[theMenuItem setImage:iconImage];
@@ -268,8 +266,8 @@
     
     [theMenu addItem:[NSMenuItem separatorItem]];
     
-    theMenuItem = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Other...", @"title of menu item for selecting a different notes folder")
-											  action:@selector(changeDefaultDirectory) keyEquivalent:@""] autorelease];
+    theMenuItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Other...", @"title of menu item for selecting a different notes folder")
+											  action:@selector(changeDefaultDirectory) keyEquivalent:@""];
     [theMenuItem setTarget:self];
     [theMenu addItem:theMenuItem];
     
@@ -339,12 +337,12 @@
     [openPanel setMessage:NSLocalizedString(@"Select the folder that Notational Velocity should use for reading and storing notes.",nil)];
     
     if ([openPanel runModalForDirectory:startingDirectory file:@"Notational Data" types:nil] == NSOKButton) {
-		CFStringRef filename = (CFStringRef)[openPanel filename];
+		CFStringRef filename = (__bridge CFStringRef)[openPanel filename];
 		if (!filename)
 			return NO;
 		
 		if (path)
-			*path = [[[openPanel filename] copy] autorelease];
+			*path = [[openPanel filename] copy];
 		
 		//yes, I know that navigation services uses uses FSRefs, but NSSavePanel saves us much more work
 		CFURLRef url = CFURLCreateWithFileSystemPath(NULL, filename, kCFURLPOSIXPathStyle, true);
@@ -378,11 +376,10 @@
     [item setPaletteLabel:localizedTitle];
     [item setLabel:localizedTitle];
     //[item setToolTip:@"General settings: appearance and behavior"];
-    [item setImage:[[[NSImage alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:name ofType:@"tiff"]] autorelease]];
+    [item setImage:[[NSImage alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:name ofType:@"tiff"]]];
     [item setTarget:self];
     [item setAction:@selector(switchViews:)];
     [items setObject:item forKey:name];
-    [item release];
 }
 
 - (void)awakeFromNib {
@@ -454,7 +451,7 @@
     [toolbar setAllowsUserCustomization:NO];
     [toolbar setAutosavesConfiguration:NO]; 
     [window setToolbar:toolbar];
-    [toolbar release];  //setToolbar retains the toolbar we pass, so release the one we used.
+      //setToolbar retains the toolbar we pass, so release the one we used.
 	
 	[window setShowsToolbarButton:NO];
     [useETScrollbarsOnLionButton setState:[prefsController useETScrollbarsOnLion]];
@@ -524,7 +521,6 @@
 	NSRect windowContentFrame = ScaleRectWithFactor([[window contentView] frame], userSpaceScaleFactor);
     NSView *tempView = [[NSView alloc] initWithFrame:[[window contentView] frame]];
     [window setContentView:tempView];
-    [tempView release];
     
     NSRect newFrame = [window frame];
 	NSRect viewFrameForWindow = ScaleRectWithFactor([prefsView frame], userSpaceScaleFactor);

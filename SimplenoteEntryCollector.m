@@ -33,9 +33,9 @@
 
 - (id)initWithEntriesToCollect:(NSArray*)wantedEntries authToken:(NSString*)anAuthToken email:(NSString*)anEmail {
 	if ((self = [super init])) {
-		authToken = [anAuthToken retain];
-		email = [anEmail retain];
-		entriesToCollect = [wantedEntries retain];
+		authToken = anAuthToken;
+		email = anEmail;
+		entriesToCollect = wantedEntries;
 		entriesCollected = [[NSMutableArray alloc] init];
 		entriesInError = [[NSMutableArray alloc] init];
 		
@@ -67,23 +67,13 @@
 }
 
 - (void)setRepresentedObject:(id)anObject {
-	[representedObject autorelease];
-	representedObject = [anObject retain];
+	representedObject = anObject;
 }
 
 - (id)representedObject {
 	return representedObject;
 }
 
-- (void)dealloc {
-	[entriesCollected release];
-	[entriesToCollect release];
-	[entriesInError release];
-	[representedObject release];
-	[email release];
-	[authToken release];
-	[super dealloc];
-}
 
 - (NSString*)statusText {
 	return [NSString stringWithFormat:NSLocalizedString(@"Downloading %u of %u notes", @"status text when downloading a note from the remote sync server"), 
@@ -119,16 +109,15 @@
 	SyncResponseFetcher *fetcher = [[SyncResponseFetcher alloc] initWithURL:noteURL POSTData:nil delegate:self];
 	//remember the note for later? why not.
 	if (originalNote) [fetcher setRepresentedObject:originalNote];
-	return [fetcher autorelease];
+	return fetcher;
 }
 
 - (void)startCollectingWithCallback:(SEL)aSEL collectionDelegate:(id)aDelegate {
 	NSAssert([aDelegate respondsToSelector:aSEL], @"delegate doesn't respond!");
 	NSAssert(![self collectionStarted], @"collection already started!");
 	entriesFinishedCallback = aSEL;
-	collectionDelegate = [aDelegate retain];
+	collectionDelegate = aDelegate;
 	
-	[self retain];
 	
 	[(currentFetcher = [self fetcherForEntry:[entriesToCollect objectAtIndex:entryFinishedCount++]]) start];
 }
@@ -136,7 +125,7 @@
 - (NSDictionary*)preparedDictionaryWithFetcher:(SyncResponseFetcher*)fetcher receivedData:(NSData*)data {
 	//logic abstracted for subclassing
 	
-	NSString *bodyString = [[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] autorelease];
+	NSString *bodyString = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
 	
 	NSDictionary *rawObject = nil;
 	@try {
@@ -202,8 +191,6 @@
 		//no more entries to collect!
 		currentFetcher = nil;
 		[collectionDelegate performSelector:entriesFinishedCallback withObject:self];
-		[self release];
-		[collectionDelegate release];
 	} else {
 		//queue next entry
 		[(currentFetcher = [self fetcherForEntry:[entriesToCollect objectAtIndex:entryFinishedCount++]]) start];
@@ -255,8 +242,8 @@
 	//always set the mod date, set created date if we are creating, set the key if we are updating
 	NSDictionary *params = [NSDictionary dictionaryWithObjectsAndKeys: email, @"email", authToken, @"auth", nil];	
 	
-	NSMutableString *noteBody = [[[aNote combinedContentWithContextSeparator: /* explicitly assume default separator if creating */
-								   doesCreate ? nil : [info objectForKey:SimplenoteSeparatorKey]] mutableCopy] autorelease];
+	NSMutableString *noteBody = [[aNote combinedContentWithContextSeparator: /* explicitly assume default separator if creating */
+								   doesCreate ? nil : [info objectForKey:SimplenoteSeparatorKey]] mutableCopy];
 	//simpletext iPhone app loses any tab characters
 	[noteBody replaceTabsWithSpacesOfWidth:[[GlobalPrefs defaultPrefs] numberOfSpacesInTab]];
 	
@@ -280,7 +267,7 @@
 	}
 	SyncResponseFetcher *fetcher = [[SyncResponseFetcher alloc] initWithURL:noteURL POSTData:[[rawObject jsonStringValue] dataUsingEncoding:NSUTF8StringEncoding] contentType:@"application/json" delegate:self];
 	[fetcher setRepresentedObject:aNote];
-	return [fetcher autorelease];
+	return fetcher;
 }
 
 - (SyncResponseFetcher*)fetcherForCreatingNote:(NoteObject*)aNote {
@@ -313,7 +300,7 @@
 	NSData *postData = [[[NSDictionary dictionaryWithObject:[NSNumber numberWithInt:1] forKey:@"deleted"] jsonStringValue] dataUsingEncoding:NSUTF8StringEncoding];
 	SyncResponseFetcher *fetcher = [[SyncResponseFetcher alloc] initWithURL:noteURL POSTData:postData contentType:@"application/json" delegate:self];
 	[fetcher setRepresentedObject:aDeletedNote];
-	return [fetcher autorelease];
+	return fetcher;
 	
 	return nil;
 }
@@ -353,7 +340,7 @@
 
 - (NSDictionary*)preparedDictionaryWithFetcher:(SyncResponseFetcher*)fetcher receivedData:(NSData*)data {
 	
-	NSString *bodyString = [[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] autorelease];
+	NSString *bodyString = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
 	
 	NSDictionary *rawObject = nil;
 	@try {

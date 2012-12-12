@@ -31,7 +31,7 @@ static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange)
 @implementation NSMutableAttributedString (AttributedPlainText)
 
 - (void)trimLeadingWhitespace {
-	NSMutableCharacterSet *whiteSet = [[[NSMutableCharacterSet alloc] init] autorelease];
+	NSMutableCharacterSet *whiteSet = [[NSMutableCharacterSet alloc] init];
 	[whiteSet formUnionWithCharacterSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
 	//include attachment characters and non-breaking spaces. anything else?
 	unichar badChars[2] = { NSAttachmentCharacter, 0x00A0 };
@@ -80,7 +80,7 @@ static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange)
 
 - (NSString*)prefixWithSourceString:(NSString*)source {
 	NSString *sourceWContext = [NSString stringWithFormat:@"%@ <%@>:\n\n", NSLocalizedString(@"From", @"prefix for source-URLs inserted into imported notes; e.g., 'From <http://www.apple.com>: ...'"), source];
-	[self insertAttributedString:[[[NSAttributedString alloc] initWithString:sourceWContext] autorelease] atIndex:0];
+	[self insertAttributedString:[[NSAttributedString alloc] initWithString:sourceWContext] atIndex:0];
 	return sourceWContext;
 }
 
@@ -160,7 +160,6 @@ static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange)
 			
 			[newAttributes setObject:newFont ? newFont : currentFont forKey:NSFontAttributeName];
 			[self setAttributes:newAttributes range:effectiveRange];
-			[newAttributes release];
 			
 			rangesChanged++;
 		}
@@ -211,7 +210,7 @@ static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange)
 	
 	static NSMutableCharacterSet *antiInteriorSet = nil;
 	if (!antiInteriorSet) {
-		antiInteriorSet = [[NSMutableCharacterSet characterSetWithCharactersInString:@"[]"] retain];
+		antiInteriorSet = [NSMutableCharacterSet characterSetWithCharactersInString:@"[]"];
 		[antiInteriorSet formUnionWithCharacterSet:[NSCharacterSet whitespaceCharacterSet]];
 		[antiInteriorSet formUnionWithCharacterSet:[NSCharacterSet illegalCharacterSet]];
 		[antiInteriorSet formUnionWithCharacterSet:[NSCharacterSet controlCharacterSet]];
@@ -458,7 +457,7 @@ static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange)
 	unichar ch = 0x2245;
 	static NSAttributedString *approxCharStr = nil;
 	if (!approxCharStr) {
-		NSMutableParagraphStyle *centerStyle = [[[NSMutableParagraphStyle alloc] init] autorelease];
+		NSMutableParagraphStyle *centerStyle = [[NSMutableParagraphStyle alloc] init];
 		[centerStyle setAlignment:NSCenterTextAlignment];
 
 		approxCharStr = [[NSAttributedString alloc] initWithString:[NSString stringWithCharacters:&ch length:1] attributes:
@@ -468,9 +467,9 @@ static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange)
 	
 	NSString *timeStr = seconds < 1.0 ? [NSString stringWithFormat:@" %0.0f ms", seconds*1000] : [NSString stringWithFormat:@" %0.2f secs", seconds];
 	
-	[mutableStr appendAttributedString:[[[NSAttributedString alloc] initWithString:timeStr attributes:
-										 [NSDictionary dictionaryWithObject:[NSFont systemFontOfSize:13.0f] forKey:NSFontAttributeName]] autorelease]];
-	return [mutableStr autorelease];
+	[mutableStr appendAttributedString:[[NSAttributedString alloc] initWithString:timeStr attributes:
+										 [NSDictionary dictionaryWithObject:[NSFont systemFontOfSize:13.0f] forKey:NSFontAttributeName]]];
+	return mutableStr;
 }
 
 

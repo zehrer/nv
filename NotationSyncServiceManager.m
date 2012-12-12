@@ -317,7 +317,7 @@
 	//for remotelyMissing, remove syncService-dict before registering w/undo handler to force re-creation in case of undo
 	[remotelyMissingNotes makeObjectsPerformSelector:@selector(removeAllSyncMDForService:) withObject:serviceName];
 	
-	NSMutableArray *remotelyMissingAndDeletedNotes = [[remotelyMissingNotes mutableCopy] autorelease];
+	NSMutableArray *remotelyMissingAndDeletedNotes = [remotelyMissingNotes mutableCopy];
 	[remotelyMissingAndDeletedNotes addObjectsFromArray:remotelyDeletedNotes];
 	
 	[syncSession suppressPushingForNotes:remotelyMissingAndDeletedNotes];

@@ -31,7 +31,7 @@
 
 @property (nonatomic) NSRect rect;						// the subview's frame
 @property (nonatomic) double fraction;					// fractional extra
-@property (nonatomic, retain) RBSplitSubview *subview;	// points at the subview
+@property (nonatomic, strong) RBSplitSubview *subview;	// points at the subview
 @property (nonatomic) CGFloat size;						// current dimension
 @property (nonatomic) BOOL constrain;					// set if constrained
 
@@ -40,7 +40,7 @@
 // This struct is used internally for doing collapse/expand animation.
 @interface RBAnimationData : NSObject
 
-@property (nonatomic, retain) RBSplitSubview* owner;	// the subview being animated
+@property (nonatomic, strong) RBSplitSubview* owner;	// the subview being animated
 @property (nonatomic) CGFloat dimension;				// the subview's starting or ending dimension
 @property (nonatomic) int stepsDone;					// counts already done animation steps
 @property (nonatomic) NSTimeInterval elapsedTime;		// time already spent in resizing and adjusting subviews

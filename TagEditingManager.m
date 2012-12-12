@@ -21,11 +21,6 @@
 	return self;
 }
 
-- (void)dealloc{
-	[tagPanel release];
-	[tagField release];
-	[super dealloc];
-}
 
 - (void)awakeFromNib {
 	[tagField setStringValue:@""];
@@ -42,7 +37,7 @@
 }
 
 - (NSString *)newMultinoteLabels{
-	return [[NSString stringWithString:[tagField stringValue]]retain];
+	return [NSString stringWithString:[tagField stringValue]];
 }
 
 - (void)setTF:(NSString *)inString{

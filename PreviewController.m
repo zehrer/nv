@@ -125,10 +125,10 @@
         shCon.origin.x = shCon.size.width - 106;
         shCon.origin.y = 1;
         shCon.size.width = 81;
-        shCon.size.height = 28;
-        shareConfirm = [[[ETTransparentButton alloc]initWithFrame:shCon] retain];
+        shCon.size.height = 28;        
+        shareConfirm = [[ETTransparentButton alloc]initWithFrame:shCon];
         shCon.origin.x = [shareConfirmation visibleRect].origin.x + 25;
-        shareCancel = [[[ETTransparentButton alloc]initWithFrame:shCon] retain];
+        shareCancel = [[ETTransparentButton alloc]initWithFrame:shCon];
         [shareConfirm setTitle:@"Yes"];
         [shareConfirm setTarget:self];
         [shareConfirm setAction:@selector(shareNote:)];
@@ -142,7 +142,7 @@
         shCon.size.width = 116;
         shCon.size.height = 28;
         shCon.origin.x = 70;
-        viewOnWebButton = [[[ETTransparentButton alloc]initWithFrame:shCon] retain];
+        viewOnWebButton = [[ETTransparentButton alloc]initWithFrame:shCon];
         [viewOnWebButton setTitle:@"View in Browser"];
         [viewOnWebButton setTarget:self];
         [viewOnWebButton setAction:@selector(openShareURL:)];
@@ -156,16 +156,15 @@
 }
 
 -(void)awakeFromNib
-{
-	cssString = [[[self class] css] retain];
-    htmlString = [[[self class] html] retain];
+{    
+	cssString = [[self class] css];
+    htmlString = [[self class] html];
 	lastNote = [[NSApp delegate] selectedNoteObject];
     [sourceView setTextContainerInset:NSMakeSize(10.0,12.0)];
     NSScrollView *scrlView=[sourceView enclosingScrollView];
     NSRect vsRect=[[scrlView verticalScroller]frame];
     BTTransparentScroller *theScroller=[[BTTransparentScroller alloc]initWithFrame:vsRect];
     [scrlView setVerticalScroller:theScroller];
-    [theScroller release];
     [scrlView setScrollsDynamically:YES];
 	[scrlView setHorizontalScrollElasticity:NSScrollElasticityNone];
 	[scrlView setVerticalScrollElasticity:NSScrollElasticityAutomatic];
@@ -250,9 +249,7 @@
       if (attachedWindow) {
         [[shareButton window] removeChildWindow:attachedWindow];
         [attachedWindow orderOut:self];
-        [attachedWindow release];
         attachedWindow = nil;
-        [shareURL release];
       }
 //      // TODO: should the "stuck" note remain stuck when preview is closed?
 //      if (self.isPreviewSticky)
@@ -341,10 +338,8 @@
 		NSString *restoreScrollPosition = [NSString stringWithFormat:@"\n<script>var body = document.getElementsByTagName('body')[0],oldscroll = %@;body.scrollTop = oldscroll;</script>",lastScrollPosition];
 		previewString = [processedString stringByAppendingString:restoreScrollPosition];
 	} else {
-		[cssString release];
-		[htmlString release];
-		cssString = [[[self class] css] retain];
-		htmlString = [[[self class] html] retain];
+		cssString = [[self class] css];
+		htmlString = [[self class] html];
 		lastNote = [app selectedNoteObject];
 	}
 		NSString *nvSupportPath = [[NSFileManager defaultManager] applicationSupportDirectory];
@@ -410,8 +405,8 @@
 
 - (NSString *)urlEncodeValue:(NSString *)str
 {
-	NSString *result = (NSString *) CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, (CFStringRef)str, NULL, CFSTR("?=&+"), kCFStringEncodingUTF8);
-	return [result autorelease];
+	NSString *result = (NSString *) CFBridgingRelease(CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, (CFStringRef)str, NULL, CFSTR("?=&+"), kCFStringEncodingUTF8));
+	return result;
 }
 
 -(IBAction)makePreviewSticky:(id)sender
@@ -452,7 +447,7 @@
 -(IBAction)shareNote:(id)sender
 {
   AppController *app = [NSApp delegate];
-	NSString *noteTitle = app.selectedNoteObject ? [[app.selectedNoteObject.title copy] autorelease] : @"";
+	NSString *noteTitle = app.selectedNoteObject ? [app.selectedNoteObject.title copy] : @"";
   NSString *rawString = [app noteContent];
   SEL mode = [self markupProcessorSelector:[app currentPreviewMode]];
   NSString *processedString = [NSString performSelector:mode withObject:rawString];
@@ -473,18 +468,17 @@
 	NSHTTPURLResponse * response = nil;
 	NSError * error = nil;
 	NSData * responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
-	NSString * responseString = [[[NSString alloc] initWithData:responseData encoding:NSASCIIStringEncoding] autorelease];
+	NSString * responseString = [[NSString alloc] initWithData:responseData encoding:NSASCIIStringEncoding];
 	NSLog(@"RESPONSE STRING: %@", responseString);
 	NSLog(@"%d",response.statusCode);
-	shareURL = [[NSString stringWithString:responseString] retain];
+	shareURL = [NSString stringWithString:responseString];
 	if (response.statusCode == 200) {
 		[self showShareURL:[NSString stringWithFormat:@"View %@",shareURL] isError:NO];
 	} else {
 		[self showShareURL:@"Error connecting" isError:YES];
 	}
-
-	[request release];
-
+  
+	
 }
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response
@@ -501,10 +495,9 @@
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection
 {
     NSLog(@"Succeeded! Received %d bytes of data",[receivedData length]);
-
-	NSString * responseString = [[[NSString alloc] initWithData:receivedData encoding:NSASCIIStringEncoding] autorelease];
+	
+	NSString * responseString = [[NSString alloc] initWithData:receivedData encoding:NSASCIIStringEncoding];
 	NSLog(@"RESPONSE STRING: %@", responseString);
-    [receivedData release];
 }
 
 - (void)savePanelDidEnd:(NSSavePanel *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo {
@@ -512,8 +505,8 @@
 
 		AppController *app = [[NSApplication sharedApplication] delegate];
 		NSString *rawString = [app noteContent];
-		NSString *processedString = [[[NSString alloc] init] autorelease];
-
+		NSString *processedString = [[NSString alloc] init];
+		
 		if ([app currentPreviewMode] == MarkdownPreview) {
 			processedString = [NSString stringWithProcessedMarkdown:rawString];
 		} else if ([app currentPreviewMode] == MultiMarkdownPreview) {
@@ -560,13 +553,12 @@
     [templateNote setStringValue:@"Select this to embed the ouput within your current preview HTML and CSS"];
   }
   
-	NSString *noteTitle = app.selectedNoteObject ? [[app.selectedNoteObject.title copy] autorelease] : @"";
+	NSString *noteTitle = app.selectedNoteObject ? [app.selectedNoteObject.title copy] : @"";
 	[savePanel beginSheetForDirectory:nil file:noteTitle modalForWindow:[self window] modalDelegate:self 
 					   didEndSelector:@selector(savePanelDidEnd:returnCode:contextInfo:) contextInfo:nil];
 
-
-	[fileTypes release];
-
+  
+	
 }
 
 -(IBAction)switchTabs:(id)sender
@@ -618,7 +610,6 @@
 	if (confirmWindow) {
 		[[shareButton window] removeChildWindow:confirmWindow];
 		[confirmWindow orderOut:self];
-		[confirmWindow release];
 		confirmWindow = nil;
 	}
 		// Attach/detach window
@@ -665,9 +656,7 @@
 {
 	[[shareButton window] removeChildWindow:attachedWindow];
 	[attachedWindow orderOut:self];
-	[attachedWindow release];
 	attachedWindow = nil;
-	[shareURL release];
 }
 
 - (IBAction)hideShareURL:(id)sender
@@ -679,7 +668,6 @@
 {
 	[[shareButton window] removeChildWindow:confirmWindow];
 	[confirmWindow orderOut:self];
-	[confirmWindow release];
 	confirmWindow = nil;
 }
 
@@ -688,22 +676,8 @@
 	[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:shareURL]];
 	[[shareButton window] removeChildWindow:attachedWindow];
 	[attachedWindow orderOut:self];
-	[attachedWindow release];
 	attachedWindow = nil;
-	[shareURL release];
 }
 
-- (void)dealloc {
-  [htmlString release];
-  [cssString release];
-  [lastNote release];
-  [shareButton release];
-  [saveButton release];
-  [tabSwitcher release];
-  [viewOnWebButton release];
-  [shareCancel release];
-  [shareConfirm release];
-  [super dealloc];
-}
 
 @end

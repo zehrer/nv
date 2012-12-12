@@ -46,11 +46,6 @@ static id _sharedHotKeyCenter = nil;
 	return self;
 }
 
-- (void)dealloc
-{
-	[mHotKeys release];
-	[super dealloc];
-}
 
 #pragma mark -
 
@@ -153,7 +148,6 @@ static id _sharedHotKeyCenter = nil;
 
 - (void) updateHotKey:(PTHotKey *)hk
 {
-    [hk retain];
     //NSLog(@"updateHotKey: %@", hk);
     [self unregisterHotKey:[mHotKeys objectForKey:[hk name]]];
     //NSLog(@"unreg'd: %@", hk);

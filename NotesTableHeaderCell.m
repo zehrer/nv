@@ -20,15 +20,15 @@ static NSGradient *gradient;
 		@try {
 			//NSLog(@"headerCELL initing");
 			if (!bColor) {
-				bColor = [[NSColor whiteColor] retain];
+				bColor = [NSColor whiteColor];
 			}
 			if (!hColor) {
-				hColor = [[NSColor grayColor] retain];
+				hColor = [NSColor grayColor];
 			}
 			if (!tColor) {
-				tColor = [[NSColor blackColor] retain];
+				tColor = [NSColor blackColor];
 			}
-			gradient =  [[[NSGradient alloc] initWithStartingColor:[NSColor colorWithCalibratedWhite:0.93f alpha:0.3f] endingColor:[NSColor colorWithCalibratedWhite:0.12f alpha:0.25f]] retain];
+			gradient =  [[NSGradient alloc] initWithStartingColor:[NSColor colorWithCalibratedWhite:0.93f alpha:0.3f] endingColor:[NSColor colorWithCalibratedWhite:0.12f alpha:0.25f]];
 			
 		}
 		@catch (NSException * e) {
@@ -51,7 +51,7 @@ static NSGradient *gradient;
 }
 
 + (void)setBackgroundColor:(NSColor *)inColor{
-	bColor = [inColor retain];
+	bColor = inColor;
 	CGFloat fWhite;
 	CGFloat endWhite;
 	CGFloat fAlpha;
@@ -62,11 +62,11 @@ static NSGradient *gradient;
 	}else {		
 		endWhite = fWhite - .27f;
 	}
-	hColor = [[inColor blendedColorWithFraction:0.60f ofColor:[NSColor colorWithCalibratedWhite:endWhite alpha:0.98f]] retain];
+	hColor = [inColor blendedColorWithFraction:0.60f ofColor:[NSColor colorWithCalibratedWhite:endWhite alpha:0.98f]];
 }
 
 + (void)setForegroundColor:(NSColor *)inColor{
-	tColor = [inColor retain];
+	tColor = inColor;
 }
 
 - (NSRect)drawingRectForBounds:(NSRect)theRect {
@@ -165,7 +165,6 @@ static NSGradient *gradient;
 - (id)copyWithZone:(NSZone *)zone
 {
     id newCopy = [super copyWithZone:zone];
-    [attrs retain];
     return newCopy;
 }
 

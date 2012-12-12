@@ -119,7 +119,7 @@ NSInteger compareFileSize(id *a, id *b);
 @property (nonatomic, readonly) CFAbsoluteTime modifiedDate;
 @property (nonatomic, readonly) CFAbsoluteTime createdDate;
 @property (nonatomic, readonly) NSStringEncoding fileEncoding;
-@property (nonatomic, retain, readonly) NSMutableArray *prefixParents;
+@property (nonatomic, strong, readonly) NSMutableArray *prefixParents;
 
 #define DefColAttrAccessor(__FName, __IVar) force_inline id __FName(NotesTableView *tv, NoteObject *note, NSInteger row) { return note->__IVar; }
 

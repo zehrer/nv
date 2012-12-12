@@ -162,6 +162,6 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 - (void)updateOSTypesArray;
 - (BOOL)catalogEntryAllowed:(NoteCatalogEntry*)catEntry;
 
-@property (nonatomic, assign) id <NVPreferencesDelegate> delegate;
+@property (nonatomic, unsafe_unretained) id <NVPreferencesDelegate> delegate;
 
 @end

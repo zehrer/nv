@@ -223,7 +223,7 @@
 
 - (NSString*)pathURLFromWebArchive {
 
-	WebResource *resource = [[[[WebArchive alloc] initWithData:self] autorelease] mainResource];
+	WebResource *resource = [[[WebArchive alloc] initWithData:self] mainResource];
 	NSURL *url = [resource URL];
 	
 	//it's not any kind of URL we want to keep
@@ -330,7 +330,7 @@
 		}
 		
 		
-		string = (NSMutableString*)CFStringCreateMutableWithExternalCharactersNoCopy(NULL, (UniChar *)u, (CFIndex)len/2, (CFIndex)len/2, kCFAllocatorDefault);
+		string = (NSMutableString*)CFBridgingRelease(CFStringCreateMutableWithExternalCharactersNoCopy(NULL, (UniChar *)u, (CFIndex)len/2, (CFIndex)len/2, kCFAllocatorDefault));
 		if (string)
 			*encoding = NSUnicodeStringEncoding;
 		return string;
@@ -366,7 +366,7 @@
     
     // Clean up and go home
     BIO_free_all(mem);
-    return [base64String autorelease];
+    return base64String;
 }
 
 

@@ -125,9 +125,9 @@ void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t num_event
 	
 	NSString *path = [[NSFileManager defaultManager] pathWithFSRef:&noteDirectoryRef];
 	
-	FSEventStreamContext context = { 0, self, CFRetain, CFRelease, CFCopyDescription };
+	FSEventStreamContext context = { 0, (__bridge void *)(self), CFRetain, CFRelease, CFCopyDescription };
 	
-	noteDirEventStreamRef = FSEventStreamCreate(NULL, &FSEventsCallback, &context, (CFArrayRef)[NSArray arrayWithObject:path], kFSEventStreamEventIdSinceNow, 
+	noteDirEventStreamRef = FSEventStreamCreate(NULL, &FSEventsCallback, &context, (__bridge CFArrayRef)[NSArray arrayWithObject:path], kFSEventStreamEventIdSinceNow, 
 												1.0, kFSEventStreamCreateFlagWatchRoot | 0x00000008 /*kFSEventStreamCreateFlagIgnoreSelf*/);
 	
 	FSEventStreamScheduleWithRunLoop(noteDirEventStreamRef, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
@@ -592,7 +592,6 @@ void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t num_event
 				[addedEntries removeObjectIdenticalTo:val];
 				foundMatchingContent = YES;
 			}
-			[addedObjToCompare release];
 		}
 		
 		if (!foundMatchingContent) {

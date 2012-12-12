@@ -25,7 +25,7 @@
 @interface NVViewLocationContext : NSObject
 
 @property (nonatomic) BOOL pivotRowWasEdge;
-@property (nonatomic, assign) id pivotObject;
+@property (nonatomic, unsafe_unretained) id pivotObject;
 @property (nonatomic) float verticalDistanceToPivotRow;
 
 @end
@@ -69,7 +69,7 @@
 - (void)noteFirstVisibleRow;
 - (void)makeFirstPreviouslyVisibleRowVisibleIfNecessary;
 
-@property (nonatomic, retain) NVViewLocationContext *viewingLocation;
+@property (nonatomic, strong) NVViewLocationContext *viewingLocation;
 
 - (double)distanceFromRow:(NSUInteger)aRow forVisibleArea:(NSRect)visibleRect;
 - (void)scrollRowToVisible:(NSInteger)rowIndex withVerticalOffset:(float)offset;
@@ -103,7 +103,7 @@
 - (void)incrementNoteSelection:(id)sender;
 - (void)_incrementNoteSelectionByTag:(NSInteger)tag;
 
-@property (nonatomic, assign) id <NVLabelsListSource> labelsListSource;
+@property (nonatomic, unsafe_unretained) id <NVLabelsListSource> labelsListSource;
 
 - (NSArray *)labelCompletionsForString:(NSString *)fieldString index:(NSInteger)index;
 

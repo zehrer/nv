@@ -25,13 +25,6 @@
 	return self;
 }
 
-- (void)dealloc
-{
-	[mName release];
-	[mKeyCombo release];
-	
-	[super dealloc];
-}
 
 - (NSString*)description
 {
@@ -50,8 +43,6 @@
 
 - (void)setKeyCombo: (PTKeyCombo*)combo
 {
-	[combo retain];
-	[mKeyCombo release];
 	mKeyCombo = combo;
 }
 
@@ -62,8 +53,6 @@
 
 - (void)setName: (NSString*)name
 {
-	[name retain];
-	[mName release];
 	mName = name;
 }
 

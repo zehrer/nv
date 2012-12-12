@@ -56,9 +56,9 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
     [userDefaults registerDefaults: [NSDictionary dictionaryWithObjectsAndKeys: [NSNumber numberWithBool: NO], @"UseCtrlForSwitchingNotes", nil]];
       
 		loadStatusString = NSLocalizedString(@"Loading Notes...",nil);
-		loadStatusAttributes = [[NSDictionary dictionaryWithObjectsAndKeys:
+		loadStatusAttributes = [NSDictionary dictionaryWithObjectsAndKeys:
 								 [NSFont fontWithName:@"Helvetica" size:STATUS_STRING_FONT_SIZE], NSFontAttributeName,
-								 [NSColor colorWithCalibratedRed:0.0f green:0.0f blue:0.0f alpha:0.5f], NSForegroundColorAttributeName, nil] retain];
+								 [NSColor colorWithCalibratedRed:0.0f green:0.0f blue:0.0f alpha:0.5f], NSForegroundColorAttributeName, nil];
 		loadStatusStringWidth = [loadStatusString sizeWithAttributes:loadStatusAttributes].width;
 		
 		affinity = 0;
@@ -90,7 +90,7 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 		for (i=0; i<sizeof(colStrings)/sizeof(NSString*); i++) {
 			NoteAttributeColumn *column = [[NoteAttributeColumn alloc] initWithIdentifier:colStrings[i]];
 			[column setEditable:(colMutators[i] != NULL)];
-			[column setHeaderCell:[[[NotesTableHeaderCell alloc] initTextCell:[[NSBundle mainBundle] localizedStringForKey:colStrings[i] value:@"" table:nil]] autorelease]];
+			[column setHeaderCell:[[NotesTableHeaderCell alloc] initTextCell:[[NSBundle mainBundle] localizedStringForKey:colStrings[i] value:@"" table:nil]]];
 			
 			column.mutatingSelector = colMutators[i];
 			column.attributeFunction = attrFunctions[i];
@@ -100,10 +100,9 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 			
 			[allColsDict setObject:column forKey:colStrings[i]];
 			[allColumns addObject:column];
-			[column release];
 		}
 		
-		[[self noteAttributeColumnForIdentifier:NoteLabelsColumnString] setDataCell: [[[LabelColumnCell alloc] init] autorelease]];
+		[[self noteAttributeColumnForIdentifier:NoteLabelsColumnString] setDataCell: [[LabelColumnCell alloc] init]];
 		[self _configureAttributesForCurrentLayout];
 		[self setAllowsColumnSelection:NO];
 		//[self setVerticalMotionCanBeginDrag:NO];
@@ -125,14 +124,6 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
     return self;
 }
 
-- (void)dealloc {
-	[loadStatusAttributes release];
-    [allColumns release];
-	[allColsDict release];
-	[headerView release];
-    
-    [super dealloc];
-}
 
 //extracted from initialization to run in a safe way
 - (void)restoreColumns {
@@ -316,8 +307,8 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 	BOOL horiz = [globalPrefs horizontalLayout];
 	
 	NoteAttributeColumn *col = [self noteAttributeColumnForIdentifier:NoteTitleColumnString];
-	if (!cachedCell) cachedCell = [[col dataCell] retain];
-	[col setDataCell: horiz ? [[[UnifiedCell alloc] init] autorelease] : cachedCell];
+	if (!cachedCell) cachedCell = [col dataCell];
+	[col setDataCell: horiz ? [[UnifiedCell alloc] init] : cachedCell];
 	
 	NSFont *font = [NSFont systemFontOfSize:[globalPrefs tableFontSize]];
 	NSUInteger i;
@@ -333,7 +324,6 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 	float h[4] = {(tableFontHeight * 3.0 + 5.0f), (tableFontHeight * 2.0 + 6.0f), (tableFontHeight + 2.0f), tableFontHeight + 2.0f};
 	[self setRowHeight: horiz ? ([globalPrefs tableColumnsShowPreview] ? h[0] : 
 								 (ColumnIsSet(NoteLabelsColumn,[globalPrefs tableColumnsBitmap]) ? h[1] : h[2])) : h[3]];
-	[lm release];
 	[self setIntercellSpacing:NSMakeSize(12.0, 2.0)];
 	
 	//[self setGridStyleMask:horiz ? NSTableViewSolidHorizontalGridLineMask : NSTableViewGridNone];
@@ -367,7 +357,7 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 }
 
 - (NVViewLocationContext *)viewingLocation {
-	NVViewLocationContext *ctx = [[[NVViewLocationContext alloc] init] autorelease];
+	NVViewLocationContext *ctx = [[NVViewLocationContext alloc] init];
 	
 	NSUInteger pivotRow = [[self selectedRowIndexes] firstIndex];
 	
@@ -578,16 +568,16 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 }
 
 - (NSMenu *)menuForColumnSorting {
-	NSMenu *theMenu = [[[NSMenu alloc] initWithTitle:@""] autorelease];
+	NSMenu *theMenu = [[NSMenu alloc] initWithTitle:@""];
     
     NSEnumerator *theEnumerator = [allColumns objectEnumerator];
     NSTableColumn *theColumn = nil;
 	NSString *sortKey = [globalPrefs sortedTableColumnKey];
 	
     while ((theColumn = [theEnumerator nextObject]) != nil) {
-		NSMenuItem *theMenuItem = [[[NSMenuItem alloc] initWithTitle:[[theColumn headerCell] stringValue] 
+		NSMenuItem *theMenuItem = [[NSMenuItem alloc] initWithTitle:[[theColumn headerCell] stringValue] 
 															  action:@selector(setStatusForSortedColumn:) 
-													   keyEquivalent:@""] autorelease];
+													   keyEquivalent:@""];
 		[theMenuItem setTarget:self];
 		[theMenuItem setRepresentedObject:theColumn];
 		[theMenuItem setState:[[theColumn identifier] isEqualToString:sortKey]];
@@ -598,16 +588,16 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 }
 
 - (NSMenu *)menuForColumnConfiguration:(NSTableColumn *)inSelectedColumn {
-    NSMenu *theMenu = [[[NSMenu alloc] initWithTitle:@""] autorelease];
+    NSMenu *theMenu = [[NSMenu alloc] initWithTitle:@""];
     
 	NSArray *prefsCols = [globalPrefs visibleTableColumns];
 	
     NSEnumerator *theEnumerator = [allColumns objectEnumerator];
     NSTableColumn *theColumn = nil;
     while ((theColumn = [theEnumerator nextObject]) != nil) {
-		NSMenuItem *theMenuItem = [[[NSMenuItem alloc] initWithTitle:[[theColumn headerCell] stringValue] 
+		NSMenuItem *theMenuItem = [[NSMenuItem alloc] initWithTitle:[[theColumn headerCell] stringValue] 
 															  action:@selector(actionHideShowColumn:) 
-													   keyEquivalent:@""] autorelease];
+													   keyEquivalent:@""];
 		[theMenuItem setTarget:self];
 		[theMenuItem setRepresentedObject:theColumn];
 		[theMenuItem setState:[prefsCols containsObject:[theColumn identifier]]];
@@ -681,12 +671,12 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, SEL aSel, id target, NSInteger tag) {
 	NSInteger idx = [sourceMenu indexOfItemWithTag:tag];
 	if (idx > -1 || (idx = [sourceMenu indexOfItemWithTarget:target andAction:aSel]) > -1) {
-		[destMenu addItem:[[(NSMenuItem*)[sourceMenu itemAtIndex:idx] copy] autorelease]];
+		[destMenu addItem:[(NSMenuItem*)[sourceMenu itemAtIndex:idx] copy]];
 	}
 }
 
 - (NSMenu *)defaultNoteCommandsMenuWithTarget:(id)target {
-	NSMenu *theMenu = [[[NSMenu alloc] initWithTitle:@"Contextual Note Commands Menu"] autorelease];
+	NSMenu *theMenu = [[NSMenu alloc] initWithTitle:@"Contextual Note Commands Menu"];
 	NSMenu *notesMenu = [[[NSApp mainMenu] itemWithTag:NOTES_MENU_ID] submenu];
 	
 	_CopyItemWithSelectorFromMenu(theMenu, notesMenu, @selector(renameNote:), target, -1);
@@ -699,7 +689,7 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 														  action:@selector(copyNoteLink:) keyEquivalent:@"c"];
 	[noteLinkItem setKeyEquivalentModifierMask:NSCommandKeyMask|NSAlternateKeyMask];
 	[noteLinkItem setTarget:target];
-	[theMenu addItem:[noteLinkItem autorelease]];
+	[theMenu addItem:noteLinkItem];
 	
 	_CopyItemWithSelectorFromMenu(theMenu, notesMenu, @selector(exportNote:), target, -1);
 	_CopyItemWithSelectorFromMenu(theMenu, notesMenu, @selector(revealNote:), target, -1);

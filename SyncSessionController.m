@@ -36,7 +36,7 @@ static void SleepCallBack(void *refcon, io_service_t y, natural_t messageType, v
 			NSLog(@"%s: need syncDelegate!", _cmd);
 			return nil;
 		}
-		if (!(notationPrefs = [prefs retain])) {
+		if (!(notationPrefs = prefs)) {
 			NSLog(@"%s: need notationPrefs!", _cmd);
 			return nil;
 		}
@@ -103,7 +103,7 @@ static void SleepCallBack(void *refcon, io_service_t y, natural_t messageType, v
 }
 - (void)_registerPowerChangeCallbackIfNecessary {
 	if (!notifyPortRef) {
-		if ((fRootPort = IORegisterForSystemPower((void*)self, &notifyPortRef, SleepCallBack, &deregisteringNotifier))) {
+		if ((fRootPort = IORegisterForSystemPower((__bridge void*)self, &notifyPortRef, SleepCallBack, &deregisteringNotifier))) {
 			CFRunLoopAddSource(CFRunLoopGetCurrent(), IONotificationPortGetRunLoopSource(notifyPortRef), kCFRunLoopCommonModes);
 			//NSLog(@"registered for power change under port %X", fRootPort);
 		} else {
@@ -141,7 +141,7 @@ static void SleepCallBack(void *refcon, io_service_t y, natural_t messageType, v
 			if (snSession) {
 				[syncServiceSessions setObject:snSession forKey:serviceName];
 				[snSession setDelegate:syncDelegate];
-				[snSession release]; //owned by syncServiceSessions				
+				 //owned by syncServiceSessions				
 			}
 			return snSession;
 		} /* else if ([serviceName isEqualToString:SimpletextServiceName]) {
@@ -156,7 +156,7 @@ static void SleepCallBack(void *refcon, io_service_t y, natural_t messageType, v
 }
 
 - (void)invalidateSyncService:(NSString*)serviceName {
-	id<SyncServiceSession> session = [[[syncServiceSessions objectForKey:serviceName] retain] autorelease];
+	id<SyncServiceSession> session = [syncServiceSessions objectForKey:serviceName];
 	
 	//ensure that reachability is unscheduled if dealloc of session does not occur here
 	if ([session respondsToSelector:@selector(invalidateReachabilityRefs)])
@@ -175,7 +175,7 @@ static void SleepCallBack(void *refcon, io_service_t y, natural_t messageType, v
 - (void)initializeService:(NSString*)serviceName {
 	[self queueStatusNotification];
 	
-	id <SyncServiceSession> session = [[[self _sessionForSyncService:serviceName] retain] autorelease];
+	id <SyncServiceSession> session = [self _sessionForSyncService:serviceName];
 	if (session) {
 		if (![syncServiceTimers objectForKey:serviceName]) {
 			
@@ -214,7 +214,7 @@ static void SleepCallBack(void *refcon, io_service_t y, natural_t messageType, v
 }
 
 - (void)invalidateAllServices {
-	NSArray *svcs = [[[syncServiceSessions allKeys] copy] autorelease];
+	NSArray *svcs = [[syncServiceSessions allKeys] copy];
 	NSUInteger i = 0;
 	for (i=0; i<[svcs count]; i++) [self invalidateSyncService:[svcs objectAtIndex:i]];
 }
@@ -254,9 +254,9 @@ static void SleepCallBack(void *refcon, io_service_t y, natural_t messageType, v
 		BOOL isEnabled = [notationPrefs syncServiceIsEnabled:serviceName];
 		
 		//"<Name>" (if disabled, "<Name>: Disabled")
-		NSMenuItem *serviceHeaderItem = [[[NSMenuItem alloc] initWithTitle: isEnabled ? [class localizedServiceTitle] : 
+		NSMenuItem *serviceHeaderItem = [[NSMenuItem alloc] initWithTitle: isEnabled ? [class localizedServiceTitle] : 
 										  [NSString stringWithFormat:NSLocalizedString(@"%@: Disabled", @"<Sync Service Name>: Disabled"), [class localizedServiceTitle]]
-																	action:nil keyEquivalent:@""] autorelease];
+																	action:nil keyEquivalent:@""];
 		[serviceHeaderItem setEnabled:NO];
 		[aMenu addItem:serviceHeaderItem];
 		
@@ -267,13 +267,13 @@ static void SleepCallBack(void *refcon, io_service_t y, natural_t messageType, v
 				//one item per task
 				NSUInteger j = 0;
 				for (j=0; j<[tasks count]; j++) {
-					NSMenuItem *taskItem = [[[NSMenuItem alloc] initWithTitle:[[tasks objectAtIndex:j] statusText] action:NULL keyEquivalent:@""] autorelease];
+					NSMenuItem *taskItem = [[NSMenuItem alloc] initWithTitle:[[tasks objectAtIndex:j] statusText] action:NULL keyEquivalent:@""];
 					[taskItem setEnabled:NO];
 					[aMenu addItem:taskItem];
 				}
 			} else {
 				//use the session-level status
-				NSMenuItem *sessionStatusItem = [[[NSMenuItem alloc] initWithTitle:[session statusText] action:NULL keyEquivalent:@""] autorelease];
+				NSMenuItem *sessionStatusItem = [[NSMenuItem alloc] initWithTitle:[session statusText] action:NULL keyEquivalent:@""];
 				[sessionStatusItem setEnabled:NO];
 				[aMenu addItem:sessionStatusItem];
 			}
@@ -283,13 +283,13 @@ static void SleepCallBack(void *refcon, io_service_t y, natural_t messageType, v
 			
 			//if running "stop"; otherwise, "sync":
 			if ([session isRunning]) {
-				NSMenuItem *stopItem = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Stop Synchronizing", nil) action:@selector(stop) keyEquivalent:@""] autorelease];
+				NSMenuItem *stopItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Stop Synchronizing", nil) action:@selector(stop) keyEquivalent:@""];
 				[stopItem setEnabled:YES];
 				[stopItem setTarget:session];
 				[aMenu addItem:stopItem];
 			} else {
-				NSMenuItem *syncItem = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Synchronize Now", nil) 
-																   action:@selector(startFetchingListForFullSyncManual) keyEquivalent:@""] autorelease];
+				NSMenuItem *syncItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Synchronize Now", nil) 
+																   action:@selector(startFetchingListForFullSyncManual) keyEquivalent:@""];
 				[syncItem setEnabled:YES];
 				[syncItem setTarget:session];
 				[aMenu addItem:syncItem];				
@@ -303,10 +303,10 @@ static void SleepCallBack(void *refcon, io_service_t y, natural_t messageType, v
 			NSDictionary *acctDict = [notationPrefs syncAccountForServiceName:serviceName];
 			NSMenuItem *badItem = nil;
 			if (![acctDict objectForKey:@"username"] || ![acctDict objectForKey:@"password"]) {
-				badItem = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Incorrect login and password", @"sync status menu msg")
-													  action:nil keyEquivalent:@""] autorelease];
+				badItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Incorrect login and password", @"sync status menu msg")
+													  action:nil keyEquivalent:@""];
 			} else if (isEnabled) {
-				badItem = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Session could not be created", nil) action:nil keyEquivalent:@""] autorelease];
+				badItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Session could not be created", nil) action:nil keyEquivalent:@""];
 			}
 			[badItem setEnabled:NO];
 			if (badItem) [aMenu addItem:badItem];
@@ -366,7 +366,6 @@ static void SleepCallBack(void *refcon, io_service_t y, natural_t messageType, v
 
 - (void)invokeUncommmitedWaitCallbackIfNecessaryReturningError:(NSString*)errString {
 	if ([uncommittedWaitInvocations count]) {
-		[lastUncomittedChangeResultMessage autorelease];
 		lastUncomittedChangeResultMessage = [errString copy];
 		if ([errString length] || ![self hasRunningSessions]) {
 			//fail on the first occur that occurs; currently doesn't provide an opportunity for continuing to sync with other non-failed svcs
@@ -385,13 +384,12 @@ static void SleepCallBack(void *refcon, io_service_t y, natural_t messageType, v
 	// it must call invokeUncommmitedWaitCallbackIfNecessary from -syncSession:didStopWithError:
 	
 	NSAssert(anInvocation != nil, @"cannot wait without an ending invocation");
-	ComparableInvocation *cInvocation = [[[ComparableInvocation alloc] initWithInvocation: anInvocation] autorelease];
+	ComparableInvocation *cInvocation = [[ComparableInvocation alloc] initWithInvocation: anInvocation];
 	if ([uncommittedWaitInvocations containsObject:cInvocation]) {
 		NSLog(@"%s: already waiting for %@", _cmd, anInvocation);
 		return YES; //we're already waiting for this invocation
 	}
 	
-	[lastUncomittedChangeResultMessage release];
 	lastUncomittedChangeResultMessage = nil;
 	
 	BOOL willNeedToWait = NO;
@@ -423,16 +421,9 @@ static void SleepCallBack(void *refcon, io_service_t y, natural_t messageType, v
 	
 	[self unregisterPowerChangeCallback];
 	
-	[statusMenu release];
-	[syncServiceTimers release];
-	[syncServiceSessions release];
 	syncServiceSessions = nil;
-	[notationPrefs release];
-	[uncommittedWaitInvocations release];
 	uncommittedWaitInvocations = nil;
-	[lastUncomittedChangeResultMessage release];
 	
-	[super dealloc];
 }
 
 @end

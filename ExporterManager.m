@@ -112,7 +112,6 @@
 		
 		FNNotify(&directoryRef, kFNDirectoryModifiedMessage, kFNNoImplicitAllSubscription);
 		
-		[notes release];
 	}
 }
 
@@ -139,7 +138,7 @@
 		filename = [filename stringByAppendingPathExtension:[NotationPrefs pathExtensionForFormat:[[formatSelectorPopup selectedItem] tag]]];
 			
 		[savePanel beginSheetForDirectory:nil file:filename modalForWindow:window modalDelegate:self 
-						   didEndSelector:@selector(exportPanelDidEnd:returnCode:contextInfo:) contextInfo:[notes retain]];
+						   didEndSelector:@selector(exportPanelDidEnd:returnCode:contextInfo:) contextInfo:CFBridgingRetain(notes)];
 		
 	} else if ([notes count] > 1) {
 		NSOpenPanel *openPanel = [NSOpenPanel openPanel];
@@ -152,7 +151,7 @@
 		[openPanel setMessage:[NSString stringWithFormat:NSLocalizedString(@"Choose a folder into which %d notes will be exported",nil), [notes count]]];
 
 		[openPanel beginSheetForDirectory:nil file:nil types:nil modalForWindow:window modalDelegate:self 
-						   didEndSelector:@selector(exportPanelDidEnd:returnCode:contextInfo:) contextInfo:[notes retain]];
+						   didEndSelector:@selector(exportPanelDidEnd:returnCode:contextInfo:) contextInfo:CFBridgingRetain(notes)];
 	} else {
 		NSRunAlertPanel(NSLocalizedString(@"No notes were selected for exporting.",nil), 
 						NSLocalizedString(@"You must select at least one note to export.",nil), NSLocalizedString(@"OK",nil), NULL, NULL);

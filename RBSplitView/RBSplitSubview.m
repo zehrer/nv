@@ -152,7 +152,6 @@ static RBAnimationData *currentAnimationObj = NULL;
 - (void)setPosition:(NSUInteger)newPosition {
 	RBSplitView* sv = [self splitView];
 	if (sv) {
-		[self retain];
 		[self removeFromSuperviewWithoutNeedingDisplay];
 		NSArray* subviews = [sv subviews];
 		if (newPosition>=[subviews count]) {
@@ -160,7 +159,6 @@ static RBAnimationData *currentAnimationObj = NULL;
 		} else {
 			[sv addSubview:self positioned:NSWindowBelow relativeTo:[subviews objectAtIndex:newPosition]];
 		}
-		[self release];
 	}
 }
 
@@ -487,21 +485,21 @@ static RBAnimationData *currentAnimationObj = NULL;
 // Loop while the button is down.
 		while ((theEvent = [NSApp nextEventMatchingMask:NSLeftMouseDownMask|NSLeftMouseDraggedMask|NSLeftMouseUpMask untilDate:[NSDate distantFuture] inMode:NSEventTrackingRunLoopMode dequeue:YES])&&([theEvent type]!=NSLeftMouseUp)) {
 // Set up a local autorelease pool for the loop to prevent buildup of temporary objects.
-			NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-			NSDisableScreenUpdates();
+			@autoreleasepool {
+				NSDisableScreenUpdates();
 // This does the actual movement.
-			[sv RB___trackMouseEvent:theEvent from:point withBase:base inDivider:thediv];
-			if ([sv mustAdjust]) {
+				[sv RB___trackMouseEvent:theEvent from:point withBase:base inDivider:thediv];
+				if ([sv mustAdjust]) {
 // If something changed, we clear fractions and redisplay.
-				[sv RB___setMustClearFractions];
-				[sv display];
-			}
+					[sv RB___setMustClearFractions];
+					[sv display];
+				}
 // Change the drag point by the actual amount moved.
-			CGFloat newc = [sv RB___dividerOrigin:thediv];
-			DIM(point) += newc-divc;
-			divc = newc;
-			NSEnableScreenUpdates();
-			[pool drain];
+				CGFloat newc = [sv RB___dividerOrigin:thediv];
+				DIM(point) += newc-divc;
+				divc = newc;
+				NSEnableScreenUpdates();
+			}
 		}
 		[sv RB___setDragging:NO];
 		[NSCursor pop];
@@ -518,14 +516,14 @@ static RBAnimationData *currentAnimationObj = NULL;
 // Now we loop handling mouse events until we get a mouse up event.
 		while ((theEvent = [NSApp nextEventMatchingMask:NSLeftMouseDownMask|NSLeftMouseDraggedMask|NSLeftMouseUpMask untilDate:[NSDate distantFuture] inMode:NSEventTrackingRunLoopMode dequeue:YES])&&([theEvent type]!=NSLeftMouseUp)) {
 // Set up a local autorelease pool for the loop to prevent buildup of temporary objects.
-			NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-			NSPoint now = [window convertBaseToScreen:[theEvent locationInWindow]];
-			origin.x += now.x-where.x;
-			origin.y += now.y-where.y;
+			@autoreleasepool {
+				NSPoint now = [window convertBaseToScreen:[theEvent locationInWindow]];
+				origin.x += now.x-where.x;
+				origin.y += now.y-where.y;
 // Move the window by the mouse displacement since the last event.
-			[window setFrameOrigin:origin];
-			where = now;
-			[pool drain];
+				[window setFrameOrigin:origin];
+				where = now;
+			}
 		}
 	}
 }
@@ -646,7 +644,6 @@ static RBAnimationData *currentAnimationObj = NULL;
 					[sv RB___setDragging:YES];
 				}
 			} else if (currentAnimationObj) {
-				[currentAnimationObj release];
 				currentAnimationObj = NULL;
 			}
 		}
@@ -710,7 +707,6 @@ static RBAnimationData *currentAnimationObj = NULL;
 - (BOOL)RB___stopAnimation {
 	if (currentAnimationObj&&(currentAnimationObj.owner==self)) {
 		[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(RB___stepAnimation) object:nil];
-		[currentAnimationObj release];
 		currentAnimationObj = NULL;
 		[[self splitView] RB___setDragging:NO];
 		return YES;
@@ -735,7 +731,7 @@ static RBAnimationData *currentAnimationObj = NULL;
 	cache.size = [self RB___visibleDimension];
 	cache.fraction = fraction;
 	cache.constrain = NO;
-	return [cache autorelease];
+	return cache;
 }
 
 - (void)RB___updateFromCache:(RBSubviewCache *)cache withTotalDimension:(CGFloat)value {

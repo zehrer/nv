@@ -25,8 +25,8 @@
 
 - (id)initWithTitle:(NSString*)name {
     if ((self = [super init])) {
-		labelName = [name retain];
-		lowercaseName = [[name lowercaseString] retain];
+		labelName = name;
+		lowercaseName = [name lowercaseString];
 	
 		lowercaseHash = [lowercaseName hash];
 		
@@ -53,20 +53,11 @@ int compareLabel(const void *one, const void *two) {
     return lowercaseName;
 }
 
-- (void)dealloc {
- 
-    [notes release];
-    [labelName release];
-    [lowercaseName release];
-    [super dealloc];
-}
 
 - (void)setTitle:(NSString*)title {
-    [labelName release];
-    labelName = [title retain];
+    labelName = title;
     
-    [lowercaseName release];
-    lowercaseName = [[title lowercaseString] retain];
+    lowercaseName = [title lowercaseString];
     
     lowercaseHash = [lowercaseName hash];
 }

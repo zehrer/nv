@@ -57,8 +57,8 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 		
 		unsigned int i;
 		for (i=0; i<4; i++) {
-			typeStrings[i] = [[NotationPrefs defaultTypeStringsForFormat:i] retain];
-			pathExtensions[i] = [[NotationPrefs defaultPathExtensionsForFormat:i] retain];
+			typeStrings[i] = [NotationPrefs defaultTypeStringsForFormat:i];
+			pathExtensions[i] = [NotationPrefs defaultPathExtensionsForFormat:i];
 			chosenExtIndices[i] = 0;
 		}
 		
@@ -69,9 +69,9 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 		notesStorageFormat = SingleDatabaseFormat;
 		hashIterationCount = DEFAULT_HASH_ITERATIONS;
 		keyLengthInBits = DEFAULT_KEY_LENGTH;
-		baseBodyFont = [[[GlobalPrefs defaultPrefs] noteBodyFont] retain];
+		baseBodyFont = [[GlobalPrefs defaultPrefs] noteBodyFont];
 		//foregroundColor = [[[GlobalPrefs defaultPrefs] foregroundTextColor] retain];
-		foregroundColor = [[[NSApp delegate] foregrndColor]retain];
+		foregroundColor = [[NSApp delegate] foregrndColor];
 		epochIteration = 0;
 		
 		[self updateOSTypesArray];
@@ -103,26 +103,26 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 			keyLengthInBits = DEFAULT_KEY_LENGTH;
 		
 		@try {
-			baseBodyFont = [[decoder decodeObjectForKey:VAR_STR(baseBodyFont)] retain];
+			baseBodyFont = [decoder decodeObjectForKey:VAR_STR(baseBodyFont)];
 		} @catch (NSException *e) {
 			NSLog(@"Error trying to unarchive default base body font (%@, %@)", [e name], [e reason]);
 		}
 		if (!baseBodyFont || ![baseBodyFont isKindOfClass:[NSFont class]]) {
-			baseBodyFont = [[[GlobalPrefs defaultPrefs] noteBodyFont] retain];
+			baseBodyFont = [[GlobalPrefs defaultPrefs] noteBodyFont];
 			NSLog(@"setting base body to current default: %@", baseBodyFont);
 			preferencesChanged = YES;
 		}
 		//foregroundColor does not receive the same treatment as basebodyfont; in the event of a discrepancy between global and per-db settings,
 		//the former is applied to the notes in the database, while the latter is restored from the database itself
 		@try {
-			foregroundColor = [[decoder decodeObjectForKey:VAR_STR(foregroundColor)] retain];
+			foregroundColor = [decoder decodeObjectForKey:VAR_STR(foregroundColor)];
 		} @catch (NSException *e) {
 			NSLog(@"Error trying to unarchive foreground text color (%@, %@)", [e name], [e reason]);
 		}
 		if (!foregroundColor || ![foregroundColor isKindOfClass:[NSColor class]]) {
 			//foregroundColor = [[[GlobalPrefs defaultPrefs] foregroundTextColor] retain];
 			
-			foregroundColor = [[[NSApp delegate] foregrndColor]retain];
+			foregroundColor = [[NSApp delegate] foregrndColor];
 			preferencesChanged = YES;
 		}
 		
@@ -130,23 +130,23 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 		
 		unsigned int i;
 		for (i=0; i<4; i++) {
-			if (!(typeStrings[i] = [[decoder decodeObjectForKey:[VAR_STR(typeStrings) stringByAppendingFormat:@".%d",i]] retain]))
-				typeStrings[i] = [[NotationPrefs defaultTypeStringsForFormat:i] retain];
-			if (!(pathExtensions[i] = [[decoder decodeObjectForKey:[VAR_STR(pathExtensions) stringByAppendingFormat:@".%d",i]] retain]))
-				pathExtensions[i] = [[NotationPrefs defaultPathExtensionsForFormat:i] retain];
+			if (!(typeStrings[i] = [decoder decodeObjectForKey:[VAR_STR(typeStrings) stringByAppendingFormat:@".%d",i]]))
+				typeStrings[i] = [NotationPrefs defaultTypeStringsForFormat:i];
+			if (!(pathExtensions[i] = [decoder decodeObjectForKey:[VAR_STR(pathExtensions) stringByAppendingFormat:@".%d",i]]))
+				pathExtensions[i] = [NotationPrefs defaultPathExtensionsForFormat:i];
 			chosenExtIndices[i] = [decoder decodeIntForKey:[VAR_STR(chosenExtIndices) stringByAppendingFormat:@".%d",i]];
 		}
 		
-		if (!(syncServiceAccounts = [[decoder decodeObjectForKey:VAR_STR(syncServiceAccounts)] retain]))
+		if (!(syncServiceAccounts = [decoder decodeObjectForKey:VAR_STR(syncServiceAccounts)]))
 			syncServiceAccounts = [[NSMutableDictionary alloc] init];
-		keychainDatabaseIdentifier = [[decoder decodeObjectForKey:VAR_STR(keychainDatabaseIdentifier)] retain];
+		keychainDatabaseIdentifier = [decoder decodeObjectForKey:VAR_STR(keychainDatabaseIdentifier)];
 		
-		if (!(seenDiskUUIDEntries = [[decoder decodeObjectForKey:VAR_STR(seenDiskUUIDEntries)] retain]))
+		if (!(seenDiskUUIDEntries = [decoder decodeObjectForKey:VAR_STR(seenDiskUUIDEntries)]))
 			seenDiskUUIDEntries = [[NSMutableArray alloc] init];
 		
-		masterSalt = [[decoder decodeObjectForKey:VAR_STR(masterSalt)] retain];
-		dataSessionSalt = [[decoder decodeObjectForKey:VAR_STR(dataSessionSalt)] retain];
-		verifierKey = [[decoder decodeObjectForKey:VAR_STR(verifierKey)] retain];
+		masterSalt = [decoder decodeObjectForKey:VAR_STR(masterSalt)];
+		dataSessionSalt = [decoder decodeObjectForKey:VAR_STR(dataSessionSalt)];
+		verifierKey = [decoder decodeObjectForKey:VAR_STR(verifierKey)];
 		
 		doesEncryption = doesEncryption && verifierKey && masterSalt;
 		
@@ -202,19 +202,11 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
     
     unsigned int i;
     for (i=0; i<4; i++) {
-	[typeStrings[i] release];
-	[pathExtensions[i] release];
     }
     if (allowedTypes)
 	free(allowedTypes);
 	
-	[syncServiceAccounts release];
-	[seenDiskUUIDEntries release];
-	[keychainDatabaseIdentifier release];
-	[baseBodyFont release];
-	[foregroundColor release];
     
-    [super dealloc];
 }
 
 + (NSMutableArray*)defaultTypeStringsForFormat:(int)formatID {
@@ -222,14 +214,14 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 	case SingleDatabaseFormat:
 	    return [NSMutableArray arrayWithCapacity:0];
 	case PlainTextFormat: 
-	    return [NSMutableArray arrayWithObjects:[(id)UTCreateStringForOSType(TEXT_TYPE_ID) autorelease], 
-			[(id)UTCreateStringForOSType(UTXT_TYPE_ID) autorelease], nil];
+	    return [NSMutableArray arrayWithObjects:(id)CFBridgingRelease(UTCreateStringForOSType(TEXT_TYPE_ID)), 
+			(id)CFBridgingRelease(UTCreateStringForOSType(UTXT_TYPE_ID)), nil];
 	case RTFTextFormat: 
-	    return [NSMutableArray arrayWithObjects:[(id)UTCreateStringForOSType(RTF_TYPE_ID) autorelease], nil];
+	    return [NSMutableArray arrayWithObjects:(id)CFBridgingRelease(UTCreateStringForOSType(RTF_TYPE_ID)), nil];
 	case HTMLFormat:
-	    return [NSMutableArray arrayWithObjects:[(id)UTCreateStringForOSType(HTML_TYPE_ID) autorelease], nil];
+	    return [NSMutableArray arrayWithObjects:(id)CFBridgingRelease(UTCreateStringForOSType(HTML_TYPE_ID)), nil];
 	case WordDocFormat:
-		return [NSMutableArray arrayWithObjects:[(id)UTCreateStringForOSType(WORD_DOC_TYPE_ID) autorelease], nil];
+		return [NSMutableArray arrayWithObjects:(id)CFBridgingRelease(UTCreateStringForOSType(WORD_DOC_TYPE_ID)), nil];
 	default:
 	    NSLog(@"Unknown format ID: %d", formatID);
     }
@@ -311,7 +303,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 		NSLog(@"Error finding keychain password for service account %@: %d\n", serviceName, err);
 		return nil;
 	}
-	password = [[[NSString alloc] initWithBytes:passwordData length:passwordLength encoding:NSUTF8StringEncoding] autorelease];
+	password = [[NSString alloc] initWithBytes:passwordData length:passwordLength encoding:NSUTF8StringEncoding];
 	
 	//cache password found in keychain
 	[accountDict setObject:password forKey:@"password"];
@@ -321,7 +313,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 }
 
 - (NSDictionary*)syncServiceAccountsForArchiving {
-	NSMutableDictionary *tempDict = [[syncServiceAccounts mutableCopy] autorelease];
+	NSMutableDictionary *tempDict = [syncServiceAccounts mutableCopy];
 	
 	NSEnumerator *enumerator = [tempDict objectEnumerator];
 	NSMutableDictionary *account = nil;
@@ -373,8 +365,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 }
 
 - (void)setForegroundTextColor:(NSColor*)aColor {
-	[foregroundColor autorelease];
-	foregroundColor = [aColor retain];
+	foregroundColor = aColor;
 	
 	preferencesChanged = YES;
 }
@@ -384,8 +375,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 }
 
 - (void)setBaseBodyFont:(NSFont*)aFont {
-	[baseBodyFont autorelease];
-	baseBodyFont = [aFont retain];
+	baseBodyFont = aFont;
 		
 	preferencesChanged = YES;
 }
@@ -397,7 +387,6 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 
 - (void)forgetKeychainIdentifier {
 	
-	[keychainDatabaseIdentifier release];
 	keychainDatabaseIdentifier = nil;
 	
 	preferencesChanged = YES;
@@ -406,7 +395,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 - (const char *)setKeychainIdentifier {
 	if (!keychainDatabaseIdentifier) {
 		CFUUIDRef uuidRef = CFUUIDCreate(kCFAllocatorDefault);
-		keychainDatabaseIdentifier = (NSString*)CFUUIDCreateString(kCFAllocatorDefault, uuidRef);
+		keychainDatabaseIdentifier = (NSString*)CFBridgingRelease(CFUUIDCreateString(kCFAllocatorDefault, uuidRef));
 		CFRelease(uuidRef);
 
 		preferencesChanged = YES;
@@ -518,7 +507,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 	if ([computedVerifyKey isEqualToData:verifierKey]) {
 		//if computedMasterKey is good, and we don't already have a master key, then this is it
 		if (!masterKey)
-			masterKey = [computedMasterKey retain];
+			masterKey = computedMasterKey;
 		
 		return YES;
 	}
@@ -536,8 +525,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 	//and scale beyond with triplets, quintuplets, and septuplets--but key is not currently user-settable
 
 	//create new dataSessionSalt and key here
-	[dataSessionSalt release];
-	dataSessionSalt = [[NSData randomDataOfLength:256] retain];
+	dataSessionSalt = [NSData randomDataOfLength:256];
 	
 	NSData *dataSessionKey = [masterKey derivedKeyOfLength:keyLengthInBits/8 salt:dataSessionSalt iterations:1];
 	
@@ -560,17 +548,14 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 	int keyLength = keyLengthInBits/8;
 	
 	//generate and set random salt
-	[masterSalt release];
-	masterSalt = [[NSData randomDataOfLength:256] retain];
+	masterSalt = [NSData randomDataOfLength:256];
 
 	//compute and set master key given salt and # of iterations
-	[masterKey release];
-	masterKey = [[passData derivedKeyOfLength:keyLength salt:masterSalt iterations:hashIterationCount] retain];
+	masterKey = [passData derivedKeyOfLength:keyLength salt:masterSalt iterations:hashIterationCount];
 	
 	//compute and set verify key from master key
-	[verifierKey release];
 	NSData *verifySalt = [NSData dataWithBytesNoCopy:VERIFY_SALT length:sizeof(VERIFY_SALT) freeWhenDone:NO];
-	verifierKey = [[masterKey derivedKeyOfLength:keyLength salt:verifySalt iterations:1] retain];
+	verifierKey = [masterKey derivedKeyOfLength:keyLength salt:verifySalt iterations:1];
 
 	//update keychain
 	[self setStoresPasswordInKeychain:inKeychain];
@@ -666,8 +651,8 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 		[self removeKeychainData];
 	
 		//clear out the verifier key and salt?
-		[verifierKey release]; verifierKey = nil;
-		[masterKey release]; masterKey = nil;
+		 verifierKey = nil;
+		 masterKey = nil;
 	}
 	
 	if (oldValue != value) {
@@ -826,7 +811,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 - (NSUInteger)tableIndexOfDiskUUID:(CFUUIDRef)UUIDRef {
 	//if this UUID doesn't yet exist, then add it and return the last index
 	
-	DiskUUIDEntry *diskEntry = [[[DiskUUIDEntry alloc] initWithUUIDRef:UUIDRef] autorelease];
+	DiskUUIDEntry *diskEntry = [[DiskUUIDEntry alloc] initWithUUIDRef:UUIDRef];
 	
 	NSUInteger idx = [seenDiskUUIDEntries indexOfObject: diskEntry];
 	if (NSNotFound != idx) {
@@ -944,7 +929,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
     allowedTypes = (OSType*)realloc(allowedTypes, newSize);
 	
     for (i=0; i<[typeStrings[notesStorageFormat] count]; i++)
-		allowedTypes[i] = UTGetOSTypeFromString((CFStringRef)[typeStrings[notesStorageFormat] objectAtIndex:i]);
+		allowedTypes[i] = UTGetOSTypeFromString((__bridge CFStringRef)[typeStrings[notesStorageFormat] objectAtIndex:i]);
 }
 
 - (void)addAllowedPathExtension:(NSString*)extension {
@@ -1026,7 +1011,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 				
 			return YES;
 		}
-		if (!UTGetOSTypeFromString((CFStringRef)[typeStrings[notesStorageFormat] objectAtIndex:oldIndex])) {
+		if (!UTGetOSTypeFromString((__bridge CFStringRef)[typeStrings[notesStorageFormat] objectAtIndex:oldIndex])) {
 			return NO;
 		}
     }

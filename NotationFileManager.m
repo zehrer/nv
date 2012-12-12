@@ -314,9 +314,9 @@ long BlockSizeForNotation(NotationController *controller) {
 		NoteObject *obj = [allNotes objectAtIndex:i];
 		
 		if (!dbNote && [obj.filename isEqualToString:NotesDatabaseFileName])
-			dbNote = [[obj retain] autorelease];
+			dbNote = obj;
 		if (!walNote && [obj.filename isEqualToString:@"Interim Note-Changes"])
-			walNote = [[obj retain] autorelease];
+			walNote = obj;
 	}
 	if (dbNote) {
 		[allNotes removeObjectIdenticalTo:dbNote];
@@ -344,7 +344,7 @@ long BlockSizeForNotation(NotationController *controller) {
 		[openPanel setMessage:NSLocalizedString(@"Select a new location for your Notational Velocity notes.",nil)];
 		
 		if ([openPanel runModal] == NSOKButton) {
-			CFStringRef filename = (CFStringRef)[openPanel filename];
+			CFStringRef filename = (__bridge CFStringRef)[openPanel filename];
 			if (filename) {
 				
 				FSRef newParentRef;
@@ -412,9 +412,9 @@ terminate:
     NSString *uniqueFilename = title;
 	
 	//remove illegal characters
-	NSMutableString *sanitizedName = [[[uniqueFilename stringByReplacingOccurrencesOfString:@":" withString:@"-"] mutableCopy] autorelease];
+	NSMutableString *sanitizedName = [[uniqueFilename stringByReplacingOccurrencesOfString:@":" withString:@"-"] mutableCopy];
 	if ([sanitizedName characterAtIndex:0] == (unichar)'.')	[sanitizedName replaceCharactersInRange:NSMakeRange(0, 1) withString:@"_"];
-	uniqueFilename = [[sanitizedName copy] autorelease];
+	uniqueFilename = [sanitizedName copy];
 	
 	//use the note's current format if the current default format is for a database; get the "ideal" extension for that format
 	int noteFormat = [notationPrefs notesStorageFormat] || !note ? [notationPrefs notesStorageFormat] : note.storageFormat;
@@ -530,7 +530,7 @@ terminate:
     if (!notesDataPtr)
 		return nil;
     
-    return [[[NSMutableData alloc] initWithBytesNoCopy:notesDataPtr length:fileSize freeWhenDone:YES] autorelease];
+    return [[NSMutableData alloc] initWithBytesNoCopy:notesDataPtr length:fileSize freeWhenDone:YES];
 }
 
 - (OSStatus)createFileIfNotPresentInNotesDirectory:(FSRef*)childRef forFilename:(NSString*)filename fileWasCreated:(BOOL*)created {
@@ -619,7 +619,7 @@ terminate:
 	 else
 		NSLog(@"notifyOfChangedTrash: error getting trash: %d", err);
 	
-	 NSString *sillyDirectory = [NSTemporaryDirectory() stringByAppendingPathComponent:[(NSString*)CreateRandomizedFileName() autorelease]];
+	 NSString *sillyDirectory = [NSTemporaryDirectory() stringByAppendingPathComponent:(NSString*)CFBridgingRelease(CreateRandomizedFileName())];
 	 [[NSFileManager defaultManager] createDirectoryAtPath:sillyDirectory attributes:nil];
 	 NSInteger tag = 0;
 	 [[NSWorkspace sharedWorkspace] performFileOperation:NSWorkspaceRecycleOperation source:NSTemporaryDirectory() destination:@"" 

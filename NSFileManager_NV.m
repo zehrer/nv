@@ -51,7 +51,6 @@
 	id outObject = [NSPropertyListSerialization propertyListFromData:nsData mutabilityOption:kCFPropertyListImmutable format:&formatFound errorDescription:&errorString];
 	if (errorString) {
 		NSLog(@"%s: error deserializing labels: %@", _cmd, errorString);
-		[errorString release];
 		return nil;
 	}
 	
@@ -76,7 +75,6 @@
 		dataToSendNS = [NSPropertyListSerialization dataFromPropertyList:plistObject format:kCFPropertyListBinaryFormat_v1_0 errorDescription:&errorString];
 		if (errorString) {
 			NSLog(@"%s: error serializing labels: %@", _cmd, errorString);
-			[errorString release];
 			return NO;
 		}
 	}
@@ -159,7 +157,7 @@
     if (aliasData && PtrToHand([aliasData bytes], (Handle*)&inAlias, [aliasData length]) == noErr && 
 		FSCopyAliasInfo(inAlias, NULL, NULL, &path, &whichInfo, &info) == noErr) {
 		//this method doesn't always seem to work	
-		return [(__bridge NSString*)path autorelease];
+		return (__bridge NSString*)path;
     }
     
     return nil;

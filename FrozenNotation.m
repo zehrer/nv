@@ -25,13 +25,13 @@
 
 - (id)initWithCoder:(NSCoder*)decoder {
 	if ([decoder containsValueForKey:VAR_STR(prefs)]) {
-		prefs = [[decoder decodeObjectForKey:VAR_STR(prefs)] retain];
-		notesData = [[decoder decodeObjectForKey:VAR_STR(notesData)] retain];
-		deletedNoteSet = [[decoder decodeObjectForKey:VAR_STR(deletedNoteSet)] retain];
+		prefs = [decoder decodeObjectForKey:VAR_STR(prefs)];
+		notesData = [decoder decodeObjectForKey:VAR_STR(notesData)];
+		deletedNoteSet = [decoder decodeObjectForKey:VAR_STR(deletedNoteSet)];
 	} else {
 		NSLog(@"FrozenNotation: decoding legacy %@", decoder);
-		prefs = [[decoder decodeObject] retain];
-		notesData = [[decoder decodeObject] retain];
+		prefs = [decoder decodeObject];
+		notesData = [decoder decodeObject];
 		(void)[decoder decodeObject];
 	}	
 	return self;
@@ -57,14 +57,12 @@
 		NSKeyedArchiver *archiver = [[NSKeyedArchiver alloc] initForWritingWithMutableData:notesData];
 		[archiver encodeObject:notes forKey:@"notes"];
         [archiver finishEncoding];
-		[archiver release];
 		
-		prefs = [somePrefs retain];
-		deletedNoteSet = [antiNotes retain];		
+		prefs = somePrefs;
+		deletedNoteSet = antiNotes;		
 		
 		NSMutableData *oldNotesData = notesData;
-		notesData = [[notesData compressedData] retain];
-		[oldNotesData release];
+		notesData = [notesData compressedData];
 		
 		//ostensibly to create more entropy in the first blocks, relying on CBC dependency to crack
 		//[notesData reverseBytes];
@@ -88,19 +86,11 @@
 	return self;
 }
 
-- (void)dealloc {
-	[allNotes release];
-	[notesData release];
-	[prefs release];
-	[deletedNoteSet release];
-	
-	[super dealloc];
-}
 
 + (NSData*)frozenDataWithExistingNotes:(NSMutableArray*)notes 
 						  deletedNotes:(NSMutableSet*)antiNotes 
 								 prefs:(NotationPrefs*)prefs {
-	FrozenNotation *frozenNotation = [[[FrozenNotation alloc] initWithNotes:notes deletedNotes:antiNotes prefs:prefs] autorelease];
+	FrozenNotation *frozenNotation = [[FrozenNotation alloc] initWithNotes:notes deletedNotes:antiNotes prefs:prefs];
 
 	if (!frozenNotation)
 		return nil;
@@ -124,8 +114,7 @@
 		}
 		
 		NSMutableData *oldNotesData = notesData;
-		notesData = [[notesData uncompressedData] retain];
-		[oldNotesData release];
+		notesData = [notesData uncompressedData];
 		
 		if (!notesData) {
 			*err = kCompressionErr;
@@ -133,8 +122,7 @@
 			return nil;
 		}
 		NSKeyedUnarchiver *unarchiver = [[NSKeyedUnarchiver alloc] initForReadingWithData:notesData];
-		allNotes = [[unarchiver decodeObjectForKey:@"notes"] retain];
-		[unarchiver release];
+		allNotes = [unarchiver decodeObjectForKey:@"notes"];
 		
 	} @catch (NSException *e) {
 		*err = kCoderErr;
@@ -180,8 +168,7 @@
 			}
 			
 			NSMutableData *oldNotesData = notesData;
-			notesData = [[oldNotesData uncompressedData] retain];
-			[oldNotesData release];
+			notesData = [oldNotesData uncompressedData];
 			
 			if (!notesData) {
 				*err = kCompressionErr;
@@ -191,14 +178,13 @@
             BOOL keyedArchiveFailed = NO;
             @try {
                 NSKeyedUnarchiver *unarchiver = [[NSKeyedUnarchiver alloc] initForReadingWithData:notesData];
-                allNotes = [[unarchiver decodeObjectForKey:@"notes"] retain];
-                [unarchiver release];
+                allNotes = [unarchiver decodeObjectForKey:@"notes"];
             } @catch (NSException *e) {
                 keyedArchiveFailed = YES;
             }
             
             if (keyedArchiveFailed)
-                allNotes = [[NSUnarchiver unarchiveObjectWithData:notesData] retain];
+                allNotes = [NSUnarchiver unarchiveObjectWithData:notesData];
 		} @catch (NSException *e) {
 			*err = kCoderErr;
 			NSLog(@"Error unarchiving notes from data (%@, %@)", [e name], [e reason]);

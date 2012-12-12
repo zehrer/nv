@@ -52,6 +52,7 @@
 #import "NSFileManager+DirectoryLocations.h"
 #import "NoteObject.h"
 #import "WordCountToken.h"
+#import <objc/message.h>
 
 NSWindow *normalWindow;
 int ModFlagger;
@@ -103,7 +104,7 @@ BOOL isEd;
 				
 				//	dividerShader = [[LinearDividerShader alloc] initWithStartColor:[NSColor colorWithCalibratedWhite:0.988 alpha:1.0] 
 				//														   endColor:[NSColor colorWithCalibratedWhite:0.875 alpha:1.0]];
-				dividerShader = [[[LinearDividerShader alloc] initWithBaseColors:self] retain];
+				dividerShader = [[LinearDividerShader alloc] initWithBaseColors:self];
 				isCreatingANote = isFilteringFromTyping = typedStringIsCached = NO;
 				typedString = @"";
 		}
@@ -114,7 +115,7 @@ BOOL isEd;
 	if ([[NSUserDefaults standardUserDefaults] boolForKey:@"ShowDockIcon"]){		
 		[[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyRegular];
     }
-    theFieldEditor = [[[NSTextView alloc]initWithFrame:[window frame]] retain];
+    theFieldEditor = [[NSTextView alloc]initWithFrame:[window frame]];
 	[theFieldEditor setFieldEditor:YES];
     // [theFieldEditor setDelegate:self];
     [self updateFieldAttributes];
@@ -123,10 +124,10 @@ BOOL isEd;
 	[window setDelegate:self];
     
     //ElasticThreads>> set up the rbsplitview programatically to remove dependency on IBPlugin
-    splitView = [[[RBSplitView alloc] initWithFrame:[mainView frame] andSubviews:2] retain];
+    splitView = [[RBSplitView alloc] initWithFrame:[mainView frame] andSubviews:2];
     [splitView setAutosaveName:@"centralSplitView" recursively:NO];
     [splitView setDelegate:self];
-    NSImage *image = [[[NSImage alloc] initWithSize:NSMakeSize(1.0,1.0)] autorelease];
+    NSImage *image = [[NSImage alloc] initWithSize:NSMakeSize(1.0,1.0)];
     [image lockFocus];
     [[NSColor clearColor] set];
     
@@ -141,13 +142,13 @@ BOOL isEd;
     [mainView addSubview:splitView];
     //[mainView setNextResponder:field];//<<--
     [splitView setNextKeyView:notesTableView];
-    notesSubview = [[splitView subviewAtPosition:0] retain];
+    notesSubview = [splitView subviewAtPosition:0];
 	[notesSubview setMinDimension: 80.0 
                   andMaxDimension:600.0];	
     [notesSubview setCanCollapse:YES];
     [notesSubview setAutoresizesSubviews:YES];
     [notesSubview addSubview:notesScrollView];
-    splitSubview = [[splitView subviewAtPosition:1] retain];
+    splitSubview = [splitView subviewAtPosition:1];
     [notesScrollView setFrame:[notesSubview frame]];
     [notesScrollView setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
     [splitSubview setMinDimension:1 andMaxDimension:0];
@@ -155,14 +156,12 @@ BOOL isEd;
     [splitSubview setAutoresizesSubviews:YES];
     [splitSubview addSubview:textScrollView];
     
-    id docView = [[textScrollView documentView] retain];
+    id docView = [textScrollView documentView];
     ETClipView *newClipView = [[ETClipView alloc] initWithFrame:[[textScrollView contentView] frame]];
     [newClipView setDrawsBackground:NO];
     //    [newClipView setBackgroundColor:[self backgrndColor]];
     [textScrollView setContentView:(ETClipView *)newClipView];
-    [newClipView release];
     [textScrollView setDocumentView:textView];
-    [docView release];
     
     [textScrollView setFrame:[splitSubview frame]];
 //    [textScrollView setAutoresizingMask:(NSViewWidthSizable | NSViewHeightSizable)];
@@ -195,8 +194,8 @@ BOOL isEd;
 		float width = 25.0f;
 		CGFloat height = [[NSStatusBar systemStatusBar] thickness];
 		NSRect viewFrame = NSMakeRect(0.0f, 0.0f, width, height);
-		statusItem = [[[NSStatusBar systemStatusBar] statusItemWithLength:width] retain];
-		cView = [[[StatusItemView alloc] initWithFrame:viewFrame controller:self] autorelease];
+		statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:width];
+		cView = [[StatusItemView alloc] initWithFrame:viewFrame controller:self];
 		[statusItem setView:cView];		
 	}
 	
@@ -314,18 +313,16 @@ void outletObjectAwoke(id sender) {
 			[siSparkle setAction:@selector(checkForUpdates:)];
 			if (![[prefsController notationPrefs] firstTimeUsed]) {
 				//don't do anything automatically on the first launch; afterwards, check every 4 days, as specified in Info.plist
-				SEL checksSEL = @selector(setAutomaticallyChecksForUpdates:);
-				[updater methodForSelector:checksSEL](updater, checksSEL, YES);
+				objc_msgSend(updater, @selector(setAutomaticallyChecksForUpdates:), YES);
 			}
 		} else {
 			NSLog(@"Could not load %@!", frameworkPath);
 		}
 	}
 	// add elasticthreads' menuitems
-	NSMenuItem *theMenuItem = [[[NSMenuItem alloc] init] autorelease];
+	NSMenuItem *theMenuItem = [[NSMenuItem alloc] init];
 	[theMenuItem setTarget:self];
 	theMenuItem = [theMenuItem copy];
-	[theMenuItem release];
 
 	[fsMenuItem setEnabled:YES];
 	[fsMenuItem setHidden:NO];
@@ -335,7 +332,6 @@ void outletObjectAwoke(id sender) {
 
 	theMenuItem = [fsMenuItem copy];
 	[statBarMenu insertItem:theMenuItem atIndex:12];
-	[theMenuItem release];
 
 	if (![prefsController showWordCount]) {
 		[wordCounter setHidden:NO];
@@ -367,10 +363,10 @@ void outletObjectAwoke(id sender) {
 		showError = NO;
 	} else {
 		if (aliasData) {
-			newNotation = [[[NotationController alloc] initWithAliasData:aliasData error:&err] autorelease];
+			newNotation = [[NotationController alloc] initWithAliasData:aliasData error:&err];
 			subMessage = NSLocalizedString(@"Please choose a different folder in which to store your notes.",nil);
 		} else {
-			newNotation = [[[NotationController alloc] initWithDefaultDirectoryReturningError:&err] autorelease];
+			newNotation = [[NotationController alloc] initWithDefaultDirectoryReturningError:&err];
 			subMessage = NSLocalizedString(@"Please choose a folder in which your notes will be stored.",nil);
 		}
 		
@@ -407,7 +403,7 @@ void outletObjectAwoke(id sender) {
 				//they cancelled the open panel, or it was unable to get the path/FSRef of the file
 				[NSApp terminate:self];
 				return;
-			} else if ((newNotation = [[[NotationController alloc] initWithDirectoryRef:&notesDirectoryRef error:&err] autorelease])) {
+			} else if ((newNotation = [[NotationController alloc] initWithDirectoryRef:&notesDirectoryRef error:&err])) {
 				//have to make sure alias data is saved from setNotationController
 				[newNotation setAliasNeedsUpdating:YES];
 				break;
@@ -427,12 +423,12 @@ void outletObjectAwoke(id sender) {
 	[AlienNoteImporter importBlorOrHelpFilesIfNecessaryIntoNotation:newNotation];
 	
 	if (pathsToOpenOnLaunch) {
-		[notationController openFiles:[pathsToOpenOnLaunch autorelease]];//autorelease
+		[notationController openFiles:pathsToOpenOnLaunch];//autorelease
 		pathsToOpenOnLaunch = nil;
 	}
 	
 	if (URLToInterpretOnLaunch) {
-		[self interpretNVURL:[URLToInterpretOnLaunch autorelease]];
+		[self interpretNVURL:URLToInterpretOnLaunch];
 		URLToInterpretOnLaunch = nil;
 	}
 	
@@ -461,7 +457,7 @@ void outletObjectAwoke(id sender) {
 		if (![self interpretNVURL:fullURL])
 			NSBeep();
 	} else {
-		URLToInterpretOnLaunch = [fullURL retain];
+		URLToInterpretOnLaunch = fullURL;
 	}
 }
 
@@ -479,7 +475,7 @@ void outletObjectAwoke(id sender) {
 		}
 		
 		NotationController *oldNotation = notationController;
-		notationController = [newNotation retain];
+		notationController = newNotation;
 		
 		if (oldNotation) {
 			[notesTableView abortEditing];
@@ -524,7 +520,6 @@ void outletObjectAwoke(id sender) {
 		
 		[field selectText:nil];
 		
-		[oldNotation release];
     }
 }
 
@@ -683,7 +678,7 @@ void outletObjectAwoke(id sender) {
 		[notesSubview collapse];
 	}else {
         [splitView setVertical:horiz];
-        if (!verticalDividerImg && [splitView divider]) verticalDividerImg = [[splitView divider] retain];
+        if (!verticalDividerImg && [splitView divider]) verticalDividerImg = [splitView divider];
         [splitView setDivider: verticalDividerImg];
 		[splitView setDividerThickness:8.75f];	
         NSSize size = [notesSubview frame].size;        
@@ -768,7 +763,6 @@ void outletObjectAwoke(id sender) {
 			[prefsController setConfirmNoteDeletion:NO sender:self];
 		}
 	}
-	[retainedDeleteObj release];
 }
 
 
@@ -779,7 +773,6 @@ void outletObjectAwoke(id sender) {
 		id deleteObj = [indexes count] > 1 ? (id)([notationController notesAtIndexes:indexes]) : (id)([notationController noteObjectAtFilteredIndex:[indexes firstIndex]]);
 		
 		if ([prefsController confirmNoteDeletion]) {
-			[deleteObj retain];
 			NSString *warningSingleFormatString = NSLocalizedString(@"Delete the note titled quotemark%@quotemark?", @"alert title when asked to delete a note");
 			NSString *warningMultipleFormatString = NSLocalizedString(@"Delete %d notes?", @"alert title when asked to delete multiple notes");
 			NSString *warnString = currentNote ? [NSString stringWithFormat:warningSingleFormatString, currentNote.title] :
@@ -860,10 +853,10 @@ void outletObjectAwoke(id sender) {
 	
 	if ([indexes count] > 1) {
 		//Multiple Notes selected, use ElasticThreads' multitagging implementation
-		TagEditer = [[[TagEditingManager alloc] init] retain];
+		TagEditer = [[TagEditingManager alloc] init];
 		[TagEditer setDel:self];
 		@try {			
-			cTags = [[[NSArray alloc] initWithArray:[self commonLabels]] retain];
+			cTags = [[NSArray alloc] initWithArray:[self commonLabels]];
 			if ([cTags count]>0) {
 				[TagEditer setTF:[cTags componentsJoinedByString:@","]];
 			}else {
@@ -885,7 +878,7 @@ void outletObjectAwoke(id sender) {
 	[notationController addNotes:notes];
 }
 - (IBAction)importNotes:(id)sender {
-	[[[[AlienNoteImporter alloc] init] autorelease] importNotesFromDialogAroundWindow:window receptionDelegate:self];
+	[[[AlienNoteImporter alloc] init] importNotesFromDialogAroundWindow:window receptionDelegate:self];
 }
 
 - (void)settingChangedForSelectorString:(NSString*)selectorString {
@@ -898,7 +891,6 @@ void outletObjectAwoke(id sender) {
 		if (newData) {
 			if ((newNotation = [[NotationController alloc] initWithAliasData:newData error:&err])) {
 				[self setNotationController:newNotation];
-				[newNotation release];
 				
 			} else {
 				
@@ -1097,7 +1089,6 @@ void outletObjectAwoke(id sender) {
 		[[field cell] setShowsClearButton:NO];
 	} else if ([[TagEditer tagPanel] isKeyWindow]) {  //<--this is for ElasticThreads' multitagging window
 		[TagEditer closeTP:self];
-		[TagEditer release];
 	}
 }
 
@@ -1213,7 +1204,7 @@ void outletObjectAwoke(id sender) {
         
 		if (command == @selector(insertNewline:)) {
             if ([aTextView selectedRange].length>0) {
-                NSString *theLabels = [[TagEditer newMultinoteLabels] autorelease];
+                NSString *theLabels = [TagEditer newMultinoteLabels];
                 if (![theLabels hasSuffix:@" "]) {
                     theLabels = [theLabels stringByAppendingString:@" "];
                 }
@@ -1223,7 +1214,7 @@ void outletObjectAwoke(id sender) {
             }
 		}else if (command == @selector(insertTab:)) {
             if ([aTextView selectedRange].length>0) {
-                NSString *theLabels = [[TagEditer newMultinoteLabels] autorelease];
+                NSString *theLabels = [TagEditer newMultinoteLabels];
                 if (![theLabels hasSuffix:@" "]) {
                     theLabels = [theLabels stringByAppendingString:@" "];
                 }
@@ -1258,8 +1249,7 @@ void outletObjectAwoke(id sender) {
 	[currentNote updateContentCacheCStringIfNecessary];
 	
 	
-	[currentNote release];
-	currentNote = [aNote retain];
+	currentNote = aNote;
 }
 
 - (NoteObject*)selectedNoteObject {
@@ -1284,7 +1274,6 @@ void outletObjectAwoke(id sender) {
 
 - (void)cacheTypedStringIfNecessary:(NSString*)aString {
 	if (!typedStringIsCached) {
-		[typedString release];
 		typedString = [(aString ? aString : [field stringValue]) copy];
 		typedStringIsCached = YES;
 	}
@@ -1361,7 +1350,7 @@ void outletObjectAwoke(id sender) {
             isAutocompleting = YES;                
             NSTextView *editor = (NSTextView *)[[TagEditer tagPanel] fieldEditor:YES forObject:[TagEditer tagField]];
             NSRange selRange = [editor selectedRange];
-            NSString *tagString = [[TagEditer newMultinoteLabels] autorelease];
+            NSString *tagString = [TagEditer newMultinoteLabels];
             NSString *searchString = tagString;
             if (selRange.length>0) {
                  searchString = [searchString substringWithRange:selRange];
@@ -1522,7 +1511,6 @@ void outletObjectAwoke(id sender) {
 				//savedSelectedNotes needs to be empty after de-selecting all notes, 
 				//to ensure that any delayed list-resorting does not re-select savedSelectedNotes
 
-				[savedSelectedNotes release];
 				savedSelectedNotes = nil;
 			}
 		}
@@ -1718,10 +1706,10 @@ void outletObjectAwoke(id sender) {
 		
 		isCreatingANote = YES;
 		NSString *title = [[field stringValue] length] ? [field stringValue] : NSLocalizedString(@"Untitled Note", @"Title of a nameless note");
-		NSAttributedString *attributedContents = [textView textStorage] ? [textView textStorage] : [[[NSAttributedString alloc] initWithString:@"" attributes:
-																									 [prefsController noteBodyAttributes]] autorelease];		
-		NoteObject *note = [[[NoteObject alloc] initWithNoteBody:attributedContents title:title delegate:notationController
-														  format:[notationController currentNoteStorageFormat] labels:nil] autorelease];
+		NSAttributedString *attributedContents = [textView textStorage] ? [textView textStorage] : [[NSAttributedString alloc] initWithString:@"" attributes:
+																									 [prefsController noteBodyAttributes]];		
+		NoteObject *note = [[NoteObject alloc] initWithNoteBody:attributedContents title:title delegate:notationController
+														  format:[notationController currentNoteStorageFormat] labels:nil];
 		[notationController addNewNote:note];
 		
 		isCreatingANote = NO;
@@ -1974,8 +1962,7 @@ void outletObjectAwoke(id sender) {
 			if ([notesTableView numberOfSelectedRows] > 0) {
 				NSIndexSet *indexSet = [notesTableView selectedRowIndexes];
 					
-				[savedSelectedNotes release];
-				savedSelectedNotes = [[someNotation notesAtIndexes:indexSet] retain];
+				savedSelectedNotes = [someNotation notesAtIndexes:indexSet];
 			}
 			
 			listUpdateViewCtx = [notesTableView viewingLocation];
@@ -1994,7 +1981,6 @@ void outletObjectAwoke(id sender) {
 		if (!isFilteringFromTyping) {
 			if (savedSelectedNotes) {
 				NSIndexSet *indexes = [someNotation indexesOfNotes:savedSelectedNotes];
-				[savedSelectedNotes release];
 				savedSelectedNotes = nil;
 				
 				[notesTableView selectRowIndexes:indexes byExtendingSelection:NO];
@@ -2065,7 +2051,6 @@ void outletObjectAwoke(id sender) {
             [TagEditer closeTP:self];
               if (cTags) {
                   cTags = nil;
-                [cTags release];
             }
         }
 	}
@@ -2147,25 +2132,9 @@ void outletObjectAwoke(id sender) {
 
 - (void)dealloc {
     [[NSNotificationCenter defaultCenter]removeObserver:self];
-    [fsMenuItem release];
-    [mainView release];
-    [dualFieldView release];
-    [wordCounter release];
-    [splitView release];
-    [splitSubview release];
-    [notesSubview release];
-    [notesScrollView release];
-    [textScrollView release];
-    [previewController release];
-	[windowUndoManager release];
-	[dividerShader release];
 	[[NSStatusBar systemStatusBar] removeStatusItem:statusItem];
-    [statusItem release];
-    [cView release];
-    [statBarMenu release];
 	[self postTextUpdate];
 	
-	[super dealloc];
 }
 
 - (IBAction)showPreferencesWindow:(id)sender {
@@ -2264,9 +2233,9 @@ void outletObjectAwoke(id sender) {
 
 - (NSArray *)commonLabels{
 	NSCharacterSet *tagSeparators = [NSCharacterSet  characterSetWithCharactersInString:@", "];
-	NSArray *retArray = [[[NSArray alloc]initWithObjects:@"",nil]retain];
+	NSArray *retArray = [[NSArray alloc]initWithObjects:@"",nil];
 	NSIndexSet *indexes = [notesTableView selectedRowIndexes];
-	NSEnumerator *noteEnum = [[[[notationController notesAtIndexes:indexes] objectEnumerator] retain] autorelease];
+	NSEnumerator *noteEnum = [[notationController notesAtIndexes:indexes] objectEnumerator];
 	NoteObject *aNote = [noteEnum nextObject];
 	NSString *existTags = aNote.labels;
 	NSSet *tagsForNote = nil;
@@ -2315,10 +2284,9 @@ void outletObjectAwoke(id sender) {
 - (IBAction)multiTag:(id)sender {
 	NSCharacterSet *tagSeparators = [NSCharacterSet  characterSetWithCharactersInString:@", "];
 	NSString *existTagString;
-	NSMutableArray *theTags = [[[NSMutableArray alloc] init] autorelease];
+	NSMutableArray *theTags = [[NSMutableArray alloc] init];
 	NSString *thisTag = [TagEditer newMultinoteLabels];
 	NSArray *newTags = [NSArray arrayWithArray:[thisTag componentsSeparatedByCharactersInSet:tagSeparators]];
-	[thisTag release];
     for (thisTag in newTags) {
         if (([thisTag hasPrefix:@" "])||([thisTag hasSuffix:@" "])) {
 			thisTag = [thisTag stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
@@ -2339,7 +2307,7 @@ void outletObjectAwoke(id sender) {
     for (aNote in selNotes) {
         existTagString = aNote.labels;
         
-		NSMutableArray *finalTags = [[[NSMutableArray alloc] init] autorelease];
+		NSMutableArray *finalTags = [[NSMutableArray alloc] init];
 		[finalTags addObjectsFromArray:theTags];
         NSArray *existingTags = [existTagString  componentsSeparatedByCharactersInSet:tagSeparators];		
 		thisTag = nil;
@@ -2359,15 +2327,12 @@ void outletObjectAwoke(id sender) {
 		[aNote setLabelString:newTagsString];
     }
 	[TagEditer closeTP:self];
-	[cTags release];
-	[TagEditer release];
 }
 
 - (void)setDualFieldInToolbar {
 	NSView *dualSV = [field superview];
 	[dualFieldView removeFromSuperviewWithoutNeedingDisplay];
 	[dualSV removeFromSuperviewWithoutNeedingDisplay];
-	[dualFieldView release];
 	dualFieldItem = [[NSToolbarItem alloc] initWithItemIdentifier:@"DualField"];
 	[dualFieldItem setView:dualSV];
 	[dualFieldItem setMaxSize:NSMakeSize(FLT_MAX, [dualSV frame].size.height)];
@@ -2401,7 +2366,7 @@ void outletObjectAwoke(id sender) {
 	NSRect dfViewFrame = [splitView frame];
 	dfViewFrame.size.height = 40;
 	dfViewFrame.origin.y = [mainView frame].origin.y+[splitView frame].size.height- 1;
-	dualFieldView = [[[DFView alloc] initWithFrame:dfViewFrame] retain];	
+	dualFieldView = [[DFView alloc] initWithFrame:dfViewFrame];	
 	[mainView addSubview:dualFieldView];
 	NSRect dsvFrame = [dualSV frame];
 	dsvFrame.origin.y +=4;
@@ -2413,8 +2378,6 @@ void outletObjectAwoke(id sender) {
     [self setDualFieldIsVisible:[self dualFieldIsVisible]];
 
     
-    [toolbar release];
-    [titleBarButton release];
 }
 
 - (void)setDualFieldIsVisible:(BOOL)isVis{
@@ -2754,10 +2717,7 @@ void outletObjectAwoke(id sender) {
         if (!backgrndColor) {
             backgrndColor = [self backgrndColor];
         }
-        if (fieldAttributes) {
-            [fieldAttributes release];
-        }
-        fieldAttributes = [[NSDictionary dictionaryWithObject:[textView _selectionColorForForegroundColor:foregrndColor backgroundColor:backgrndColor] forKey:NSBackgroundColorAttributeName] retain];
+        fieldAttributes = [NSDictionary dictionaryWithObject:[textView _selectionColorForForegroundColor:foregrndColor backgroundColor:backgrndColor] forKey:NSBackgroundColorAttributeName];
     
     if (isEd) {
         [theFieldEditor setDrawsBackground:NO];
@@ -2771,19 +2731,11 @@ void outletObjectAwoke(id sender) {
 }
 
 - (void)setBackgrndColor:(NSColor *)inColor{
-	if (backgrndColor) {
-		[backgrndColor release];
-	}
 	backgrndColor = inColor;
-	[backgrndColor retain];
 }
 
 - (void)setForegrndColor:(NSColor *)inColor{
-	if (foregrndColor) {
-		[foregrndColor release];
-	}
 	foregrndColor = inColor;
-	[foregrndColor retain];
 }
 
 - (NSColor *)backgrndColor{
@@ -2929,19 +2881,19 @@ void outletObjectAwoke(id sender) {
     // NSLog(@"flagschanged :>%@<",theEvent);
     if ((ModFlagger==0)&&(popped==0)&&([theEvent modifierFlags]&NSAlternateKeyMask)&&(([theEvent keyCode]==58)||([theEvent keyCode]==61))) { //option down&NSKeyDownMask
             ModFlagger = 1;
-            modifierTimer = [[NSTimer scheduledTimerWithTimeInterval:1.2
+            modifierTimer = [NSTimer scheduledTimerWithTimeInterval:1.2
                                                               target:self
                                                             selector:@selector(updateModifier:)
                                                             userInfo:@"option"
-                                                             repeats:NO] retain];
+                                                             repeats:NO];
         
     }else if ((ModFlagger==0)&&(popped==0)&&([theEvent modifierFlags]&NSControlKeyMask)&&(([theEvent keyCode]==59)||([theEvent keyCode]==62))) { //control down
         ModFlagger = 2;
-        modifierTimer = [[NSTimer scheduledTimerWithTimeInterval:1.2
+        modifierTimer = [NSTimer scheduledTimerWithTimeInterval:1.2
                                                           target:self
                                                         selector:@selector(updateModifier:)
                                                         userInfo:@"control"
-                                                         repeats:NO] retain];
+                                                         repeats:NO];
         
     }else {
         [[NSNotificationCenter defaultCenter] postNotificationName:@"ModTimersShouldReset" object:nil];
@@ -2974,7 +2926,6 @@ void outletObjectAwoke(id sender) {
                 [modifierTimer invalidate];			
             }
             modifierTimer = nil;	
-            [modifierTimer release];	
         }
         if (popped==1) {
             [self performSelector:@selector(popWordCount:) withObject:NO afterDelay:0.1];
@@ -3222,7 +3173,6 @@ void outletObjectAwoke(id sender) {
     {
         returnArray=[NSArray arrayWithArray:referenceLinks];
     }
-    [referenceLinks release];
     return returnArray;
 }
     

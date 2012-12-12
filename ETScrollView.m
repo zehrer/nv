@@ -79,7 +79,6 @@
         id theScroller=[[scrollerClass alloc]initWithFrame:vsRect];
         [theScroller setFillBackground:fillIt];
         [self setVerticalScroller:theScroller];
-        [theScroller release];
     }
 }
 
@@ -95,13 +94,11 @@
         NSRect vsRect=[[self verticalScroller]frame];
         id theScroller=[[scrollerClass alloc]initWithFrame:vsRect];
         [self setVerticalScroller:theScroller];
-        [theScroller release];
         
     }else{
 //        id oldScrollers=[self verticalScroller];
         NSScroller *theScroller=[[NSScroller alloc]init];
         [self setVerticalScroller:theScroller];
-        [theScroller release];
 //        [oldScrollers release];
         
     }
