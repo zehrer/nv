@@ -27,6 +27,7 @@
 #include <openssl/bio.h>
 
 #import <WebKit/WebKit.h>
+#import <CommonCrypto/CommonCrypto.h>
 
 @implementation NSData (NVUtilities)
 
@@ -211,13 +212,9 @@
 }
 
 - (NSData*)MD5Digest {
-	EVP_MD_CTX mdctx;
-	unsigned char md_value[EVP_MAX_MD_SIZE];
-	unsigned int md_len;
-	EVP_DigestInit(&mdctx, EVP_md5());
-	EVP_DigestUpdate(&mdctx, [self bytes], [self length]);
-	EVP_DigestFinal(&mdctx, md_value, &md_len);
-	return [NSData dataWithBytes: md_value length: md_len];	
+	NSMutableData *ret = [NSMutableData dataWithLength: CC_MD5_DIGEST_LENGTH];
+	CC_MD5(self.bytes, self.length, ret.mutableBytes);
+	return [ret copy];	
 }
 
 
