@@ -79,7 +79,7 @@ NSString *ShouldHideSecureTextEntryWarningKey = @"ShouldHideSecureTextEntryWarni
 		_calledSecureEventInput = NO;
 		
 		if (IsSecureEventInputEnabled())
-			NSLog(@"%s: WARNING: secure input is still enabled, possibly by another app", _cmd);
+			NSLog(@"%@: WARNING: secure input is still enabled, possibly by another app", NSStringFromSelector(_cmd));
 	}
 }
 

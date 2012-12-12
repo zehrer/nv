@@ -93,7 +93,7 @@
 @implementation NSInvocation (MissingMethods)
 
 - (NSString*)description {
-	return [NSString stringWithFormat:@"%@: %s", [self target], [self selector]];
+	return [NSString stringWithFormat:@"%@: %@", [self target], NSStringFromSelector([self selector])];
 }
 
 @end

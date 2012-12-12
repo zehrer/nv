@@ -208,7 +208,7 @@ const NSInteger jsonDoNotIndent = -1;
   if (NO == [hexScanner scanHexInt:&unicodeHexValue]) {
     return NO;
   }
-  [string appendFormat:@"%C", unicodeHexValue];
+  [string appendFormat:@"%x", unicodeHexValue];
   /* END update - March 28, 2006 */
   return YES;
 }

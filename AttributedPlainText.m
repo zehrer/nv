@@ -332,7 +332,7 @@ static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange)
 		} while (NSMaxRange(scanRange) <= NSMaxRange(changedRange));
 	}
 	@catch (NSException *e) {
-		NSLog(@"_%s(%@): %@", _cmd, NSStringFromRange(changedRange), e);
+		NSLog(@"_%@(%@): %@", NSStringFromSelector(_cmd), NSStringFromRange(changedRange), e);
 	}
 }
 

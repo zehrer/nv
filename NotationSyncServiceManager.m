@@ -290,9 +290,9 @@
 	
 	if ([locallyAddedNotes count] || [locallyChangedNotes count] || [locallyDeletedNotes count] || [mergeNotes count] || 
 		[remotelyAddedEntries count] || [remotelyChangedNotes count] || [remotelyDeletedNotes count] || [remotelyMissingNotes count]) {
-		NSLog(@"local: %u added, %u changed, %u deleted, %u to merge", 
+		NSLog(@"local: %lu added, %lu changed, %lu deleted, %lu to merge",
 			  [locallyAddedNotes count], [locallyChangedNotes count], [locallyDeletedNotes count], [mergeNotes count]);
-		NSLog(@"remote: %u added, %u changed, %u deleted, %u missing", 
+		NSLog(@"remote: %lu added, %lu changed, %lu deleted, %lu missing",
 			  [remotelyAddedEntries count], [remotelyChangedNotes count], [remotelyDeletedNotes count], [remotelyMissingNotes count]);
 	}
 
@@ -301,7 +301,7 @@
 	if (!([mergeNotes count] && [remotelyAddedEntries count])) 
 		[syncSession startCreatingNotes:locallyAddedNotes];
 	else
-		NSLog(@"not creating notes because %u mergenotes exist", [mergeNotes count]);
+		NSLog(@"not creating notes because %lu mergenotes exist", [mergeNotes count]);
 	
 	[syncSession startModifyingNotes:locallyChangedNotes];
 	
@@ -413,7 +413,7 @@
 			return NO;			
 	}
 	
-	NSLog(@"%s: unhandled case (res: %d)!", _cmd, res);
+	NSLog(@"%@: unhandled case (res: %ld)!", NSStringFromSelector(_cmd), res);
 	return YES;
 }
 

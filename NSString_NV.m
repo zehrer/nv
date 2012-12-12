@@ -291,7 +291,7 @@ CFDateFormatterRef simplenoteDateFormatter(int lowPrecision) {
 	//find the first line, whitespace or no whitespace
 	
 	NSCharacterSet *titleDelimiters = [NSCharacterSet characterSetWithCharactersInString:
-											  [NSString stringWithFormat:@"\n\r\t%C%C", NSLineSeparatorCharacter, NSParagraphSeparatorCharacter]];
+											  [NSString stringWithFormat:@"\n\r\t%c%c", (unsigned short)NSLineSeparatorCharacter, (unsigned short)NSParagraphSeparatorCharacter]];
 	
 	NSScanner *scanner = [NSScanner scannerWithString:self];
 	[scanner setCharactersToBeSkipped:[[NSMutableCharacterSet alloc] init]];
@@ -594,7 +594,7 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, unsigned charIndex) {
 			nextRange = NSMakeRange(rangeLoc, [self length] - rangeLoc);
 		}
 	} @catch (NSException *e) {
-		NSLog(@"%s got an exception: %@", _cmd, [e reason]);
+		NSLog(@"%@ got an exception: %@", NSStringFromSelector(_cmd), [e reason]);
 	}
 }
 
@@ -712,7 +712,7 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, unsigned charIndex) {
 + (NSCharacterSet*)listBulletsCharacterSet {
 	static NSCharacterSet *charSet = nil;
 	if (!charSet) {
-		charSet = [NSCharacterSet characterSetWithCharactersInString:[NSString stringWithFormat:@"-+*!%C%C%C", 0x2022, 0x2014, 0x2013]];
+		charSet = [NSCharacterSet characterSetWithCharactersInString:[NSString stringWithFormat:@"-+*!%C%C%C", (unsigned short)0x2022, (unsigned short)0x2014, (unsigned short)0x2013]];
 	}
 	
 	return charSet;

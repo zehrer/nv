@@ -205,27 +205,15 @@ static ODBEditor	*_sharedODBEditor;
 
 - (BOOL)_launchExternalEditor:(ExternalEditor*)ed {
 	BOOL success = NO;
-	BOOL running = NO;
-	NSWorkspace	*workspace = [NSWorkspace sharedWorkspace];
-	NSArray	*runningApplications = [workspace launchedApplications];
-	NSEnumerator *enumerator = [runningApplications objectEnumerator];
-	NSDictionary *applicationInfo;
 	
 	NSString *editorBundleIdentifier = [ed bundleIdentifier];
+	NSArray *runningWithIdentifier = [NSRunningApplication runningApplicationsWithBundleIdentifier: editorBundleIdentifier];
 	
-	while (nil != (applicationInfo = [enumerator nextObject])) {
-		NSString *bundleIdentifier = [applicationInfo objectForKey: @"NSApplicationBundleIdentifier"];
-		
-		if ([bundleIdentifier isEqualToString: editorBundleIdentifier]) {
-			running = YES;
-			// bring the app forward
-			success = [workspace launchApplication: [applicationInfo objectForKey: @"NSApplicationPath"]];
-			break;
-		}
-	}
-	
-	if (running == NO) {
-		success = [workspace launchAppWithBundleIdentifier: editorBundleIdentifier options:NSWorkspaceLaunchDefault additionalEventParamDescriptor: nil launchIdentifier:NULL];
+	if (!runningWithIdentifier.count) {
+		success = [[NSWorkspace sharedWorkspace] launchAppWithBundleIdentifier: editorBundleIdentifier options:NSWorkspaceLaunchDefault additionalEventParamDescriptor: nil launchIdentifier:NULL];
+	} else {
+		NSRunningApplication *app = runningWithIdentifier[0];
+		success = [app activateWithOptions: 0];
 	}
 	
 	return success;

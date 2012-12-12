@@ -514,7 +514,7 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t nu
 		//NSLog(@"hfsAddedEntries: %@, hfsRemovedEntries: %@", hfsAddedEntries, hfsRemovedEntries);
 		if (![hfsRemovedEntries count]) {
 			for (i=0; i<[hfsAddedEntries count]; i++) {
-				NSLog(@"File _actually_ added: %@ (%s)", ((NoteCatalogEntry*)[[hfsAddedEntries objectAtIndex:i] pointerValue])->filename, _cmd);
+				NSLog(@"File _actually_ added: %@ (%@)", ((NoteCatalogEntry*)[[hfsAddedEntries objectAtIndex:i] pointerValue])->filename, NSStringFromSelector(_cmd));
 				[self addNoteFromCatalogEntry:(NoteCatalogEntry*)[[hfsAddedEntries objectAtIndex:i] pointerValue]];
 			}
 		}
@@ -602,7 +602,7 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t nu
 	
 	for (i=0; i<[addedEntries count]; i++) {
 		NoteCatalogEntry *appendedCatEntry = (NoteCatalogEntry *)[[addedEntries objectAtIndex:i] pointerValue];
-		NSLog(@"File _actually_ added: %@ (%s)", appendedCatEntry->filename, _cmd);
+		NSLog(@"File _actually_ added: %@ (%@)", appendedCatEntry->filename, NSStringFromSelector(_cmd));
 		[self addNoteFromCatalogEntry:appendedCatEntry];
     }	
 }

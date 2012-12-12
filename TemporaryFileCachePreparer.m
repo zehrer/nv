@@ -129,7 +129,7 @@ static NSString *TempDirectoryPathForEditing() {
 	NSAssert(numberOfMegabytes > 0 && numberOfMegabytes < 100, @"unreasonable capacity requested");
 
 	[(attachTask = [NSTask new]) setLaunchPath:@"/usr/bin/hdiutil"];
-	[attachTask setArguments:[NSArray arrayWithObjects:@"attach", @"-nomount", @"-nobrowse", [NSString stringWithFormat:@"ram://%u", (2 * 1024 * numberOfMegabytes)], nil]];
+	[attachTask setArguments:[NSArray arrayWithObjects:@"attach", @"-nomount", @"-nobrowse", [NSString stringWithFormat:@"ram://%lu", (2 * 1024 * numberOfMegabytes)], nil]];
 	[attachTask setStandardOutput:[NSPipe pipe]];
 	[attachTask launch];
 }

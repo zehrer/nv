@@ -1284,7 +1284,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	if ((err = FSRefMakePath(fsRef, [pathData mutableBytes], [pathData length])) == noErr) {
 		[[NSFileManager defaultManager] setTextEncodingAttribute:fileEncoding atFSPath:[pathData bytes]];
 	} else {
-		NSLog(@"%s: error getting path from FSRef: %d (IsZeros: %d)", _cmd, err, IsZeros(fsRef, sizeof(fsRef)));
+		NSLog(@"%@: error getting path from FSRef: %d (IsZeros: %d)", NSStringFromSelector(_cmd), err, IsZeros(fsRef, sizeof(fsRef)));
 	}
 	return err;
 }
@@ -1316,7 +1316,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 				//a side effect is that if the user switches to an RTF or HTML format,
 				//this note will be written immediately instead of lazily upon the next modification
 				if (UCConvertCFAbsoluteTimeToUTCDateTime(CFAbsoluteTimeGetCurrent(), &fileModifiedDate) != noErr)
-					NSLog(@"%s: can't set file modification date from current date", _cmd);
+					NSLog(@"%@: can't set file modification date from current date", NSStringFromSelector(_cmd));
 			}
 		}
 		//make note dirty to ensure these changes are saved

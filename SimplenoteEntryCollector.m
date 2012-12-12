@@ -40,7 +40,7 @@
 		entriesInError = [[NSMutableArray alloc] init];
 		
 		if (![email length] || ![authToken length] || ![entriesToCollect count]) {
-			NSLog(@"%s: missing parameters", _cmd);
+			NSLog(@"%@: missing parameters", NSStringFromSelector(_cmd));
 			return nil;
 		}
 	}
@@ -218,7 +218,7 @@
 		//set modification date when updating
 		//need to check for success when deleting
 		if (![self respondsToSelector:opSEL]) {
-			NSLog(@"%@ doesn't respond to %s", self, opSEL);
+			NSLog(@"%@ doesn't respond to %@", self, NSStringFromSelector(_cmd));
 			return nil;
 		}
 		fetcherOpSEL = opSEL;
@@ -410,11 +410,11 @@
 			[aNote setSyncObjectAndKeyMD:syncMD forService: SimplenoteServiceName];
 			//NSLog(@"note update:\n %@", [aNote syncServicesMD]);
 		} else {
-			NSLog(@"%s called with unknown opSEL: %s", _cmd, fetcherOpSEL);
+			NSLog(@"%@ called with unknown opSEL: %@", NSStringFromSelector(_cmd), NSStringFromSelector(fetcherOpSEL));
 		}
 		
 	} else {
-		NSLog(@"Hmmm. Fetcher %@ doesn't have a represented object. op = %s", fetcher, fetcherOpSEL);
+		NSLog(@"Hmmm. Fetcher %@ doesn't have a represented object. op = %@", fetcher, NSStringFromSelector(fetcherOpSEL));
 	}
 	[result setObject:keyString forKey:@"key"];
 	

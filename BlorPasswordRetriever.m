@@ -173,7 +173,7 @@
 			return nil;
 			
 		if ([blorData length] < 28) {
-			NSLog(@"read data is too small (%d) to hold any notes!", [blorData length]);
+			NSLog(@"read data is too small (%ld) to hold any notes!", [blorData length]);
 			return nil;
 		}
 		
@@ -212,7 +212,7 @@
 
 #define ASSERT_CAN_READ_BYTE_COUNT(n) do { \
 	if (!((n) + currentByteOffset <= [blorData length])) { \
-		NSLog(@"Attempted to read %d bytes past the length of the blor!", ((n) + currentByteOffset) - [blorData length]);\
+		NSLog(@"Attempted to read %ld bytes past the length of the blor!", ((n) + currentByteOffset) - [blorData length]);\
 		return nil;\
 	} \
 } while (0)
