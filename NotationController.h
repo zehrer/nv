@@ -129,7 +129,6 @@ typedef struct _NoteCatalogEntry {
 - (NSUndoManager*)undoManager;
 - (void)noteDidNotWrite:(NoteObject*)note errorCode:(OSStatus)error;
 - (void)scheduleWriteForNote:(NoteObject*)note;
-- (void)endDeletionManagerIfNecessary;
 - (void)trashRemainingNoteFilesInDirectory;
 - (void)checkIfNotationIsTrashed;
 - (void)updateLinksToNote:(NoteObject*)aNoteObject fromOldName:(NSString*)oldname;

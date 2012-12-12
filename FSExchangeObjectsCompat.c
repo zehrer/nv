@@ -8,7 +8,7 @@
 #include <sys/stat.h>
 #include <sys/mount.h>
 
-__private_extern__ u_int32_t volumeCapabilities(const char *path)
+uint32_t volumeCapabilities(const char *path)
 {
     struct attrlist alist;
     bzero(&alist, sizeof(alist));
@@ -16,7 +16,7 @@ __private_extern__ u_int32_t volumeCapabilities(const char *path)
     alist.volattr = ATTR_VOL_INFO|ATTR_VOL_CAPABILITIES; // XXX: VOL_INFO must always be set
 
     struct {
-        u_int32_t v_size;
+        uint32_t v_size;
        /* Fixed storage */
        vol_capabilities_attr_t v_caps;
     } vinfo;

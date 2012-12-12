@@ -42,6 +42,7 @@
 #import "BookmarksController.h"
 #import "DeletionManager.h"
 #import "NSBezierPath_NV.h"
+#import "LabelObject.h"
 
 @interface NotationController ()
 
@@ -1244,7 +1245,7 @@
     BOOL stringHasExistingPrefix = YES;
     BOOL didFilterNotes = NO;
     size_t oldLen = 0, newLen = 0;
-	NSUInteger i, initialCount = [self.filteredNotesList count];
+	NSUInteger initialCount = [self.filteredNotesList count];
     
 	NSAssert(searchString != NULL, @"filterNotesFromUTF8String requires a non-NULL argument");
 	

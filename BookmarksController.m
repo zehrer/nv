@@ -345,7 +345,7 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 		ctrlCharStr = [NSString stringWithCharacters:&ch length:1];
 	}
 	
-	return [NSString stringWithFormat:@"%@%@%@ %d", rowIndex > 17 ? ctrlCharStr : @"", rowIndex > 8 ? shiftCharStr : @"", cmdCharStr, (rowIndex % 9) + 1];
+	return [NSString stringWithFormat:@"%@%@%@ %ld", rowIndex > 17 ? ctrlCharStr : @"", rowIndex > 8 ? shiftCharStr : @"", cmdCharStr, (long)((rowIndex % 9) + 1)];
 }
 
 - (NSInteger)numberOfRowsInTableView:(NSTableView *)aTableView {

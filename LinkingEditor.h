@@ -90,7 +90,7 @@
 
 #pragma mark ElasticThreads additions
 - (BOOL)changeMarkdownAttribute:(NSString *)syntaxBit;
-- (BOOL)isAlreadyNearMarkdownLink;
+
 - (BOOL)setInsetForFrame:(NSRect)frameRect;
 - (BOOL)deleteEmptyPairsInRange:(NSRange)charRange;
 - (void)selectRangeAndRegisterUndo:(NSRange)selRange;

@@ -22,6 +22,5 @@
 }
 
 - (void)setLabelStatus:(NSInteger)notesNumber;
-- (void)setBackgroundColor:(NSColor *)inColor;
 
 @end

@@ -192,8 +192,7 @@ void outletObjectAwoke(id sender);
 - (IBAction)toggleCollapse:(id)sender;
 - (IBAction)switchFullScreen:(id)sender;
 - (BOOL)isInFullScreen;
-- (IBAction)openFileInEditor:(id)sender;
-- (NSArray *)getTxtAppList;
+
 //- (void)updateTextApp:(id)sender;
 - (IBAction)setBWColorScheme:(id)sender;
 - (IBAction)setLCColorScheme:(id)sender;

@@ -303,12 +303,12 @@ void outletObjectAwoke(id sender) {
 	if (!NSClassFromString(@"SUUpdater")) {
 		NSString *frameworkPath = [[[NSBundle bundleForClass:[self class]] privateFrameworksPath] stringByAppendingPathComponent:@"Sparkle.framework"];
 		if ([[NSBundle bundleWithPath:frameworkPath] load]) {
-			id updater = [NSClassFromString(@"SUUpdater") performSelector:@selector(sharedUpdater)];
+			id updater = [NSClassFromString(@"SUUpdater") performSelector: NSSelectorFromString(@"sharedUpdater")];
 			[sparkleUpdateItem setTarget:updater];
-			[sparkleUpdateItem setAction:@selector(checkForUpdates:)];
+			[sparkleUpdateItem setAction: NSSelectorFromString(@"checkForUpdates:")];
 			NSMenuItem *siSparkle = [statBarMenu itemWithTag:902];
 			[siSparkle setTarget:updater];
-			[siSparkle setAction:@selector(checkForUpdates:)];
+			[siSparkle setAction: NSSelectorFromString(@"checkForUpdates:")];
 			if (![[prefsController notationPrefs] firstTimeUsed]) {
 				//don't do anything automatically on the first launch; afterwards, check every 4 days, as specified in Info.plist
 				objc_msgSend(updater, @selector(setAutomaticallyChecksForUpdates:), YES);
@@ -463,7 +463,6 @@ void outletObjectAwoke(id sender) {
 	
     if (newNotation) {
 		if (notationController) {
-			[notationController endDeletionManagerIfNecessary];
 			[notationController stopSyncServices];
 			[[NSNotificationCenter defaultCenter] removeObserver:self name:SyncSessionsChangedVisibleStatusNotification 
 														  object:[notationController syncSessionController]];
