@@ -26,7 +26,6 @@
 #import "NotationPrefs.h"
 #import "BookmarksController.h"
 #import "AttributedPlainText.h"
-#import "FastListDataSource.h"
 #import "NotesTableView.h"
 #import "PTHotKey.h"
 #import "PTKeyCombo.h"
@@ -866,7 +865,7 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
 
 	[defaults setObject:uuidString forKey:LastSelectedNoteUUIDBytesKey];
 	
-	double offset = [tv distanceFromRow:[(FastListDataSource*)[tv dataSource] indexOfObjectIdenticalTo:aNote] forVisibleArea:[tv visibleRect]];
+	double offset = [tv distanceFromRow:[[[tv dataSource] filteredNotesList] indexOfObjectIdenticalTo:aNote] forVisibleArea:[tv visibleRect]];
 	[defaults setDouble:offset forKey:LastScrollOffsetKey];
 	
 	SEND_CALLBACKS();

@@ -17,7 +17,6 @@
 
 #import "NotesTableView.h"
 #import "AppController_Importing.h"
-#import "FastListDataSource.h"
 #import "NoteAttributeColumn.h"
 #import "ExternalEditorListController.h"
 #import "GlobalPrefs.h"
@@ -386,7 +385,8 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 	ctx.verticalDistanceToPivotRow = 0;
 	
 	if (pivotRow < nRows) {
-		if ((ctx.nonRetainedPivotObject = [(FastListDataSource*)[self dataSource] immutableObjects][pivotRow])) {
+		
+		if ((ctx.nonRetainedPivotObject = [[self dataSource] filteredNotesList][pivotRow])) {
 			ctx.verticalDistanceToPivotRow = [self distanceFromRow:pivotRow forVisibleArea:visibleRect];
 		}
 	}
@@ -396,7 +396,7 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 - (void)setViewingLocation:(ViewLocationContext)ctx {
 	if (ctx.nonRetainedPivotObject) {
 		
-		NSInteger pivotIndex = [(FastListDataSource*)[self dataSource] indexOfObjectIdenticalTo:ctx.nonRetainedPivotObject];
+		NSInteger pivotIndex = [[[self dataSource] filteredNotesList] indexOfObjectIdenticalTo:ctx.nonRetainedPivotObject];
 		if (pivotIndex != NSNotFound) {
 			//figure out how to determine top/bottom condition:
 			//if pivotRow was 0 or nRows-1, and pivotIndex is not either, then scroll maximally in the nearest direction?
@@ -707,7 +707,7 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 	
 	_CopyItemWithSelectorFromMenu(theMenu, notesMenu, @selector(printNote:), target, -1);
 	
-	NSArray *notes = [(FastListDataSource*)[self dataSource] objectsAtFilteredIndexes:[self selectedRowIndexes]];
+	NSArray *notes = [[[self dataSource] filteredNotesList] objectsAtFilteredIndexes:[self selectedRowIndexes]];
 	[notes addMenuItemsForURLsInNotes:theMenu];
 	
 	return theMenu;
@@ -784,7 +784,7 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 			selectedRows = [self selectedRowIndexes];
 		}
 		
-        NSArray *notes = [(FastListDataSource*)[self dataSource] objectsAtFilteredIndexes:selectedRows];
+        NSArray *notes = [[[self dataSource] filteredNotesList] objectsAtFilteredIndexes:selectedRows];
 		NSMutableArray *paths = [NSMutableArray arrayWithCapacity:[notes count]];
 		unsigned int i;
 		for (i=0;i<[notes count]; i++) {
@@ -1039,14 +1039,6 @@ enum { kNext_Tag = 'j', kPrev_Tag = 'k' };
 	return YES;
 }
 
-- (id)labelsListSource {
-	return labelsListSource;
-}
-
-- (void)setLabelsListSource:(id)labelsSource {
-	labelsListSource = labelsSource;
-}
-
 - (NSArray *)textView:(NSTextView *)aTextView completions:(NSArray *)words  forPartialWordRange:(NSRange)charRange indexOfSelectedItem:(NSInteger *)anIndex {
 
 	if (charRange.location != NSNotFound) {
@@ -1065,7 +1057,7 @@ enum { kNext_Tag = 'j', kPrev_Tag = 'k' };
 			(hasRChar && charRange.location == 0 && CharIndexIsMember(NSMaxRange(charRange)))) {
 			
 			NSSet *existingWordSet = [NSSet setWithArray:[[aTextView string] labelCompatibleWords]];
-			return [labelsListSource labelTitlesPrefixedByString:[[aTextView string] substringWithRange:charRange]
+			return [self.labelsListSource labelTitlesPrefixedByString:[[aTextView string] substringWithRange:charRange]
 													  indexOfSelectedItem:anIndex minusWordSet:existingWordSet];
 		}
 	}
@@ -1141,7 +1133,7 @@ enum { kNext_Tag = 'j', kPrev_Tag = 'k' };
 	
 	//this is way easier and faster than a custom formatter! just change the title while we're editing!
 	if (isTitleCol || tagsInTitleColumn) {
-		NoteObject *note = [(FastListDataSource*)[self dataSource] immutableObjects][rowIndex];
+		NoteObject *note = [[self dataSource] filteredNotesList][rowIndex];
 		
 		NSTextView *editor = (NSTextView*)[self currentEditor];
 		[editor setString: tagsInTitleColumn ? note.labels : note.title];
@@ -1216,7 +1208,7 @@ enum { kNext_Tag = 'j', kPrev_Tag = 'k' };
 			(hasRChar && charRange.location == 0 && CharIndexIsMember(NSMaxRange(charRange)))) {
 			
 			NSSet *existingWordSet = [NSSet setWithArray:[fieldString labelCompatibleWords]];
-			tags = [labelsListSource labelTitlesPrefixedByString:[fieldString substringWithRange:charRange] 
+			tags = [self.labelsListSource labelTitlesPrefixedByString:[fieldString substringWithRange:charRange]
 														  indexOfSelectedItem:&index minusWordSet:existingWordSet];
 		}
 	}

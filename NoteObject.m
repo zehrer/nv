@@ -954,7 +954,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 }
 
 - (void)disconnectLabels {
-	//when removing this note from NotationController, other LabelObjects as well as LabelsListController should know not to list it
+	//when removing this note from NotationController, other LabelObjects as well as the label controller should know not to list it
 	if (delegate) {
 		[delegate note:self didRemoveLabelSet:labelSet];
 		[labelSet autorelease];
@@ -1031,7 +1031,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 
 - (void)_drawLabelBlocksInRect:(NSRect)aRect rightAlign:(BOOL)onRight highlighted:(BOOL)isHighlighted getSizeOnly:(NSSize*)reqSize {
 	//used primarily by UnifiedCell, but also by LabelColumnCell, as well as to determine the width of all label-block-images for this note
-	//iterate over words in orderedLabelTitles, retrieving images via -[LabelsListController cachedLabelImageForWord:highlighted:]
+	//iterate over words in orderedLabelTitles, retrieving images via -[NotationController cachedLabelImageForWord:highlighted:]
 	//if right-align is enabled, then the label-images are queued on the first pass and drawn in reverse on the second
 	
 	float totalWidth = 0.0, height = 0.0;
@@ -1048,7 +1048,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	for (i=0; i<(NSInteger)[words count]; i++) {
 		NSString *word = [words objectAtIndex:i];
 		if ([word length]) {
-			NSImage *img = [[delegate labelsListDataSource] cachedLabelImageForWord:word highlighted:isHighlighted];
+			NSImage *img = [delegate cachedLabelImageForWord:word highlighted:isHighlighted];
 			
 			if (!reqSize) {
 				if (onRight) {

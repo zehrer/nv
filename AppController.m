@@ -190,8 +190,6 @@ BOOL isEd;
 	[notesTableView setDelegate:self];
 	[field setDelegate:self];
 	[textView setDelegate:self];
-
-	//set up temporary FastListDataSource containing false visible notes
 		
 	//this will not make a difference
 	[window useOptimizedDrawing:YES];
@@ -494,8 +492,8 @@ terminateApp:
 			[[prefsController bookmarksController] performSelector:@selector(updateBookmarksUI) withObject:nil afterDelay:0.0];
 		}
 		[notationController setSortColumn:[notesTableView noteAttributeColumnForIdentifier:[prefsController sortedTableColumnKey]]];
-		[notesTableView setDataSource:[notationController notesListDataSource]];
-		[notesTableView setLabelsListSource:[notationController labelsListDataSource]];
+		[notesTableView setDataSource: notationController];
+		[notesTableView setLabelsListSource: notationController];
 		[notationController setDelegate:self];
 		
 		//allow resolution of UUIDs to NoteObjects from saved searches
@@ -1494,13 +1492,6 @@ terminateApp:
 			}
 			return;
 		}
-	} else { //tags
-#if 0
-		if (numberSelected == 1)
-			[notationController filterNotesFromLabelAtIndex:selectedRow];
-		else if (numberSelected > 1)
-			[notationController filterNotesFromLabelIndexSet:[table selectedRowIndexes]];		
-#endif
 	}
 	
 	if (!isFilteringFromTyping) {

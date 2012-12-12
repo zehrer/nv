@@ -28,6 +28,11 @@ typedef struct _ViewLocationContext {
 	float verticalDistanceToPivotRow;
 } ViewLocationContext;
 
+@protocol NVLabelsListSource <NSObject>
+
+- (NSArray*)labelTitlesPrefixedByString:(NSString*)prefixString indexOfSelectedItem:(NSInteger *)anIndex minusWordSet:(NSSet*)antiSet;
+
+@end
 
 @interface NotesTableView : NSTableView {
 	NSTimer *modifierTimer;
@@ -41,8 +46,6 @@ typedef struct _ViewLocationContext {
 	BOOL hadHighlightInForeground, hadHighlightInBackground;
 	BOOL shouldUseSecondaryHighlightColor, isActiveStyle;
 	BOOL lastEventActivatedTagEdit, wasDeleting, isAutocompleting;
-	
-	id labelsListSource;
 	
 	GlobalPrefs *globalPrefs;
 	NSMenuItem *dummyItem;
@@ -98,9 +101,12 @@ typedef struct _ViewLocationContext {
 - (void)incrementNoteSelection:(id)sender;
 - (void)_incrementNoteSelectionByTag:(NSInteger)tag;
 
-- (id)labelsListSource;
-- (void)setLabelsListSource:(id)labelsSource;
+@property (nonatomic, assign) id <NVLabelsListSource> labelsListSource;
+
 - (NSArray *)labelCompletionsForString:(NSString *)fieldString index:(NSInteger)index;
+
+- (SEL)attributeSetterForColumn:(NoteAttributeColumn*)col;
+
 
 @end
 

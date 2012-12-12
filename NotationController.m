@@ -42,6 +42,12 @@
 #import "BookmarksController.h"
 #import "DeletionManager.h"
 
+@interface NotationController ()
+
+@property (nonatomic, retain) NSMutableDictionary *labelImages;
+
+@end
+
 @implementation NotationController
 
 - (id)init {
@@ -50,10 +56,13 @@
 		
 		allNotes = [[NSMutableArray alloc] init]; //<--the authoritative list of all memory-accessible notes
 		deletedNotes = [[NSMutableSet alloc] init];
-		labelsListController = [[LabelsListController alloc] init];
 		prefsController = [GlobalPrefs defaultPrefs];
-		notesListDataSource = [[FastListDataSource alloc] init];
+		self.filteredNotesList = [[[NSMutableArray alloc] init] autorelease];
 		deletionManager = [[DeletionManager alloc] initWithNotationController:self];
+		
+		self.allLabels = [[[NSCountedSet alloc] init] autorelease];
+	    self.filteredLabels = [[[NSCountedSet alloc] init] autorelease];
+
 		
 		allNotesBuffer = NULL;
 		allNotesBufferSize = 0;
@@ -890,7 +899,7 @@ returnResult:
 	
 	if ([attribute isEqualToString:NotePreviewString]) {
 		if ([prefsController tableColumnsShowPreview]) {
-			NSUInteger idx = [notesListDataSource indexOfObjectIdenticalTo:note];
+			NSUInteger idx = [self.filteredNotesList indexOfObjectIdenticalTo:note];
 			if (NSNotFound != idx) {
 				[delegate rowShouldUpdate:idx];
 			}
@@ -1203,35 +1212,22 @@ returnResult:
 
 //re-searching for all notes each time a label is added or removed is unnecessary, I think
 - (void)note:(NoteObject*)note didAddLabelSet:(NSSet*)labelSet {
-	[labelsListController addLabelSet:labelSet toNote:note];
-        
-    //this can only happen while the note is visible
-	
-	//[self refilterNotes];
+	[self.allLabels unionSet:labelSet];
+    
+    NSMutableSet *existingLabels = [self.allLabels setIntersectedWithSet:labelSet];
+    [existingLabels makeObjectsPerformSelector:@selector(addNote:) withObject:note];
+    [note replaceMatchingLabelSet:existingLabels]; //link back for the existing note, so that it knows about the other notes in this label
 }
 
 - (void)note:(NoteObject*)note didRemoveLabelSet:(NSSet*)labelSet {
-	[labelsListController removeLabelSet:labelSet fromNote:note];
+	[self.allLabels minusSet:labelSet];
+    
+    //we narrow down the set to make sure that we operate on the actual objects within it, and note the objects used as prototypes
+    //these will be any labels that were shared by notes other than this one
+    NSMutableSet *existingLabels = [self.allLabels setIntersectedWithSet:labelSet];
+    [existingLabels makeObjectsPerformSelector:@selector(removeNote:) withObject:note];
         
 	//[self refilterNotes];
-}
-
-- (void)filterNotesFromLabelAtIndex:(int)labelIndex {
-	NSArray *notes = [[labelsListController notesAtFilteredIndex:labelIndex] allObjects];
-	
-	[delegate notationListMightChange:self];
-	[notesListDataSource fillArrayFromArray:notes];
-	
-	[delegate notationListDidChange:self];	
-}
-
-- (void)filterNotesFromLabelIndexSet:(NSIndexSet*)indexSet {
-	NSArray *notes = [[labelsListController notesAtFilteredIndexes:indexSet] allObjects];
-	
-	[delegate notationListMightChange:self];
-	[notesListDataSource fillArrayFromArray:notes];
-	
-	[delegate notationListDidChange:self];
 }
 
 - (BOOL)filterNotesFromString:(NSString*)string {
@@ -1257,7 +1253,7 @@ returnResult:
     BOOL stringHasExistingPrefix = YES;
     BOOL didFilterNotes = NO;
     size_t oldLen = 0, newLen = 0;
-	NSUInteger i, initialCount = [notesListDataSource count];
+	NSUInteger i, initialCount = [self.filteredNotesList count];
     
 	NSAssert(searchString != NULL, @"filterNotesFromUTF8String requires a non-NULL argument");
 	
@@ -1269,8 +1265,7 @@ returnResult:
 		
 		//the search must be re-initialized; our strings don't have the same prefix
 		
-		[notesListDataSource fillArrayFromArray:allNotes];
-		//[labelsListController unfilterLabels];
+		[self.filteredNotesList setArray: allNotes];
 		
 		stringHasExistingPrefix = NO;
 		lastWordInFilterStr = 0;
@@ -1304,8 +1299,18 @@ returnResult:
 				
 				touchedNotes = YES;
 				
-				if ([notesListDataSource filterArrayUsingFunction:(BOOL (*)(id, void*))noteContainsUTF8String context:&filterContext])
+				NSMutableArray *newArray = [NSMutableArray arrayWithCapacity: self.filteredNotesList.count];
+				
+				for (id obj in self.filteredNotesList) {
+					if (noteContainsUTF8String(obj, &filterContext)) {
+						[newArray addObject: obj];
+					}
+				}
+				
+				if (newArray.count < self.filteredNotesList.count) {
+					[self.filteredNotesList setArray: newArray];
 					didFilterNotes = YES;
+				}
 								
 				lastWordInFilterStr = token - manglingString;
 			}
@@ -1313,23 +1318,19 @@ returnResult:
     }
     
 	//PHASE 3: reset found pointers in case have been cleared
-	NSUInteger filteredNoteCount = [notesListDataSource count];
-	NoteObject **notesBuffer = [notesListDataSource immutableObjects];
 	
     if (didFilterNotes) {
 		
 		if (!touchedNotes) {
 			//I can't think of any situation where notes were filtered and not touched--EXCEPT WHEN REMOVING A NOTE (>= vs. ==)
-			NSAssert(filteredNoteCount >= [allNotes count], @"filtered notes were claimed to be filtered but were not");
+			NSAssert(self.filteredNotesList.count >= [allNotes count], @"filtered notes were claimed to be filtered but were not");
 			
 			//reset found-ptr values; the search string was effectively blank and so no notes were examined
-			for (i=0; i<filteredNoteCount; i++)
-				resetFoundPtrsForNote(notesBuffer[i]);
+			for (NoteObject *obj in self.filteredNotesList) {
+				resetFoundPtrsForNote(obj);
+			}
 		}
-		
-		//we have to re-create the array at each iteration while searching notes, but not here, so we can wait until the end
-		//[labelsListController recomputeListFromFilteredSet];
-    }
+	}
     
 	//PHASE 4: autocomplete based on results
 	//even if the controller didn't filter, the search string could have changed its representation wrt spacing
@@ -1337,21 +1338,17 @@ returnResult:
 	selectedNoteIndex = NSNotFound;
 	
     if (newLen && [prefsController autoCompleteSearches]) {
-
-		for (i=0; i<filteredNoteCount; i++) {			
+		[self.filteredNotesList enumerateObjectsUsingBlock:^(NoteObject *note, NSUInteger i, BOOL *stop) {
 			//because we already searched word-by-word up there, this is just way simpler
-			if (noteTitleHasPrefixOfUTF8String(notesBuffer[i], searchString, newLen)) {
+			if (noteTitleHasPrefixOfUTF8String(note, searchString, newLen)) {
 				selectedNoteIndex = i;
 				//this note matches, but what if there are other note-titles that are prefixes of both this one and the search string?
 				//find the first prefix-parent of which searchString is also a prefix
 				NSUInteger j = 0, prefixParentIndex = NSNotFound;
-				NSArray *prefixParents = notesBuffer[i].prefixParents;
 				
-				for (j=0; j<[prefixParents count]; j++) {
-					NoteObject *obj = [prefixParents objectAtIndex:j];
-					
+				for (NoteObject *obj in note.prefixParents) {
 					if (noteTitleHasPrefixOfUTF8String(obj, searchString, newLen) &&
-						(prefixParentIndex = [notesListDataSource indexOfObjectIdenticalTo:obj]) != NSNotFound) {
+						(prefixParentIndex = [self.filteredNotesList indexOfObjectIdenticalTo:obj]) != NSNotFound) {
 						//figure out where this prefix parent actually is in the list--if it actually is in the list, that is
 						//otherwise look at the next prefix parent, etc.
 						//the prefix parents array should always be alpha-sorted, so the shorter prefixes will always be first
@@ -1359,14 +1356,15 @@ returnResult:
 						break;
 					}
 				}
-				break;
+				
+				*stop = YES;
 			}
-		}
+		}];
     }
     
     currentFilterStr = replaceString(currentFilterStr, searchString);
 	
-	if (!initialCount && initialCount == filteredNoteCount)
+	if (!initialCount && initialCount == self.filteredNotesList.count)
 		return NO;
     
     return didFilterNotes;
@@ -1398,40 +1396,26 @@ returnResult:
 - (NoteObject*)noteObjectAtFilteredIndex:(int)noteIndex {
 	unsigned int theIndex = (unsigned int)noteIndex;
 	
-	if (theIndex < [notesListDataSource count])
-		return [notesListDataSource immutableObjects][theIndex];
+	if (theIndex < self.filteredNotesList.count)
+		return self.filteredNotesList[theIndex];
 	
 	return nil;
 }
 
 - (NSArray*)notesAtIndexes:(NSIndexSet*)indexSet {
-	return [notesListDataSource objectsAtFilteredIndexes:indexSet];
+	return [self.filteredNotesList objectsAtIndexes: indexSet];
 }
 
 //O(n^2) at best, but at least we're dealing with C arrays
 
 - (NSIndexSet*)indexesOfNotes:(NSArray*)noteArray {
-	NSMutableIndexSet *noteIndexes = [[NSMutableIndexSet alloc] init];
-	
-	NSUInteger i, noteCount = [noteArray count];
-	
-	id *notes = (id*)malloc(noteCount * sizeof(id));
-	[noteArray getObjects:notes];
-	
-	for (i=0; i<noteCount; i++) {
-		NSUInteger noteIndex = [notesListDataSource indexOfObjectIdenticalTo:notes[i]];
-		
-		if (noteIndex != NSNotFound)
-			[noteIndexes addIndex:noteIndex];
-	}
-	
-	free(notes);
-	
-	return [noteIndexes autorelease];
+	return [self.filteredNotesList indexesOfObjectsPassingTest:^BOOL(id obj, NSUInteger idx, BOOL *stop) {
+		return ([noteArray indexOfObjectIdenticalTo: obj] != NSNotFound);
+	}];
 }
 
 - (NSUInteger)indexInFilteredListForNoteIdenticalTo:(NoteObject*)note {
-	return [notesListDataSource indexOfObjectIdenticalTo:note];
+	return [self.filteredNotesList indexOfObjectIdenticalTo:note];
 }
 
 - (NSUInteger)totalNoteCount {
@@ -1466,15 +1450,21 @@ returnResult:
 			[allNotes sortStableUsingFunction:sortFunction usingBuffer:&allNotesBuffer ofSize:&allNotesBufferSize];
 		
 		
-		if ([notesListDataSource count] != [allNotes count]) {
+		if (self.filteredNotesList.count != [allNotes count]) {
+			
+			[self.filteredNotesList sortWithOptions: NSSortStable usingComparator:^NSComparisonResult(id obj1, id obj2) {
+				return stringSortFunction(&obj1, &obj2);
+			}];
 				
-			[notesListDataSource sortStableUsingFunction:stringSortFunction];	
-		    if (sortFunction != stringSortFunction)
-				[notesListDataSource sortStableUsingFunction:sortFunction];
+		    if (sortFunction != stringSortFunction) {
+				[self.filteredNotesList sortWithOptions: NSSortStable usingComparator:^NSComparisonResult(id obj1, id obj2) {
+					return sortFunction(&obj1, &obj2);
+				}];
+			}
 			
 		} else {
-		    //mirror from allNotes; notesListDataSource is not filtered
-		    [notesListDataSource fillArrayFromArray:allNotes];
+		    //mirror from allNotes; filteredNotesList is not filtered
+			[self.filteredNotesList setArray: allNotes];
 		}
 		
 		[delegate notationListDidChange:self];
@@ -1510,9 +1500,7 @@ returnResult:
 		
 		//regenerate previews for visible rows immediately and post a delayed message to regenerate previews for all rows
 		if (rows.length > 0) {
-			CFArrayRef visibleNotes = CFArrayCreate(NULL, (const void **)([notesListDataSource immutableObjects] + rows.location), rows.length, NULL);
-			[(NSArray*)visibleNotes makeObjectsPerformSelector:@selector(updateTablePreviewString)];
-			CFRelease(visibleNotes);
+			[[self.filteredNotesList objectsAtIndexes: [NSIndexSet indexSetWithIndexesInRange: rows]] makeObjectsPerformSelector:@selector(updateTablePreviewString)];
 		}
 		
 		[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(regenerateAllPreviews) object:nil];
@@ -1528,16 +1516,51 @@ returnResult:
 	return notationPrefs;
 }
 
-- (id)labelsListDataSource {
-    return labelsListController;
-}
-
-- (id)notesListDataSource {
-    return notesListDataSource;
-}
-
 - (SyncSessionController*)syncSessionController {
 	return syncSessionController;
+}
+
+- (void)invalidateCachedLabelImages {
+	//used when the list font size changes
+	if (!self.labelImages) [self.labelImages removeAllObjects];
+}
+- (NSImage*)cachedLabelImageForWord:(NSString*)aWord highlighted:(BOOL)isHighlighted {
+	if (!self.labelImages) self.labelImages = [[[NSMutableDictionary alloc] init] autorelease];
+	
+	NSString *imgKey = [[aWord lowercaseString] stringByAppendingFormat:@", %d", isHighlighted];
+	NSImage *img = self.labelImages[imgKey];
+	if (!img) {
+		//generate the image and add it to labelImages under imgKey
+		float tableFontSize = [[GlobalPrefs defaultPrefs] tableFontSize] - 1.0;
+		NSDictionary *attrs = [NSDictionary dictionaryWithObject:[NSFont systemFontOfSize:tableFontSize] forKey:NSFontAttributeName];
+		NSSize wordSize = [aWord sizeWithAttributes:attrs];
+		NSRect wordRect = NSMakeRect(0, 0, roundf(wordSize.width + 4.0), roundf(tableFontSize * 1.3));
+		
+		//peter hosey's suggestion, rather than doing setWindingRule: and appendBezierPath: as before:
+		//http://stackoverflow.com/questions/4742773/why-wont-helvetica-neue-bold-glyphs-draw-as-a-normal-subpath-in-nsbezierpath
+		
+		img = [[NSImage alloc] initWithSize:wordRect.size];
+		[img lockFocus];
+		
+		CGContextRef context = (CGContextRef)([[NSGraphicsContext currentContext] graphicsPort]);
+		CGContextBeginTransparencyLayer(context, NULL);
+		
+		CGContextClipToRect(context, NSRectToCGRect(wordRect));
+		
+		NSBezierPath *backgroundPath = [NSBezierPath bezierPathWithRoundRectInRect:wordRect radius:2.0f];
+		[(isHighlighted ? [NSColor whiteColor] : [NSColor colorWithCalibratedWhite:0.55 alpha:1.0]) setFill];
+		[backgroundPath fill];
+		
+		[[NSGraphicsContext currentContext] setCompositingOperation:NSCompositeSourceOut];
+		[aWord drawWithRect:(NSRect){{2.0, 3.0}, wordRect.size} options:NSStringDrawingUsesFontLeading attributes:attrs];
+		
+		CGContextEndTransparencyLayer(context);
+		
+		[img unlockFocus];
+		
+		self.labelImages[imgKey] = [img autorelease];
+	}
+	return img;
 }
 
 - (void)dealloc {
@@ -1557,9 +1580,14 @@ returnResult:
     if (allNotesBuffer)
 		free(allNotesBuffer);
 	
+	self.labelImages = nil;
+	self.filteredNotesList = nil;
+	
+	self.allLabels = nil;
+	self.filteredLabels = nil;
+
+	
     [undoManager release];
-    [notesListDataSource release];
-    [labelsListController release];
 	[syncSessionController release];
 	[deletionManager release];
     [allNotes release];
@@ -1569,6 +1597,40 @@ returnResult:
     
     [super dealloc];
 }
+
+#pragma mark - NSTableViewDataSource
+
+#pragma mark -
+#pragma mark ***** Required Methods (unless bindings are used) *****
+
+- (NSInteger)numberOfRowsInTableView:(NSTableView *)tableView {
+	return self.filteredNotesList.count;
+}
+
+- (id)tableView:(NSTableView *)tableView objectValueForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
+	NoteAttributeColumn *col = tableColumn;
+	if (!col.attributeFunction) return nil;
+	return col.attributeFunction(tableView, self.filteredNotesList[row], row);
+}
+
+#pragma mark - NSTableViewDataSource (Optional)
+
+- (void)tableView:(NSTableView *)tableView setObjectValue:(id)object forTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
+	//allow the tableview to override the selector destination for this object value
+	SEL colAttributeMutator = [(NotesTableView*)tableView attributeSetterForColumn:(NoteAttributeColumn*)tableColumn];
+	
+	[self.filteredNotesList[row] performSelector:colAttributeMutator ? colAttributeMutator : ((NoteAttributeColumn*)tableColumn).mutatingSelector withObject:object];
+}
+
+//- (void)tableView:(NSTableView *)tableView sortDescriptorsDidChange:(NSArray *)oldDescriptors;
+//- (id <NSPasteboardWriting>)tableView:(NSTableView *)tableView pasteboardWriterForRow:(NSInteger)row NS_AVAILABLE_MAC(10_7);
+//- (void)tableView:(NSTableView *)tableView draggingSession:(NSDraggingSession *)session willBeginAtPoint:(NSPoint)screenPoint forRowIndexes:(NSIndexSet *)rowIndexes NS_AVAILABLE_MAC(10_7);
+//- (void)tableView:(NSTableView *)tableView draggingSession:(NSDraggingSession *)session endedAtPoint:(NSPoint)screenPoint operation:(NSDragOperation)operation NS_AVAILABLE_MAC(10_7);
+//- (void)tableView:(NSTableView *)tableView updateDraggingItemsForDrag:(id <NSDraggingInfo>)draggingInfo NS_AVAILABLE_MAC(10_7);
+//- (BOOL)tableView:(NSTableView *)tableView writeRowsWithIndexes:(NSIndexSet *)rowIndexes toPasteboard:(NSPasteboard *)pboard;
+//- (NSDragOperation)tableView:(NSTableView *)tableView validateDrop:(id <NSDraggingInfo>)info proposedRow:(NSInteger)row proposedDropOperation:(NSTableViewDropOperation)dropOperation;
+//- (BOOL)tableView:(NSTableView *)tableView acceptDrop:(id <NSDraggingInfo>)info row:(NSInteger)row dropOperation:(NSTableViewDropOperation)dropOperation;
+//- (NSArray *)tableView:(NSTableView *)tableView namesOfPromisedFilesDroppedAtDestination:(NSURL *)dropDestination forDraggedRowsWithIndexes:(NSIndexSet *)indexSet;
 
 @end
 
