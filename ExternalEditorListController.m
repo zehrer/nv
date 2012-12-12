@@ -110,24 +110,14 @@ NSString *ExternalEditorsChangedNotification = @"ExternalEditorsChanged";
 
 - (NSString*)displayName {
 	if (!displayName) {
-		CFStringRef newDisplayName = nil;
-		LSCopyDisplayNameForURL((CFURLRef)[self resolvedURL], &newDisplayName);
-		displayName = (__bridge NSString *)newDisplayName;
+		displayName = [[NSFileManager defaultManager] displayNameAtPath: self.resolvedURL.path];
 	}
 	return displayName;
 }
 
 - (NSURL*)resolvedURL {
 	if (!resolvedURL && !installCheckFailed) {
-		CFURLRef newResolvedURL;
-		OSStatus err = LSFindApplicationForInfo(kLSUnknownCreator, (__bridge CFStringRef)bundleIdentifier, NULL, NULL, &newResolvedURL);
-		resolvedURL = (__bridge NSURL *)newResolvedURL;
-		
-		if (kLSApplicationNotFoundErr == err) {
-			installCheckFailed = YES;
-		} else if (noErr != err) {
-			NSLog(@"LSFindApplicationForInfo error for bundle identifier '%@': %d", bundleIdentifier, err);
-		}
+		resolvedURL = [[NSWorkspace sharedWorkspace] URLForApplicationWithBundleIdentifier: bundleIdentifier];
 	}
 	return resolvedURL;
 }

@@ -123,8 +123,9 @@
 			}
 		}
 		
-		[notesData release];
+		NSMutableData *oldNotesData = notesData;
 		notesData = [[notesData uncompressedData] retain];
+		[oldNotesData release];
 		
 		if (!notesData) {
 			*err = kCompressionErr;
@@ -178,8 +179,9 @@
 				}
 			}
 			
-			[notesData release];
-			notesData = [[notesData uncompressedData] retain];
+			NSMutableData *oldNotesData = notesData;
+			notesData = [[oldNotesData uncompressedData] retain];
+			[oldNotesData release];
 			
 			if (!notesData) {
 				*err = kCompressionErr;
