@@ -40,6 +40,10 @@
 
 static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, SEL aSel, id target, NSInteger tag);
 
+@implementation NVViewLocationContext
+
+@end
+
 @implementation NotesTableView
 
 //there's something wrong with this initialization under panther, I think
@@ -362,8 +366,8 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 	return [self rectOfRow:aRow].origin.y - visibleRect.origin.y;
 }
 
-- (ViewLocationContext)viewingLocation {
-	ViewLocationContext ctx;
+- (NVViewLocationContext *)viewingLocation {
+	NVViewLocationContext *ctx = [[[NVViewLocationContext alloc] init] autorelease];
 	
 	NSUInteger pivotRow = [[self selectedRowIndexes] firstIndex];
 	
@@ -381,23 +385,22 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 	}
 	
 	ctx.pivotRowWasEdge = (pivotRow == 0 || pivotRow == nRows - 1);
-	
-	ctx.nonRetainedPivotObject = nil;
+	ctx.pivotObject = nil;
 	ctx.verticalDistanceToPivotRow = 0;
 	
 	if (pivotRow < nRows) {
 		
-		if ((ctx.nonRetainedPivotObject = [(NotationController *)[self dataSource] filteredNotesList][pivotRow])) {
+		if ((ctx.pivotObject = [(NotationController *)[self dataSource] filteredNotesList][pivotRow])) {
 			ctx.verticalDistanceToPivotRow = [self distanceFromRow:pivotRow forVisibleArea:visibleRect];
 		}
 	}
 	return ctx;
 }
 
-- (void)setViewingLocation:(ViewLocationContext)ctx {
-	if (ctx.nonRetainedPivotObject) {
+- (void)setViewingLocation:(NVViewLocationContext *)ctx {
+	if (ctx.pivotObject) {
 		
-		NSInteger pivotIndex = [[(NotationController *)[self dataSource] filteredNotesList] indexOfObjectIdenticalTo:ctx.nonRetainedPivotObject];
+		NSInteger pivotIndex = [[(NotationController *)[self dataSource] filteredNotesList] indexOfObjectIdenticalTo:ctx.pivotObject];
 		if (pivotIndex != NSNotFound) {
 			//figure out how to determine top/bottom condition:
 			//if pivotRow was 0 or nRows-1, and pivotIndex is not either, then scroll maximally in the nearest direction?

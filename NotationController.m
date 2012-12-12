@@ -769,7 +769,10 @@
 	
 	//sort alphabetically to find shorter prefixes first
 	NSMutableArray *allNotesAlpha = [allNotes mutableCopy];
-	[allNotesAlpha sortStableUsingFunction:compareTitleString usingBuffer:&allNotesBuffer ofSize:&allNotesBufferSize];
+	[allNotesAlpha sortWithOptions: NSSortStable usingComparator:^NSComparisonResult(id obj1, id obj2) {
+		return compareTitleString(&obj1, &obj2);
+	}];
+	
 	[allNotes makeObjectsPerformSelector:@selector(removeAllPrefixParentNotes)];
 
 	NSUInteger j, i = 0, count = [allNotesAlpha count];
@@ -1447,9 +1450,15 @@
 		NSInteger (*sortFunction) (id *, id *) = (reversed ? col.reverseSortingFunction : col.sortingFunction);
 		NSInteger (*stringSortFunction) (id*, id*) = (reversed ? compareTitleStringReverse : compareTitleString);
 		
-		[allNotes sortStableUsingFunction:stringSortFunction usingBuffer:&allNotesBuffer ofSize:&allNotesBufferSize];
-		if (sortFunction != stringSortFunction)
-			[allNotes sortStableUsingFunction:sortFunction usingBuffer:&allNotesBuffer ofSize:&allNotesBufferSize];
+		[allNotes sortWithOptions: NSSortStable usingComparator:^NSComparisonResult(id obj1, id obj2) {
+			return stringSortFunction(&obj1, &obj2);
+		}];
+		
+		if (sortFunction != stringSortFunction) {
+			[allNotes sortWithOptions: NSSortStable usingComparator:^NSComparisonResult(id obj1, id obj2) {
+				return sortFunction(&obj1, &obj2);
+			}];
+		}
 		
 		
 		if (self.filteredNotesList.count != [allNotes count]) {
@@ -1482,10 +1491,16 @@
 	
 		NSInteger (*sortFunction) (id*, id*) = (reversed ? col.reverseSortingFunction : col.sortingFunction);
 		NSInteger (*stringSortFunction) (id*, id*) = (reversed ? compareTitleStringReverse : compareTitleString);
+		
+		[allNotes sortWithOptions: NSSortStable usingComparator: ^NSComparisonResult(id obj1, id obj2) {
+			return stringSortFunction(&obj1, &obj2);
+		}];
 
-		[allNotes sortStableUsingFunction:stringSortFunction usingBuffer:&allNotesBuffer ofSize:&allNotesBufferSize];
-		if (sortFunction != stringSortFunction)
-			[allNotes sortStableUsingFunction:sortFunction usingBuffer:&allNotesBuffer ofSize:&allNotesBufferSize];
+		if (sortFunction != stringSortFunction) {
+			[allNotes sortWithOptions: NSSortStable usingComparator: ^NSComparisonResult(id obj1, id obj2) {
+				return sortFunction(&obj1, &obj2);
+			}];
+		}
 	}
 }
 

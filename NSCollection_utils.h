@@ -58,6 +58,6 @@
 @interface NSMutableArray (Sorting)
 
 - (void)sortUnstableUsingFunction:(NSInteger (*)(id *, id *))compare;
-- (void)sortStableUsingFunction:(NSInteger (*)(id *, id *))compare usingBuffer:(__autoreleasing id **)buffer ofSize:(unsigned int*)bufSize;
+
 @end
 

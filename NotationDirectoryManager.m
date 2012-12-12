@@ -352,7 +352,7 @@ void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t num_event
     
     unsigned int aSize = [allNotes count];
     unsigned int bSize = catCount;
-    
+	    
 	ResizeArray(&allNotesBuffer, aSize, &allNotesBufferSize);
 	
 	NSAssert(allNotesBuffer != NULL, @"sorting buffer not initialized");

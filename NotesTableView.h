@@ -22,11 +22,13 @@
 @class NoteAttributeColumn;
 @class GlobalPrefs;
 
-typedef struct _ViewLocationContext {
-	BOOL pivotRowWasEdge;
-	id nonRetainedPivotObject;
-	float verticalDistanceToPivotRow;
-} ViewLocationContext;
+@interface NVViewLocationContext : NSObject
+
+@property (nonatomic) BOOL pivotRowWasEdge;
+@property (nonatomic, assign) id pivotObject;
+@property (nonatomic) float verticalDistanceToPivotRow;
+
+@end
 
 @protocol NVLabelsListSource <NSObject>
 
@@ -67,8 +69,8 @@ typedef struct _ViewLocationContext {
 - (void)noteFirstVisibleRow;
 - (void)makeFirstPreviouslyVisibleRowVisibleIfNecessary;
 
-- (ViewLocationContext)viewingLocation;
-- (void)setViewingLocation:(ViewLocationContext)ctx;
+@property (nonatomic, retain) NVViewLocationContext *viewingLocation;
+
 - (double)distanceFromRow:(NSUInteger)aRow forVisibleArea:(NSRect)visibleRect;
 - (void)scrollRowToVisible:(NSInteger)rowIndex withVerticalOffset:(float)offset;
 - (void)selectRowAndScroll:(NSInteger)row;

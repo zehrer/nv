@@ -702,7 +702,7 @@ void outletObjectAwoke(id sender) {
     if ([mainView isInFullScreenMode]) {
         wasVert = YES;
     }
-	ViewLocationContext ctx = [notesTableView viewingLocation];
+	NVViewLocationContext *ctx = [notesTableView viewingLocation];
 	ctx.pivotRowWasEdge = NO;		
 	CGFloat colW = [notesSubview dimension];
     if (![splitView isVertical]) {
@@ -920,7 +920,7 @@ void outletObjectAwoke(id sender) {
 		NoteAttributeColumn *newSortCol = [notesTableView noteAttributeColumnForIdentifier:[prefsController sortedTableColumnKey]];
 		BOOL changedColumns = oldSortCol != newSortCol;
 		
-		ViewLocationContext ctx;
+		NVViewLocationContext *ctx;
 		if (changedColumns) {
 			ctx = [notesTableView viewingLocation];
 			ctx.pivotRowWasEdge = NO;

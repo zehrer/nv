@@ -101,7 +101,7 @@
   NotationController *notationController;
 	
 	SpaceSwitchingContext spaceSwitchCtx;
-	ViewLocationContext listUpdateViewCtx;
+	NVViewLocationContext *listUpdateViewCtx;
 	BOOL isFilteringFromTyping, typedStringIsCached;
 	BOOL isCreatingANote;
 	NSString *typedString;
