@@ -54,7 +54,7 @@
 	NSString *startingDirectory = NSLocalizedString(@"the current notes directory",nil);
 	FSRef notesDirectoryRef;
 	
-	if ([[[notationPrefs delegate] aliasDataForNoteDirectory] fsRefAsAlias:&notesDirectoryRef]) {
+	if ([[notationPrefs.delegate aliasDataForNoteDirectory] fsRefAsAlias:&notesDirectoryRef]) {
 		NSString *resolvedPath = [[NSFileManager defaultManager] pathWithFSRef:&notesDirectoryRef];
 		if (resolvedPath) startingDirectory = resolvedPath;
     }

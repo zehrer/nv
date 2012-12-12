@@ -41,8 +41,8 @@ force_inline NSString* titleOfLabel(LabelObject *label) {
 
 int compareLabel(const void *one, const void *two) {
 	
-    return (int)CFStringCompare((CFStringRef)titleOfLabel(*(LabelObject**)one), 
-								(CFStringRef)titleOfLabel(*(LabelObject**)two), kCFCompareCaseInsensitive);
+    return (int)CFStringCompare((CFStringRef)titleOfLabel(*(__unsafe_unretained LabelObject**)one), 
+								(CFStringRef)titleOfLabel(*(__unsafe_unretained LabelObject**)two), kCFCompareCaseInsensitive);
 }
 
 - (NSString*)title {

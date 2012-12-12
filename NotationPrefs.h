@@ -28,6 +28,21 @@ enum { SingleDatabaseFormat = 0, PlainTextFormat, RTFTextFormat, HTMLFormat, Wor
 
 extern NSString *NotationPrefsDidChangeNotification;
 
+@protocol NVPreferencesDelegate <NSObject>
+
+- (void)databaseEncryptionSettingsChanged;
+- (void)syncSettingsChangedForService:(NSString*)serviceName;
+- (void)databaseSettingsChangedFromOldFormat:(int)oldFormat;
+
+@optional
+
+- (void)flushEverything;
+- (void)trashRemainingNoteFilesInDirectory;
+- (NSUInteger)totalNoteCount;
+- (NSData *)aliasDataForNoteDirectory;
+
+@end
+
 @interface NotationPrefs : NSObject {
 	BOOL doesEncryption, storesPasswordInKeychain, secureTextEntry;
 	NSString *keychainDatabaseIdentifier;
@@ -53,7 +68,6 @@ extern NSString *NotationPrefsDidChangeNotification;
 	UInt32 epochIteration;
 	BOOL firstTimeUsed;
 	BOOL preferencesChanged;
-	id delegate;
 	
 	@private 
 	//masterKey is not to be stored anywhere
@@ -148,15 +162,6 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 - (void)updateOSTypesArray;
 - (BOOL)catalogEntryAllowed:(NoteCatalogEntry*)catEntry;
 
-- (id)delegate;
-- (void)setDelegate:(id)aDelegate;
-
-@end
-
-@interface NotationPrefs (DelegateMethods)
-
-- (void)databaseEncryptionSettingsChanged;
-- (void)syncSettingsChangedForService:(NSString*)serviceName;
-- (void)databaseSettingsChangedFromOldFormat:(int)oldFormat;
+@property (nonatomic, assign) id <NVPreferencesDelegate> delegate;
 
 @end

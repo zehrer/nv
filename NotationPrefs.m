@@ -579,8 +579,8 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 	
 	preferencesChanged = YES;
 	
-	if ([delegate respondsToSelector:@selector(databaseEncryptionSettingsChanged)])
-		[delegate databaseEncryptionSettingsChanged];
+	if ([self.delegate respondsToSelector:@selector(databaseEncryptionSettingsChanged)])
+		[self.delegate databaseEncryptionSettingsChanged];
 }
 
 - (NSData*)WALSessionKey {
@@ -601,51 +601,53 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 		
 		[self updateOSTypesArray];
 		
-		if ([delegate respondsToSelector:@selector(databaseSettingsChangedFromOldFormat:)])
-			[delegate databaseSettingsChangedFromOldFormat:oldFormat];
+		if ([self.delegate respondsToSelector:@selector(databaseSettingsChangedFromOldFormat:)])
+			[self.delegate databaseSettingsChangedFromOldFormat:oldFormat];
 		
 		//should notationprefs need to do this?
-		if ([delegate respondsToSelector:@selector(flushEverything)])
-			[delegate flushEverything];
+		if ([self.delegate respondsToSelector:@selector(flushEverything)])
+			[self.delegate flushEverything];
 	}
 }
 
 - (BOOL)shouldDisplaySheetForProposedFormat:(NSInteger)proposedFormat {
 	BOOL notesExist = YES;
 	
-	if ([delegate respondsToSelector:@selector(totalNoteCount)])
-		notesExist = [delegate totalNoteCount] > 0;
+	if ([self.delegate respondsToSelector:@selector(totalNoteCount)])
+		notesExist = [self.delegate totalNoteCount] > 0;
 
 	return (proposedFormat == SingleDatabaseFormat && notesStorageFormat != SingleDatabaseFormat && notesExist);
 }
 
-- (void)noteFilesCleanupSheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo {
-	
+- (void)noteFilesCleanupSheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)ctx {
+	id contextInfo = (__bridge id)ctx;
 	NSAssert(contextInfo, @"No contextInfo passed to noteFilesCleanupSheetDidEnd");
-	NSAssert([(id)contextInfo respondsToSelector:@selector(notesStorageFormatInProgress)],
+	NSAssert([contextInfo respondsToSelector:@selector(notesStorageFormatInProgress)],
 			 @"can't get notesStorageFormatInProgress method for changing");
 
-	int newNoteStorageFormat = [(__bridge NotationPrefsViewController*)contextInfo notesStorageFormatInProgress];
+	int newNoteStorageFormat = [(NotationPrefsViewController*)contextInfo notesStorageFormatInProgress];
 	
 	if (returnCode != NSAlertAlternateReturn)
 		//didn't cancel
 		[self setNotesStorageFormat:newNoteStorageFormat];
 	
-	if (returnCode == NSAlertOtherReturn)
+	if (returnCode == NSAlertOtherReturn) {
 		//tell delegate to delete all its notes' files
-		[delegate trashRemainingNoteFilesInDirectory];
+		if ([self.delegate respondsToSelector: @selector(trashRemainingNoteFilesInDirectory)])
+			[self.delegate trashRemainingNoteFilesInDirectory];
+	}
 	//but what if the files remain after switching to a single-db format--and then the user deletes a bunch of the files themselves?
 	//should we switch the currentFormatIDs of those notes to single-db? I guess.
 	
-	if ([(__bridge id)contextInfo respondsToSelector:@selector(notesStorageFormatDidChange)])
-		[(__bridge NotationPrefsViewController*)contextInfo notesStorageFormatDidChange];
+	if ([contextInfo respondsToSelector:@selector(notesStorageFormatDidChange)])
+		[(NotationPrefsViewController *)contextInfo notesStorageFormatDidChange];
 	
 	if (returnCode != NSAlertAlternateReturn) {
 		//run queued method
-		NSAssert([(id)contextInfo respondsToSelector:@selector(runQueuedStorageFormatChangeInvocation)],
+		NSAssert([contextInfo respondsToSelector:@selector(runQueuedStorageFormatChangeInvocation)],
 				 @"can't get runQueuedStorageFormatChangeInvocation method for changing");
 
-		[(__bridge NotationPrefsViewController*)contextInfo runQueuedStorageFormatChangeInvocation];
+		[(NotationPrefsViewController*)contextInfo runQueuedStorageFormatChangeInvocation];
 	}
 }
 
@@ -669,8 +671,8 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 	}
 	
 	if (oldValue != value) {
-		if ([delegate respondsToSelector:@selector(databaseEncryptionSettingsChanged)])
-			[delegate databaseEncryptionSettingsChanged];
+		if ([self.delegate respondsToSelector:@selector(databaseEncryptionSettingsChanged)])
+			[self.delegate databaseEncryptionSettingsChanged];
 	}
 }
 
@@ -699,7 +701,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 		[accountDict setObject:[NSNumber numberWithBool:isEnabled] forKey:@"enabled"];
 		
 		preferencesChanged = YES;
-		[delegate syncSettingsChangedForService:serviceName];
+		[self.delegate syncSettingsChangedForService:serviceName];
 	}
 }
 
@@ -709,7 +711,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 	if ([self syncFrequencyInMinutesForServiceName:serviceName] != frequencyInMinutes) {
 		[accountDict setObject:[NSNumber numberWithUnsignedInt:frequencyInMinutes] forKey:@"frequency"];
 		preferencesChanged = YES;
-		[delegate syncSettingsChangedForService:serviceName];
+		[self.delegate syncSettingsChangedForService:serviceName];
 	}
 }
 
@@ -740,7 +742,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 		[accountDict setObject:username forKey:@"username"];
 		
 		preferencesChanged = YES;
-		[delegate syncSettingsChangedForService:serviceName];
+		[self.delegate syncSettingsChangedForService:serviceName];
 	}
 }
 
@@ -792,7 +794,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 		}
 			
 		preferencesChanged = YES;
-		[delegate syncSettingsChangedForService:serviceName];
+		[self.delegate syncSettingsChangedForService:serviceName];
 	}
 }
 
@@ -817,7 +819,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 			NSLog(@"not removing password for %@ because a keychain sync account name couldn't be created", serviceName);
 		}
 		
-		[delegate syncSettingsChangedForService:serviceName];
+		[self.delegate syncSettingsChangedForService:serviceName];
 	}
 }
 
@@ -1073,14 +1075,5 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
     return NO;
     
 }
-
-- (id)delegate {
-	return delegate;
-}
-
-- (void)setDelegate:(id)aDelegate {
-	delegate = aDelegate;
-}
-
 
 @end

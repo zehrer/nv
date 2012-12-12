@@ -541,7 +541,8 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		CFRelease(uuidRef);
 		
 		createdDate = modifiedDate = CFAbsoluteTimeGetCurrent();
-		dateCreatedString = [dateModifiedString = [[NSString relativeDateStringWithAbsoluteTime:modifiedDate] retain] retain];
+		dateCreatedString = [[NSString relativeDateStringWithAbsoluteTime: createdDate] retain];
+		dateModifiedString = [[NSString relativeDateStringWithAbsoluteTime: modifiedDate] retain];
 		UCConvertCFAbsoluteTimeToUTCDateTime(modifiedDate, &fileModifiedDate);
 		
 		if (delegate)
@@ -587,7 +588,8 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		}
 		if (!modifiedDate || !createdDate) {
 			modifiedDate = createdDate = CFAbsoluteTimeGetCurrent();
-			dateModifiedString = [dateCreatedString = [[NSString relativeDateStringWithAbsoluteTime:createdDate] retain] retain];	
+			dateModifiedString = [[NSString relativeDateStringWithAbsoluteTime: modifiedDate] retain];
+			dateCreatedString = [[NSString relativeDateStringWithAbsoluteTime: createdDate] retain];
 		}
     }
 	

@@ -228,8 +228,11 @@ static NSString *TempDirectoryPathForEditing() {
 			if (outData) {
 				NSString *outString = [[[NSString alloc] initWithData:outData encoding:NSUTF8StringEncoding] autorelease];
 				
+				NSString *newDeviceName = nil;
 				[[NSScanner scannerWithString:outString] scanUpToCharactersFromSet:
-				 [NSCharacterSet whitespaceAndNewlineCharacterSet] intoString:&deviceName];
+				 [NSCharacterSet whitespaceAndNewlineCharacterSet] intoString:&newDeviceName];
+				deviceName = newDeviceName;
+				
 				if (!deviceName) deviceName = [outString retain];
 			}
 			if (![deviceName length]) {

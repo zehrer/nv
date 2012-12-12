@@ -357,12 +357,12 @@ void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t num_event
 	
 	NSAssert(allNotesBuffer != NULL, @"sorting buffer not initialized");
 	
-    NoteObject **currentNotes = allNotesBuffer;
-    [allNotes getObjects:(id*)currentNotes];
+	NoteObject *__unsafe_unretained *currentNotes = allNotesBuffer;
+    [allNotes getObjects:(__unsafe_unretained id*)currentNotes];
 	
 	mergesort_b(allNotesBuffer, aSize, sizeof(id), ^int(const void *aPtr, const void *bPtr) {
-		NoteObject *a = *(NoteObject**)aPtr;
-		NoteObject *b = *(NoteObject**)bPtr;
+		NoteObject *a = *(__unsafe_unretained NoteObject**)aPtr;
+		NoteObject *b = *(__unsafe_unretained NoteObject**)bPtr;
 		return [a.filename caseInsensitiveCompare: b.filename];
 	});
 	
@@ -490,7 +490,7 @@ void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t num_event
 					
 					directoryChangesFound = YES;
 					
-					[currentNote setFilename:(NSString*)catEntry->filename withExternalTrigger:YES];
+					[currentNote setFilename:(__bridge NSString*)catEntry->filename withExternalTrigger:YES];
 				}
 				
 				notesChanged = YES;

@@ -159,7 +159,7 @@
     if (aliasData && PtrToHand([aliasData bytes], (Handle*)&inAlias, [aliasData length]) == noErr && 
 		FSCopyAliasInfo(inAlias, NULL, NULL, &path, &whichInfo, &info) == noErr) {
 		//this method doesn't always seem to work	
-		return [(NSString*)path autorelease];
+		return [(__bridge NSString*)path autorelease];
     }
     
     return nil;

@@ -119,8 +119,9 @@ NSString *ExternalEditorsChangedNotification = @"ExternalEditorsChanged";
 
 - (NSURL*)resolvedURL {
 	if (!resolvedURL && !installCheckFailed) {
-		
-		OSStatus err = LSFindApplicationForInfo(kLSUnknownCreator, (__bridge CFStringRef)bundleIdentifier, NULL, NULL, (CFURLRef*)&resolvedURL);
+		CFURLRef newResolvedURL;
+		OSStatus err = LSFindApplicationForInfo(kLSUnknownCreator, (__bridge CFStringRef)bundleIdentifier, NULL, NULL, &newResolvedURL);
+		resolvedURL = (__bridge NSURL *)newResolvedURL;
 		
 		if (kLSApplicationNotFoundErr == err) {
 			installCheckFailed = YES;
