@@ -627,7 +627,7 @@ copyRTFType:
             beforeSyntax.length=syntaxLength;
             selRange.length-=(syntaxLength*2); 
         }else if([selString rangeOfString:syntaxBit].location!=NSNotFound){
-            NSUInteger syntCt=[selString componentsSeparatedByString:syntaxBit];
+            NSUInteger syntCt=[[selString componentsSeparatedByString:syntaxBit] count];
             if ((syntCt % 2)==0) {//odd number of syntaxBits
                 
                 NSRange insertRange=selRange;

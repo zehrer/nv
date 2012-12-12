@@ -1597,7 +1597,7 @@
 }
 
 - (id)tableView:(NSTableView *)tableView objectValueForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
-	NoteAttributeColumn *col = tableColumn;
+	NoteAttributeColumn *col = (NoteAttributeColumn *)tableColumn;
 	if (!col.attributeFunction) return nil;
 	return col.attributeFunction(tableView, self.filteredNotesList[row], row);
 }

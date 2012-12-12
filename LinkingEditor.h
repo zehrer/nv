@@ -19,7 +19,7 @@
 @class NoteObject;
 @class GlobalPrefs;
 
-@interface LinkingEditor : NSTextView <NSLayoutManagerDelegate>
+@interface LinkingEditor : NSTextView <NSLayoutManagerDelegate, NSTextFinderClient>
 {
     id textFinder;
     IBOutlet NSTextField *controlField;

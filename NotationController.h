@@ -18,21 +18,10 @@
 
 #import <Cocoa/Cocoa.h>
 #import "WALController.h"
-
+#import "NotationPrefs.h"
 #import <CoreServices/CoreServices.h>
+#import "NotesTableView.h"
 
-//enum { kUISearch, kUINewNote, kUIDeleteNote, kUIRenameNote, kUILabelOperation };
-
-typedef struct _NoteCatalogEntry {
-    UTCDateTime lastModified;
-	UTCDateTime lastAttrModified;
-    UInt32 logicalSize;
-    OSType fileType;
-    UInt32 nodeID;
-    CFMutableStringRef filename;
-    UniChar *filenameChars;
-    UniCharCount filenameCharCount;
-} NoteCatalogEntry;
 
 @class NoteObject;
 @class DeletedNoteObject;
@@ -43,7 +32,7 @@ typedef struct _NoteCatalogEntry {
 @class DeletionManager;
 @class GlobalPrefs;
 
-@interface NotationController : NSObject <NSTableViewDataSource> {
+@interface NotationController : NSObject <NSTableViewDataSource, NVPreferencesDelegate, NVLabelsListSource> {
     NSMutableArray *allNotes;
 	GlobalPrefs *prefsController;
 	SyncSessionController *syncSessionController;

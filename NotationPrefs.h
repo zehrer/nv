@@ -17,7 +17,17 @@
 
 
 #import <Cocoa/Cocoa.h>
-#import "NotationController.h"
+
+typedef struct _NoteCatalogEntry {
+    UTCDateTime lastModified;
+	UTCDateTime lastAttrModified;
+    UInt32 logicalSize;
+    OSType fileType;
+    UInt32 nodeID;
+    CFMutableStringRef filename;
+    UniChar *filenameChars;
+    UniCharCount filenameCharCount;
+} NoteCatalogEntry;
 
 /* this class is responsible for managing all preferences specific to a notational database,
 including encryption, file formats, synchronization, passwords management, and others */

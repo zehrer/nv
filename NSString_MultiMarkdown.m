@@ -109,7 +109,7 @@
 
 +(NSString*)documentWithProcessedMultiMarkdown:(NSString*)inputString
 {
-  AppController *app = [[NSApplication sharedApplication] delegate];
+  AppController *app = (AppController *)[[NSApplication sharedApplication] delegate];
   NSString *processedString = [self processMultiMarkdown:inputString];
   NSString *htmlString = [[PreviewController class] html];
   NSString *cssString = [[PreviewController class] css];

@@ -92,7 +92,7 @@
 	NSImage *verticalDividerImg;
 	LinearDividerShader *dividerShader;
 	
-	NSString *URLToInterpretOnLaunch;
+	NSURL *URLToInterpretOnLaunch;
 	NSMutableArray *pathsToOpenOnLaunch;
 	
   NSUndoManager *windowUndoManager;
