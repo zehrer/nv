@@ -21,7 +21,7 @@
 @interface NSString (NV)
 
 unsigned int hoursFromAbsoluteTime(CFAbsoluteTime absTime);
-void resetCurrentDayTime();
+extern void resetCurrentDayTime();
 + (NSString*)relativeTimeStringWithDate:(CFDateRef)date relativeDay:(int)day;
 + (NSString*)relativeDateStringWithAbsoluteTime:(CFAbsoluteTime)absTime;
 CFDateFormatterRef simplenoteDateFormatter(int lowPrecision);

@@ -341,17 +341,6 @@
 	[syncSessionController schedulePushToAllInitializedSessionsForNote:aNote];
 }
 
-- (void)syncSettingsChangedForService:(NSString*)serviceName {
-
-	//reset credentials
-	[syncSessionController invalidateSyncService:serviceName];
-	
-	//reset timer and prepare for the next sync
-	[NSObject cancelPreviousPerformRequestsWithTarget:syncSessionController selector:@selector(initializeService:) object:serviceName];
-	[syncSessionController performSelector:@selector(initializeService:) withObject:serviceName afterDelay:2];
-	
-}
-
 - (BOOL)handleSyncingWithAllMissingAndRemoteNoteCount:(NSUInteger)foundNotes fromSession:(id <SyncServiceSession>)aSession {
 	
 	if ([allNotes count] < 2) {

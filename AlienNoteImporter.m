@@ -266,8 +266,7 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 	
 	receptionDelegate = receiver;
 		
-	
-	[[URLGetter alloc] initWithURL:aURL delegate:self userData:linkTitle];
+	[[[URLGetter alloc] initWithURL:aURL delegate:self userData:linkTitle] startProgressIndication: self];
 }
 
 - (NSArray*)importedNotes {

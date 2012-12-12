@@ -114,7 +114,7 @@
 		}
 		
 		NSMutableData *oldNotesData = notesData;
-		notesData = [notesData uncompressedData];
+		notesData = [oldNotesData uncompressedData];
 		
 		if (!notesData) {
 			*err = kCompressionErr;

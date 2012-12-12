@@ -27,8 +27,6 @@
 		userData = someObj;
 		
 		downloader = [[NSURLDownload alloc] initWithRequest:[NSURLRequest requestWithURL:url] delegate:self];
-		
-		[self startProgressIndication:self];
 	}
 	
 	return self;
@@ -112,7 +110,7 @@
 - (void)download:(NSURLDownload *)download decideDestinationWithSuggestedFilename:(NSString *)name {
 	
 	tempDirectory = [NSTemporaryDirectory() stringByAppendingPathComponent:[[NSProcessInfo processInfo] globallyUniqueString]];
-	if (![[NSFileManager defaultManager] createDirectoryAtPath:tempDirectory attributes:nil]) {
+	if (![[NSFileManager defaultManager] createDirectoryAtPath:tempDirectory withIntermediateDirectories: YES attributes: nil error: NULL]) {
 		NSLog(@"URLGetter: Couldn't create temporary directory!");
 		[download cancel];
 		NSBeep();

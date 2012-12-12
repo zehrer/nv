@@ -26,6 +26,7 @@
 #import "NotationController.h"
 #import "NotationPrefs.h"
 #import "NSBezierPath_NV.h"
+#import "AppController.h"
 
 static NSString *UserEEIdentifiersKey = @"UserEEIdentifiers";
 static NSString *DefaultEEIdentifierKey = @"DefaultEEIdentifier";
@@ -244,14 +245,14 @@ static ExternalEditorListController* sharedInstance = nil;
 	NSOpenPanel *openPanel = [NSOpenPanel openPanel];
     [openPanel setResolvesAliases:YES];
     [openPanel setAllowsMultipleSelection:NO];
-    
-    if ([openPanel runModalForDirectory:@"/Applications" file:nil types:[NSArray arrayWithObject:@"app"]] == NSOKButton) {
+	[openPanel setDirectoryURL: [NSURL URLWithString: @"/Applications"]];
+	[openPanel setAllowedFileTypes: @[ @"app" ]];
+	    
+    if ([openPanel runModal] == NSOKButton) {
 		
-		NSString *filename = openPanel.filename;		
-		NSURL *appURL = nil; 
+		NSURL *appURL = openPanel.URL; 
 		ExternalEditor *ed = nil;
 
-		if (filename) appURL = [NSURL fileURLWithPath:[openPanel filename]];
 		if (appURL) ed = [[ExternalEditor alloc] initWithBundleID:nil resolvedURL:appURL];
 		
 		if (!appURL || !ed) {

@@ -43,6 +43,7 @@
 #import "DeletionManager.h"
 #import "NSBezierPath_NV.h"
 #import "LabelObject.h"
+#import <objc/message.h>
 
 @interface NotationController ()
 
@@ -352,7 +353,7 @@
 	
 	if ((err = FSRefMakePath(&noteDirectoryRef, convertedPath, maxPathSize)) == noErr) {
 		//initialize the journal if necessary
-		if (walWriter = [[WALStorageController alloc] initWithParentFSRep:(char*)convertedPath encryptionKey:walSessionKey]) {
+		if ((walWriter = [[WALStorageController alloc] initWithParentFSRep:(char*)convertedPath encryptionKey:walSessionKey])) {
 			[walWriter setDelegate:self];
 			
 			success = YES;
@@ -381,7 +382,7 @@
 				//there could be other issues, too (1)
 				
 				if ([walReader destroyLogFile]) {
-					if (walWriter = [[WALStorageController alloc] initWithParentFSRep:(char*)convertedPath encryptionKey:walSessionKey]) {
+					if ((walWriter = [[WALStorageController alloc] initWithParentFSRep:(char*)convertedPath encryptionKey:walSessionKey])) {
 						if ([recoveredNotes count] > 0) {
 							if (databaseCouldNotBeFlushed) {
 								//re-add the contents of recoveredNotes to walWriter; LSNs should take care of the order; no need to sort
@@ -1336,7 +1337,7 @@
 				selectedNoteIndex = i;
 				//this note matches, but what if there are other note-titles that are prefixes of both this one and the search string?
 				//find the first prefix-parent of which searchString is also a prefix
-				NSUInteger j = 0, prefixParentIndex = NSNotFound;
+				NSUInteger prefixParentIndex = NSNotFound;
 				
 				for (NoteObject *obj in note.prefixParents) {
 					if (noteTitleHasPrefixOfUTF8String(obj, searchString, newLen) &&
@@ -1580,11 +1581,48 @@
 		free(catalogEntries);
     if (sortedCatalogEntries)
 		free(sortedCatalogEntries);
-	
-	
+}
 
+#pragma mark - 
+
+- (NSArray*)labelTitlesPrefixedByString:(NSString*)prefix indexOfSelectedItem:(NSInteger *)anIndex minusWordSet:(NSSet*)antiSet {
 	
-    
+	NSMutableArray *objs = [self.allLabels.allObjects mutableCopy];
+	NSMutableArray *titles = [NSMutableArray arrayWithCapacity: self.allLabels.count];
+	
+	[objs sortUsingComparator:^NSComparisonResult(id obj1, id obj2) {
+		return compareLabel(&obj1, &obj2);
+	}];
+	
+	NSUInteger titleLen, j = 0, shortestTitleLen = UINT_MAX;
+	
+	for (LabelObject *label in objs) {
+		NSString *title = titleOfLabel(label);
+		
+		if ([title rangeOfString: prefix options: NSCaseInsensitiveSearch | NSAnchoredSearch range: NSMakeRange(0, prefix.length)].location != NSNotFound) {
+			if (![antiSet containsObject: title]) {
+				[titles addObject: title];
+				if (anIndex && (titleLen = title.length) < shortestTitleLen) {
+					*anIndex = j;
+					shortestTitleLen = titleLen;
+				}
+				j++;
+			}
+		}
+	}
+	
+	return titles;
+}
+
+- (void)syncSettingsChangedForService:(NSString*)serviceName {
+	
+	//reset credentials
+	[syncSessionController invalidateSyncService:serviceName];
+	
+	//reset timer and prepare for the next sync
+	[NSObject cancelPreviousPerformRequestsWithTarget:syncSessionController selector:@selector(initializeService:) object:serviceName];
+	[syncSessionController performSelector:@selector(initializeService:) withObject:serviceName afterDelay:2];
+	
 }
 
 #pragma mark - NSTableViewDataSource
@@ -1606,9 +1644,9 @@
 
 - (void)tableView:(NSTableView *)tableView setObjectValue:(id)object forTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
 	//allow the tableview to override the selector destination for this object value
-	SEL colAttributeMutator = [(NotesTableView*)tableView attributeSetterForColumn:(NoteAttributeColumn*)tableColumn];
-	
-	[self.filteredNotesList[row] performSelector:colAttributeMutator ? colAttributeMutator : ((NoteAttributeColumn*)tableColumn).mutatingSelector withObject:object];
+	NoteAttributeColumn *col = (NoteAttributeColumn *)tableColumn;
+	SEL colAttributeMutator = [(NotesTableView*)tableView attributeSetterForColumn: col];
+	objc_msgSend(self.filteredNotesList[row], colAttributeMutator ? colAttributeMutator : col.mutatingSelector, object);
 }
 
 //- (void)tableView:(NSTableView *)tableView sortDescriptorsDidChange:(NSArray *)oldDescriptors;

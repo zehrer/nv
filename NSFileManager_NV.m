@@ -147,6 +147,8 @@
 		}
 		return CFStringConvertEncodingToNSStringEncoding(theCFEncoding);
 	}
+	
+	return 0;
 }
 
 - (NSString*)pathCopiedFromAliasData:(NSData*)aliasData {
