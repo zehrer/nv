@@ -64,9 +64,6 @@
 		self.allLabels = [[[NSCountedSet alloc] init] autorelease];
 	    self.filteredLabels = [[[NSCountedSet alloc] init] autorelease];
 
-		
-		allNotesBuffer = NULL;
-		allNotesBufferSize = 0;
 		manglingString = currentFilterStr = NULL;
 		lastWordInFilterStr = 0;
 		selectedNoteIndex = NSNotFound;
@@ -1594,8 +1591,6 @@
 		free(catalogEntries);
     if (sortedCatalogEntries)
 		free(sortedCatalogEntries);
-    if (allNotesBuffer)
-		free(allNotesBuffer);
 	
 	self.labelImages = nil;
 	self.filteredNotesList = nil;

@@ -349,54 +349,39 @@ void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t num_event
 }
 
 - (void)makeNotesMatchCatalogEntries:(NoteCatalogEntry**)catEntriesPtrs ofSize:(size_t)catCount {
-    
-    unsigned int aSize = [allNotes count];
-    unsigned int bSize = catCount;
-	    
-	ResizeArray(&allNotesBuffer, aSize, &allNotesBufferSize);
+	unsigned int bSize = catCount;
 	
-	NSAssert(allNotesBuffer != NULL, @"sorting buffer not initialized");
-	
-	NoteObject *__unsafe_unretained *currentNotes = allNotesBuffer;
-    [allNotes getObjects:(__unsafe_unretained id*)currentNotes];
-	
-	mergesort_b(allNotesBuffer, aSize, sizeof(id), ^int(const void *aPtr, const void *bPtr) {
-		NoteObject *a = *(__unsafe_unretained NoteObject**)aPtr;
-		NoteObject *b = *(__unsafe_unretained NoteObject**)bPtr;
+	NSArray *currentNotes = [allNotes sortedArrayUsingComparator:^NSComparisonResult(NoteObject *a, NoteObject *b) {
 		return [a.filename caseInsensitiveCompare: b.filename];
-	});
-	
+	}];
+
 	mergesort((void *)catEntriesPtrs, (size_t)bSize, sizeof(NoteCatalogEntry*), (int (*)(const void *, const void *))compareCatalogEntryName);
 	
     NSMutableArray *addedEntries = [NSMutableArray array];
     NSMutableArray *removedEntries = [NSMutableArray array];
+    
+    unsigned int j, lastInserted = 0;
 	
-    //oldItems(a,i) = currentNotes
-    //newItems(b,j) = catEntries;
-    
-    unsigned int i, j, lastInserted = 0;
-    
-    for (i=0; i<aSize; i++) {
-		
+	for (NoteObject *note in currentNotes) {
 		BOOL exitedEarly = NO;
 		for (j=lastInserted; j<bSize; j++) {
 			
 			CFComparisonResult order = CFStringCompare((CFStringRef)(catEntriesPtrs[j]->filename),
-													   (CFStringRef)currentNotes[i].filename,
+													   (CFStringRef)note.filename,
 													   kCFCompareCaseInsensitive);
 			if (order == kCFCompareGreaterThan) {    //if (A[i] < B[j])
 				lastInserted = j;
 				exitedEarly = YES;
 				
 				//NSLog(@"FILE DELETED (during): %@", currentNotes[i].filename);
-				[removedEntries addObject:currentNotes[i]];
+				[removedEntries addObject: note];
 				break;
 			} else if (order == kCFCompareEqualTo) {			//if (A[i] == B[j])
 				//the name matches, so add this to changed iff its contents also changed
 				lastInserted = j + 1;
 				exitedEarly = YES;
 				
-				[self modifyNoteIfNecessary:currentNotes[i] usingCatalogEntry:catEntriesPtrs[j]];
+				[self modifyNoteIfNecessary: note usingCatalogEntry:catEntriesPtrs[j]];
 				
 				break;
 			}
@@ -409,17 +394,16 @@ void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t num_event
 		if (!exitedEarly) {
 			
 			//element A[i] "appended" to the end of list B
-			if (CFStringCompare((CFStringRef)currentNotes[i].filename,
-								(CFStringRef)(catEntriesPtrs[MIN(lastInserted, bSize-1)]->filename), 
+			if (CFStringCompare((CFStringRef)note.filename,
+								(CFStringRef)(catEntriesPtrs[MIN(lastInserted, bSize-1)]->filename),
 								kCFCompareCaseInsensitive) == kCFCompareGreaterThan) {
 				lastInserted = bSize;
 				
 				//NSLog(@"FILE DELETED (after): %@", currentNotes[i].filename);
-				[removedEntries addObject:currentNotes[i]];
+				[removedEntries addObject: note];
 			}
 		}
-		
-    }
+	}
     
     for (j=lastInserted; j<bSize; j++) {
 		
@@ -433,8 +417,9 @@ void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t num_event
 	} else {
 		
 		if (![removedEntries count]) {
-			for (i=0; i<[addedEntries count]; i++) {
-				[self addNoteFromCatalogEntry:(NoteCatalogEntry*)[[addedEntries objectAtIndex:i] pointerValue]];
+			for (NSValue *entryPtr in addedEntries) {
+				NoteCatalogEntry *entry = [entryPtr pointerValue];
+				[self addNoteFromCatalogEntry: entry];
 			}
 		}
 		
