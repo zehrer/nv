@@ -62,7 +62,7 @@
 		deletedNoteSet = antiNotes;		
 		
 		NSMutableData *oldNotesData = notesData;
-		notesData = [notesData compressedData];
+		notesData = [oldNotesData compressedData];
 		
 		//ostensibly to create more entropy in the first blocks, relying on CBC dependency to crack
 		//[notesData reverseBytes];

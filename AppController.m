@@ -156,10 +156,8 @@ BOOL isEd;
     [splitSubview setAutoresizesSubviews:YES];
     [splitSubview addSubview:textScrollView];
     
-    id docView = [textScrollView documentView];
     ETClipView *newClipView = [[ETClipView alloc] initWithFrame:[[textScrollView contentView] frame]];
     [newClipView setDrawsBackground:NO];
-    //    [newClipView setBackgroundColor:[self backgrndColor]];
     [textScrollView setContentView:(ETClipView *)newClipView];
     [textScrollView setDocumentView:textView];
     

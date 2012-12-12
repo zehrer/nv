@@ -726,9 +726,6 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 }
 
 - (void)setTitleString:(NSString*)aNewTitle {
-	
-	NSString *oldTitle = titleString;
-	
     if ([self _setTitleString:aNewTitle]) {
 		//do you really want to do this when the format is a single DB and the file on disk hasn't been removed?
 		//the filename could get out of sync if we lose the fsref and we could end up with a second file after note is rewritten

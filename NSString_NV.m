@@ -166,8 +166,7 @@ CFDateFormatterRef simplenoteDateFormatter(int lowPrecision) {
 
 // TODO: possibly obsolete? SN api2 formats dates as doubles from start of unix epoch
 + (NSString*)simplenoteDateWithAbsoluteTime:(CFAbsoluteTime)absTime {
-	CFStringRef str = CFDateFormatterCreateStringWithAbsoluteTime(NULL, simplenoteDateFormatter(0), absTime);
-	return (__bridge id)str;
+	return (__bridge_transfer NSString *)CFDateFormatterCreateStringWithAbsoluteTime(NULL, simplenoteDateFormatter(0), absTime);
 }
 
 // TODO: possibly obsolete? SN api2 formats dates as doubles from start of unix epoch
@@ -534,7 +533,7 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, unsigned charIndex) {
 		CFRelease(uuidRef);
 	}
 	
-	return (__bridge NSString*)uuidString;
+	return (__bridge_transfer NSString*)uuidString;
 }
 
 
