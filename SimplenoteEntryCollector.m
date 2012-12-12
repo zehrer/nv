@@ -406,7 +406,7 @@
 				NSUInteger bodyLoc = 0;
 				NSString *separator = nil;
 				NSString *combinedContent = [rawObject objectForKey:@"content"];
-				NSString *newTitle = [combinedContent syntheticTitleAndSeparatorWithContext:&separator bodyLoc:&bodyLoc oldTitle: [aNote title] maxTitleLen:60];
+				NSString *newTitle = [combinedContent syntheticTitleAndSeparatorWithContext:&separator bodyLoc:&bodyLoc oldTitle: [(NoteObject *)aNote title] maxTitleLen:60];
 				
 				[(NoteObject *)aNote updateWithSyncBody:[combinedContent substringFromIndex:bodyLoc] andTitle:newTitle];
 			}

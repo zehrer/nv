@@ -2161,23 +2161,6 @@ static long (*GetGetScriptManagerVariablePointer())(short) {
 	 [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(hideTextFinderIfNecessary:) name:@"TextFinderShouldHide" object:nil];
 }
 
-- (void)prepareTextFinderPreLion{
-    [self setUsesFindPanel:YES];
-    textFinder=[NSClassFromString(@"NSTextFinder")sharedTextFinder];
-    [[textFinder findPanel:YES] setDelegate:self];
-    NSArray *sViews = [[[textFinder findPanel:YES] contentView] subviews];
-    for (id thing in sViews){
-        if ([[thing className] isEqualToString:@"NSButton"]) {
-            NSButton *aBut = thing;
-            //            if (![aBut target]==nil) {
-            [aBut setTarget:self];
-            [aBut setAction:@selector(performFindPanelAction:)];
-            //            }
-        }
-    }    
-    [[textFinder findPanel:YES] update];
-}
-
 
 - (void)textFinderShouldUpdateContext:(NSNotification *)aNotification{
 	[textFinder setFindIndicatorNeedsUpdate:YES];
