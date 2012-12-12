@@ -26,6 +26,10 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 	return a>b?a:b;
 }
 
+@implementation RBSubviewCache
+
+@end
+
 @implementation RBSplitView
 
 // These class methods get and set the cursor used for each type.
@@ -1444,293 +1448,293 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 	if (subcount<1) {
 		return;
 	}
+	
 	NSRect bounds = [self bounds];
-// Never adjust if the splitview itself is collapsed.
+	// Never adjust if the splitview itself is collapsed.
 	if ((bounds.size.width<1.0)||(bounds.size.height<1.0)) {
 		return;
 	}
-// Prevents adjustSubviews being called recursively, which unfortunately may happen otherwise.
+	
+	// Prevents adjustSubviews being called recursively, which unfortunately may happen otherwise.
 	if (isAdjusting) {
 		return;
 	}
 	isAdjusting = YES;
-// Tell the delegate we're about to adjust subviews.
+	
+	// Tell the delegate we're about to adjust subviews.
 	if ([delegate respondsToSelector:@selector(willAdjustSubviews:)]) {
 		[delegate willAdjustSubviews:self];
 		bounds = [self bounds];
 	}
+	
 	NSUInteger divcount = subcount-1;
 	if (divcount<1) {
-// No dividers at all.
+		// No dividers at all.
 		if (dividers) {
 			free(dividers);
 			dividers = NULL;
 		}
 	} else {
-// Try to allocate or resize if we already have a dividers array.
-		NSUInteger divsiz = sizeof(NSRect)*divcount;
-		dividers = (NSRect*)(dividers?reallocf(dividers,divsiz):calloc(divsiz, 1));
+		// Try to allocate or resize if we already have a dividers array.
+		dividers = reallocf(dividers, sizeof(NSRect)*divcount);
 		if (!dividers) {
 			return;
 		}
 	}
-// This C array of subviewCaches is used to cache the subview information.
-	subviewCache* caches = calloc(sizeof(subviewCache), subcount);
+	
+	// This array of RBSubviewCaches is used to cache subview information.
+	NSArray *cachesArr = [[subviews valueForKey: @"RB___newCache"] copy];
+	
 	double realsize = 0.0;
-	double expsize = 0.0;
+	__block double expsize = 0.0;
 	CGFloat newsize = 0.0;
 	CGFloat effsize = 0.0;
-	CGFloat limit = 0.0;
-	subviewCache* curr;
-	NSUInteger i = 0;
+	__block CGFloat limit = 0.0;
 	BOOL ishor = [self isHorizontal];
 	CGFloat divt = [self dividerThickness];
-// First we loop over subviews and cache their information.
-	for (i=0;i<subcount;i++) {
-		curr = &caches[i];
-		[[subviews objectAtIndex:i] RB___copyIntoCache:curr];
-	}
-// This is a counter to limit the outer loop to three iterations (six if excepting is non-nil).
-	NSInteger sanity = excepting?-3:0;
-	while (sanity++<3) {
-// We try to accomodate the exception for the first group of loops, turn it off for the second.
+
+	// This is a counter to limit the outer loop to three iterations (six if excepting is non-nil).
+	for (NSInteger sanity = excepting ? -3 : 0; sanity < 3; sanity++) {
+		// We try to accomodate the exception for the first group of loops, turn it off for the second.
 		if (sanity==1) {
 			excepting = nil;
 		}
-// newsize is the available space for actual subviews (so dividers don't count). It will be an integer.
-// Same as calling [self RB___dimensionWithoutDividers].
-		NSUInteger smallest = 0;
-		CGFloat smalldim = -1.0;
-		BOOL haveexp = NO;
-// Loop over subviews and sum the expanded dimensions into expsize, including fractions.
-// Also find the collapsed subview with the smallest minimum dimension.
-		for (i=0;i<subcount;i++) {
-			curr = &caches[i];
-			curr->constrain = NO;
-			if (curr->size>0.0) {
-				expsize += curr->size;
+		
+		// newsize is the available space for actual subviews (so dividers don't count). It will be an integer.
+		// Same as calling [self RB___dimensionWithoutDividers].
+		__block NSUInteger smallest = 0;
+		__block CGFloat smalldim = -1.0;
+		__block BOOL haveexp = NO;
+		
+		// Loop over subviews and sum the expanded dimensions into expsize, including fractions.
+		// Also find the collapsed subview with the smallest minimum dimension.
+		[cachesArr enumerateObjectsUsingBlock:^(RBSubviewCache *curr, NSUInteger i, BOOL *stop) {
+			curr.constrain = NO;
+			if (curr.size > 0.0) {
+				expsize += curr.size;
 				if (!isInScrollView) {
-// ignore fractions if we're in a NSScrollView, however.
-					expsize += curr->fraction;
+					// ignore fractions if we're in a NSScrollView, however.
+					expsize += curr.fraction;
 				}
 				haveexp = YES;
 			} else {
-				limit = [curr->sub minDimension];
+				limit = curr.subview.minDimension;
 				if (smalldim>limit) {
 					smalldim = limit;
 					smallest = i;
 				}
 			}
-		}
-// haveexp should be YES at this point. If not, all subviews were collapsed; can't have that, so we 
-// expand the smallest subview (or the first, if all have the same minimum).
-		curr = &caches[smallest];
+		}];
+		
+		// haveexp should be YES at this point. If not, all subviews were collapsed; can't have that, so we
+		// expand the smallest subview (or the first, if all have the same minimum).
+		RBSubviewCache *smallestCache = cachesArr[smallest];
 		if (!haveexp) {
-			curr->size = [curr->sub minDimension];
-			curr->fraction = 0.0;
-			expsize += curr->size;
+			smallestCache.size = smallestCache.subview.minDimension;
+			smallestCache.fraction = 0.0;
+			expsize += smallestCache.size;
 		}
+		
 		if (isInScrollView) {
-// If we're inside an NSScrollView, we just grow the view to accommodate the subviews, instead of 
-// the other way around.
+			// If we're inside an NSScrollView, we just grow the view to accommodate the subviews, instead of 
+			// the other way around.
 			DIM(bounds.size) = expsize;
 			break;
 		} else {
-// If the total dimension of all expanded subviews is less than 1.0 we set the dimension of the smallest
-// subview (which we're sure is expanded at this point) to the available space.
+			// If the total dimension of all expanded subviews is less than 1.0 we set the dimension of the smallest
+			// subview (which we're sure is expanded at this point) to the available space.
 			newsize = DIM(bounds.size)-divcount*divt;
-			if (expsize<1.0) {
-				curr->size = newsize;
-				curr->fraction = 0.0;
+			if (expsize < 1.0) {
+				smallestCache.size = newsize;
+				smallestCache.fraction = 0.0;
 				expsize = newsize;
 			}
-// Loop over the subviews and check if they're within the limits after scaling. We also recalculate the
-// exposed size and repeat until no more subviews hit the constraints during that loop.
+			// Loop over the subviews and check if they're within the limits after scaling. We also recalculate the
+			// exposed size and repeat until no more subviews hit the constraints during that loop.
 			BOOL constrained;
 			effsize = newsize;// we're caching newsize here, this is an integer.
 			do {
-// scale is the scalefactor by which all views should be scaled - assuming none have constraints.
-// It's a double to (hopefully) keep rounding errors small enough for all practical purposes.
+				// scale is the scalefactor by which all views should be scaled - assuming none have constraints.
+				// It's a double to (hopefully) keep rounding errors small enough for all practical purposes.
 				double scale = newsize/expsize;
 				constrained = NO;
 				realsize = 0.0;
 				expsize = 0.0;
-				for (i=0;i<subcount;i++) {
-// Loop over the cached subview info.
-					curr = &caches[i];
-					if (curr->size>0.0) {
-// Check non-collapsed subviews only.
-						if (!curr->constrain) {
-// Check non-constrained subviews only; calculate the proposed new size.
-							CGFloat cursize = (curr->size+curr->fraction)*scale;
-// Check if we hit a limit. limit will contain either the max or min dimension, whichever was hit.
-							if (([curr->sub RB___animationData:NO resize:NO]&&((limit = curr->size)>=0.0))||
-								((curr->sub==excepting)&&((limit = [curr->sub dimension])>0.0))||
-								(cursize<(limit = [curr->sub minDimension]))||
-								(cursize>(limit = [curr->sub maxDimension]))) {
-// If we hit a limit, we mark the view and set to repeat the loop; non-constrained subviews will
-// have to be recalculated.
-								curr->constrain = constrained = YES;
-// We set the new size to the limit we hit, and subtract it from the total size to be subdivided.
-								cursize = limit;
-								curr->fraction = 0.0;
-								newsize -= cursize;
-							} else {
-// If we didn't hit a limit, we round the size to the nearest integer and recalculate the fraction. 
-								double rem = fmod(cursize,1.0);
-								cursize -= rem;
-								if (rem>0.5) {
-									++cursize;
-									--rem;
-								}
-								expsize += cursize;
-								curr->fraction = rem;
+				
+				// Loop over the cached subview info.
+				for (RBSubviewCache *curr in cachesArr) {
+					// Check non-collapsed subviews only.
+					if (curr.size <= 0.0) continue;
+					
+					if (!curr.constrain) {
+						// Check non-constrained subviews only; calculate the proposed new size.
+						CGFloat cursize = (curr.size+curr.fraction)*scale;
+						// Check if we hit a limit. limit will contain either the max or min dimension, whichever was hit.
+						if (([curr.subview RB___animationData:NO resize:NO]&&((limit = curr.size)>=0.0))||
+							((curr.subview==excepting)&&((limit = curr.subview.dimension)>0.0))||
+							(cursize<(limit = curr.subview.minDimension))||
+							(cursize>(limit = curr.subview.maxDimension))) {
+							// If we hit a limit, we mark the view and set to repeat the loop; non-constrained subviews will
+							// have to be recalculated.
+							curr.constrain = constrained = YES;
+							// We set the new size to the limit we hit, and subtract it from the total size to be subdivided.
+							cursize = limit;
+							curr.fraction = 0.0;
+							newsize -= cursize;
+						} else {
+							// If we didn't hit a limit, we round the size to the nearest integer and recalculate the fraction.
+							double rem = fmod(cursize,1.0);
+							cursize -= rem;
+							if (rem>0.5) {
+								++cursize;
+								--rem;
 							}
-// We store the new size in the cache.
-							curr->size = cursize;
+							expsize += cursize;
+							curr.fraction = rem;
 						}
-// And add the full size with fraction to the actual sum of all expanded subviews.
-						realsize += curr->size+curr->fraction;
+						// We store the new size in the cache.
+						curr.size = cursize;
 					}
+					// And add the full size with fraction to the actual sum of all expanded subviews.
+					realsize += curr.size+curr.fraction;
 				}
-// At this point, newsize will be the sum of the new dimensions of non-constrained views.
-// expsize will be the sum of the recalculated dimensions of the same views, if any.
-// We repeat the loop if any view has been recently constrained, and if there are any
-// unconstrained views left.
+				
+				// At this point, newsize will be the sum of the new dimensions of non-constrained views.
+				// expsize will be the sum of the recalculated dimensions of the same views, if any.
+				// We repeat the loop if any view has been recently constrained, and if there are any
+				// unconstrained views left.
 			} while (constrained&&(expsize>0.0));
-// At this point, the difference between realsize and effsize should be less than 1 pixel.
-// realsize is the total size of expanded subviews as recalculated above, and
-// effsize is the value realsize should have.
+			
+			// At this point, the difference between realsize and effsize should be less than 1 pixel.
+			// realsize is the total size of expanded subviews as recalculated above, and
+			// effsize is the value realsize should have.
 			limit = realsize-effsize;
 			if (limit>=1.0) {
-// If realsize is larger than effsize by 1 pixel or more, we will need to collapse subviews to make room.
-// This in turn might expand previously collapsed subviews. So, we'll try collapsing constrained subviews
-// until we're back into range, and then recalculate everything from the beginning.
-				for (i=0;i<subcount;i++) {
-					curr = &caches[i];
-					if (curr->constrain&&(curr->sub!=excepting)&&([curr->sub RB___animationData:NO resize:NO]==nil)&&[curr->sub canCollapse]) {
-						realsize -= curr->size;
-						if (realsize<1.0) {
-							break;
-						}
-						curr->size = 0.0;
-						if ((realsize-effsize)<1.0) {
-							break;
-						}
-					}
+				// If realsize is larger than effsize by 1 pixel or more, we will need to collapse subviews to make room.
+				// This in turn might expand previously collapsed subviews. So, we'll try collapsing constrained subviews
+				// until we're back into range, and then recalculate everything from the beginning.
+				for (RBSubviewCache *curr in cachesArr) {
+					if (!curr.constrain || curr.subview == excepting || [curr.subview RB___animationData:NO resize:NO] || !curr.subview.canCollapse) continue;
+					
+					realsize -= curr.size;
+					if (realsize < 1.0) break;
+					curr.size = 0.0;
+					if ((realsize-effsize)<1.0) break;
 				}
 			} else if (limit<=-1.0) {
-// If realsize is smaller than effsize by 1 pixel or more, we will need to expand subviews.
-// This in turn might collapse previously expanded subviews. So, we'll try expanding collapsed subviews
-// until we're back into range, and then recalculate everything from the beginning.
-				for (i=0;i<subcount;i++) {
-					curr = &caches[i];
-					if (curr->size<=0.0) {
-						curr->size = [curr->sub minDimension];
-						curr->fraction = 0.0;
-						realsize += curr->size;
-						if ((realsize-effsize)>-1.0) {
-							break;
-						}
-					}
+				// If realsize is smaller than effsize by 1 pixel or more, we will need to expand subviews.
+				// This in turn might collapse previously expanded subviews. So, we'll try expanding collapsed subviews
+				// until we're back into range, and then recalculate everything from the beginning.
+				for (RBSubviewCache *curr in cachesArr) {
+					if (curr.size > 0.0) continue;
+					
+					curr.size = curr.subview.minDimension;
+					curr.fraction = 0.0;
+					realsize += curr.size;
+					if ((realsize-effsize)>-1.0) break;
 				}
 			} else {
-// The difference is less than 1 pixel, meaning that in all probability our calculations are
-// exact or off by at most one pixel after rounding, so we break the loop here.
+				// The difference is less than 1 pixel, meaning that in all probability our calculations are
+				// exact or off by at most one pixel after rounding, so we break the loop here.
 				break;
 			}
 		}
-// After passing through the outer loop a few times, the frames may still be wrong, but there's nothing
-// else we can do about it. You probably should avoid this by some other means like setting a minimum
-// or maximum size for the window, for instance, or leaving at least one unlimited subview.
+		// After passing through the outer loop a few times, the frames may still be wrong, but there's nothing
+		// else we can do about it. You probably should avoid this by some other means like setting a minimum
+		// or maximum size for the window, for instance, or leaving at least one unlimited subview.
 	}
-// newframe is used to reset all subview frames. Subviews always fill the entire RBSplitView along the
-// current orientation.
-	NSRect newframe = NSMakeRect(0.0,0.0,bounds.size.width,bounds.size.height);
-// We now loop over the subviews yet again and set the definite frames, also recalculating the
-// divider rectangles as we go along, and collapsing and expanding subviews whenever requested.
-	RBSplitSubview* last = nil;
-// And we make a note if there's any nested RBSplitView.
-	NSInteger nested = NSNotFound;
-//	newsize = DIM(bounds.size)-divcount*divt;
-	for (i=0;i<subcount;i++) {
-		curr = &caches[i];
-// If we have a nested split view store its index.
-		if ((nested==NSNotFound)&&([curr->sub asSplitView]!=nil)) {
-			nested = i;
-		}
-// Adjust the subview to the correct origin and resize it to fit into the "other" dimension.
+	
+	// newframe is used to reset all subview frames. Subviews always fill the entire RBSplitView along the
+	// current orientation.
+	__block NSRect newframe = NSMakeRect(0.0,0.0,bounds.size.width,bounds.size.height);
+	
+	// We now loop over the subviews yet again and set the definite frames, also recalculating the
+	// divider rectangles as we go along, and collapsing and expanding subviews whenever requested.
+	__block RBSplitSubview* last = nil;
+	
+	// And we make a note if there's any nested RBSplitView.
+	__block NSInteger nested = NSNotFound;
+	
+	[cachesArr enumerateObjectsUsingBlock:^(RBSubviewCache *curr, NSUInteger i, BOOL *stop) {
+		// If we have a nested split view store its index.
+		if (nested == NSNotFound && curr.subview.asSplitView) nested = i;
+		
+		// Adjust the subview to the correct origin and resize it to fit into the "other" dimension.
 		NSRect newRect = newframe;
 		OTHER(newRect.size) = OTHER(newframe.size);
-		DIM(newRect.size) = curr->size;
-		curr->rect = newRect;
-// Clear fractions for expanded subviews if requested.
-		if ((curr->size>0.0)&&mustClearFractions) {
-			curr->fraction = 0.0;
-		}
-// Ask the subview to do the actual moving/resizing etc. from the cache.
-		[curr->sub RB___updateFromCache:curr withTotalDimension:effsize];
-// Step to the next position and record the subview if it's not collapsed.
-		DIM(newframe.origin) += curr->size;
-		if (curr->size>0.0) {
-			last = curr->sub;
-		}
-		if (i==divcount) {
-// We're at the last subview, so we now check if the actual and calculated dimensions
-// are the same.
+		DIM(newRect.size) = curr.size;
+		curr.rect = newRect;
+		
+		// Clear fractions for expanded subviews if requested.
+		if (curr.size > 0.0 && mustClearFractions) curr.fraction = 0.0;
+		
+		// Ask the subview to do the actual moving/resizing etc. from the cache.
+		[curr.subview RB___updateFromCache:curr withTotalDimension:effsize];
+		
+		// Step to the next position and record the subview if it's not collapsed.
+		DIM(newframe.origin) += curr.size;
+		if (curr.size > 0.0) last = curr.subview;
+		
+		if (i == divcount) {
+			// We're at the last subview, so we now check if the actual and calculated dimensions
+			// are the same.
 			CGFloat remain = DIM(bounds.size)-DIM(newframe.origin);
-			if (last&&(fabs(remain)>0.0)) {
-// We'll resize the last expanded subview to whatever it takes to squeeze within the frame.
-// Normally the change should be at most one pixel, but if too many subviews were constrained,
-// this may be a large value, and the last subview may be resized beyond its constraints;
-// there's nothing else to do at this point.
+			if (last && fabs(remain) > 0.0) {
+				// We'll resize the last expanded subview to whatever it takes to squeeze within the frame.
+				// Normally the change should be at most one pixel, but if too many subviews were constrained,
+				// this may be a large value, and the last subview may be resized beyond its constraints;
+				// there's nothing else to do at this point.
 				newframe = [last frame];
 				DIM(newframe.size) += remain;
 				[last RB___setFrameSize:newframe.size withFraction:[last RB___fraction]-remain];
-// And we loop back over the rightmost dividers (if any) to adjust their offsets.
+				// And we loop back over the rightmost dividers (if any) to adjust their offsets.
 				while ((i>0)&&(last!=[subviews objectAtIndex:i])) {
 					DIM(dividers[--i].origin) += remain;
 				}
-				break;
+				
+				*stop = YES;
+				return;
 			}
 		} else {
-// For any but the last subview, we just calculate the divider frame.
+			// For any but the last subview, we just calculate the divider frame.
 			DIM(newframe.size) = divt;
-			if (dividers) {		// test for NULL to satisfy the analyzer
-				dividers[i] = newframe;
-			}
+			if (dividers) dividers[i] = newframe;
 			DIM(newframe.origin) += divt;
 		}
-	}
-// We resize our frame at this point, if we're inside an NSScrollView.
+	}];
+	
+	// We resize our frame at this point, if we're inside an NSScrollView.
 	if (isInScrollView) {
 		[super setFrameSize:bounds.size];
 	}
-// If there was at least one nested RBSplitView, we loop over the subviews and adjust those that need it.
-	for (i=nested;i<subcount;i++) {
-		curr = &caches[i];
-		RBSplitView* sv = [curr->sub asSplitView];
-		if ([sv mustAdjust]) {
-			[sv adjustSubviews];
-		}
-	}
-// Free the cache array.
-	free(caches);
-// Clear cursor rects.
+	
+	// If there was at least one nested RBSplitView, we loop over the subviews and adjust those that need it.
+	NSIndexSet *nestedIndexes = [NSIndexSet indexSetWithIndexesInRange: NSMakeRange(nested, cachesArr.count - nested)];
+	[cachesArr enumerateObjectsAtIndexes: nestedIndexes options: 0 usingBlock:^(RBSubviewCache *curr, NSUInteger idx, BOOL *stop) {
+		RBSplitView* sv = curr.subview.asSplitView;
+		if ([sv mustAdjust]) [sv adjustSubviews];
+	}];
+	
+	[cachesArr release];
+	
+	// Clear cursor rects.
 	mustAdjust = NO;
 	mustClearFractions = NO;
 	[[self window] invalidateCursorRectsForView:self];
-// Save the state for all subviews.
+	
+	// Save the state for all subviews.
 	if (!isDragging) {
 		[self saveState:NO];
 	}
-// If we're a nested RBSplitView, also invalidate cursorRects for the superview.
+	
+	// If we're a nested RBSplitView, also invalidate cursorRects for the superview.
 	RBSplitView* sv = [self couplingSplitView];
 	if (sv) {
 		[[self window] invalidateCursorRectsForView:sv];
 	}
 	isAdjusting = NO;
-// Tell the delegate we're finished.
+	
+	// Tell the delegate we're finished.
 	if ([delegate respondsToSelector:@selector(didAdjustSubviews:)]) {
 		[delegate didAdjustSubviews:self];
 	}

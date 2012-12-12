@@ -724,34 +724,36 @@ static animationData* currentAnimation = NULL;
 
 // This pair of internal methods is used only inside -[RBSplitView adjustSubviews] to copy subview data
 // from and to that method's internal cache.
-- (void)RB___copyIntoCache:(subviewCache*)cache {
-	cache->sub = self;
-	cache->rect = [self frame];
-	cache->size = [self RB___visibleDimension];
-	cache->fraction = fraction;
-	cache->constrain = NO;
+- (RBSubviewCache *)RB___newCache {
+	RBSubviewCache *cache = [RBSubviewCache new];
+	cache.subview = self;
+	cache.rect = [self frame];
+	cache.size = [self RB___visibleDimension];
+	cache.fraction = fraction;
+	cache.constrain = NO;
+	return [cache autorelease];
 }
 
-- (void)RB___updateFromCache:(subviewCache*)cache withTotalDimension:(CGFloat)value {
+- (void)RB___updateFromCache:(RBSubviewCache *)cache withTotalDimension:(CGFloat)value {
 	CGFloat dim = [self RB___visibleDimension];
-	if (cache->size>=1.0) {
-// New state is not collapsed.
+	if (cache.size>=1.0) {
+		// New state is not collapsed.
 		if (dim>=1.0) {
-// Old state was not collapsed, so we just change the frame.
-			[self RB___setFrame:cache->rect withFraction:cache->fraction notify:YES];
+			// Old state was not collapsed, so we just change the frame.
+			[self RB___setFrame:cache.rect withFraction:cache.fraction notify:YES];
 		} else {
-// Old state was collapsed, so we expand it.
-			[self RB___finishExpand:cache->rect withFraction:cache->fraction];
+			// Old state was collapsed, so we expand it.
+			[self RB___finishExpand:cache.rect withFraction:cache.fraction];
 		}
 	} else {
-// New state is collapsed.
+		// New state is collapsed.
 		if (dim>=1.0) {
-// Old state was not collapsed, so we clear first responder and change the frame.
+			// Old state was not collapsed, so we clear first responder and change the frame.
 			[self RB___clearResponder];
-			[self RB___finishCollapse:cache->rect withFraction:dim/value];
+			[self RB___finishCollapse:cache.rect withFraction:dim/value];
 		} else {
-// It was collapsed already, but the frame may have changed, so we set it.
-			[self RB___setFrame:cache->rect withFraction:cache->fraction notify:YES];
+			// It was collapsed already, but the frame may have changed, so we set it.
+			[self RB___setFrame:cache.rect withFraction:cache.fraction notify:YES];
 		}
 	}
 }

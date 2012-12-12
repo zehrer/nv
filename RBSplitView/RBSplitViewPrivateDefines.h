@@ -27,14 +27,15 @@
 // This is the default framerate for collapse/expand animation.
 #define FRAMETIME (1.0/60.0)
 
-// This struct is used internally for speeding up adjustSubviews.
-typedef struct subviewCache {
-	NSRect rect;					// the subview's frame
-	double fraction;				// fractional extra
-	RBSplitSubview* sub;			// points at the subview
-	CGFloat size;					// current dimension
-	BOOL constrain;					// set if constrained
-} subviewCache;
+@interface RBSubviewCache : NSObject
+
+@property (nonatomic) NSRect rect;						// the subview's frame
+@property (nonatomic) double fraction;					// fractional extra
+@property (nonatomic, retain) RBSplitSubview *subview;	// points at the subview
+@property (nonatomic) CGFloat size;						// current dimension
+@property (nonatomic) BOOL constrain;					// set if constrained
+
+@end
 
 // This struct is used internally for doing collapse/expand animation.
 typedef struct animationData {
@@ -66,8 +67,8 @@ typedef struct animationData {
 - (void)RB___setFrameSize:(NSSize)size withFraction:(double)value;
 - (void)RB___setFrame:(NSRect)rect withFraction:(double)value notify:(BOOL)notify;
 - (double)RB___fraction;
-- (void)RB___copyIntoCache:(subviewCache*)cache;
-- (void)RB___updateFromCache:(subviewCache*)cache withTotalDimension:(CGFloat)value;
+- (RBSubviewCache *)RB___newCache;
+- (void)RB___updateFromCache:(RBSubviewCache *)cache withTotalDimension:(CGFloat)value;
 - (BOOL)RB___clearResponder;
 
 @end
