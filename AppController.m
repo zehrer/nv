@@ -3136,7 +3136,7 @@ void outletObjectAwoke(id sender) {
      NSLog(@"perform key AC");
 //    [self resetModTimers];
     [[NSNotificationCenter defaultCenter] postNotificationName:@"ModTimersShouldReset" object:nil];
-    return [super performKeyEquivalent:theEvent];
+    return YES;
 }
 
 #pragma mark toggleDock

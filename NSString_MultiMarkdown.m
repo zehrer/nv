@@ -9,6 +9,7 @@
 #import "PreviewController.h"
 #import "AppController.h"
 #import "NoteObject.h"
+#import "NSFileManager+DirectoryLocations.h"
 
 @implementation NSString (MultiMarkdown)
 

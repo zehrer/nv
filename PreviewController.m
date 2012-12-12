@@ -15,6 +15,7 @@
 #import "ETTransparentButtonCell.h"
 #import "ETTransparentButton.h"
 #import "BTTransparentScroller.h"
+#import "NSFileManager+DirectoryLocations.h"
 
 #define kDefaultMarkupPreviewVisible @"markupPreviewVisible"
 
