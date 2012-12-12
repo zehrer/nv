@@ -10,16 +10,20 @@
 #import "RBSplitView.h"
 #import "RBSplitViewPrivateDefines.h"
 
+@implementation RBAnimationData
+
+@end
+
 // This variable points to the animation data structure while an animation is in
 // progress; if there's none, it will be NULL. Animating may be very CPU-intensive so
 // we allow only one animation to take place at a time.
-static animationData* currentAnimation = NULL;
+static RBAnimationData *currentAnimationObj = NULL;
 
 @implementation RBSplitSubview
 
 // This class method returns YES if an animation is in progress.
 + (BOOL)animating {
-	return currentAnimation!=NULL;
+	return currentAnimationObj!=NULL;
 }
 
 // This is the designated initializer for RBSplitSubview. It sets some reasonable defaults. However, you
@@ -177,9 +181,9 @@ static animationData* currentAnimation = NULL;
 
 // Returns the subview's status.
 - (RBSSubviewStatus)status {
-	animationData* anim = [self RB___animationData:NO resize:NO];
+	RBAnimationData* anim = [self RB___animationData:NO resize:NO];
 	if (anim) {
-		return anim->collapsing?RBSSubviewCollapsing:RBSSubviewExpanding;
+		return anim.collapsing?RBSSubviewCollapsing:RBSSubviewExpanding;
 	}
 	return [self RB___visibleDimension]<=0.0?RBSSubviewCollapsed:RBSSubviewNormal;
 }
@@ -373,8 +377,8 @@ static animationData* currentAnimation = NULL;
 		CGFloat dim = DIM(frame.size);
 		CGFloat other = OTHER(frame.size);
 // We resize subviews only when we're inside the subview's limits and the containing splitview's limits.
-		animationData* anim = [self RB___animationData:NO resize:NO];
-		if ((dim>=(anim&&!anim->resizing?anim->dimension:minDimension))&&(dim<=maxDimension)&&(other>=[sv minDimension])&&(other<=[sv maxDimension])) {
+		RBAnimationData* anim = [self RB___animationData:NO resize:NO];
+		if ((dim>=(anim&&!anim.resizing?anim.dimension:minDimension))&&(dim<=maxDimension)&&(other>=[sv minDimension])&&(other<=[sv maxDimension])) {
 			if (notInLimits) {
 // The subviews can be resized, so we restore the saved size.
 				oldBoundsSize = savedSize;
@@ -609,8 +613,8 @@ static animationData* currentAnimation = NULL;
 // the receiver isn't the current owner and some other subview is already being animated.
 // Otherwise, if the parameter is YES, a new animation will be started (or the current
 // one will be restarted).
-- (animationData*)RB___animationData:(BOOL)start resize:(BOOL)resize {
-	if (currentAnimation&&(currentAnimation->owner!=self)) {
+- (RBAnimationData *)RB___animationData:(BOOL)start resize:(BOOL)resize {
+	if (currentAnimationObj&&(currentAnimationObj.owner!=self)) {
 // There already is an animation in progress on some other subview.
 		return nil;
 	}
@@ -627,59 +631,59 @@ static animationData* currentAnimation = NULL;
 			}
 // No use animating anything shorter than the frametime.
 			if (total>FRAMETIME) {
-				if (!currentAnimation) {
-					currentAnimation = (animationData*)malloc(sizeof(animationData));
+				if (!currentAnimationObj) {
+					currentAnimationObj = [RBAnimationData new];
 				}
-				if (currentAnimation) {
-					currentAnimation->owner = self;
-					currentAnimation->stepsDone = 0;
-					currentAnimation->elapsedTime = 0.0;
-					currentAnimation->dimension = dim;
-					currentAnimation->collapsing = ![self isCollapsed];
-					currentAnimation->totalTime = total;
-					currentAnimation->finishTime = [NSDate timeIntervalSinceReferenceDate]+total;
-					currentAnimation->resizing = resize;
+				if (currentAnimationObj) {
+					currentAnimationObj.owner = self;
+					currentAnimationObj.stepsDone = 0;
+					currentAnimationObj.elapsedTime = 0.0;
+					currentAnimationObj.dimension = dim;
+					currentAnimationObj.collapsing = ![self isCollapsed];
+					currentAnimationObj.totalTime = total;
+					currentAnimationObj.finishTime = [NSDate timeIntervalSinceReferenceDate]+total;
+					currentAnimationObj.resizing = resize;
 					[sv RB___setDragging:YES];
 				}
-			} else if (currentAnimation) {
-				free(currentAnimation);
-				currentAnimation = NULL;
+			} else if (currentAnimationObj) {
+				[currentAnimationObj release];
+				currentAnimationObj = NULL;
 			}
 		}
 	}
-	return currentAnimation;
+	return currentAnimationObj;
 }
 
 // This internal method steps the animation to the next frame.
 - (void)RB___stepAnimation {
 	NSTimeInterval now = [NSDate timeIntervalSinceReferenceDate];
-	animationData* anim = [self RB___animationData:NO resize:NO];
+	RBAnimationData* anim = [self RB___animationData:NO resize:NO];
 	if (anim) {
 		RBSplitView* sv = [self splitView];
-		NSTimeInterval remain = anim->finishTime-now;
+		NSTimeInterval remain = anim.finishTime-now;
 		NSRect frame = [self frame];
 		BOOL ishor = [sv isHorizontal];
 // Continuing animation only makes sense if we still have at least FRAMETIME available.
 		if (remain>=FRAMETIME) {
-			CGFloat avg = anim->elapsedTime;
+			CGFloat avg = anim.elapsedTime;
 // We try to keep a record of how long it takes, on the average, to resize and adjust
 // one animation frame.
-			if (anim->stepsDone) {
-				avg /= anim->stepsDone;
+			if (anim.stepsDone) {
+				avg /= anim.stepsDone;
 			}
 			NSTimeInterval delay = MIN(0.0,FRAMETIME-avg);
 // We adjust the new dimension proportionally to how much of the designated time has passed.
-			CGFloat dim = floor(anim->dimension*(remain-avg)/anim->totalTime);
+			CGFloat dim = floor(anim.dimension*(remain-avg)/anim.totalTime);
 			if (dim>4.0) {
-				if (!anim->collapsing) {
-					dim = anim->dimension-dim;
+				if (!anim.collapsing) {
+					dim = anim.dimension-dim;
 				} 
 				DIM(frame.size) = dim;
 				[self RB___setFrame:frame withFraction:0.0 notify:NO];
 				[sv adjustSubviews];
 				[self display];
-				anim->elapsedTime += [NSDate timeIntervalSinceReferenceDate]-now;
-				++anim->stepsDone;
+				anim.elapsedTime += [NSDate timeIntervalSinceReferenceDate]-now;
+				++anim.stepsDone;
 // Schedule a timer to do the next animation step.
 				[self performSelector:@selector(RB___stepAnimation) withObject:nil afterDelay:delay inModes:[NSArray arrayWithObjects:NSDefaultRunLoopMode,NSModalPanelRunLoopMode,
 					NSEventTrackingRunLoopMode,nil]];
@@ -687,12 +691,12 @@ static animationData* currentAnimation = NULL;
 			}
 		}
 // We're finished, either collapse or expand entirely now.
-		if (anim->collapsing) {
+		if (anim.collapsing) {
 			DIM(frame.size) = 0.0;
-			[self RB___finishCollapse:frame withFraction:anim->dimension/[sv RB___dimensionWithoutDividers]];
+			[self RB___finishCollapse:frame withFraction:anim.dimension/[sv RB___dimensionWithoutDividers]];
 		} else {
 			CGFloat savemin,savemax;
-			CGFloat dim = [self RB___setMinAndMaxTo:anim->dimension savingMin:&savemin andMax:&savemax];
+			CGFloat dim = [self RB___setMinAndMaxTo:anim.dimension savingMin:&savemin andMax:&savemax];
 			DIM(frame.size) = dim;
 			[self RB___finishExpand:frame withFraction:0.0];
 			minDimension = savemin;
@@ -704,10 +708,10 @@ static animationData* currentAnimation = NULL;
 // This internal method stops the animation, if the receiver is being animated. It will
 // return YES if the animation was stopped.
 - (BOOL)RB___stopAnimation {
-	if (currentAnimation&&(currentAnimation->owner==self)) {
+	if (currentAnimationObj&&(currentAnimationObj.owner==self)) {
 		[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(RB___stepAnimation) object:nil];
-		free(currentAnimation);
-		currentAnimation = NULL;
+		[currentAnimationObj release];
+		currentAnimationObj = NULL;
 		[[self splitView] RB___setDragging:NO];
 		return YES;
 	}
