@@ -378,7 +378,7 @@ void outletObjectAwoke(id sender) {
 		if (err == kPassCanceledErr) {
 			showError = NO;
 		} else {
-			location = (aliasData ? [[[NSFileManager defaultManager] pathCopiedFromAliasData:aliasData] autorelease] : NSLocalizedString(@"your Application Support directory",nil));
+			location = aliasData ? [[NSFileManager defaultManager] pathCopiedFromAliasData:aliasData] : NSLocalizedString(@"your Application Support directory",nil);
 			if (!location) { //fscopyaliasinfo sucks
 				FSRef locationRef;
 				CFStringRef newLocation = NULL;

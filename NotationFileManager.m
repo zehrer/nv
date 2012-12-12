@@ -352,7 +352,7 @@ long BlockSizeForNotation(NotationController *controller) {
 				if (!url || !CFURLGetFSRef(url, &newParentRef)) {
 					NSRunAlertPanel(NSLocalizedString(@"Unable to create an FSRef from the chosen directory.",nil), 
 									NSLocalizedString(@"Your notes were not moved.",nil), NSLocalizedString(@"OK",nil), NULL, NULL);
-					CFRelease(url);
+					if (url) CFRelease(url);
 					continue;
 				}
 				CFRelease(url);

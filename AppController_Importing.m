@@ -96,32 +96,32 @@
 	
 	if ([types containsObject:NVPTFPboardType]) {
 		if ((data = [pasteboard dataForType:NVPTFPboardType]))
-			newString = [[NSMutableAttributedString alloc] initWithRTF:data documentAttributes:NULL];
+			newString = [[[NSMutableAttributedString alloc] initWithRTF:data documentAttributes:NULL] autorelease];
 		
 	} else if ([types containsObject:NSRTFPboardType] && !shallUsePlainTextFallback) {
 		if ((data = [pasteboard dataForType:NSRTFPboardType]))
-			newString = [[NSMutableAttributedString alloc] initWithRTF:data documentAttributes:NULL];
+			newString = [[[NSMutableAttributedString alloc] initWithRTF:data documentAttributes:NULL] autorelease];
 		hasRTFData = YES;
 	} else if ([types containsObject:NSRTFDPboardType] && !shallUsePlainTextFallback) {
 		if ((data = [pasteboard dataForType:NSRTFDPboardType]))
-			newString = [[NSMutableAttributedString alloc] initWithRTFD:data documentAttributes:NULL];
+			newString = [[[NSMutableAttributedString alloc] initWithRTFD:data documentAttributes:NULL] autorelease];
 		hasRTFData = YES;
 	} else if ([types containsObject:WebArchivePboardType] && !shallUsePlainTextFallback) {
 		if ((data = [pasteboard dataForType:WebArchivePboardType])) {
 			//set a timeout because -[NSHTMLReader _loadUsingWebKit] can sometimes hang
-			newString = [[NSMutableAttributedString alloc] initWithData:data options:[NSDictionary optionsDictionaryWithTimeout:10.0] 
-													 documentAttributes:NULL error:NULL];
+			newString = [[[NSMutableAttributedString alloc] initWithData:data options:[NSDictionary optionsDictionaryWithTimeout:10.0]
+													 documentAttributes:NULL error:NULL] autorelease];
 		}
 		hasRTFData = YES;
 		
 	} else if ([types containsObject:NSHTMLPboardType] && !shallUsePlainTextFallback) {
 		if ((data = [pasteboard dataForType:NSHTMLPboardType]))
-			newString = [[NSMutableAttributedString alloc] initWithHTML:data documentAttributes:NULL];
+			newString = [[[NSMutableAttributedString alloc] initWithHTML:data documentAttributes:NULL] autorelease];
 		hasRTFData = YES;
 	} else if (pbHasPlainText) {
 		
 		NSString *pboardString = [pasteboard stringForType:NSStringPboardType];
-		if (pboardString) newString = [[NSMutableAttributedString alloc] initWithString:pboardString];
+		if (pboardString) newString = [[[NSMutableAttributedString alloc] initWithString:pboardString] autorelease];
 	}
 	
 	if ([newString length] > 0) {
@@ -142,14 +142,11 @@
 														  format:[notationController currentNoteStorageFormat] labels:nil] autorelease];
 		if (bodyLoc > 0 && [newString length] >= bodyLoc + prefixedSourceLength) [note setSelectedRange:NSMakeRange(prefixedSourceLength, bodyLoc)];
 		[notationController addNewNote:note];
-		
-		[newString release];
-		
+				
 		return note != nil;
-	} else {
-		[newString release];
-		return NO;
 	}
+	
+	return NO;
 }
 
 - (BOOL)interpretNVURL:(NSURL*)aURL {
