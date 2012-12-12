@@ -10,7 +10,6 @@
      or promote products derived from this software without specific prior written permission. */
 //ET NV4
 
-#import "NSTextFinder.h"
 #import "AppController.h"
 #import "NoteObject.h"
 #import "GlobalPrefs.h"
