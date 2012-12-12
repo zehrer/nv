@@ -20,7 +20,7 @@
 
 @interface NSString (CustomTruncation)
 
-void ResetFontRelatedTableAttributes();
+extern void ResetFontRelatedTableAttributes();
 NSDictionary *LineTruncAttributesForTitle();
 
 - (NSString*)truncatedPreviewStringOfLength:(NSUInteger)bodyCharCount;

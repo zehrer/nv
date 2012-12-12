@@ -121,7 +121,7 @@
   NSInteger currentPreviewMode;
 }
 
-void outletObjectAwoke(id sender);
+extern void outletObjectAwoke(id sender);
 
 - (void)setNotationController:(NotationController*)newNotation;
 - (void)handleGetURLEvent:(NSAppleEventDescriptor *)event withReplyEvent:(NSAppleEventDescriptor *)replyEvent;

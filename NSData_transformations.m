@@ -504,7 +504,6 @@
 	decLen = [self length] - finalLen;
 	if (!EVP_DecryptFinal(&cipherContext, (unsigned char *)[self mutableBytes] + finalLen, &decLen)) {
 		char buf[256];
-		ERR_error_string(ERR_get_error(), buf, sizeof(buf));
 		NSLog(@"Couldn't decrypt final buffer: %s", buf);
 		return NO;
 	}

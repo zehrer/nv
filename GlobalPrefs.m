@@ -33,6 +33,7 @@
 #import "NSString_NV.h"
 #import "AppController.h"
 #import "NotationController.h"
+#import "BufferUtils.h"
 
 #define SEND_CALLBACKS() sendCallbacksForGlobalPrefs(self, _cmd, sender)
 

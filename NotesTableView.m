@@ -1094,7 +1094,6 @@ enum { kNext_Tag = 'j', kPrev_Tag = 'k' };
 		return lastEventActivatedTagEdit ? @selector(setLabelString:) : @selector(setTitleString:);
 	}
 	return col.mutatingSelector;
-	return columnAttributeMutator(col);
 }
 
 - (BOOL)lastEventActivatedTagEdit {

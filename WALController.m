@@ -482,7 +482,7 @@ static CFStringRef SynchronizedNoteKeyDescription(const void *value) {
 	return value ? (__bridge CFStringRef)[NSString uuidStringWithBytes:*(CFUUIDBytes*)value] : NULL;
 }
 static CFHashCode SynchronizedNoteHash(const void * o) {
-	
+	extern CFHashCode CFHashBytes( const void * bytes, CFIndex length );
 	return CFHashBytes(o, sizeof(CFUUIDBytes));
 }
 static Boolean SynchronizedNoteIsEqual(const void *o, const void *p) {

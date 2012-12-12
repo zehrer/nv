@@ -53,6 +53,7 @@
 #import "NoteObject.h"
 #import "WordCountToken.h"
 #import <objc/message.h>
+#import "NSString_CustomTruncation.h"
 
 NSWindow *normalWindow;
 int ModFlagger;
