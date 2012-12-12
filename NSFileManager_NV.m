@@ -121,7 +121,7 @@
 }
 
 - (NSStringEncoding)textEncodingAttributeOfFSPath:(const char*)path {
-	if (!path) goto errorReturn;
+	if (!path) return 0;
 	
 	//We could query the size of the attribute, but that would require a second system call
 	//and the value for this key shouldn't need to be anywhere near this large, anyway.
@@ -129,28 +129,26 @@
 	char xattrValueBytes[128] = { 0 };
 	if (getxattr(path, "com.apple.TextEncoding", xattrValueBytes, sizeof(xattrValueBytes), 0, 0) < 0) {
 		if (ENOATTR != errno) NSLog(@"couldn't get text encoding attribute of %s: %d", path, errno);
-		goto errorReturn;
+		return 0;
 	}
+	
 	NSString *encodingStr = [NSString stringWithUTF8String:xattrValueBytes];
 	if (!encodingStr) {
 		NSLog(@"couldn't make attribute data from %s into a string", path);
-		goto errorReturn;
+		return 0;
 	}
-	NSArray *segs = [encodingStr componentsSeparatedByString:@";"];
 	
+	NSArray *segs = [encodingStr componentsSeparatedByString:@";"];
 	if ([segs count] >= 2 && [(NSString*)[segs objectAtIndex:1] length] > 1) {
 		return CFStringConvertEncodingToNSStringEncoding([[segs objectAtIndex:1] intValue]);
 	} else if ([(NSString*)[segs objectAtIndex:0] length] > 1) {
 		CFStringEncoding theCFEncoding = CFStringConvertIANACharSetNameToEncoding((CFStringRef)[segs objectAtIndex:0]);
 		if (theCFEncoding == kCFStringEncodingInvalidId) {
 			NSLog(@"couldn't convert IANA charset");
-			goto errorReturn;
+			return 0;
 		}
 		return CFStringConvertEncodingToNSStringEncoding(theCFEncoding);
 	}
-	
-errorReturn:
-	return 0;
 }
 
 - (NSString*)pathCopiedFromAliasData:(NSData*)aliasData {

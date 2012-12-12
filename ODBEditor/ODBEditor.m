@@ -148,7 +148,10 @@ static ODBEditor	*_sharedODBEditor;
 }
 
 - (BOOL)editNote:(NoteObject*)aNote inEditor:(ExternalEditor*)ed context:(NSDictionary *)context {
-	if (!aNote) goto beepReturn;
+	if (!aNote) {
+		NSBeep();
+		return NO;
+	}
 	
 	//see comments in -[TemporaryFileCachePreprer prepEditingSpaceIfNecessaryForNotationPrefs:]
 	
@@ -165,11 +168,14 @@ static ODBEditor	*_sharedODBEditor;
 	
 	if (![editingSpacePreparer preparedCachePath]) {
 		NSLog(@"not editing '%@' because temporary cache path was not initialized", aNote);
-		goto beepReturn;
+		NSBeep();
+		return NO;
 	}
+	
 	if (![ed isODBEditor]) {
 		NSLog(@"not editing '%@' with '%@' because it is not an ODB editor and the note-file cannot be saved directly", aNote, ed);
-		goto beepReturn;
+		NSBeep();
+		return NO;
 	}
 	
 	//now write aNote as text to path?
@@ -177,13 +183,11 @@ static ODBEditor	*_sharedODBEditor;
 	NSError *error = nil;
 	if (![[[aNote contentString] string] writeToFile:path atomically:NO encoding:NSUTF8StringEncoding error:&error]) {
 		NSLog(@"not editing '%@' because it could not be written to '%@'", aNote, path);
-		goto beepReturn;
+		NSBeep();
+		return NO;
 	}
 	
 	return [self editFile:path inEditor:ed options:@{ ODBEditorCustomPathKey: aNote.title } forClient:aNote context:context];
-beepReturn:
-	NSBeep();
-	return NO;
 }
 
 - (BOOL)editFile:(NSString *)path inEditor:(ExternalEditor*)ed options:(NSDictionary *)options forClient:(id)client context:(NSDictionary *)context {

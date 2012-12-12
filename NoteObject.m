@@ -1036,47 +1036,47 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	
 	float totalWidth = 0.0, height = 0.0;
 	
-	if (![labelString length]) goto returnSizeIfNecessary;
-	
-	NSArray *words = [self orderedLabelTitles];
-	if (![words count]) goto returnSizeIfNecessary;
-	
-	NSPoint nextBoxPoint = onRight ? NSMakePoint(NSMaxX(aRect), aRect.origin.y) : aRect.origin;
-	NSMutableArray *images = reqSize || !onRight ? nil : [NSMutableArray arrayWithCapacity:[words count]];
-	NSInteger i;
-	
-	for (i=0; i<(NSInteger)[words count]; i++) {
-		NSString *word = [words objectAtIndex:i];
-		if ([word length]) {
-			NSImage *img = [delegate cachedLabelImageForWord:word highlighted:isHighlighted];
+	if (labelString.length) {
+		NSArray *words = [self orderedLabelTitles];
+		if (words.count) {
+			NSPoint nextBoxPoint = onRight ? NSMakePoint(NSMaxX(aRect), aRect.origin.y) : aRect.origin;
+			NSMutableArray *images = reqSize || !onRight ? nil : [NSMutableArray arrayWithCapacity:[words count]];
+			NSInteger i;
+			
+			for (i=0; i<(NSInteger)[words count]; i++) {
+				NSString *word = [words objectAtIndex:i];
+				if ([word length]) {
+					NSImage *img = [delegate cachedLabelImageForWord:word highlighted:isHighlighted];
+					
+					if (!reqSize) {
+						if (onRight) {
+							[images addObject:img];
+						} else {
+							[img compositeToPoint:nextBoxPoint operation:NSCompositeSourceOver];
+							nextBoxPoint.x += [img size].width + 4.0;
+						}
+					} else {
+						totalWidth += [img size].width + 4.0;
+						height = MAX(height, [img size].height);
+					}
+				}
+			}
 			
 			if (!reqSize) {
 				if (onRight) {
-					[images addObject:img];
-				} else {
-					[img compositeToPoint:nextBoxPoint operation:NSCompositeSourceOver];
-					nextBoxPoint.x += [img size].width + 4.0;
+					//draw images in reverse instead
+					for (i = [images count] - 1; i>=0; i--) {
+						NSImage *img = [images objectAtIndex:i];
+						nextBoxPoint.x -= [img size].width + 4.0;
+						[img compositeToPoint:nextBoxPoint operation:NSCompositeSourceOver];
+					}
 				}
-			} else {
-				totalWidth += [img size].width + 4.0;
-				height = MAX(height, [img size].height);
+				return;
 			}
 		}
 	}
 	
-	if (!reqSize) {
-		if (onRight) {
-			//draw images in reverse instead
-			for (i = [images count] - 1; i>=0; i--) {
-				NSImage *img = [images objectAtIndex:i];
-				nextBoxPoint.x -= [img size].width + 4.0;
-				[img compositeToPoint:nextBoxPoint operation:NSCompositeSourceOver];
-			}
-		}
-	} else {
-	returnSizeIfNecessary:
-		if (reqSize) *reqSize = NSMakeSize(totalWidth, height);
-	}
+	if (reqSize) *reqSize = NSMakeSize(totalWidth, height);
 }
 
 

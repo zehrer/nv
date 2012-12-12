@@ -563,7 +563,8 @@ terminate:
 	//before we try to swap the data contents of this temp file with the (possibly even soon-to-be-created) Notes & Settings file,
 	//try to read it back and see if it can be decrypted and decoded:
 	if (verifyDelegate && verificationSel) {
-		if (noErr != (err = [[verifyDelegate performSelector:verificationSel withObject:[NSValue valueWithPointer:&tempFileRef] withObject:filename] intValue])) {
+		NSValue *pointerRef = [NSValue valueWithPointer:&tempFileRef];
+		if (noErr != (err = [[verifyDelegate performSelector:verificationSel withObject: pointerRef withObject:filename] intValue])) {
 			NSLog(@"couldn't verify written notes, so not continuing to save");
 			(void)FSDeleteObject(&tempFileRef);
 			return err;

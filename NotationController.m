@@ -232,46 +232,47 @@
 	char *notesData = NULL;
 	OSStatus err = noErr, result = noErr;
 	if ((err = FSRefReadData(notesFileRef, BlockSizeForNotation(self), &fileSize, (void**)&notesData, forceReadMask)) != noErr)
-		return [NSNumber numberWithInt:err];
+		return @(err);
 	
 	FrozenNotation *frozenNotation = nil;
 	if (!fileSize) {
 		result = eofErr;
-		goto returnResult;
+		return @(result);
 	}
-	NSData *archivedNotation = [[[NSData alloc] initWithBytesNoCopy:notesData length:fileSize freeWhenDone:NO] autorelease];
+	
+	NSData *archivedNotation = [[[NSData alloc] initWithBytesNoCopy:notesData length:fileSize freeWhenDone: YES] autorelease];
 	@try {
 		frozenNotation = [NSKeyedUnarchiver unarchiveObjectWithData:archivedNotation];
 	} @catch (NSException *e) {
 		NSLog(@"(VERIFY) Error unarchiving notes and preferences from data (%@, %@)", [e name], [e reason]);
 		result = kCoderErr;
-		goto returnResult;
+		return @(result);
 	}
+	
 	//unpack notes using the current NotationPrefs instance (not the just-unarchived one), with which we presumably just used to encrypt it
 	NSMutableArray *notesToVerify = [[frozenNotation unpackedNotesWithPrefs:notationPrefs returningError:&err] retain];	
 	if (noErr != err) {
 		result = err;
-		goto returnResult;
+		return @(result);
 	}
+	
 	//notes were unpacked--now roughly compare notesToVerify with allNotes, plus deletedNotes and notationPrefs
 	if (!notesToVerify || [notesToVerify count] != [allNotes count] || [[frozenNotation deletedNotes] count] != [deletedNotes  count] || 
 		[[frozenNotation notationPrefs] notesStorageFormat] != [notationPrefs notesStorageFormat] ||
 		[[frozenNotation notationPrefs] hashIterationCount] != [notationPrefs hashIterationCount]) {
 		result = kItemVerifyErr;
-		goto returnResult;
+		return @(result);
 	}
-	unsigned int i;
-	for (i=0; i<[notesToVerify count]; i++) {
+	
+	for (NSUInteger i=0; i<[notesToVerify count]; i++) {
 		if ([[[notesToVerify objectAtIndex:i] contentString] length] != [[[allNotes objectAtIndex:i] contentString] length]) {
 			result = kItemVerifyErr;
-			goto returnResult;
+			return @(result);
 		}
 	}
 	
 	NSLog(@"verified %lu notes in %g s", [notesToVerify count], (float)[[NSDate date] timeIntervalSinceDate:date]);
-returnResult:
-	if (notesData) free(notesData);
-	return [NSNumber numberWithInt:result];
+	return @(result);
 }
 
 

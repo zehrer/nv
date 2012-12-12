@@ -20,6 +20,7 @@
 #import "SyncServiceSessionProtocol.h"
 #import "SyncSessionController.h"
 #import "NotationPrefs.h"
+#import "NoteObject.h"
 
 @implementation NotationController (NotationSyncServiceManager)
 
@@ -242,10 +243,18 @@
 		}
 	}
 	
+	void (^ended)(void) = ^{
+		//we might not be continuing with the sync, in which case we wouldn't get a 'stop' message
+		//so do things conditionally that otherwise might have been done when stopping
+		[syncSessionController performSelector:@selector(invokeUncommmitedWaitCallbackIfNecessaryReturningError:) withObject:nil afterDelay:0];
+		[syncSessionController queueStatusNotification];
+	};
+	
 	//show this only if there is no evidence of these notes ever being on the server (all remotely removed with none manually deleted)
 	if ([remotelyMissingNotes count] && [allNotes count] == ([remotelyMissingNotes count] + [locallyAddedNotes count])) {
 		if ([self handleSyncingWithAllMissingAndRemoteNoteCount:[remotelyAddedEntries count] fromSession:syncSession]) {
-			goto ended;
+			ended();
+			return;
 		}
 	}
 	
@@ -265,7 +274,8 @@
 								NSLocalizedString(@"Notes will be merged, omitting entries duplicated on the server.", nil), 
 								NSLocalizedString(@"Add Notes", nil), NSLocalizedString(@"Turn Off Syncing", nil), nil) == NSAlertAlternateReturn) {
 				[syncSessionController disableService:serviceName];
-				goto ended;
+				ended();
+				return;
 			} else {
 				//remember that we have to merge them for next time in case sync is cancelled; do not remember "automatic" merges
 				[notationPrefs setSyncShouldMerge:YES inCurrentAccountForService:serviceName];
@@ -297,7 +307,6 @@
 	
 	//upon success, make sure that in deletedNotes set this syncService-dict is removed
 	[syncSession startDeletingNotes:locallyDeletedNotes];
-
 	
 	//collect these entries from server and add/modify the existing notes with the results
 	[syncSession startCollectingAddedNotesWithEntries:remotelyAddedEntries mergingWithNotes:mergeNotes];
@@ -318,11 +327,7 @@
 	//for remotelyDeletedNotes, also remove syncMD from deletedNotes, but leave syncMD will be left in the undo-registered notes 
 	[self removeSyncMDFromDeletedNotesInSet:[NSSet setWithArray:remotelyDeletedNotes] forService:serviceName];
 	
-ended:
-	//we might not be continuing with the sync, in which case we wouldn't get a 'stop' message
-	//so do things conditionally that otherwise might have been done when stopping
-	[syncSessionController performSelector:@selector(invokeUncommmitedWaitCallbackIfNecessaryReturningError:) withObject:nil afterDelay:0];
-	[syncSessionController queueStatusNotification];
+	ended();
 }
 
 - (void)syncSession:(id <SyncServiceSession>)syncSession didStopWithError:(NSString*)errString {
