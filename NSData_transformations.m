@@ -18,8 +18,6 @@
 /* NSData_transformations.m */
 
 #import "NSData_transformations.h"
-#include "pbkdf2.h"
-#include "hmacsha1.h"
 #include "broken_md5.h"
 
 #include <unistd.h>
@@ -166,21 +164,14 @@
 }
 
 - (NSMutableData*)derivedKeyOfLength:(int)len salt:(NSData*)salt iterations:(int)count {
-	
 	NSMutableData *derivedKey = [NSMutableData dataWithLength:len];
 	
-	//NSDate *date = [NSDate date];
-	//when compiled with -Os or greater, this is always faster than OpenSSL version
-#if 1
-	if (!pbkdf2_sha1([self bytes], [self length], [salt bytes], [salt length], (unsigned int)count, [derivedKey mutableBytes], (size_t)len))
-		return nil;
-	//NSLog(@"dk_time(%d): %g", count, (float)[[NSDate date] timeIntervalSinceDate:date]);
-#else
-	if (!PKCS5_PBKDF2_HMAC_SHA1([self bytes], [self length], (unsigned char*)[salt bytes], [salt length], count, len, [derivedKey mutableBytes]))
-		return nil;
-#endif
+	CCCryptorStatus status = CCKeyDerivationPBKDF(kCCPBKDF2, self.bytes, self.length, salt.bytes, salt.length, kCCPRFHmacAlgSHA1, count, derivedKey.mutableBytes, len);
+	if (status == kCCSuccess) {
+		return [derivedKey copy];
+	}
 	
-	return derivedKey;
+	return nil;
 }
 
 - (unsigned long)CRC32 {
@@ -189,15 +180,9 @@
 }
 
 - (NSData*)SHA1Digest {
-	sha1_ctx_nv keyhash;
-	
-	NSMutableData *mutableData = [NSMutableData dataWithLength:20];
-	
-	sha1_init_ctx(&keyhash);
-	sha1_process_bytes([self bytes], [self length], &keyhash);
-	sha1_finish_ctx(&keyhash, [mutableData mutableBytes]);
-	
-	return mutableData;
+	NSMutableData *ret = [NSMutableData dataWithLength: CC_SHA1_DIGEST_LENGTH];
+	CC_SHA1(self.bytes, self.length, ret.mutableBytes);
+	return [ret copy];
 }
 
 - (NSData*)BrokenMD5Digest {
