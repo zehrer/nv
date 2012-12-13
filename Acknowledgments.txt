@@ -466,23 +466,6 @@ http://www.opensource.org/licenses/bsd-license.php
 
 --
 
-ETTransparentScroller
-The main window uses a scroller class are based on the BWTransparentScroller from BWToolKit
-http://www.brandonwalkin.com/bwtoolkit/
-(modifications by ElasticThreads on 10/19/2010)
-
-see BWToolkit above
---
-
-BTTransparentScroller
-The Markdown preview pane uses a scroller class are based on the BWTransparentScroller from BWToolKit
-http://www.brandonwalkin.com/bwtoolkit/
-(but modified by Brett Terpstra on 12/8/10 and again by ElasticThreads on 03/10/11)
-
-see BWToolkit above
-
---
-
 The markdown preview uses a popover type window MAAttachedWindow.m
 Which was created by Matt Gemmell
 

@@ -47,7 +47,6 @@
 #import "ETContentView.h"
 #import "PreviewController.h"
 #import "ETClipView.h"
-#import "ETScrollView.h"
 #import "NSFileManager+DirectoryLocations.h"
 #import "NoteObject.h"
 #import "WordCountToken.h"

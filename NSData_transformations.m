@@ -394,7 +394,7 @@
 			
 			cryptStatus = CCCryptorUpdate(cryptor, dataIn, dataInLen, dataOut, dataOutLen, &dataOutMov);
 			
-			if (dataOutMov != dataOutLen) NSLog(@"dataOutMoved != dataOutLength");
+			if (dataOutMov && dataOutMov != dataOutLen) NSLog(@"dataOutMoved != dataOutLength");
 			
 			if (cryptStatus == kCCSuccess) {
 				[self replaceBytesInRange: bytesRange withBytes: dataOut];

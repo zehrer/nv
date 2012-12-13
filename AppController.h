@@ -35,7 +35,6 @@
 @class WordCountToken;
 //@class AugmentedScrollView;
 @class ETContentView;
-@class ETScrollView;
 
 #ifndef MarkdownPreview
 #define MarkdownPreview 13371
@@ -74,8 +73,8 @@
 	RBSplitSubview *splitSubview;
 	RBSplitSubview *notesSubview;
 	RBSplitView *splitView;
-  IBOutlet ETScrollView *notesScrollView;
-  IBOutlet ETScrollView *textScrollView;
+  IBOutlet NSScrollView *notesScrollView;
+  IBOutlet NSScrollView *textScrollView;
   IBOutlet NotesTableView *notesTableView;
   IBOutlet LinkingEditor *textView;
 	IBOutlet EmptyView *editorStatusView;

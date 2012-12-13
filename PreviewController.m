@@ -14,7 +14,6 @@
 #import "NoteObject.h"
 #import "ETTransparentButtonCell.h"
 #import "ETTransparentButton.h"
-#import "BTTransparentScroller.h"
 #import "NSFileManager+DirectoryLocations.h"
 
 #define kDefaultMarkupPreviewVisible @"markupPreviewVisible"
@@ -161,10 +160,7 @@
     htmlString = [[self class] html];
 	lastNote = [[NSApp delegate] selectedNoteObject];
     [sourceView setTextContainerInset:NSMakeSize(10.0,12.0)];
-    NSScrollView *scrlView=[sourceView enclosingScrollView];
-    NSRect vsRect=[[scrlView verticalScroller]frame];
-    BTTransparentScroller *theScroller=[[BTTransparentScroller alloc]initWithFrame:vsRect];
-    [scrlView setVerticalScroller:theScroller];
+    NSScrollView *scrlView=[sourceView enclosingScrollView];   
     [scrlView setScrollsDynamically:YES];
 	[scrlView setHorizontalScrollElasticity:NSScrollElasticityNone];
 	[scrlView setVerticalScrollElasticity:NSScrollElasticityAutomatic];
