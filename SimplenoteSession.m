@@ -23,7 +23,6 @@
 #import "GlobalPrefs.h"
 #import "NotationPrefs.h"
 #import "NSString_NV.h"
-#import "NSDictionary+BSJSONAdditions.h"
 #import "AttributedPlainText.h"
 #import "InvocationRecorder.h"
 #import "SynchronizedNoteProtocol.h"
@@ -978,31 +977,26 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		[self _stoppedWithErrorString:[fetcher didCancel] ? nil : errString];
 		return;
 	}
-	NSString *bodyString = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
 	
 	if (fetcher == loginFetcher) {
-		if ([bodyString length]) {
-			authToken = bodyString;
+		if ([data length]) {
+			authToken = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
 		} else {
 			[self _stoppedWithErrorString:NSLocalizedString(@"No authorization token", @"Simplenote-specific error")];
 		}
 	} else if (fetcher == listFetcher) {
 		lastIndexAuthFailed = NO;
-		NSDictionary *responseDictionary = nil;
 		NSArray *rawEntries = nil;
-		@try {
-			responseDictionary = [NSDictionary dictionaryWithJSONString:bodyString];
-			if (responseDictionary) {
-				rawEntries = [responseDictionary objectForKey:@"data"];
-			}
-		} @catch (NSException *e) {
-			NSLog(@"Exception while parsing Simplenote JSON index: %@", [e reason]);
-		} @finally {
-			if (!rawEntries) {
-				[self _stoppedWithErrorString:NSLocalizedString(@"The index of notes could not be parsed.", @"Simplenote-specific error")];
-				return;
-			}
+		
+		NSDictionary *responseDictionary = [NSJSONSerialization JSONObjectWithData: data options: 0 error: NULL];
+		
+		if (!responseDictionary) {
+			[self _stoppedWithErrorString:NSLocalizedString(@"The index of notes could not be parsed.", @"Simplenote-specific error")];
+			return;
+		} else {
+			rawEntries = [responseDictionary objectForKey:@"data"];
 		}
+		
 		//convert syncnum, dates and "deleted" indicator into NSNumbers
 		NSMutableArray *entries = [NSMutableArray arrayWithCapacity:[rawEntries count]];
 		NSUInteger i = 0;
@@ -1065,7 +1059,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		}
 		
 	} else {
-		NSLog(@"unknown fetcher returned: %@, body: %@", fetcher, bodyString);
+		NSLog(@"unknown fetcher returned: %@, body: %@", fetcher, data);
 	}
 }
 

@@ -21,7 +21,6 @@
 #import "SyncResponseFetcher.h"
 #import "SimplenoteSession.h"
 #import "NSString_NV.h"
-#import "NSDictionary+BSJSONAdditions.h"
 #import "SynchronizedNoteProtocol.h"
 #import "NoteObject.h"
 #import "DeletedNoteObject.h"
@@ -125,19 +124,10 @@
 - (NSDictionary*)preparedDictionaryWithFetcher:(SyncResponseFetcher*)fetcher receivedData:(NSData*)data {
 	//logic abstracted for subclassing
 	
-	NSString *bodyString = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+	NSDictionary *rawObject = [NSJSONSerialization JSONObjectWithData: data options: 0 error: NULL];
 	
-	NSDictionary *rawObject = nil;
-	@try {
-		rawObject = [NSDictionary dictionaryWithJSONString:bodyString];
-	}
-	@catch (NSException *e) {
-		NSLog(@"Exception while parsing Simplenote JSON note object: %@", [e reason]);
-	}
-	@finally {
-		if (!rawObject)
-			return nil;
-	}
+	if (!rawObject)
+		return nil;
 
 	NSMutableDictionary *entry = [NSMutableDictionary dictionaryWithCapacity:12];
 	[entry setObject:[rawObject objectForKey:@"key"] forKey:@"key"];
@@ -265,7 +255,11 @@
 	} else {
 		noteURL = [SimplenoteSession servletURLWithPath:[NSString stringWithFormat:@"/api2/data/%@", [info objectForKey:@"key"]] parameters:params];
 	}
-	SyncResponseFetcher *fetcher = [[SyncResponseFetcher alloc] initWithURL:noteURL POSTData:[[rawObject jsonStringValue] dataUsingEncoding:NSUTF8StringEncoding] contentType:@"application/json" delegate:self];
+	
+	NSData *JSONData = [NSJSONSerialization dataWithJSONObject: rawObject options: 0 error: NULL];
+	if (!JSONData) return nil;
+	
+	SyncResponseFetcher *fetcher = [[SyncResponseFetcher alloc] initWithURL:noteURL POSTData: JSONData contentType:@"application/json" delegate:self];
 	[fetcher setRepresentedObject:aNote];
 	return fetcher;
 }
@@ -297,12 +291,13 @@
 	NSURL *noteURL = [SimplenoteSession servletURLWithPath:[NSString stringWithFormat:@"/api2/data/%@", [info objectForKey:@"key"]] parameters:
 					  [NSDictionary dictionaryWithObjectsAndKeys: email, @"email", 
 					   authToken, @"auth", nil]];
-	NSData *postData = [[[NSDictionary dictionaryWithObject:[NSNumber numberWithInt:1] forKey:@"deleted"] jsonStringValue] dataUsingEncoding:NSUTF8StringEncoding];
+	NSDictionary *jsonDict = [NSDictionary dictionaryWithObject:[NSNumber numberWithInt:1] forKey:@"deleted"];
+	NSData *postData = [NSJSONSerialization dataWithJSONObject: jsonDict options: 0 error: NULL];
+	if (!postData) return nil;
+	
 	SyncResponseFetcher *fetcher = [[SyncResponseFetcher alloc] initWithURL:noteURL POSTData:postData contentType:@"application/json" delegate:self];
 	[fetcher setRepresentedObject:aDeletedNote];
 	return fetcher;
-	
-	return nil;
 }
 
 - (NSString*)localizedActionDescription {
@@ -340,19 +335,10 @@
 
 - (NSDictionary*)preparedDictionaryWithFetcher:(SyncResponseFetcher*)fetcher receivedData:(NSData*)data {
 	
-	NSString *bodyString = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+	NSDictionary *rawObject = [NSJSONSerialization JSONObjectWithData: data options: 0 error: NULL];
 	
-	NSDictionary *rawObject = nil;
-	@try {
-		rawObject = [NSDictionary dictionaryWithJSONString:bodyString];
-	}
-	@catch (NSException *e) {
-		NSLog(@"Exception while parsing Simplenote JSON note object: %@", [e reason]);
-	}
-	@finally {
-		if (!rawObject)
-			return nil;
-	}
+	if (!rawObject)
+		return nil;
 	
 	NSString *keyString = [rawObject objectForKey:@"key"];
 	
