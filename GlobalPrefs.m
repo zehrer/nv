@@ -27,13 +27,12 @@
 #import "BookmarksController.h"
 #import "AttributedPlainText.h"
 #import "NotesTableView.h"
-#import "PTHotKey.h"
-#import "PTKeyCombo.h"
-#import "PTHotKeyCenter.h"
 #import "NSString_NV.h"
 #import "AppController.h"
 #import "NotationController.h"
 #import "BufferUtils.h"
+#import <MASShortcut/MASShortcut.h>
+#import <MASShortcut/MASShortcut+UserDefaults.h>
 
 #define SEND_CALLBACKS() sendCallbacksForGlobalPrefs(self, _cmd, sender)
 
@@ -63,6 +62,7 @@ static NSString *BackgroundTextColorKey = @"BackgroundTextColor";
 static NSString *UseSoftTabsKey = @"UseSoftTabs";
 static NSString *NumberOfSpacesInTabKey = @"NumberOfSpacesInTab";
 static NSString *MakeURLsClickableKey = @"MakeURLsClickable";
+NSString *const NVAppActivationShortcutKey = @"NVAppActivationShortcut";
 static NSString *AppActivationKeyCodeKey = @"AppActivationKeyCode";
 static NSString *AppActivationModifiersKey = @"AppActivationModifiers";
 static NSString *HorizontalLayoutKey = @"HorizontalLayout";
@@ -317,46 +317,9 @@ static void sendCallbacksForGlobalPrefs(GlobalPrefs* self, SEL selector, id orig
     return [defaults boolForKey:QuitWhenClosingMainWindowKey];
 }
 
-- (void)setAppActivationKeyCombo:(PTKeyCombo*)aCombo sender:(id)sender {
-	if (aCombo) {
-		appActivationKeyCombo = aCombo;
-		
-		[[self appActivationHotKey] setKeyCombo:appActivationKeyCombo];
-	
-		[defaults setInteger:[aCombo keyCode] forKey:AppActivationKeyCodeKey];
-		[defaults setInteger:[aCombo modifiers] forKey:AppActivationModifiersKey];
-		
-		SEND_CALLBACKS();
-	}
-}
-
-- (PTHotKey*)appActivationHotKey {
-	if (!appActivationHotKey) {
-		appActivationHotKey = [[PTHotKey alloc] init];
-		[appActivationHotKey setName:HotKeyAppToFrontName];
-		[appActivationHotKey setKeyCombo:[self appActivationKeyCombo]];
-	}
-	
-	return appActivationHotKey;
-}
-
-- (PTKeyCombo*)appActivationKeyCombo {
-	if (!appActivationKeyCombo) {
-		appActivationKeyCombo = [[PTKeyCombo alloc] initWithKeyCode:[[defaults objectForKey:AppActivationKeyCodeKey] intValue]
-														  modifiers:[[defaults objectForKey:AppActivationModifiersKey] intValue]];
-	}
-	return appActivationKeyCombo;
-}
-
-- (BOOL)registerAppActivationKeystrokeWithTarget:(id)target selector:(SEL)selector {
-	PTHotKey *hotKey = [self appActivationHotKey];
-	
-	[hotKey setTarget:target];
-	[hotKey setAction:selector];
-	
-	[[PTHotKeyCenter sharedCenter] unregisterHotKeyForName:HotKeyAppToFrontName];
-	
-	return [[PTHotKeyCenter sharedCenter] registerHotKey:hotKey];
+- (void)registerAppActivationKeystrokeWithHandler:(void (^)(void))block {
+	[MASShortcut unregisterGlobalShortcutWithUserDefaultsKey: NVAppActivationShortcutKey];
+	[MASShortcut registerGlobalShortcutWithUserDefaultsKey: NVAppActivationShortcutKey handler: block];
 }
 
 - (void)setPastePreservesStyle:(BOOL)value sender:(id)sender {

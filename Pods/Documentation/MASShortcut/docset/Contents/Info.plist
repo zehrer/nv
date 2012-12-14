@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleIdentifier</key>
+	<string>org.cocoapods.MASShortcut-1.1</string>
+	<key>CFBundleName</key>
+	<string>MASShortcut 1.1 Documentation</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
+	<key>CFBundleVersion</key>
+	<string>1.0</string>
+	
+	
+	<key>DocSetDescription</key>
+	<string>Some time ago Cocoa developers used a brilliant framework ShortcutRecorder for managing keyboard shortcuts in application preferences. However, it became incompatible with a new plugin architecture of Xcode 4. 
+
+The project MASShortcut introduces modern API and user interface for recording, storing and using global keyboard shortcuts. All code is compatible with Xcode 4.3, Mac OS X 10.7 and the sandboxed environment.
+</string>
+	
+	<key>DocSetFeedName</key>
+	<string>MASShortcut 1.1 Documentation</string>
+	
+	<key>DocSetMinimumXcodeVersion</key>
+	<string>3.0</string>
+	
+	<key>DashDocSetFamily</key>
+	<string>appledoc</string>
+	<key>DocSetPublisherIdentifier</key>
+	<string>org.cocoapods.documentation</string>
+	<key>DocSetPublisherName</key>
+	<string>Vadim Shpakovski</string>
+	<key>NSHumanReadableCopyright</key>
+	<string>Vadim Shpakovski</string>
+</dict>
+</plist>

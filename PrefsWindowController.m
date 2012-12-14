@@ -11,8 +11,6 @@
 
 #import "AppController.h"
 #import "PrefsWindowController.h"
-#import "PTKeyComboPanel.h"
-#import "PTKeyCombo.h"
 #import "NotationPrefsViewController.h"
 #import "ExternalEditorListController.h"
 #import "NSData_transformations.h"
@@ -20,6 +18,8 @@
 #import "NSFileManager_NV.h"
 #import "NotationPrefs.h"
 #import "GlobalPrefs.h"
+#import <MASShortcut/MASShortcutView.h>
+#import <MASShortcut/MASShortcutView+UserDefaults.h>
 
 #define SYSTEM_LIST_FONT_SIZE 12.0f
 
@@ -72,23 +72,6 @@
 
 - (void)menuNeedsUpdate:(NSMenu *)menu {
 	NSLog(@"I need an update: %@", [menu description]);
-}
-
-- (IBAction)setAppShortcut:(id)sender {
-	[[PTKeyComboPanel sharedPanel] showSheetForHotkey:[prefsController appActivationHotKey] forWindow:window modalDelegate:self];
-}
-
-- (void)keyComboPanelEnded:(PTKeyComboPanel*)panel {
-	PTKeyCombo *oldKeyCombo = [prefsController appActivationKeyCombo];
-	[prefsController setAppActivationKeyCombo:[panel keyCombo] sender:self];
-	
-	[appShortcutField setStringValue:[[prefsController appActivationKeyCombo] description]];
-		
-	if (![prefsController registerAppActivationKeystrokeWithTarget:[NSApp delegate] selector:@selector(toggleNVActivation:)]) {
-		[prefsController setAppActivationKeyCombo:oldKeyCombo sender:self];
-		NSLog(@"reverting to old (hopefully working key combo");
-	}
-	
 }
 
 - (IBAction)changeBodyFont:(id)sender {
@@ -410,7 +393,7 @@
 	[makeURLsClickable setState:[prefsController URLsAreClickable]];
     [rtlButton setState:[prefsController rtl]];
     [self previewNoteBodyFont];
-	[appShortcutField setStringValue:[[prefsController appActivationKeyCombo] description]];
+	appShortcutView.associatedUserDefaultsKey = NVAppActivationShortcutKey;
 	[searchHighlightColorWell setColor:[prefsController searchTermHighlightColorRaw:YES]];
 	[highlightSearchTermsButton setState:[prefsController highlightSearchTerms]];
 	[foregroundColorWell setColor:[prefsController foregroundTextColor]];

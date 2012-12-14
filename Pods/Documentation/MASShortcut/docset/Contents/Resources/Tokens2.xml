@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Tokens version="1.0">
+	<File path="Classes/MASShortcutView.html">
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/cl/MASShortcutView</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcutView.h</DeclaredIn>
+			
+			<NodeRef refid="2"/>
+		</Token>
+		
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/MASShortcutView/setShortcutValue:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcutView.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, strong) MASShortcut *shortcutValue</Declaration>
+			
+			
+			<Anchor>//api/name/shortcutValue</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/MASShortcutView/shortcutValue</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcutView.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, strong) MASShortcut *shortcutValue</Declaration>
+			
+			
+			<Anchor>//api/name/shortcutValue</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/MASShortcutView/setRecording:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcutView.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, getter=isRecording) BOOL recording</Declaration>
+			
+			
+			<Anchor>//api/name/recording</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/MASShortcutView/recording</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcutView.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, getter=isRecording) BOOL recording</Declaration>
+			
+			
+			<Anchor>//api/name/recording</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/MASShortcutView/setEnabled:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcutView.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, getter=isEnabled) BOOL enabled</Declaration>
+			
+			
+			<Anchor>//api/name/enabled</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/MASShortcutView/enabled</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcutView.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, getter=isEnabled) BOOL enabled</Declaration>
+			
+			
+			<Anchor>//api/name/enabled</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/MASShortcutView/setShortcutValueChange:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcutView.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, copy) void ( ^ ) ( MASShortcutView *sender ) shortcutValueChange</Declaration>
+			
+			
+			<Anchor>//api/name/shortcutValueChange</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/MASShortcutView/shortcutValueChange</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcutView.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, copy) void ( ^ ) ( MASShortcutView *sender ) shortcutValueChange</Declaration>
+			
+			
+			<Anchor>//api/name/shortcutValueChange</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/MASShortcutView/setAppearance:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcutView.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic) MASShortcutViewAppearance appearance</Declaration>
+			
+			
+			<Anchor>//api/name/appearance</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/MASShortcutView/appearance</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcutView.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic) MASShortcutViewAppearance appearance</Declaration>
+			
+			
+			<Anchor>//api/name/appearance</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/MASShortcutView/setAssociatedUserDefaultsKey:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcutView+UserDefaults.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, copy) NSString *associatedUserDefaultsKey</Declaration>
+			
+			
+			<Anchor>//api/name/associatedUserDefaultsKey</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/MASShortcutView/associatedUserDefaultsKey</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcutView+UserDefaults.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, copy) NSString *associatedUserDefaultsKey</Declaration>
+			
+			
+			<Anchor>//api/name/associatedUserDefaultsKey</Anchor>
+		</Token>
+		
+	</File>
+</Tokens>

@@ -243,7 +243,9 @@ void outletObjectAwoke(id sender) {
 	[[prefsController bookmarksController] updateBookmarksUI];
 	[self updateNoteMenus];
 	[textView setupFontMenu];
-	[prefsController registerAppActivationKeystrokeWithTarget:self selector:@selector(toggleNVActivation:)];
+	[prefsController registerAppActivationKeystrokeWithHandler:^{
+		[self toggleNVActivation];
+	}];
 	[notationController updateLabelConnectionsAfterDecoding];
 	[notationController checkIfNotationIsTrashed];
 	[[SecureTextEntryManager sharedInstance] checkForIncompatibleApps];
@@ -2019,7 +2021,7 @@ void outletObjectAwoke(id sender) {
 	[prefsWindowController showWindow:sender];
 }
 
-- (IBAction)toggleNVActivation:(id)sender {
+- (void)toggleNVActivation {
 	
 	if ([NSApp isActive] && [window isMainWindow]) {
 		
@@ -2028,13 +2030,13 @@ void outletObjectAwoke(id sender) {
 		
 		if (!CompareContextsAndSwitch(&spaceSwitchCtx, &laterSpaceSwitchCtx)) {
 			//hide only if we didn't need to or weren't able to switch spaces
-			[NSApp hide:sender];
+			[NSApp hide: self];
 		}
 		//clear the space-switch context that we just looked at, to ensure it's not reused inadvertently
 		bzero(&spaceSwitchCtx, sizeof(SpaceSwitchingContext));
 		return;
 	}
-	[self bringFocusToControlField:sender];
+	[self bringFocusToControlField: self];
 }
 
 - (IBAction)bringFocusToControlField:(id)sender {

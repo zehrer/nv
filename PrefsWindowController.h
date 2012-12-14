@@ -16,6 +16,7 @@
 
 @class NotationPrefsViewController;
 @class GlobalPrefs;
+@class MASShortcutView;
 
 @interface PrefsWindowController : NSObject  <NSWindowDelegate, NSToolbarDelegate>
 {
@@ -25,6 +26,7 @@
     IBOutlet NSPopUpButton *tableTextMenuButton;
     IBOutlet NSPopUpButton *externalEditorMenuButton;
     IBOutlet NSTextField *tableTextSizeField;
+	IBOutlet MASShortcutView *appShortcutView;
     IBOutlet NSTextField *appShortcutField;
 	IBOutlet NSButton *completeNoteTitlesButton;
 	IBOutlet NSButton *checkSpellingButton;
@@ -66,7 +68,6 @@
 - (IBAction)changedMakeURLsClickable:(id)sender;
 - (IBAction)changedStyledTextBehavior:(id)sender;
 - (IBAction)changedAutoSuggestLinks:(id)sender;
-- (IBAction)setAppShortcut:(id)sender;
 - (IBAction)changeBodyFont:(id)sender;
 - (IBAction)changedRTL:(id)sender;
 - (void)previewNoteBodyFont;

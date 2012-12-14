@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Tokens version="1.0">
+	<File path="Classes/MASShortcut.html">
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/cl/MASShortcut</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcut.h</DeclaredIn>
+			
+			<NodeRef refid="1"/>
+		</Token>
+		
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/MASShortcut/setKeyCode:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcut.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic) NSUInteger keyCode</Declaration>
+			
+			
+			<Anchor>//api/name/keyCode</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/MASShortcut/keyCode</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcut.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic) NSUInteger keyCode</Declaration>
+			
+			
+			<Anchor>//api/name/keyCode</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/MASShortcut/setModifierFlags:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcut.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic) NSUInteger modifierFlags</Declaration>
+			
+			
+			<Anchor>//api/name/modifierFlags</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/MASShortcut/modifierFlags</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcut.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic) NSUInteger modifierFlags</Declaration>
+			
+			
+			<Anchor>//api/name/modifierFlags</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/MASShortcut/setCarbonKeyCode:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcut.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, readonly) UInt32 carbonKeyCode</Declaration>
+			
+			
+			<Anchor>//api/name/carbonKeyCode</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/MASShortcut/carbonKeyCode</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcut.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, readonly) UInt32 carbonKeyCode</Declaration>
+			
+			
+			<Anchor>//api/name/carbonKeyCode</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/MASShortcut/setCarbonFlags:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcut.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, readonly) UInt32 carbonFlags</Declaration>
+			
+			
+			<Anchor>//api/name/carbonFlags</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/MASShortcut/carbonFlags</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcut.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, readonly) UInt32 carbonFlags</Declaration>
+			
+			
+			<Anchor>//api/name/carbonFlags</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/MASShortcut/setKeyCodeString:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcut.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, readonly) NSString *keyCodeString</Declaration>
+			
+			
+			<Anchor>//api/name/keyCodeString</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/MASShortcut/keyCodeString</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcut.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, readonly) NSString *keyCodeString</Declaration>
+			
+			
+			<Anchor>//api/name/keyCodeString</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/MASShortcut/setKeyCodeStringForKeyEquivalent:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcut.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, readonly) NSString *keyCodeStringForKeyEquivalent</Declaration>
+			
+			
+			<Anchor>//api/name/keyCodeStringForKeyEquivalent</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/MASShortcut/keyCodeStringForKeyEquivalent</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcut.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, readonly) NSString *keyCodeStringForKeyEquivalent</Declaration>
+			
+			
+			<Anchor>//api/name/keyCodeStringForKeyEquivalent</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/MASShortcut/setModifierFlagsString:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcut.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, readonly) NSString *modifierFlagsString</Declaration>
+			
+			
+			<Anchor>//api/name/modifierFlagsString</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/MASShortcut/modifierFlagsString</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcut.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, readonly) NSString *modifierFlagsString</Declaration>
+			
+			
+			<Anchor>//api/name/modifierFlagsString</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/MASShortcut/setData:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcut.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, readonly) NSData *data</Declaration>
+			
+			
+			<Anchor>//api/name/data</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/MASShortcut/data</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcut.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, readonly) NSData *data</Declaration>
+			
+			
+			<Anchor>//api/name/data</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/MASShortcut/setShouldBypass:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcut.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, readonly) BOOL shouldBypass</Declaration>
+			
+			
+			<Anchor>//api/name/shouldBypass</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/MASShortcut/shouldBypass</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcut.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, readonly) BOOL shouldBypass</Declaration>
+			
+			
+			<Anchor>//api/name/shouldBypass</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/MASShortcut/setValid:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcut.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, readonly, getter=isValid) BOOL valid</Declaration>
+			
+			
+			<Anchor>//api/name/valid</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/MASShortcut/valid</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcut.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, readonly, getter=isValid) BOOL valid</Declaration>
+			
+			
+			<Anchor>//api/name/valid</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/MASShortcut/initWithKeyCode:modifierFlags:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcut.h</DeclaredIn>			
+			
+			<Declaration>- (id)initWithKeyCode:(NSUInteger)code modifierFlags:(NSUInteger)flags</Declaration>
+			
+			
+			<Anchor>//api/name/initWithKeyCode:modifierFlags:</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/clm/MASShortcut/shortcutWithKeyCode:modifierFlags:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcut.h</DeclaredIn>			
+			
+			<Declaration>+ (MASShortcut *)shortcutWithKeyCode:(NSUInteger)code modifierFlags:(NSUInteger)flags</Declaration>
+			
+			
+			<Anchor>//api/name/shortcutWithKeyCode:modifierFlags:</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/clm/MASShortcut/shortcutWithEvent:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcut.h</DeclaredIn>			
+			
+			<Declaration>+ (MASShortcut *)shortcutWithEvent:(NSEvent *)anEvent</Declaration>
+			
+			
+			<Anchor>//api/name/shortcutWithEvent:</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/clm/MASShortcut/shortcutWithData:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcut.h</DeclaredIn>			
+			
+			<Declaration>+ (MASShortcut *)shortcutWithData:(NSData *)aData</Declaration>
+			
+			
+			<Anchor>//api/name/shortcutWithData:</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/MASShortcut/isTakenError:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcut.h</DeclaredIn>			
+			
+			<Declaration>- (BOOL)isTakenError:(NSError **)error</Declaration>
+			
+			
+			<Anchor>//api/name/isTakenError:</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/clm/MASShortcut/registerGlobalShortcutWithUserDefaultsKey:handler:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcut+UserDefaults.h</DeclaredIn>			
+			
+			<Declaration>+ (void)registerGlobalShortcutWithUserDefaultsKey:(NSString *)userDefaultsKey handler:(void ( ^ ) ( ))handler</Declaration>
+			
+			
+			<Anchor>//api/name/registerGlobalShortcutWithUserDefaultsKey:handler:</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/clm/MASShortcut/unregisterGlobalShortcutWithUserDefaultsKey:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcut+UserDefaults.h</DeclaredIn>			
+			
+			<Declaration>+ (void)unregisterGlobalShortcutWithUserDefaultsKey:(NSString *)userDefaultsKey</Declaration>
+			
+			
+			<Anchor>//api/name/unregisterGlobalShortcutWithUserDefaultsKey:</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/clm/MASShortcut/addGlobalHotkeyMonitorWithShortcut:handler:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcut+Monitoring.h</DeclaredIn>			
+			
+			<Declaration>+ (id)addGlobalHotkeyMonitorWithShortcut:(MASShortcut *)shortcut handler:(void ( ^ ) ( ))handler</Declaration>
+			
+			
+			<Anchor>//api/name/addGlobalHotkeyMonitorWithShortcut:handler:</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/clm/MASShortcut/removeGlobalHotkeyMonitor:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>MASShortcut+Monitoring.h</DeclaredIn>			
+			
+			<Declaration>+ (void)removeGlobalHotkeyMonitor:(id)monitor</Declaration>
+			
+			
+			<Anchor>//api/name/removeGlobalHotkeyMonitor:</Anchor>
+		</Token>
+		
+	</File>
+</Tokens>

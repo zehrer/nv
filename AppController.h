@@ -163,7 +163,7 @@ extern void outletObjectAwoke(id sender);
 
 - (IBAction)showHelpDocument:(id)sender;
 - (IBAction)showPreferencesWindow:(id)sender;
-- (IBAction)toggleNVActivation:(id)sender;
+- (void)toggleNVActivation;
 - (IBAction)bringFocusToControlField:(id)sender;
 - (NSWindow*)window;
 

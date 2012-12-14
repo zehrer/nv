@@ -32,11 +32,11 @@ extern NSString *NotePreviewString;
 
 extern NSString *NVPTFPboardType;
 
+extern NSString *const NVAppActivationShortcutKey;
+
 @class NotesTableView;
 @class BookmarksController;
 @class NotationPrefs;
-@class PTKeyCombo;
-@class PTHotKey;
 
 enum { NoteTitleColumn, NoteLabelsColumn, NoteDateModifiedColumn, NoteDateCreatedColumn };
 
@@ -50,9 +50,6 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2);
 	
 	IMP runCallbacksIMP;
 	NSMutableDictionary *selectorObservers;
-	
-	PTKeyCombo *appActivationKeyCombo;
-	PTHotKey *appActivationHotKey;
 	
 	BookmarksController *bookmarksController;
 	NotationPrefs *notationPrefs;
@@ -115,10 +112,7 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2);
 - (void)setQuitWhenClosingWindow:(BOOL)value sender:(id)sender;
 - (BOOL)quitWhenClosingWindow;
 
-- (void)setAppActivationKeyCombo:(PTKeyCombo*)aCombo sender:(id)sender;
-- (PTKeyCombo*)appActivationKeyCombo;
-- (PTHotKey*)appActivationHotKey;
-- (BOOL)registerAppActivationKeystrokeWithTarget:(id)target selector:(SEL)selector;
+- (void)registerAppActivationKeystrokeWithHandler:(void(^)(void))block;
 
 - (void)setPastePreservesStyle:(BOOL)value sender:(id)sender;
 - (BOOL)pastePreservesStyle;

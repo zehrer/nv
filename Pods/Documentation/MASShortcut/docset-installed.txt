@@ -1,0 +1,4 @@
+Documentation set was installed to Xcode!
+
+Path: /Users/zwaldowski/Library/Developer/Shared/Documentation/DocSets/org.cocoapods.MASShortcut-1.1.docset
+Time: 2012-12-14 14:30:57 +0000
