@@ -24,8 +24,6 @@
 @class GlobalPrefs;
 @class PrefsWindowController;
 @class DualField;
-@class RBSplitView;
-@class RBSplitSubview;
 @class TitlebarButton;
 @class LinearDividerShader;
 @class TagEditingManager;
@@ -48,7 +46,7 @@
 #define TextilePreview 13373
 #endif
 
-@interface AppController : NSObject <NSToolbarDelegate, NSTableViewDelegate, NSWindowDelegate, NSTextFieldDelegate, NSTextViewDelegate>
+@interface AppController : NSObject <NSToolbarDelegate, NSTableViewDelegate, NSWindowDelegate, NSTextFieldDelegate, NSTextViewDelegate, NSSplitViewDelegate>
 {
 	IBOutlet NSMenuItem *fsMenuItem;
 	BOOL wasVert;
@@ -69,10 +67,8 @@
   NSDictionary *fieldAttributes;
 	NSTimer *modifierTimer;
 	IBOutlet WordCountToken *wordCounter;
-  IBOutlet DualField *field;
-	RBSplitSubview *splitSubview;
-	RBSplitSubview *notesSubview;
-	RBSplitView *splitView;
+	IBOutlet DualField *field;
+	IBOutlet NSSplitView *nsSplitView;
   IBOutlet NSScrollView *notesScrollView;
   IBOutlet NSScrollView *textScrollView;
   IBOutlet NotesTableView *notesTableView;
