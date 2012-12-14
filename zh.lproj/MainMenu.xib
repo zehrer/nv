@@ -5012,7 +5012,7 @@ AAEAAQAAAT0AAwAAAAEAAgAAAVIAAwAAAAEAAQAAAVMAAwAAAAIAAQABAAAAAA</bytes>
 				<string key="191.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
 				<string key="196.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
 				<string key="197.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
-				<string key="2.CustomClassName">ETContentView</string>
+				<string key="2.CustomClassName">RBLView</string>
 				<string key="2.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
 				<string key="21.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
 				<string key="21.IBWindowTemplateEditedContentRect">{{702, 301}, {397, 464}}</string>
@@ -5251,7 +5251,7 @@ AAEAAQAAAT0AAwAAAAEAAgAAAVIAAwAAAAEAAQAAAVMAAwAAAAIAAQABAAAAAA</bytes>
 						<string key="field">DualField</string>
 						<string key="fsMenuItem">NSMenuItem</string>
 						<string key="lockNoteItem">NSMenuItem</string>
-						<string key="mainView">ETContentView</string>
+						<string key="mainView">RBLView</string>
 						<string key="multiMarkdownPreview">NSMenuItem</string>
 						<string key="notesScrollView">NSScrollView</string>
 						<string key="notesTableView">NotesTableView</string>
@@ -5288,7 +5288,7 @@ AAEAAQAAAT0AAwAAAAEAAgAAAVIAAwAAAAEAAQAAAVMAAwAAAAIAAQABAAAAAA</bytes>
 						</object>
 						<object class="IBToOneOutletInfo" key="mainView">
 							<string key="name">mainView</string>
-							<string key="candidateClassName">ETContentView</string>
+							<string key="candidateClassName">RBLView</string>
 						</object>
 						<object class="IBToOneOutletInfo" key="multiMarkdownPreview">
 							<string key="name">multiMarkdownPreview</string>
@@ -5377,14 +5377,6 @@ AAEAAQAAAT0AAwAAAAEAAgAAAVIAAwAAAAEAAQAAAVMAAwAAAAIAAQABAAAAAA</bytes>
 					<object class="IBClassDescriptionSource" key="sourceIdentifier">
 						<string key="majorKey">IBProjectSource</string>
 						<string key="minorKey">./Classes/DualField.h</string>
-					</object>
-				</object>
-				<object class="IBPartialClassDescription">
-					<string key="className">ETContentView</string>
-					<string key="superclassName">RBLView</string>
-					<object class="IBClassDescriptionSource" key="sourceIdentifier">
-						<string key="majorKey">IBProjectSource</string>
-						<string key="minorKey">./Classes/ETContentView.h</string>
 					</object>
 				</object>
 				<object class="IBPartialClassDescription">

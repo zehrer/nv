@@ -13,6 +13,7 @@
 
 
 #import <Cocoa/Cocoa.h>
+#import <Rebel/Rebel.h>
 
 #import "NotationController.h"
 #import "NotesTableView.h"
@@ -31,8 +32,6 @@
 @class DFView;
 @class PreviewController;
 @class WordCountToken;
-//@class AugmentedScrollView;
-@class ETContentView;
 
 #ifndef MarkdownPreview
 #define MarkdownPreview 13371
@@ -53,7 +52,7 @@
     BOOL wasDFVisible;
   BOOL isAutocompleting;
   BOOL wasDeleting;
-  IBOutlet ETContentView *mainView;
+  IBOutlet RBLView *mainView;
 	DFView *dualFieldView;
 	StatusItemView *cView;
   NSStatusItem *statusItem;

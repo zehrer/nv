@@ -42,7 +42,6 @@
 #import "NotesTableHeaderCell.h"
 #import "DFView.h"
 #import "StatusItemView.h"
-#import "ETContentView.h"
 #import "PreviewController.h"
 #import "ETClipView.h"
 #import "NSFileManager+DirectoryLocations.h"

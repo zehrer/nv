@@ -150,6 +150,7 @@
 											<string key="NSFrame">{{383, 17}, {15, 135}}</string>
 											<reference key="NSSuperview" ref="663337130"/>
 											<reference key="NSWindow"/>
+											<reference key="NSNextKeyView" ref="82828000"/>
 											<bool key="NSAllowsLogicalLayoutDirection">NO</bool>
 											<reference key="NSTarget" ref="663337130"/>
 											<string key="NSAction">_doScroller:</string>
@@ -208,6 +209,25 @@
 												<object class="NSTextView" id="788571463">
 													<reference key="NSNextResponder" ref="317542494"/>
 													<int key="NSvFlags">2322</int>
+													<set class="NSMutableSet" key="NSDragTypes">
+														<string>Apple HTML pasteboard type</string>
+														<string>Apple PDF pasteboard type</string>
+														<string>Apple PICT pasteboard type</string>
+														<string>Apple PNG pasteboard type</string>
+														<string>Apple URL pasteboard type</string>
+														<string>CorePasteboardFlavorType 0x6D6F6F76</string>
+														<string>NSColor pasteboard type</string>
+														<string>NSFilenamesPboardType</string>
+														<string>NSStringPboardType</string>
+														<string>NeXT Encapsulated PostScript v1.2 pasteboard type</string>
+														<string>NeXT RTFD pasteboard type</string>
+														<string>NeXT Rich Text Format v1.0 pasteboard type</string>
+														<string>NeXT TIFF v4.0 pasteboard type</string>
+														<string>NeXT font pasteboard type</string>
+														<string>NeXT ruler pasteboard type</string>
+														<string>WebURLsWithTitlesPboardType</string>
+														<string>public.url</string>
+													</set>
 													<string key="NSFrameSize">{350, 464}</string>
 													<reference key="NSSuperview" ref="317542494"/>
 													<reference key="NSWindow"/>
@@ -306,6 +326,7 @@ AAEAAQAAAT0AAwAAAAEAAgAAAVIAAwAAAAEAAQAAAVMAAwAAAAIAAQABAAAAAA</bytes>
 											<string key="NSFrame">{{383, 1}, {15, 288}}</string>
 											<reference key="NSSuperview" ref="82828000"/>
 											<reference key="NSWindow"/>
+											<reference key="NSNextKeyView"/>
 											<bool key="NSAllowsLogicalLayoutDirection">NO</bool>
 											<int key="NSArrowsLoc">2</int>
 											<reference key="NSTarget" ref="82828000"/>
@@ -344,7 +365,7 @@ AAEAAQAAAT0AAwAAAAEAAgAAAVIAAwAAAAEAAQAAAVMAAwAAAAIAAQABAAAAAA</bytes>
 							<string key="NSFrameSize">{550, 464}</string>
 							<reference key="NSSuperview" ref="546462530"/>
 							<reference key="NSWindow"/>
-							<reference key="NSNextKeyView"/>
+							<reference key="NSNextKeyView" ref="663337130"/>
 							<string key="NSReuseIdentifierKey">_NS:9</string>
 							<bool key="NSIsVertical">YES</bool>
 							<int key="NSDividerStyle">2</int>
@@ -4847,7 +4868,7 @@ AAEAAQAAAT0AAwAAAAEAAgAAAVIAAwAAAAEAAQAAAVMAAwAAAAIAAQABAAAAAA</bytes>
 				<string key="1214.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
 				<string key="1214.IBWindowTemplateEditedContentRect">{{501, 85}, {397, 464}}</string>
 				<boolean value="YES" key="1214.NSWindowTemplate.visibleAtLaunch"/>
-				<string key="1215.CustomClassName">ETContentView</string>
+				<string key="1215.CustomClassName">RBLView</string>
 				<string key="1215.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
 				<string key="1223.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
 				<string key="1224.CustomClassName">NotesTableView</string>
@@ -5167,7 +5188,7 @@ AAEAAQAAAT0AAwAAAAEAAgAAAVIAAwAAAAEAAQAAAVMAAwAAAAIAAQABAAAAAA</bytes>
 						<string key="field">DualField</string>
 						<string key="fsMenuItem">NSMenuItem</string>
 						<string key="lockNoteItem">NSMenuItem</string>
-						<string key="mainView">ETContentView</string>
+						<string key="mainView">RBLView</string>
 						<string key="multiMarkdownPreview">NSMenuItem</string>
 						<string key="notesScrollView">NSScrollView</string>
 						<string key="notesTableView">NotesTableView</string>
@@ -5204,7 +5225,7 @@ AAEAAQAAAT0AAwAAAAEAAgAAAVIAAwAAAAEAAQAAAVMAAwAAAAIAAQABAAAAAA</bytes>
 						</object>
 						<object class="IBToOneOutletInfo" key="mainView">
 							<string key="name">mainView</string>
-							<string key="candidateClassName">ETContentView</string>
+							<string key="candidateClassName">RBLView</string>
 						</object>
 						<object class="IBToOneOutletInfo" key="multiMarkdownPreview">
 							<string key="name">multiMarkdownPreview</string>
@@ -5293,14 +5314,6 @@ AAEAAQAAAT0AAwAAAAEAAgAAAVIAAwAAAAEAAQAAAVMAAwAAAAIAAQABAAAAAA</bytes>
 					<object class="IBClassDescriptionSource" key="sourceIdentifier">
 						<string key="majorKey">IBProjectSource</string>
 						<string key="minorKey">./Classes/DualField.h</string>
-					</object>
-				</object>
-				<object class="IBPartialClassDescription">
-					<string key="className">ETContentView</string>
-					<string key="superclassName">RBLView</string>
-					<object class="IBClassDescriptionSource" key="sourceIdentifier">
-						<string key="majorKey">IBProjectSource</string>
-						<string key="minorKey">./Classes/ETContentView.h</string>
 					</object>
 				</object>
 				<object class="IBPartialClassDescription">
