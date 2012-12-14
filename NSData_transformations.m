@@ -22,7 +22,6 @@
 
 #include <unistd.h>
 #include <zlib.h>
-#include <openssl/bio.h>
 
 #import <WebKit/WebKit.h>
 #import <CommonCrypto/CommonCrypto.h>
