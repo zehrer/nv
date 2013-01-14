@@ -822,8 +822,8 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	CFMutableStringRef normalizedString = CFStringCreateMutableCopy(NULL, 0, (CFStringRef)titleString);
 	CFStringNormalize(normalizedString, kCFStringNormalizationFormC);
 	
-	[self _setTitleString:(__bridge NSString*)normalizedString];
-	CFRelease(normalizedString);
+	[self _setTitleString:[(__bridge NSString*)normalizedString copy]];
+	if (normalizedString) CFRelease(normalizedString);
 	
 	if ([delegate currentNoteStorageFormat] == RTFTextFormat)
 		[self makeNoteDirtyUpdateTime:NO updateFile:YES];

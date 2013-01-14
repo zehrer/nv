@@ -262,9 +262,11 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 - (id)copyWithZone:(NSZone *)zone {
 	
 	SimplenoteSession *newSession = [[SimplenoteSession alloc] initWithUsername:emailAddress andPassword:password];
-	newSession->authToken = [authToken copyWithZone:zone];
-	newSession->lastSyncedTime = lastSyncedTime;
-	newSession->delegate = delegate;
+	if (newSession) {
+		newSession->authToken = [authToken copy];
+		newSession->lastSyncedTime = lastSyncedTime;
+		newSession->delegate = delegate;
+	}
 	
 	//may not want these to come with the copy, as they are specific to transactions-in-progress
 //	newSession->notesToSuppressPushing = [notesToSuppressPushing mutableCopyWithZone:zone];

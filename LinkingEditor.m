@@ -1729,8 +1729,6 @@ static long (*GetGetScriptManagerVariablePointer())(short) {
                 [self didChangeText];
             }
         }
-
-		[previousLineScanner release];
 	}
 }
 
