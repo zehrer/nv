@@ -24,7 +24,6 @@
 #import "TemporaryFileCachePreparer.h"
 #import "ExternalEditorListController.h"
 #import "NoteObject.h"
-#import <Carbon/Carbon.h>
 
 NSString * const ODBEditorCustomPathKey		= @"ODBEditorCustomPath";
 NSString * const ODBEditorNonRetainedClient = @"ODBEditorNonRetainedClient";
