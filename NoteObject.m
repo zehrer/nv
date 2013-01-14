@@ -418,8 +418,12 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	
 		//re-created at runtime to save space
 		[self initContentCacheCString];
-		cTitleFoundPtr = cTitle = titleString ? strdup([titleString lowercaseUTF8String]) : NULL;
-		cLabelsFoundPtr = cLabels = labelString ? strdup([labelString lowercaseUTF8String]) : NULL;
+
+		NSString *lowerTitle = titleString.lowercaseString;
+		NSString *lowerLabel = labelString.lowercaseString;
+
+		cTitleFoundPtr = cTitle = titleString ? strdup(lowerTitle.UTF8String) : NULL;
+		cLabelsFoundPtr = cLabels = labelString ? strdup(lowerLabel.UTF8String) : NULL;
 		
 		dateCreatedString = [NSString relativeDateStringWithAbsoluteTime:createdDate];
 		dateModifiedString = [NSString relativeDateStringWithAbsoluteTime:modifiedDate];
