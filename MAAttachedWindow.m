@@ -176,13 +176,16 @@
 
 - (void)_updateGeometry
 {
+	NSView *localView = _view;
+	NSWindow *localWindow = _window;
+
     NSRect contentRect = NSZeroRect;
-    contentRect.size = [_view frame].size;
+    contentRect.size = localView.frame.size;
     
     // Account for viewMargin.
     _viewFrame = NSMakeRect(viewMargin * MAATTACHEDWINDOW_SCALE_FACTOR,
                             viewMargin * MAATTACHEDWINDOW_SCALE_FACTOR,
-                            [_view frame].size.width, [_view frame].size.height);
+                            localView.frame.size.width, localView.frame.size.height);
     contentRect = NSInsetRect(contentRect, 
                               -viewMargin * MAATTACHEDWINDOW_SCALE_FACTOR, 
                               -viewMargin * MAATTACHEDWINDOW_SCALE_FACTOR);
@@ -220,7 +223,7 @@
     }
     
     // Position frame origin appropriately for _side, accounting for arrow-inset.
-    contentRect.origin = (_window) ? [_window convertBaseToScreen:_point] : _point;
+    contentRect.origin = (localWindow) ? [localWindow convertBaseToScreen:_point] : _point;
     float arrowInset = [self _arrowInset];
     float halfWidth = contentRect.size.width / 2.0;
     float halfHeight = contentRect.size.height / 2.0;
@@ -299,21 +302,24 @@
     
     // Reconfigure window and view frames appropriately.
     [self setFrame:contentRect display:NO];
-    [_view setFrame:_viewFrame];
+    [localView setFrame:_viewFrame];
 }
 
 
 - (MAWindowPosition)_bestSideForAutomaticPosition
 {
+	NSView *localView = _view;
+	NSWindow *localWindow = _window;
+	
     // Get all relevant geometry in screen coordinates.
     NSRect screenFrame;
-    if (_window && [_window screen]) {
-        screenFrame = [[_window screen] visibleFrame];
+    if (localWindow && localWindow.screen) {
+        screenFrame = localWindow.screen.visibleFrame;
     } else {
          screenFrame = [[NSScreen mainScreen] visibleFrame];
     }
-    NSPoint pointOnScreen = (_window) ? [_window convertBaseToScreen:_point] : _point;
-    NSSize viewSize = [_view frame].size;
+    NSPoint pointOnScreen = (localWindow) ? [localWindow convertBaseToScreen:_point] : _point;
+    NSSize viewSize = localView.frame.size;
     viewSize.width += (viewMargin * MAATTACHEDWINDOW_SCALE_FACTOR) * 2.0;
     viewSize.height += (viewMargin * MAATTACHEDWINDOW_SCALE_FACTOR) * 2.0;
     MAWindowPosition side = MAPositionBottom; // By default, position us centered below.
@@ -338,11 +344,11 @@
         }
     }
     
-    float halfWidth = viewSize.width / 2.0;
-    float halfHeight = viewSize.height / 2.0;
+    CGFloat halfWidth = viewSize.width / 2.0;
+    CGFloat halfHeight = viewSize.height / 2.0;
     
-    NSRect parentFrame = (_window) ? [_window frame] : screenFrame;
-    float arrowInset = [self _arrowInset];
+    NSRect parentFrame = (localWindow) ? [localWindow frame] : screenFrame;
+    CGFloat arrowInset = [self _arrowInset];
     
     // We're currently at a primary side.
     // Try to avoid going outwith the parent area in the secondary dimension,
@@ -749,8 +755,9 @@
 
 - (BOOL)validateMenuItem:(NSMenuItem *)item
 {
-    if (_window) {
-        return [_window validateMenuItem:item];
+	NSWindow *localWindow = _window;
+    if (localWindow) {
+        return [localWindow validateMenuItem:item];
     }
     return [super validateMenuItem:item];
 }
@@ -758,8 +765,9 @@
 
 - (IBAction)performClose:(id)sender
 {
-    if (_window) {
-        [_window performClose:sender];
+	NSWindow *localWindow = _window;
+    if (localWindow) {
+        [localWindow performClose:sender];
     } else {
         [super performClose:sender];
     }

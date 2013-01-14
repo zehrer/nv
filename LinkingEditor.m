@@ -2277,7 +2277,7 @@ static long (*GetGetScriptManagerVariablePointer())(short) {
                 if (selRange.length>0) {
                     selString=[[[self string]substringWithRange:selRange]stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
                 }
-                NSString *paraString=[self.activeParagraph stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+                NSString *paraString = self.activeParagraph ? [self.activeParagraph stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]] : @"";
                 if (([paraString isEqualToString:@""])||([paraString isEqualToString:selString])) {
                     urlString=[NSString stringWithFormat:@"[%@]: %@",selString,urlString];
                 }else{
