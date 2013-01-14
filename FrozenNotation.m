@@ -151,7 +151,7 @@
 						//reset keychain identifier in case database file was duplicated and password was changed, and this is the old DB
 						[prefs forgetKeychainIdentifier];
 					}
-					int result = [[PassphraseRetriever retrieverWithNotationPrefs:prefs] loadedUserPassphraseData];
+					NSInteger result = [[PassphraseRetriever retrieverWithNotationPrefs:prefs] loadedUserPassphraseData];
 					
 					if (!result) {
 						//must have clicked cancel or equivalent

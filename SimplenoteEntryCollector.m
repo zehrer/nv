@@ -161,7 +161,7 @@
 		id obj = [fetcher representedObject];
 		if (obj) {
 			[entriesInError addObject:[NSDictionary dictionaryWithObjectsAndKeys: obj, @"NoteObject", 
-									   [NSNumber numberWithInt:[fetcher statusCode]], @"StatusCode", nil]];
+									   @([fetcher statusCode]), @"StatusCode", nil]];
 		}
 	} else {
 		NSDictionary *preparedDictionary = [self preparedDictionaryWithFetcher:fetcher receivedData:data];
@@ -170,7 +170,7 @@
 			id obj = [fetcher representedObject];
 			if (obj) {
 				[entriesInError addObject: [NSDictionary dictionaryWithObjectsAndKeys: obj, @"NoteObject",
-											[NSNumber numberWithInt:[fetcher statusCode]], @"StatusCode", nil]];
+											@([fetcher statusCode]), @"StatusCode", nil]];
 			}
 		} else {
 			[entriesCollected addObject: preparedDictionary];

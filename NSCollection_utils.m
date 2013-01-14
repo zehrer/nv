@@ -146,7 +146,7 @@
 
 
 #if 0
-- (NSRange)nextRangeForString:(NSString*)string activeNote:(NoteObject*)startNote options:(unsigned)opts range:(NSRange)inRange {
+- (NSRange)nextRangeForString:(NSString*)string activeNote:(NoteObject*)startNote options:(NSStringCompareOptions)opts range:(NSRange)inRange {
 	unsigned noteCount = [self count];
 	NSRange range = NSMakeRange(NSNotFound, 0);
 	

@@ -48,8 +48,8 @@ static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange)
 }
 
 - (void)removeAttachments {
-	unsigned loc = 0;
-	unsigned end = [self length];
+	NSUInteger loc = 0;
+	NSUInteger end = [self length];
 	while (loc < end) {
 		/* Run through the string in terms of attachment runs */
 		NSRange attachmentRange;	/* Attachment attribute run */
@@ -94,8 +94,8 @@ static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange)
 
 - (BOOL)restyleTextToFont:(NSFont*)currentFont usingBaseFont:(NSFont*)baseFont {
 	NSRange effectiveRange = NSMakeRange(0,0);
-	unsigned int stringLength = [self length];
-	int rangesChanged = 0;
+	NSUInteger stringLength = [self length];
+	NSInteger rangesChanged = 0;
 	NSFontManager *fontMan = [NSFontManager sharedFontManager];
 	NSDictionary *defaultBodyAttributes = [[GlobalPrefs defaultPrefs] noteBodyAttributes];
 	
@@ -399,7 +399,7 @@ static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange)
 
 - (NSArray*)allLinks {
 	NSRange range;
-	unsigned int startIndex = 0;
+	NSUInteger startIndex = 0;
 	NSMutableArray *array = [NSMutableArray arrayWithCapacity:1];
 	while (startIndex < [self length]) {
 		id alink = [self findNextLinkAtIndex:startIndex effectiveRange:&range];
@@ -413,7 +413,7 @@ static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange)
 }
 
 
-- (id)findNextLinkAtIndex:(unsigned int)startIndex effectiveRange:(NSRange *)range {
+- (id)findNextLinkAtIndex:(NSUInteger)startIndex effectiveRange:(NSRange *)range {
 	NSRange linkRange;
 	id alink = nil;
 	while (!alink && startIndex < [self length]) {

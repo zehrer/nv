@@ -501,7 +501,7 @@ CGFloat _perceptualColorDifference(NSColor*a, NSColor*b) {
 			
 			NSAttributedString *newString = [[self textStorage] attributedSubstringFromRange:selectedRange];
 			NSRange effectiveRange = NSMakeRange(0,0);
-			unsigned int stringLength = [newString length];
+			NSUInteger stringLength = [newString length];
 			
 			//iterate over all styles; if any are acceptable, copy as RTF
 			while (NSMaxRange(effectiveRange) < stringLength) {
@@ -748,7 +748,7 @@ copyRTFType:
 //use with rangesOfWordsInString:(NSString*)findString earliestRange:(NSRange*)aRange inRange:
 - (void)highlightRangesTemporarily:(CFArrayRef)ranges {
 	CFIndex rangeIndex;
-	int bodyLength = [[self string] length];
+	NSUInteger bodyLength = [[self string] length];
 	NSDictionary *highlightDict = [prefsController searchTermHighlightAttributes];
 	
 	for (rangeIndex = 0; rangeIndex < CFArrayGetCount(ranges); rangeIndex++) {
@@ -909,7 +909,7 @@ copyRTFType:
 		unichar keyChar = [anEvent firstCharacterIgnoringModifiers];
 		if (keyChar == NSCarriageReturnCharacter || keyChar == NSNewlineCharacter || keyChar == NSEnterCharacter) {
 		//	NSLog(@"insertion");
-			unsigned charIndex = [self selectedRange].location;
+			NSUInteger charIndex = [self selectedRange].location;
 			
 			id aLink = [self highlightLinkAtIndex:charIndex];
 			if ([aLink isKindOfClass:[NSURL class]]) {
@@ -1102,11 +1102,11 @@ copyRTFType:
 		
 	} else if ([prefsController softTabs]) {
 		
-		int numberOfSpacesPerTab = [prefsController numberOfSpacesInTab];
+		NSInteger numberOfSpacesPerTab = [prefsController numberOfSpacesInTab];
 
-		int locationOnLine = range.location - [[self string] lineRangeForRange:range].location;
+		NSInteger locationOnLine = range.location - [[self string] lineRangeForRange:range].location;
 		if (numberOfSpacesPerTab != 0) {
-			int numberOfSpacesLess = locationOnLine % numberOfSpacesPerTab;
+			NSInteger numberOfSpacesLess = locationOnLine % numberOfSpacesPerTab;
 			numberOfSpacesPerTab = numberOfSpacesPerTab - numberOfSpacesLess;
 		}
 		NSMutableString *spacesString = [[NSMutableString alloc] initWithCapacity:numberOfSpacesPerTab];
@@ -1166,7 +1166,7 @@ copyRTFType:
                     [self setSelectedRange:insRange];
                     return;
                 }else {       
-                    int extra = appendString.length;   
+                    NSInteger extra = appendString.length;   
                     appendString = [appendString stringByAppendingString:oppositeAppend];
                     [super insertText:appendString];
                     [self setSelectedRange:NSMakeRange(selRange.location+extra, 0)];  
@@ -1196,11 +1196,11 @@ copyRTFType:
 					// At beginning of line.  Delete normally.
 					[super deleteBackward:sender];
 				} else {
-					unsigned tabWidth = [prefsController numberOfSpacesInTab];
-					unsigned indentWidth = 4;
+					NSUInteger tabWidth = [prefsController numberOfSpacesInTab];
+					NSUInteger indentWidth = 4;
 					BOOL usesTabs = ![prefsController softTabs];
 					NSRange leadingSpaceRange = paraRange;
-					unsigned leadingSpaces = [string numberOfLeadingSpacesFromRange:&leadingSpaceRange tabWidth:tabWidth];
+					NSUInteger leadingSpaces = [string numberOfLeadingSpacesFromRange:&leadingSpaceRange tabWidth:tabWidth];
 					
 					if (charRange.location > NSMaxRange(leadingSpaceRange)) {
 						// Not in leading whitespace.  Delete normally.
@@ -1216,7 +1216,7 @@ copyRTFType:
 						}
 						
 						NSTextStorage *text = [self textStorage];
-						unsigned leadingIndents = leadingSpaces / indentWidth;
+						NSUInteger leadingIndents = leadingSpaces / indentWidth;
 						NSString *replaceString;
 						
 						// If we were indented to an fractional level just go back to the last even multiple of indentWidth, if we were exactly on, go back a full level.
@@ -1422,9 +1422,9 @@ copyRTFType:
 	[[self undoManager] setActionName:NSLocalizedString(@"Plain Text Style",nil)];
 }
 
-- (id)highlightLinkAtIndex:(unsigned)givenIndex {
-	unsigned totalLength = [[self string] length];
-	unsigned charIndex = givenIndex;
+- (id)highlightLinkAtIndex:(NSUInteger)givenIndex {
+	NSUInteger totalLength = [[self string] length];
+	NSUInteger charIndex = givenIndex;
 	if (charIndex >= totalLength)
 		charIndex = totalLength - 1;
 

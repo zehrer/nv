@@ -69,7 +69,7 @@ char *replaceString(char *oldString, const char *newString) {
 }
 
 
-void _ResizeBuffer(void ***buffer, unsigned int objCount, unsigned int *bufObjCount, unsigned int elemSize) {
+void _ResizeBuffer(void ***buffer, NSUInteger objCount, NSUInteger *bufObjCount, NSUInteger elemSize) {
 	assert(buffer && bufObjCount);
 	
 	if ((*bufObjCount < objCount || !*buffer) && elemSize && objCount) {
@@ -91,20 +91,20 @@ int IsZeros(const void *s1, size_t n) {
 	return (1);
 }
 
-void modp_tolower_copy(char* dest, const char* str, int len) {
-	int i;
-	NSUInteger eax, ebx;
-	const uint8_t* ustr = (const uint8_t*) str;
-	const int leftover = len % sizeof(NSUInteger);
-	const int imax = len / sizeof(NSUInteger);
-	const NSUInteger* s = (const NSUInteger*) str;
-	NSUInteger* d = (NSUInteger*) dest;
-	for (i = 0; i != imax; ++i) {
-		eax = s[i];
-		/*
-		 * This is based on the algorithm by Paul Hsieh
-		 * http://www.azillionmonkeys.com/qed/asmexample.html
-		 */
+void modp_tolower_copy(char* dest, const char* str, size_t len) {
+	size_t i;
+    unsigned long long eax, ebx;
+    const uint8_t* ustr = (const uint8_t*) str;
+    const size_t leftover = len % 4;
+    const size_t  imax = len / 4;
+    const uint32_t* s = (const uint32_t*) str;
+    unsigned long long* d = (unsigned long long *) dest;
+    for (i = 0; i != imax; ++i) {
+        eax = s[i];
+        /*
+         * This is based on the algorithm by Paul Hsieh
+         * http://www.azillionmonkeys.com/qed/asmexample.html
+         */
 #if __LP64__ || NS_BUILD_32_LIKE_64
 		ebx = (0x7f7f7f7f7f7f7f7fllu & eax) + 0x2525252525252525llu;
 		ebx = (0x7f7f7f7f7f7f7f7fllu & ebx) + 0x1a1a1a1a1a1a1a1allu;
@@ -114,23 +114,23 @@ void modp_tolower_copy(char* dest, const char* str, int len) {
 		ebx = (0x7f7f7f7fu & ebx) + 0x1a1a1a1au;
 		ebx = ((ebx & ~eax) >> 2)  & 0x20202020u;
 #endif
-		*d++ = eax + ebx;
-	}
-	
-	i = imax * sizeof(NSUInteger);
-	dest = (char*) d;
-	switch (leftover) {
+        *d++ = eax + ebx;
+    }
+
+    i = imax*4;
+    dest = (char*) d;
+    switch (leftover) {
 #if __LP64__ || NS_BUILD_32_LIKE_64
 		case 7: *dest++ = (char) gsToLowerMap[ustr[i++]];
 		case 6: *dest++ = (char) gsToLowerMap[ustr[i++]];
 		case 5: *dest++ = (char) gsToLowerMap[ustr[i++]];
-		case 4: *dest++ = (char) gsToLowerMap[ustr[i++]];			
+		case 4: *dest++ = (char) gsToLowerMap[ustr[i++]];
 #endif
 		case 3: *dest++ = (char) gsToLowerMap[ustr[i++]];
 		case 2: *dest++ = (char) gsToLowerMap[ustr[i++]];
 		case 1: *dest++ = (char) gsToLowerMap[ustr[i]];
 		case 0: *dest = '\0';
-	}
+    }
 }
 
 static const u_int32_t offsetsFromUTF8[6] = {
@@ -301,7 +301,7 @@ CFStringRef GetRelativeDateStringFromTimeAndLocaleInfo(CFAbsoluteTime time, CFSt
 //these two methods manipulate notes' perdiskinfo groups, changing the buffers in place
 //on return, groupCount will be set to the number of perdiskinfo structs currently in the buffer
 
-void RemovePerDiskInfoWithTableIndex(UInt32 diskIndex, PerDiskInfo **perDiskGroups, unsigned int *groupCount) {
+void RemovePerDiskInfoWithTableIndex(UInt32 diskIndex, PerDiskInfo **perDiskGroups, NSUInteger *groupCount) {
 	//used to periodically clean out attr-mod-times for disks that have not been seen in a while
 	
 	//if an entry exists, push everything below it upward and resize the buffer (or just copy to a new buffer)
@@ -323,7 +323,7 @@ void RemovePerDiskInfoWithTableIndex(UInt32 diskIndex, PerDiskInfo **perDiskGrou
 	}
 }
 
-unsigned int SetPerDiskInfoWithTableIndex(UTCDateTime *dateTime, UInt32 *nodeID, UInt32 diskIndex, PerDiskInfo **perDiskGroups, unsigned int *groupCount) {
+NSUInteger SetPerDiskInfoWithTableIndex(UTCDateTime *dateTime, UInt32 *nodeID, UInt32 diskIndex, PerDiskInfo **perDiskGroups, NSUInteger *groupCount) {
 	//if an entry for this diskIndex already exists, then just update it in place
 	//if an entry does not exist, then resize the buffer and add one at the end
 	//if one of dateTime or nodeID is NULL, then do not set it
@@ -342,8 +342,8 @@ unsigned int SetPerDiskInfoWithTableIndex(UTCDateTime *dateTime, UInt32 *nodeID,
 			return i;
 		}
 	}
-//	printf("table ID %u not found; expanding to %u\n", (unsigned)diskIndex, (unsigned)(count + 1));
-	
+
+	//	printf("table ID %u not found; expanding to %u\n", (unsigned)diskIndex, (unsigned)(count + 1));
 	//diskID not found in existing buffer; add a new entry one or both attributes
 	ResizeArray(perDiskGroups, count + 1, groupCount);
 	
@@ -359,7 +359,7 @@ unsigned int SetPerDiskInfoWithTableIndex(UTCDateTime *dateTime, UInt32 *nodeID,
 
 COMPILE_ASSERT(sizeof(PerDiskInfo) == 16, PER_DISK_INFO_MUST_BE_16_BYTES);
 
-void CopyPerDiskInfoGroupsToOrder(PerDiskInfo **flippedGroups, unsigned int *existingCount, PerDiskInfo *perDiskGroups, size_t bufferSize, int toHostOrder) {
+void CopyPerDiskInfoGroupsToOrder(PerDiskInfo **flippedGroups, NSUInteger *existingCount, PerDiskInfo *perDiskGroups, size_t bufferSize, NSInteger toHostOrder) {
 	//for decoding and encoding an array of PerDiskInfo structs as a single buffer
 	//swap between host order and big endian
 	//resizes flippedPairs if it is too small (based on *existingCount)
@@ -403,11 +403,11 @@ CFStringRef CreateRandomizedFileName() {
 	printf("error getting process serial number: %d\n", (int)err);
 	
 	//just use the location of our memory
-	psn.lowLongOfPSN = (unsigned long)&psn;
+	psn.lowLongOfPSN = (unsigned int)&psn;
     }
     
     CFStringRef name = CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR(".%lu%lu-%d-%d"), 
-						psn.highLongOfPSN, psn.lowLongOfPSN, (int)CFAbsoluteTimeGetCurrent(), sequence);
+						(unsigned long)psn.highLongOfPSN, (unsigned long)psn.lowLongOfPSN, (int)CFAbsoluteTimeGetCurrent(), sequence);
     
     return name;
 }

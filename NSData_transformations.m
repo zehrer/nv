@@ -58,7 +58,7 @@
 		if (zlibError == Z_OK) {
 			// Add original size to the end of the buffer, written big-endian
 			*( (unsigned *) ([newData mutableBytes] + bufferLength) ) =
-            NSSwapHostIntToBig( [self length] );
+            NSSwapHostIntToBig( (unsigned int)[self length] );
 			[newData setLength:bufferLength + sizeof(unsigned)];
 		} else {
 			NSLog(@"error compressing: %s", zError(zlibError));
@@ -135,7 +135,7 @@
 	return NO;
 }
 
-+ (NSMutableData *)randomDataOfLength:(int)len {
++ (NSMutableData *)randomDataOfLength:(NSUInteger)len {
 	NSMutableData *randomData = nil;
 	ssize_t amtRead = 0, oneRead;
 	NSFileHandle *devRandom = [ NSFileHandle fileHandleForReadingAtPath:@"/dev/random" ];
@@ -162,10 +162,10 @@
 	return randomData;
 }
 
-- (NSMutableData*)derivedKeyOfLength:(int)len salt:(NSData*)salt iterations:(int)count {
+- (NSMutableData*)derivedKeyOfLength:(NSUInteger)len salt:(NSData*)salt iterations:(NSUInteger)count {
 	NSMutableData *derivedKey = [NSMutableData dataWithLength:len];
 	
-	CCCryptorStatus status = CCKeyDerivationPBKDF(kCCPBKDF2, self.bytes, self.length, salt.bytes, salt.length, kCCPRFHmacAlgSHA1, count, derivedKey.mutableBytes, len);
+	CCCryptorStatus status = CCKeyDerivationPBKDF(kCCPBKDF2, self.bytes, self.length, salt.bytes, salt.length, kCCPRFHmacAlgSHA1, (unsigned int)count, derivedKey.mutableBytes, len);
 	if (status == kCCSuccess) {
 		return [derivedKey copy];
 	}
@@ -174,13 +174,14 @@
 }
 
 - (unsigned long)CRC32 {
+	
 	uLong crc = crc32(0L, Z_NULL, 0);
-    return crc32(crc, [self bytes], [self length]);
+    return crc32(crc, [self bytes], (unsigned int)[self length]);
 }
 
 - (NSData*)SHA1Digest {
 	NSMutableData *ret = [NSMutableData dataWithLength: CC_SHA1_DIGEST_LENGTH];
-	CC_SHA1(self.bytes, self.length, ret.mutableBytes);
+	CC_SHA1(self.bytes, (unsigned int)self.length, ret.mutableBytes);
 	return [ret copy];
 }
 
@@ -189,7 +190,7 @@
 	NSMutableData *digest = [NSMutableData dataWithLength:16];
     
     BrokenMD5Init(&context);
-    BrokenMD5Update(&context, [self bytes], [self length]);
+    BrokenMD5Update(&context, [self bytes], (unsigned int)[self length]);
     BrokenMD5Final([digest mutableBytes], &context);
 	
 	return digest;
@@ -197,7 +198,7 @@
 
 - (NSData*)MD5Digest {
 	NSMutableData *ret = [NSMutableData dataWithLength: CC_MD5_DIGEST_LENGTH];
-	CC_MD5(self.bytes, self.length, ret.mutableBytes);
+	CC_MD5(self.bytes, (unsigned int)self.length, ret.mutableBytes);
 	return [ret copy];	
 }
 
@@ -261,7 +262,7 @@
 //but those 1) require file paths and 2) the non-deprecated version is available only on 10.4
 
 - (NSMutableString*)newStringUsingBOMReturningEncoding:(NSStringEncoding*)encoding {
-	unsigned len = [self length];
+	NSUInteger len = [self length];
 	NSMutableString *string = nil;
 	
 	if (len % 2 != 0 || !len) {
@@ -334,7 +335,7 @@
 @implementation NSMutableData (NVCryptoRelated)
 
 - (void)reverseBytes {
-	int head, tail;
+	NSInteger head, tail;
 	unsigned char temp, *str = [self mutableBytes];
 	if (!str) return;
 	tail = [self length] - 1;
@@ -347,9 +348,9 @@
 }
 
 //extends nsmutabledata if necessary
-- (void)alignForBlockSize:(int)alignedBlockSize {
-	int dataBlockSize = [self length];
-	int paddedDataBlockSize = 0;
+- (void)alignForBlockSize:(NSInteger)alignedBlockSize {
+	NSInteger dataBlockSize = [self length];
+	NSInteger paddedDataBlockSize = 0;
 	
 	if (dataBlockSize <= alignedBlockSize)
 		paddedDataBlockSize = alignedBlockSize;
@@ -357,7 +358,7 @@
 		paddedDataBlockSize = alignedBlockSize * ((dataBlockSize + (alignedBlockSize-1)) / alignedBlockSize);
 
 	//if malloc was used on conventional architectures, nsdata should be smart enough not to have to allocate a new block
-	int difference = paddedDataBlockSize - dataBlockSize;
+	NSInteger difference = paddedDataBlockSize - dataBlockSize;
 	if (difference > 0)
 		[self increaseLengthBy:difference];	
 }

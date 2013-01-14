@@ -46,9 +46,9 @@
 	NoteObject *lastNote;
 }
 
-@property (assign) BOOL isPreviewOutdated;
-@property (strong) WebView *preview;
-@property (assign) BOOL isPreviewSticky;
+@property (nonatomic, assign) BOOL isPreviewOutdated;
+@property (nonatomic, strong) WebView *preview;
+@property (nonatomic, assign) BOOL isPreviewSticky;
 
 -(IBAction)saveHTML:(id)sender;
 -(IBAction)switchTabs:(id)sender;

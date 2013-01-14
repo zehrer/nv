@@ -76,7 +76,7 @@ static int dayFromAbsoluteTime(CFAbsoluteTime absTime) {
     return NoSpecialDay;
 }
 
-+ (NSString*)relativeTimeStringWithDate:(CFDateRef)date relativeDay:(int)day {
++ (NSString*)relativeTimeStringWithDate:(CFDateRef)date relativeDay:(NSInteger)day {
     static CFDateFormatterRef timeOnlyFormatter = nil;
     static NSString *days[3] = { NULL };
     
@@ -146,7 +146,7 @@ static int dayFromAbsoluteTime(CFAbsoluteTime absTime) {
 }
 
 // TODO: possibly obsolete? SN api2 formats dates as doubles from start of unix epoch
-CFDateFormatterRef simplenoteDateFormatter(int lowPrecision) {
+CFDateFormatterRef simplenoteDateFormatter(NSInteger lowPrecision) {
 	//CFStringRef dateStr = CFSTR("2010-01-02 23:23:31.876229");
 	static CFDateFormatterRef dateFormatter = NULL;
 	static CFDateFormatterRef lowPrecisionDateFormatter = NULL;
@@ -231,16 +231,16 @@ CFDateFormatterRef simplenoteDateFormatter(int lowPrecision) {
 	return NULL;
 }
 
-+ (NSString*)customPasteboardTypeOfCode:(int)code {
++ (NSString*)customPasteboardTypeOfCode:(NSInteger)code {
 	//returns something like CorePasteboardFlavorType 0x4D5A0003
-	return [NSString stringWithFormat:@"CorePasteboardFlavorType 0x%X", code];
+	return [NSString stringWithFormat:@"CorePasteboardFlavorType 0x%lX", (long)code];
 }
 
 - (NSString*)stringAsSafePathExtension {
 	return [self stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"./*: \t\n\r"]];
 }
 
-- (NSString*)filenameExpectingAdditionalCharCount:(int)charCount {
+- (NSString*)filenameExpectingAdditionalCharCount:(NSInteger)charCount {
 	NSString *newfilename = self;
 	if ([self length] + charCount > 255)
 		newfilename = [self substringToIndex: 255 - charCount];
@@ -347,13 +347,13 @@ CFDateFormatterRef simplenoteDateFormatter(int lowPrecision) {
 }
 
 //the following three methods + function come courtesy of Mike Ferris' TextExtras
-+ (NSString *)tabbifiedStringWithNumberOfSpaces:(unsigned)origNumSpaces tabWidth:(unsigned)tabWidth usesTabs:(BOOL)usesTabs {
++ (NSString *)tabbifiedStringWithNumberOfSpaces:(NSUInteger)origNumSpaces tabWidth:(NSUInteger)tabWidth usesTabs:(BOOL)usesTabs {
 	static NSMutableString *sharedString = nil;
-	static unsigned numTabs = 0;
-    static unsigned numSpaces = 0;
+	static NSUInteger numTabs = 0;
+    static NSUInteger numSpaces = 0;
 	
-    int diffInTabs;
-    int diffInSpaces;
+    NSInteger diffInTabs;
+    NSInteger diffInSpaces;
 	
     // TabWidth of 0 means don't use tabs!
     if (!usesTabs || (tabWidth == 0)) {
@@ -371,7 +371,7 @@ CFDateFormatterRef simplenoteDateFormatter(int lowPrecision) {
     if (diffInTabs < 0) {
         [sharedString deleteCharactersInRange:NSMakeRange(0, -diffInTabs)];
     } else {
-        unsigned numToInsert = diffInTabs;
+        NSUInteger numToInsert = diffInTabs;
         while (numToInsert > 0) {
             [sharedString replaceCharactersInRange:NSMakeRange(0, 0) withString:@"\t"];
             numToInsert--;
@@ -382,7 +382,7 @@ CFDateFormatterRef simplenoteDateFormatter(int lowPrecision) {
     if (diffInSpaces < 0) {
         [sharedString deleteCharactersInRange:NSMakeRange(numTabs, -diffInSpaces)];
     } else {
-        unsigned numToInsert = diffInSpaces;
+        NSUInteger numToInsert = diffInSpaces;
         while (numToInsert > 0) {
             [sharedString replaceCharactersInRange:NSMakeRange(numTabs, 0) withString:@" "];
             numToInsert--;
@@ -394,14 +394,13 @@ CFDateFormatterRef simplenoteDateFormatter(int lowPrecision) {
     return sharedString;
 }
 
-- (unsigned)numberOfLeadingSpacesFromRange:(NSRange*)range tabWidth:(unsigned)tabWidth {
+- (NSUInteger)numberOfLeadingSpacesFromRange:(NSRange*)range tabWidth:(NSUInteger)tabWidth {
     // Returns number of spaces, accounting for expanding tabs.
     NSRange searchRange = (range ? *range : NSMakeRange(0, [self length]));
     unichar buff[100];
-    unsigned i = 0;
-    unsigned spaceCount = 0;
+    NSUInteger spaceCount = 0;
     BOOL done = NO;
-    unsigned tabW = tabWidth;
+    NSUInteger tabW = tabWidth;
     NSUInteger endOfWhiteSpaceIndex = NSNotFound;
 	
     if (!range || range->length == 0) {
@@ -410,7 +409,7 @@ CFDateFormatterRef simplenoteDateFormatter(int lowPrecision) {
     
     while ((searchRange.length > 0) && !done) {
         [self getCharacters:buff range:NSMakeRange(searchRange.location, ((searchRange.length > 100) ? 100 : searchRange.length))];
-        for (i=0; i < ((searchRange.length > 100) ? 100 : searchRange.length); i++) {
+        for (NSUInteger i=0; i < ((searchRange.length > 100) ? 100 : searchRange.length); i++) {
             if (buff[i] == (unichar)' ') {
                 spaceCount++;
             } else if (buff[i] == (unichar)'\t') {
@@ -431,7 +430,7 @@ CFDateFormatterRef simplenoteDateFormatter(int lowPrecision) {
     return spaceCount;
 }
 
-BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, unsigned charIndex) {
+BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, NSUInteger charIndex) {
     // This function redundantly takes both the character and the string and index.  This is because often we only have to look at that one character and usually we already have it when this is called (usually from a source cheaper than characterAtIndex: too.)
     // Returns yes if the unichar given is a hard line break, that is it will always cause a new line fragment to begin.
     // MF:??? Is this test complete?
@@ -547,17 +546,17 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, unsigned charIndex) {
 
 @implementation NSMutableString (NV)
 
-- (void)replaceTabsWithSpacesOfWidth:(int)tabWidth {
+- (void)replaceTabsWithSpacesOfWidth:(NSInteger)tabWidth {
 	NSAssert(tabWidth < 50 && tabWidth > 0, @"that's a ridiculous tab width");
 	
 	@try {
 		NSRange tabRange, nextRange = NSMakeRange(0, [self length]);
 		while ((tabRange = [self rangeOfString:@"\t" options:NSLiteralSearch range:nextRange]).location != NSNotFound) {
 			
-			int numberOfSpacesPerTab = tabWidth;
-			int locationOnLine = tabRange.location - [self lineRangeForRange:tabRange].location;
+			NSInteger numberOfSpacesPerTab = tabWidth;
+			NSInteger locationOnLine = tabRange.location - [self lineRangeForRange:tabRange].location;
 			if (numberOfSpacesPerTab != 0) {
-				int numberOfSpacesLess = locationOnLine % numberOfSpacesPerTab;
+				NSInteger numberOfSpacesLess = locationOnLine % numberOfSpacesPerTab;
 				numberOfSpacesPerTab = numberOfSpacesPerTab - numberOfSpacesLess;
 			}
 			//NSLog(@"loc on line: %d, numberOfSpacesPerTab: %d", locationOnLine, numberOfSpacesPerTab);
@@ -566,7 +565,7 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, unsigned charIndex) {
 			while (numberOfSpacesPerTab-- > 0) {
 				[spacesString appendString:@" "];
 			}
-			
+
 			[self replaceCharactersInRange:tabRange withString:spacesString];
 			
 			NSUInteger rangeLoc = MIN((tabRange.location + numberOfSpacesPerTab), [self length]);
@@ -610,7 +609,7 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, unsigned charIndex) {
 		NSStringEncoding extendedAttrsEncoding = 0;
 		if (!aPath && fsRef && !IsZeros(fsRef, sizeof(FSRef))) {
 			NSMutableData *pathData = [NSMutableData dataWithLength:4 * 1024];
-			if (FSRefMakePath(fsRef, [pathData mutableBytes], [pathData length]) == noErr)
+			if (FSRefMakePath(fsRef, [pathData mutableBytes], (UInt32)[pathData length]) == noErr)
 				extendedAttrsEncoding = [[NSFileManager defaultManager] textEncodingAttributeOfFSPath:[pathData bytes]];
 		} else if (aPath) {
 			extendedAttrsEncoding = [[NSFileManager defaultManager] textEncodingAttributeOfFSPath:aPath];

@@ -35,10 +35,10 @@ typedef struct _PerDiskInfo {
 } PerDiskInfo;
 
 char *replaceString(char *oldString, const char *newString);
-void _ResizeBuffer(void ***buffer, unsigned int objCount, unsigned int *bufSize, unsigned int elemSize);
+void _ResizeBuffer(void ***buffer, NSUInteger objCount, NSUInteger *bufSize, NSUInteger elemSize);
 int IsZeros(const void *s1, size_t n);
 int ContainsUInteger(const NSUInteger *uintArray, size_t count, NSUInteger auint);
-void modp_tolower_copy(char* dest, const char* str, int len);
+void modp_tolower_copy(char* dest, const char* str, size_t len);
 void replace_breaks_utf8(char *s, size_t up_to_len);
 void replace_breaks(char *str, size_t up_to_len);
 int ContainsHighAscii(const void *s1, size_t n);
@@ -48,9 +48,9 @@ NSInteger genericSortContextFirst(int (*context) (void*, void*), void* one, void
 NSInteger genericSortContextLast(void* one, void* two, int (*context) (void*, void*));
 void QuickSortBuffer(void **buffer, unsigned int objCount, int (*compar)(const void *, const void *));
 
-void RemovePerDiskInfoWithTableIndex(UInt32 diskIndex, PerDiskInfo **perDiskGroups, unsigned int *groupCount);
-unsigned int SetPerDiskInfoWithTableIndex(UTCDateTime *dateTime, UInt32 *nodeID, UInt32 diskIndex, PerDiskInfo **perDiskGroups, unsigned int *groupCount);
-void CopyPerDiskInfoGroupsToOrder(PerDiskInfo **flippedGroups, unsigned int *existingCount, PerDiskInfo *perDiskGroups, size_t bufferSize, int toHostOrder);
+void RemovePerDiskInfoWithTableIndex(UInt32 diskIndex, PerDiskInfo **perDiskGroups, NSUInteger *groupCount);
+NSUInteger SetPerDiskInfoWithTableIndex(UTCDateTime *dateTime, UInt32 *nodeID, UInt32 diskIndex, PerDiskInfo **perDiskGroups, NSUInteger *groupCount);
+void CopyPerDiskInfoGroupsToOrder(PerDiskInfo **flippedGroups, NSUInteger *existingCount, PerDiskInfo *perDiskGroups, size_t bufferSize, NSInteger toHostOrder);
 
 extern CFStringRef CreateRandomizedFileName();
 OSStatus FSCreateFileIfNotPresentInDirectory(FSRef *directoryRef, FSRef *childRef, CFStringRef filename, Boolean *created);

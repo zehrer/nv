@@ -59,8 +59,8 @@ typedef struct _NoteFilterContext {
 	UInt32 logicalSize;
 	UTCDateTime fileModifiedDate, *attrsModifiedDate;
 	PerDiskInfo *perDiskInfoGroups;
-	unsigned int perDiskInfoGroupCount;
-	int currentFormatID;
+	NSUInteger perDiskInfoGroupCount;
+	NoteStorageFormat currentFormatID;
 	NSStringEncoding fileEncoding;
 	BOOL shouldWriteToFile, didUnarchive;
 	
@@ -109,7 +109,7 @@ NSInteger compareFileSize(id *a, id *b);
 
 //syncing w/ files in directory
 @property (nonatomic, copy, readonly) NSString *filename;
-@property (nonatomic, readonly) int storageFormat;
+@property (nonatomic, readonly) NoteStorageFormat storageFormat;
 @property (nonatomic, readonly) UInt32 fileNodeID;
 @property (nonatomic, readonly) UInt32 fileSize;
 @property (nonatomic, readonly) UTCDateTime fileModifiedDate;
@@ -191,8 +191,8 @@ NSInteger compareFileSize(id *a, id *b);
 - (void)removeFileFromDirectory;
 - (BOOL)removeUsingJournal:(WALStorageController*)wal;
 
-- (OSStatus)exportToDirectoryRef:(FSRef*)directoryRef withFilename:(NSString*)userFilename usingFormat:(int)storageFormat overwrite:(BOOL)overwrite;
-- (NSRange)nextRangeForWords:(NSArray*)words options:(unsigned)opts range:(NSRange)inRange;
+- (OSStatus)exportToDirectoryRef:(FSRef*)directoryRef withFilename:(NSString*)userFilename usingFormat:(NoteStorageFormat)storageFormat overwrite:(BOOL)overwrite;
+- (NSRange)nextRangeForWords:(NSArray*)words options:(NSStringCompareOptions)opts range:(NSRange)inRange;
 - (void)editExternallyUsingEditor:(ExternalEditor*)ed;
 - (void)abortEditingInExternalEditor;
 

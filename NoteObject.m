@@ -56,7 +56,7 @@ typedef NSRange NSRange32;
 @interface NoteObject ()
 
 @property (nonatomic, copy, readwrite) NSString *filename;
-@property (nonatomic, readwrite) int storageFormat;
+@property (nonatomic, readwrite) NoteStorageFormat storageFormat;
 @property (nonatomic, readwrite) UInt32 fileNodeID;
 @property (nonatomic, readwrite) UInt32 fileSize;
 @property (nonatomic, readwrite) UTCDateTime fileModifiedDate;
@@ -146,14 +146,14 @@ static FSRef *noteFileRefInit(NoteObject* obj) {
 }
 
 - (void)setAttrsModifiedDate:(UTCDateTime *)dateTime {
-	unsigned int idx = SetPerDiskInfoWithTableIndex(dateTime, NULL, diskUUIDIndexForNotation(self.delegate), &perDiskInfoGroups, &perDiskInfoGroupCount);
+	NSUInteger idx = SetPerDiskInfoWithTableIndex(dateTime, NULL, (UInt32)diskUUIDIndexForNotation(self.delegate), &perDiskInfoGroups, &perDiskInfoGroupCount);
 	attrsModifiedDate = &(perDiskInfoGroups[idx].attrTime);
 }
 
 - (UTCDateTime *)attrsModifiedDate {
 	if (!attrsModifiedDate) {
 		//init from delegate based on disk table index
-		unsigned int i, tableIndex = diskUUIDIndexForNotation(delegate);
+		NSUInteger i, tableIndex = diskUUIDIndexForNotation(delegate);
 		
 		for (i=0; i<perDiskInfoGroupCount; i++) {
 			//check if this date has actually been initialized; this entry could be here only because -setFileNoteID: was called
@@ -169,7 +169,7 @@ static FSRef *noteFileRefInit(NoteObject* obj) {
 
 - (UInt32)fileNodeID {
 	if (!nodeID) {
-		unsigned int i, tableIndex = diskUUIDIndexForNotation(delegate);
+		NSUInteger i, tableIndex = diskUUIDIndexForNotation(delegate);
 		
 		for (i=0; i<perDiskInfoGroupCount; i++) {
 			//check if this nodeID has actually been initialized; this entry could be here only because -setAttrsModifiedDate: was called
@@ -184,7 +184,7 @@ static FSRef *noteFileRefInit(NoteObject* obj) {
 }
 
 - (void)setFileNodeID:(UInt32)fileNodeID {
-	SetPerDiskInfoWithTableIndex(NULL, &fileNodeID, diskUUIDIndexForNotation(delegate), &perDiskInfoGroups, &perDiskInfoGroupCount);
+	SetPerDiskInfoWithTableIndex(NULL, &fileNodeID, (UInt32)diskUUIDIndexForNotation(delegate), &perDiskInfoGroups, &perDiskInfoGroupCount);
 	nodeID = fileNodeID;
 }
 
@@ -327,8 +327,8 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 			
 			modifiedDate = [decoder decodeDoubleForKey:VAR_STR(modifiedDate)];
 			createdDate = [decoder decodeDoubleForKey:VAR_STR(createdDate)];
-			selectedRange.location = [decoder decodeInt32ForKey:@"selectionRangeLocation"];
-			selectedRange.length = [decoder decodeInt32ForKey:@"selectionRangeLength"];
+			selectedRange.location = [decoder decodeIntegerForKey:@"selectionRangeLocation"];
+			selectedRange.length = [decoder decodeIntegerForKey:@"selectionRangeLength"];
 			contentsWere7Bit = [decoder decodeBoolForKey:VAR_STR(contentsWere7Bit)];
 			
 			logSequenceNumber = [decoder decodeInt32ForKey:VAR_STR(logSequenceNumber)];
@@ -345,7 +345,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 				CopyPerDiskInfoGroupsToOrder(&perDiskInfoGroups, &perDiskInfoGroupCount, (PerDiskInfo *)decodedPerDiskBytes, decodedPerDiskByteCount, 1);
 			}
 			
-			fileEncoding = [decoder decodeInt32ForKey:VAR_STR(fileEncoding)];
+			fileEncoding = [decoder decodeIntegerForKey:VAR_STR(fileEncoding)];
 
 			NSUInteger decodedUUIDByteCount = 0;
 			const uint8_t *decodedUUIDBytes = [decoder decodeBytesForKey:VAR_STR(uniqueNoteIDBytes) returnedLength:&decodedUUIDByteCount];
@@ -435,8 +435,8 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		
 		[coder encodeDouble:modifiedDate forKey:VAR_STR(modifiedDate)];
 		[coder encodeDouble:createdDate forKey:VAR_STR(createdDate)];
-		[coder encodeInt32:(unsigned int)selectedRange.location forKey:@"selectionRangeLocation"];
-		[coder encodeInt32:(unsigned int)selectedRange.length forKey:@"selectionRangeLength"];
+		[coder encodeInteger: selectedRange.location forKey: @"selectionRangeLocation"];
+		[coder encodeInteger: selectedRange.length forKey: @"selectionRangeLength"];
 		[coder encodeBool:contentsWere7Bit forKey:VAR_STR(contentsWere7Bit)];
 		
 		[coder encodeInt32:logSequenceNumber forKey:VAR_STR(logSequenceNumber)];
@@ -451,7 +451,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		free(flippedPerDiskInfoGroups);
 		
 		[coder encodeInt64:*(int64_t*)&fileModifiedDate forKey:VAR_STR(fileModifiedDate)];
-		[coder encodeInt32:fileEncoding forKey:VAR_STR(fileEncoding)];
+		[coder encodeInteger: fileEncoding forKey: VAR_STR(fileEncoding)];
 		
 		[coder encodeBytes:(const uint8_t *)&uniqueNoteIDBytes length:sizeof(CFUUIDBytes) forKey:VAR_STR(uniqueNoteIDBytes)];
 		[coder encodeObject:syncServicesMD forKey:VAR_STR(syncServicesMD)];
@@ -612,7 +612,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		cContentsFoundPtr = cContents = replaceString(cContents, [[contentString string] lowercaseUTF8String]);
 		contentCacheNeedsUpdate = NO;
 		
-		int len = strlen(cContents);
+		NSInteger len = strlen(cContents);
 		contentsWere7Bit = !(ContainsHighAscii(cContents, len));
 		
 		//could cache dumbwordcount here for faster launch, but string creation takes more time, anyway
@@ -1264,7 +1264,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	
 	NSMutableData *pathData = [NSMutableData dataWithLength:4 * 1024];
 	OSStatus err = noErr;
-	if ((err = FSRefMakePath(fsRef, [pathData mutableBytes], [pathData length])) == noErr) {
+	if ((err = FSRefMakePath(fsRef, [pathData mutableBytes], (unsigned int)[pathData length])) == noErr) {
 		[[NSFileManager defaultManager] setTextEncodingAttribute:fileEncoding atFSPath:[pathData bytes]];
 	} else {
 		NSLog(@"%@: error getting path from FSRef: %d (IsZeros: %d)", NSStringFromSelector(_cmd), err, IsZeros(fsRef, sizeof(fsRef)));
@@ -1383,7 +1383,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	self.fileSize = catEntry->logicalSize;
 	
 	NSMutableData *pathData = [NSMutableData dataWithLength:4 * 1024];
-	if (FSRefMakePath(noteFileRefInit(self), [pathData mutableBytes], [pathData length]) == noErr) {
+	if (FSRefMakePath(noteFileRefInit(self), [pathData mutableBytes], (unsigned int)[pathData length]) == noErr) {
 		
 		NSArray *openMetaTags = [[NSFileManager defaultManager] getOpenMetaTagsAtFSPath:[pathData bytes]];
 		if (openMetaTags) {
@@ -1579,7 +1579,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	//so expect the delegate to know to schedule the same update itself
 }
 
-- (OSStatus)exportToDirectoryRef:(FSRef*)directoryRef withFilename:(NSString*)userFilename usingFormat:(int)storageFormat overwrite:(BOOL)overwrite {
+- (OSStatus)exportToDirectoryRef:(FSRef*)directoryRef withFilename:(NSString*)userFilename usingFormat:(NoteStorageFormat)storageFormat overwrite:(BOOL)overwrite {
 	
 	NSData *formattedData = nil;
 	NSError *error = nil;
@@ -1615,7 +1615,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 																					 forKey:NSDocumentTypeDocumentAttribute] error:&error];
 			break;
 		default:
-			NSLog(@"Attempted to export using unknown format ID: %d", storageFormat);
+			NSLog(@"Attempted to export using unknown format ID: %ld", storageFormat);
     }
 	if (!formattedData)
 		return kDataFormattingErr;
@@ -1690,7 +1690,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	[[NSFileManager defaultManager] removeItemAtPath:path error:NULL];
 }
 
-- (NSRange)nextRangeForWords:(NSArray*)words options:(unsigned)opts range:(NSRange)inRange {
+- (NSRange)nextRangeForWords:(NSArray*)words options:(NSStringCompareOptions)opts range:(NSRange)inRange {
 	//opts indicate forwards or backwards, inRange allows us to continue from where we left off
 	//return location of NSNotFound and length 0 if none of the words could be found inRange
 	

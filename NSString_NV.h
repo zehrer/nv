@@ -22,15 +22,15 @@
 
 unsigned int hoursFromAbsoluteTime(CFAbsoluteTime absTime);
 extern void resetCurrentDayTime();
-+ (NSString*)relativeTimeStringWithDate:(CFDateRef)date relativeDay:(int)day;
++ (NSString*)relativeTimeStringWithDate:(CFDateRef)date relativeDay:(NSInteger)day;
 + (NSString*)relativeDateStringWithAbsoluteTime:(CFAbsoluteTime)absTime;
-CFDateFormatterRef simplenoteDateFormatter(int lowPrecision);
+CFDateFormatterRef simplenoteDateFormatter(NSInteger lowPrecision);
 + (NSString*)simplenoteDateWithAbsoluteTime:(CFAbsoluteTime)absTime;
 - (CFAbsoluteTime)absoluteTimeFromSimplenoteDate;
 - (CFArrayRef)copyRangesOfWordsInString:(NSString*)findString inRange:(NSRange)limitRange;
-+ (NSString*)customPasteboardTypeOfCode:(int)code;
++ (NSString*)customPasteboardTypeOfCode:(NSInteger)code;
 - (NSString*)stringAsSafePathExtension;
-- (NSString*)filenameExpectingAdditionalCharCount:(int)charCount;
+- (NSString*)filenameExpectingAdditionalCharCount:(NSInteger)charCount;
 - (NSString*)fourCharTypeString;
 - (BOOL)isAMachineDirective;
 - (void)copyItemToPasteboard:(id)sender;
@@ -38,10 +38,10 @@ CFDateFormatterRef simplenoteDateFormatter(int lowPrecision);
 - (NSString*)syntheticTitleAndSeparatorWithContext:(NSString**)sepStr bodyLoc:(NSUInteger*)bodyLoc 
 										  oldTitle:(NSString*)oldTitle maxTitleLen:(NSUInteger)maxTitleLen;
 - (NSString*)syntheticTitleAndTrimmedBody:(NSString**)newBody;
-+ (NSString *)tabbifiedStringWithNumberOfSpaces:(unsigned)origNumSpaces tabWidth:(unsigned)tabWidth usesTabs:(BOOL)usesTabs;
-- (unsigned)numberOfLeadingSpacesFromRange:(NSRange*)range tabWidth:(unsigned)tabWidth;
++ (NSString *)tabbifiedStringWithNumberOfSpaces:(NSUInteger)origNumSpaces tabWidth:(NSUInteger)tabWidth usesTabs:(BOOL)usesTabs;
+- (NSUInteger)numberOfLeadingSpacesFromRange:(NSRange*)range tabWidth:(NSUInteger)tabWidth;
 
-	BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, unsigned charIndex);
+	BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, NSUInteger charIndex);
 
 - (char*)copyLowercaseASCIIString;
 - (const char*)lowercaseUTF8String;
@@ -64,7 +64,7 @@ CFDateFormatterRef simplenoteDateFormatter(int lowPrecision);
 @end
 
 @interface NSMutableString (NV)
-- (void)replaceTabsWithSpacesOfWidth:(int)tabWidth;
+- (void)replaceTabsWithSpacesOfWidth:(NSInteger)tabWidth;
 + (NSMutableString*)newShortLivedStringFromFile:(NSString*)filename;
 + (NSMutableString*)newShortLivedStringFromData:(NSMutableData*)data ofGuessedEncoding:(NSStringEncoding*)encoding 
 									   withPath:(const char*)aPath orWithFSRef:(const FSRef*)fsRef;

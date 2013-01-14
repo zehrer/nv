@@ -23,10 +23,10 @@
 + (NSDictionary*)standardDictionary;
 - (void)updateWidthForHighlight;
 
-@property (nonatomic) SEL mutatingSelector;
-@property (nonatomic) id (*attributeFunction)(id, id, NSInteger);
-@property (nonatomic) NSInteger (*sortingFunction)(id*, id*);
-@property (nonatomic) NSInteger (*reverseSortingFunction)(id*, id*);
+@property (nonatomic, assign) SEL mutatingSelector;
+@property (nonatomic, assign) id (*attributeFunction)(id, id, NSInteger);
+@property (nonatomic, assign) NSInteger (*sortingFunction)(id*, id*);
+@property (nonatomic, assign) NSInteger (*reverseSortingFunction)(id*, id*);
 
 - (void)setResizingMaskNumber:(NSNumber*)resizingMaskNumber;
 

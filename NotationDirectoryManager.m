@@ -232,7 +232,7 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t nu
 				
 				totalObjects += dirObjectCount;
 				if (totalObjects > totalCatEntriesCount) {
-					unsigned int oldCatEntriesCount = totalCatEntriesCount;
+					NSUInteger oldCatEntriesCount = totalCatEntriesCount;
 					
 					totalCatEntriesCount = totalObjects;
 					catalogEntries = (NoteCatalogEntry *)realloc(catalogEntries, totalObjects * sizeof(NoteCatalogEntry));
@@ -349,7 +349,7 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t nu
 }
 
 - (void)makeNotesMatchCatalogEntries:(NoteCatalogEntry**)catEntriesPtrs ofSize:(size_t)catCount {
-	unsigned int bSize = catCount;
+	NSUInteger bSize = catCount;
 	
 	NSArray *currentNotes = [allNotes sortedArrayUsingComparator:^NSComparisonResult(NoteObject *a, NoteObject *b) {
 		return [a.filename caseInsensitiveCompare: b.filename];
@@ -360,7 +360,7 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t nu
     NSMutableArray *addedEntries = [NSMutableArray array];
     NSMutableArray *removedEntries = [NSMutableArray array];
     
-    unsigned int j, lastInserted = 0;
+    NSUInteger j, lastInserted = 0;
 	
 	for (NoteObject *note in currentNotes) {
 		BOOL exitedEarly = NO;
@@ -432,7 +432,7 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t nu
 
 //find renamed notes through unique file IDs
 - (void)processNotesAddedByCNID:(NSMutableArray*)addedEntries removed:(NSMutableArray*)removedEntries {
-	unsigned int aSize = [removedEntries count], bSize = [addedEntries count];
+	NSUInteger aSize = [removedEntries count], bSize = [addedEntries count];
     
     //sort on nodeID here
 	[addedEntries sortUnstableUsingFunction:compareCatalogValueNodeID];
@@ -444,7 +444,7 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t nu
     //oldItems(a,i) = currentNotes
     //newItems(b,j) = catEntries;
     
-    unsigned int i, j, lastInserted = 0;
+    NSUInteger i, j, lastInserted = 0;
     
     for (i=0; i<aSize; i++) {
 		NoteObject *currentNote = [removedEntries objectAtIndex:i];

@@ -27,14 +27,14 @@
 
 - (void)awakeFromNib {
 	
-	int storageFormat = [[[GlobalPrefs defaultPrefs] notationPrefs] notesStorageFormat];
+	NoteStorageFormat storageFormat = [[[GlobalPrefs defaultPrefs] notationPrefs] notesStorageFormat];
 	[formatSelectorPopup selectItemWithTag:storageFormat];
 }
 
 - (IBAction)formatSelectorChanged:(id)sender {
 	NSSavePanel *panel = (NSSavePanel *)[sender window];
 	
-	int storageFormat = [[formatSelectorPopup selectedItem] tag];
+	NoteStorageFormat storageFormat = [[formatSelectorPopup selectedItem] tag];
 	[panel setAllowedFileTypes: @[ [NotationPrefs pathExtensionForFormat:storageFormat] ]];
 }
 
@@ -50,8 +50,9 @@
 	void (^completionHandler)(NSSavePanel *,NSInteger) = ^(NSSavePanel *sheet, NSInteger returnCode){
 		if (returnCode == NSFileHandlingPanelOKButton && notes) {
 			//write notes in chosen format
-			unsigned int i;
-			int result, storageFormat = [[formatSelectorPopup selectedItem] tag];
+			NSUInteger i;
+			NSInteger result;
+			NoteStorageFormat storageFormat = [[formatSelectorPopup selectedItem] tag];
 			NSURL *URL = sheet.URL;
 			NSString *filename = URL.lastPathComponent;
 			BOOL overwriteNotes = NO;
@@ -112,7 +113,7 @@
 		
 		NSString *filename = [notes.lastObject filename];
 		filename = [filename stringByDeletingPathExtension];
-		filename = [filename stringByAppendingPathExtension:[NotationPrefs pathExtensionForFormat:[[formatSelectorPopup selectedItem] tag]]];
+		filename = [filename stringByAppendingPathExtension:[NotationPrefs pathExtensionForFormat:(NoteStorageFormat)[[formatSelectorPopup selectedItem] tag]]];
 		
 		[savePanel beginSheetModalForWindow: window completionHandler:^(NSInteger result) {
 			completionHandler(savePanel, result);

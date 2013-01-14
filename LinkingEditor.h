@@ -42,21 +42,13 @@
 	NoteObject *noteDuringFind;
 	
 	IMP defaultIBeamCursorIMP, whiteIBeamCursorIMP;
-    
-    
-	NSString *__weak beforeString;
-	NSString *__weak afterString;
-    NSString *__weak activeParagraph;
-    NSString *__weak activeParagraphPastCursor;
-    NSString *__weak activeParagraphBeforeCursor;
-//    BOOL clipboardHasLink;
 }
 
-@property (weak, readonly) NSString *activeParagraphBeforeCursor;
-@property (weak, readonly) NSString *activeParagraphPastCursor;
-@property (weak, readonly) NSString *beforeString;
-@property (weak, readonly) NSString *afterString;
-@property (weak, readonly) NSString *activeParagraph;
+@property (nonatomic, weak, readonly) NSString *activeParagraphBeforeCursor;
+@property (nonatomic, weak, readonly) NSString *activeParagraphPastCursor;
+@property (nonatomic, weak, readonly) NSString *beforeString;
+@property (nonatomic, weak, readonly) NSString *afterString;
+@property (nonatomic, weak, readonly) NSString *activeParagraph;
 //@property (readonly) BOOL clipboardHasLink;
 
 - (NSColor*)_insertionPointColorForForegroundColor:(NSColor*)fgColor backgroundColor:(NSColor*)bgColor;
@@ -73,7 +65,7 @@
 - (void)bold:(id)sender;
 - (void)italic:(id)sender;
 - (void)applyStyleOfTrait:(NSFontTraitMask)trait alternateAttributeName:(NSString*)attrName alternateAttributeValue:(id)value;
-- (id)highlightLinkAtIndex:(unsigned)givenIndex;
+- (id)highlightLinkAtIndex:(NSUInteger)givenIndex;
 
 - (BOOL)jumpToRenaming;
 - (void)indicateRange:(NSValue*)rangeValue;

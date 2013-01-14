@@ -1491,7 +1491,7 @@ void outletObjectAwoke(id sender) {
 	}
 }
 
-- (BOOL)displayContentsForNoteAtIndex:(int)noteIndex {
+- (BOOL)displayContentsForNoteAtIndex:(NSInteger)noteIndex {
 	NoteObject *note = [notationController noteObjectAtFilteredIndex:noteIndex];
 	if (note != currentNote) {
 		[self setEmptyViewState:NO];
@@ -1526,7 +1526,7 @@ void outletObjectAwoke(id sender) {
 		//[textView setAutomaticallySelectedRange:NSMakeRange(0,0)];
 		
 		//highlight terms--delay this, too
-		if ((unsigned)noteIndex != [notationController preferredSelectedNoteIndex])
+		if (noteIndex != [notationController preferredSelectedNoteIndex])
 			firstFoundTermRange = [textView highlightTermsTemporarilyReturningFirstRange:typedString avoidHighlight:
 								   ![prefsController highlightSearchTerms]];
 		
@@ -2665,11 +2665,11 @@ void outletObjectAwoke(id sender) {
         }else{*/
             
             NSTextStorage *noteStorage = [textView textStorage];
-            int theCount = [[noteStorage words] count];
+            NSUInteger theCount = [[noteStorage words] count];
             
        // }
         if (theCount > 0) {
-            [wordCounter setStringValue:[[NSString stringWithFormat:@"%d", theCount] stringByAppendingString:@" words"]];
+            [wordCounter setStringValue:[[NSString stringWithFormat:@"%ld", theCount] stringByAppendingString:@" words"]];
         }else {
             [wordCounter setStringValue:@""];
         }
@@ -2876,7 +2876,7 @@ void outletObjectAwoke(id sender) {
     currentPreviewMode = [previewItem tag];
     
     // update user defaults
-    [[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithInt:currentPreviewMode]
+    [[NSUserDefaults standardUserDefaults] setObject: @(currentPreviewMode)
                                               forKey:@"markupPreviewMode"];
     
     [self postTextUpdate];

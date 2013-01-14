@@ -139,7 +139,7 @@ extern void outletObjectAwoke(id sender);
 - (NoteObject*)createNoteIfNecessary;
 - (void)searchForString:(NSString*)string;
 - (NSUInteger)revealNote:(NoteObject*)note options:(NSUInteger)opts;
-- (BOOL)displayContentsForNoteAtIndex:(int)noteIndex;
+- (BOOL)displayContentsForNoteAtIndex:(NSInteger)noteIndex;
 - (void)processChangedSelectionForTable:(NSTableView*)table;
 - (void)setEmptyViewState:(BOOL)state;
 - (void)cancelOperation:(id)sender;

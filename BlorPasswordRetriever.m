@@ -75,7 +75,7 @@
 - (NSData*)keychainPasswordData {
 	
 	NSString *keychainAccountString = [[path stringByAbbreviatingWithTildeInPath] lowercaseString];
-	
+
 	const char *serviceName = "NV";
 	
 	UInt32 passwordLength;
@@ -83,7 +83,7 @@
 	
 	NSData *output = nil;
 	
-	if (SecKeychainFindGenericPassword(NULL, strlen(serviceName), serviceName, keychainAccountString.length, keychainAccountString.UTF8String, &passwordLength, &passwordData, NULL) == noErr) {
+	if (SecKeychainFindGenericPassword(NULL, (UInt32)strlen(serviceName), serviceName, (UInt32)keychainAccountString.length, keychainAccountString.UTF8String, &passwordLength, &passwordData, NULL) == noErr) {
 		output = [NSData dataWithBytesNoCopy: passwordData length: passwordLength freeWhenDone: YES];
 	}
 	
@@ -118,7 +118,7 @@
 	[helpStringField setStringValue:[NSString stringWithFormat:NSLocalizedString(@"Please enter the passphrase to import old notes at %@.",nil), 
 		[path stringByAbbreviatingWithTildeInPath]]];
 	
-	int result = [NSApp runModalForWindow:window];
+	NSInteger result = [NSApp runModalForWindow:window];
 	
 	NSString *passwordString = [passphraseField stringValue];
 	passwordData = [passwordString dataUsingEncoding:[NSString defaultCStringEncoding] allowLossyConversion:NO];

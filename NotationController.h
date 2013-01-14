@@ -52,7 +52,7 @@
 	
 	NSMutableSet *deletedNotes;
     
-	int volumeSupportsExchangeObjects;
+	NSInteger volumeSupportsExchangeObjects;
     FSCatalogInfo *fsCatInfoArray;
     HFSUniStr255 *HFSUniNameArray;
 
@@ -62,11 +62,11 @@
     size_t catEntriesCount, totalCatEntriesCount;
     NoteCatalogEntry *catalogEntries, **sortedCatalogEntries;
     
-	unsigned int lastCheckedDateInHours;
+	NSUInteger lastCheckedDateInHours;
 	int lastLayoutStyleGenerated;
     long blockSize;
 	struct statfs *statfsInfo;
-	unsigned int diskUUIDIndex;
+	NSUInteger diskUUIDIndex;
 	CFUUIDRef diskUUID;
     FSRef noteDirectoryRef, noteDatabaseRef;
     AliasHandle aliasHandle;
@@ -105,9 +105,9 @@
 - (void)setDelegate:(id)theDelegate;
 
 - (void)databaseEncryptionSettingsChanged;
-- (void)databaseSettingsChangedFromOldFormat:(NSInteger)oldFormat;
+- (void)databaseSettingsChangedFromOldFormat:(NoteStorageFormat)oldFormat;
 
-- (int)currentNoteStorageFormat;
+- (NoteStorageFormat)currentNoteStorageFormat;
 - (void)synchronizeNoteChanges:(NSTimer*)timer;
 
 - (void)updateDateStringsIfNecessary;
@@ -146,7 +146,7 @@
 - (BOOL)filterNotesFromUTF8String:(const char*)searchString forceUncached:(BOOL)forceUncached;
 - (NSUInteger)preferredSelectedNoteIndex;
 - (NSArray*)noteTitlesPrefixedByString:(NSString*)prefixString indexOfSelectedItem:(NSInteger *)anIndex;
-- (NoteObject*)noteObjectAtFilteredIndex:(int)noteIndex;
+- (NoteObject*)noteObjectAtFilteredIndex:(NSUInteger)noteIndex;
 - (NSArray*)notesAtIndexes:(NSIndexSet*)indexSet;
 - (NSIndexSet*)indexesOfNotes:(NSArray*)noteSet;
 - (NSUInteger)indexInFilteredListForNoteIdenticalTo:(NoteObject*)note;

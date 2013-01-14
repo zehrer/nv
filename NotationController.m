@@ -589,7 +589,7 @@
 }
 
 //notation prefs delegate method
-- (void)databaseSettingsChangedFromOldFormat:(NSInteger)oldFormat {
+- (void)databaseSettingsChangedFromOldFormat:(NoteStorageFormat)oldFormat {
 	NSInteger currentStorageFormat = [notationPrefs notesStorageFormat];
     
 	if (!walWriter && ![self initializeJournaling]) {
@@ -627,7 +627,7 @@
 	[[ODBEditor sharedODBEditor] performSelector:@selector(initializeDatabase:) withObject:notationPrefs afterDelay:0.0];
 }
 
-- (int)currentNoteStorageFormat {
+- (NoteStorageFormat)currentNoteStorageFormat {
     return [notationPrefs notesStorageFormat];
 }
 
@@ -1386,12 +1386,9 @@
 	return objs;
 }
 
-- (NoteObject*)noteObjectAtFilteredIndex:(int)noteIndex {
-	unsigned int theIndex = (unsigned int)noteIndex;
-	
-	if (theIndex < self.filteredNotesList.count)
-		return self.filteredNotesList[theIndex];
-	
+- (NoteObject*)noteObjectAtFilteredIndex:(NSUInteger)noteIndex {
+	if (noteIndex < self.filteredNotesList.count)
+		return self.filteredNotesList[noteIndex];
 	return nil;
 }
 

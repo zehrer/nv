@@ -34,7 +34,9 @@ including encryption, file formats, synchronization, passwords management, and o
 
 #define EPOC_ITERATION 4
 
-enum { SingleDatabaseFormat = 0, PlainTextFormat, RTFTextFormat, HTMLFormat, WordDocFormat, WordXMLFormat };
+typedef NS_ENUM(NSInteger, NoteStorageFormat) {
+    SingleDatabaseFormat = 0, PlainTextFormat, RTFTextFormat, HTMLFormat, WordDocFormat, WordXMLFormat
+};
 
 extern NSString *NotationPrefsDidChangeNotification;
 
@@ -42,7 +44,7 @@ extern NSString *NotationPrefsDidChangeNotification;
 
 - (void)databaseEncryptionSettingsChanged;
 - (void)syncSettingsChangedForService:(NSString*)serviceName;
-- (void)databaseSettingsChangedFromOldFormat:(int)oldFormat;
+- (void)databaseSettingsChangedFromOldFormat:(NoteStorageFormat)oldFormat;
 
 @optional
 
@@ -64,10 +66,10 @@ extern NSString *NotationPrefsDidChangeNotification;
 	
 	NSColor *foregroundColor;
 	NSFont *baseBodyFont;
-	NSInteger notesStorageFormat;
+	NoteStorageFormat notesStorageFormat;
 	BOOL confirmFileDeletion;
 	
-	unsigned int chosenExtIndices[4];
+	NSUInteger chosenExtIndices[4];
     NSMutableArray *typeStrings[4], *pathExtensions[4];
     OSType *allowedTypes;
 	
@@ -87,8 +89,8 @@ extern NSString *NotationPrefsDidChangeNotification;
 NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serviceName);
 
 + (int)appVersion;
-+ (NSMutableArray*)defaultTypeStringsForFormat:(int)formatID;
-+ (NSMutableArray*)defaultPathExtensionsForFormat:(int)formatID;
++ (NSMutableArray*)defaultTypeStringsForFormat:(NoteStorageFormat)formatID;
++ (NSMutableArray*)defaultPathExtensionsForFormat:(NoteStorageFormat)formatID;
 - (BOOL)preferencesChanged;
 - (void)setForegroundTextColor:(NSColor*)aColor;
 - (NSColor*)foregroundColor;
@@ -152,10 +154,10 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 //used to view tableviews
 - (NSString*)typeStringAtIndex:(NSInteger)typeIndex;
 - (NSString*)pathExtensionAtIndex:(NSInteger)pathIndex;
-- (unsigned int)indexOfChosenPathExtension;
+- (NSUInteger)indexOfChosenPathExtension;
 - (NSString*)chosenPathExtensionForFormat:(int)format;
-- (int)typeStringsCount;
-- (int)pathExtensionsCount;
+- (NSUInteger)typeStringsCount;
+- (NSUInteger)pathExtensionsCount;
 
 //used to edit tableviews
 - (void)addAllowedPathExtension:(NSString*)extension;

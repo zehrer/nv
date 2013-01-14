@@ -357,13 +357,13 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 }
 
 - (void)doubleClicked:(id)sender {
-	int row = [bookmarksTableView selectedRow];
+	NSInteger row = [bookmarksTableView selectedRow];
 	if (row > -1) [self restoreNoteBookmark:[bookmarks objectAtIndex:row] inBackground:NO];
 }
 
 - (void)tableViewSelectionDidChange:(NSNotification *)aNotification {
 	if (!isRestoringSearch && !isSelectingProgrammatically) {
-		int row = [bookmarksTableView selectedRow];
+		NSInteger row = [bookmarksTableView selectedRow];
 		if (row > -1) {
 			if ([bookmarks objectAtIndex:row] != currentBookmark) {
 				[self restoreNoteBookmark:[bookmarks objectAtIndex:row] inBackground:YES];
@@ -405,7 +405,7 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 		
 		if (row != theRow + 1 && row != theRow) {
 			NoteBookmark* selectedBookmark = nil;
-			int selRow = [bookmarksTableView selectedRow];
+			NSInteger selRow = [bookmarksTableView selectedRow];
 			if (selRow > -1) selectedBookmark = [bookmarks objectAtIndex:selRow];
 			
 			if (row < theRow)
@@ -540,7 +540,7 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 - (void)removeBookmark:(id)sender {
 	
 	NoteBookmark *bookmark = nil;
-	int row = [bookmarksTableView selectedRow];
+	NSInteger row = [bookmarksTableView selectedRow];
 	if (row > -1) {
 		bookmark = [bookmarks objectAtIndex:row];
 		[bookmarks removeObjectIdenticalTo:bookmark];

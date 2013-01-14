@@ -55,7 +55,7 @@
 }
 
 - (BOOL)noteFileIsAlreadyDeleted:(NoteObject*)aNote {
-	unsigned count = [deletedNotes count];
+	NSUInteger count = [deletedNotes count];
 	if (count > 0) {
 		
 		unsigned int i;
@@ -162,7 +162,7 @@ void updateForVerifiedExistingNote(DeletionManager *self, NoteObject *goodNote) 
 	NSRect newFrame = [sender frame];
 	NSSize intercellSpacing = [tableView intercellSpacing];
 	
-	int numRows = MIN(20, [tableView numberOfRows]);
+	NSUInteger numRows = MIN(20, [tableView numberOfRows]);
 	newHeight = MAX(2, numRows) * ([tableView rowHeight] + intercellSpacing.height);	
 	oldHeight = [[[tableView enclosingScrollView] contentView] frame].size.height;
 	newHeight = [sender frame].size.height - oldHeight + newHeight;
