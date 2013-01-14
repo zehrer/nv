@@ -465,17 +465,6 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, NSUInteger charIndex) 
 	return NULL;
 }
 
-- (const char*)lowercaseUTF8String {
-	
-	CFMutableStringRef str2 = CFStringCreateMutableCopy(NULL, 0, (CFStringRef)self);
-	CFStringLowercase(str2, NULL);
-	
-	const char *utf8String = [(__bridge NSString*)str2 UTF8String];
-	
-	CFRelease(str2);
-	return utf8String;
-}
-
 - (NSString *)stringByReplacingPercentEscapes {
     return (NSString*) CFBridgingRelease(CFURLCreateStringByReplacingPercentEscapes(NULL, (CFStringRef) self, CFSTR("")));
 }

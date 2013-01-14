@@ -42,7 +42,9 @@ typedef struct _NoteFilterContext {
 	NSMutableAttributedString *contentString;
 	
 	//caching/searching purposes only -- created at runtime
+	
 	char *cTitle, *cContents, *cLabels, *cTitleFoundPtr, *cContentsFoundPtr, *cLabelsFoundPtr;
+
 	NSMutableSet *labelSet;
 	BOOL contentsWere7Bit, contentCacheNeedsUpdate;
 	//if this note's title is "Chicken Shack menu listing", its prefix parent might have the title "Chicken Shack"
@@ -82,7 +84,6 @@ typedef struct _NoteFilterContext {
 	//each note has its own undo manager--isn't that nice?
 	NSUndoManager *undoManager;
 }
-
 
 NSInteger compareDateModified(id *a, id *b);
 NSInteger compareDateCreated(id *a, id *b);

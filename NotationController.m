@@ -1226,7 +1226,7 @@
 - (BOOL)filterNotesFromString:(NSString*)string {
 	
 	[delegate notationListMightChange:self];
-	if ([self filterNotesFromUTF8String:[string lowercaseUTF8String] forceUncached:NO]) {
+	if ([self filterNotesFromUTF8String: string.lowercaseString.UTF8String forceUncached:NO]) {
 		[delegate notationListDidChange:self];
 		
 		return YES;
@@ -1369,7 +1369,7 @@
 
 - (NSArray*)noteTitlesPrefixedByString:(NSString*)prefixString indexOfSelectedItem:(NSInteger *)anIndex {
 	NSMutableArray *objs = [NSMutableArray arrayWithCapacity:[allNotes count]];
-	const char *searchString = [prefixString lowercaseUTF8String];
+	const char *searchString = prefixString.lowercaseString.UTF8String;
 	NSUInteger i, titleLen, strLen = strlen(searchString), j = 0, shortestTitleLen = UINT_MAX;
 
 	for (i=0; i<[allNotes count]; i++) {

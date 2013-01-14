@@ -44,7 +44,6 @@ CFDateFormatterRef simplenoteDateFormatter(NSInteger lowPrecision);
 	BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, NSUInteger charIndex);
 
 - (char*)copyLowercaseASCIIString;
-- (const char*)lowercaseUTF8String;
 - (NSString*)stringWithPercentEscapes;
 - (NSString *)stringByReplacingPercentEscapes;
 - (BOOL)superficiallyResemblesAnHTTPURL;

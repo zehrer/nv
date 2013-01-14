@@ -177,8 +177,7 @@
 			}
             BOOL keyedArchiveFailed = NO;
             @try {
-                NSKeyedUnarchiver *unarchiver = [[NSKeyedUnarchiver alloc] initForReadingWithData:notesData];
-                allNotes = [unarchiver decodeObjectForKey:@"notes"];
+                allNotes = [[[NSKeyedUnarchiver alloc] initForReadingWithData:notesData] decodeObjectForKey:@"notes"];
             } @catch (NSException *e) {
                 keyedArchiveFailed = YES;
             }

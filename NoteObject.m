@@ -613,7 +613,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 - (void)updateContentCacheCStringIfNecessary {
 	if (contentCacheNeedsUpdate) {
 		//NSLog(@"updating ccache strs");
-		cContentsFoundPtr = cContents = replaceString(cContents, [[contentString string] lowercaseUTF8String]);
+		cContentsFoundPtr = cContents = replaceString(cContents, contentString.string.lowercaseString.UTF8String);
 		contentCacheNeedsUpdate = NO;
 		
 		NSInteger len = strlen(cContents);
@@ -635,9 +635,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	size_t len = -1;
 	
 	if (!contentsWere7Bit) {
-		const char *cStringData = [[contentString string] lowercaseUTF8String];
-		cContentsFoundPtr = cContents = cStringData ? strdup(cStringData) : NULL;
-		
+		cContentsFoundPtr = cContents = contentString.length ? strdup(contentString.string.lowercaseString.UTF8String) : NULL;
 		contentsWere7Bit = cContents ? !(ContainsHighAscii(cContents, (len = strlen(cContents)))) : NO;
 	}
 	
@@ -772,8 +770,8 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	return NO;
 
     titleString = [aNewTitle copy];
-    
-    cTitleFoundPtr = cTitle = replaceString(cTitle, [titleString lowercaseUTF8String]);
+
+    cTitleFoundPtr = cTitle = replaceString(cTitle, titleString.lowercaseString.UTF8String);
     
     return YES;
 }
@@ -948,7 +946,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		
 		labelString = [newLabelString copy];
 		
-		cLabelsFoundPtr = cLabels = replaceString(cLabels, [labelString lowercaseUTF8String]);
+		cLabelsFoundPtr = cLabels = replaceString(cLabels, labelString.lowercaseString.UTF8String);
 		
 		[self updateLabelConnections];
 		return YES;
