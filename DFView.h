@@ -5,14 +5,8 @@
 //  Created by ElasticThreads on 2/15/11.
 //
 
-#import <Cocoa/Cocoa.h>
+#import <Rebel/RBLView.h>
 
-
-@interface DFView : NSView {
-
-	NSColor *vColor;
-}
-
-- (void)setBackgroundColor:(NSColor *)inColor;
+@interface DFView : RBLView
 
 @end

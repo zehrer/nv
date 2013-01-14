@@ -13,11 +13,8 @@
 
 - (id)initWithFrame:(NSRect)frame {
     self = [super initWithFrame:frame];
-    if (self) {        
-        if (!vColor) {
-            [self setBackgroundColor:[[NSApp delegate] backgrndColor]];
-        }
-        // Initialization code here.
+    if (self) {
+		[self setBackgroundColor:[[NSApp delegate] backgrndColor]];
     }
     return self;
 }
@@ -33,15 +30,13 @@
         [aPath moveToPoint:NSMakePoint(floor(bounds.origin.x), floor(bounds.origin.y))];
         [aPath lineToPoint:NSMakePoint(floor(bounds.origin.x+bounds.size.width), floor(bounds.origin.y))];        
         [aPath setLineWidth:1.0];
-        [vColor setStroke];
-//        [[NSColor redColor] setStroke];
+        [self.backgroundColor setStroke];
         [aPath stroke];       
     }
 }
 
 - (void)setBackgroundColor:(NSColor *)inColor{
     CGFloat fWhite;
-	
 	fWhite = [[inColor colorUsingColorSpaceName:NSCalibratedWhiteColorSpace] whiteComponent];
 	if (fWhite < 0.75f) {
 		if (fWhite<0.25f) {
@@ -52,37 +47,8 @@
 	}else {
 		fWhite -= 0.20f;
 	}	
-	vColor = [NSColor colorWithCalibratedWhite:fWhite alpha:1.0f];
+	[super setBackgroundColor: [NSColor colorWithCalibratedWhite:fWhite alpha:1.0f]];
 }
-//
-//- (void)mouseDown:(NSEvent*)anEvent {
-//    
-//    NSLog(@"dfview mouse down");
-//    [[NSNotificationCenter defaultCenter] postNotificationName:@"ModTimersShouldReset" object:nil];
-//    
-//	
-//	[super mouseDown:anEvent];
-//    
-//}
-//
-//- (void)mouseUp:(NSEvent*)anEvent {
-//    
-//    NSLog(@"dfview mouseUp");
-//    [[NSNotificationCenter defaultCenter] postNotificationName:@"ModTimersShouldReset" object:nil];
-//    
-//	
-//	[super mouseUp:anEvent];
-//    
-//}
-//
-//- (NSMenu *)menuForEvent:(NSEvent *)theEvent{
-//    NSLog(@"dfview menuForEvent");
-//    [[NSNotificationCenter defaultCenter] postNotificationName:@"ModTimersShouldReset" object:nil];
-//    
-//	
-//	return [super menuForEvent:theEvent];
-//    
-//}
 
 
 @end
