@@ -44,6 +44,7 @@ CFDateFormatterRef simplenoteDateFormatter(NSInteger lowPrecision);
 	BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, NSUInteger charIndex);
 
 - (char*)copyLowercaseASCIIString;
+
 - (NSString*)stringWithPercentEscapes;
 - (NSString *)stringByReplacingPercentEscapes;
 - (BOOL)superficiallyResemblesAnHTTPURL;
@@ -57,6 +58,9 @@ CFDateFormatterRef simplenoteDateFormatter(NSInteger lowPrecision);
 + (NSString*)uuidStringWithBytes:(CFUUIDBytes)bytes;
 
 - (NSData *)decodeBase64;
+
+@property (nonatomic, readonly) BOOL containsHighASCII;
+@property (nonatomic, readonly) BOOL couldCopyLowercaseASCIIString;
 
 //- (NSTextView*)textViewWithFrame:(NSRect*)theFrame;
 

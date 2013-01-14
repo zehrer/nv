@@ -39,12 +39,7 @@ typedef struct _NoteFilterContext {
 @interface NoteObject : NSObject <NSCoding, SynchronizedNote> {
 	NSAttributedString *tableTitleString;
 	NSString *titleString, *labelString;
-	NSMutableAttributedString *contentString;
 	
-	//caching/searching purposes only -- created at runtime
-	
-	char *cTitle, *cContents, *cLabels, *cTitleFoundPtr, *cContentsFoundPtr, *cLabelsFoundPtr;
-
 	NSMutableSet *labelSet;
 	BOOL contentsWere7Bit, contentCacheNeedsUpdate;
 	//if this note's title is "Chicken Shack menu listing", its prefix parent might have the title "Chicken Shack"
@@ -135,7 +130,6 @@ NSInteger compareFileSize(id *a, id *b);
 	id dateModifiedStringOfNote(NotesTableView *tv, NoteObject *note, NSInteger row);
 	id wordCountOfNote(NotesTableView *tv, NoteObject *note, NSInteger row);
 
-	void resetFoundPtrsForNote(NoteObject *note);
 	BOOL noteContainsUTF8String(NoteObject *note, NoteFilterContext *context);
 	BOOL noteTitleHasPrefixOfUTF8String(NoteObject *note, const char* fullString, size_t stringLen);
 	BOOL noteTitleIsAPrefixOfOtherNoteTitle(NoteObject *longerNote, NoteObject *shorterNote);
@@ -204,8 +198,9 @@ NSInteger compareFileSize(id *a, id *b);
 - (void)updateTablePreviewString;
 - (void)initContentCacheCString;
 - (void)updateContentCacheCStringIfNecessary;
-- (void)setContentString:(NSAttributedString*)attributedString;
-- (NSAttributedString*)contentString;
+
+@property (nonatomic, strong) NSAttributedString *contentString;
+
 - (NSAttributedString*)printableStringRelativeToBodyFont:(NSFont*)bodyFont;
 - (NSString*)combinedContentWithContextSeparator:(NSString*)sepWContext;
 - (void)setForegroundTextColorOnly:(NSColor*)aColor;

@@ -1217,7 +1217,7 @@
 		29B97313FDCFA39411CA2CEA /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0420;
+				LastUpgradeCheck = 0460;
 				ORGANIZATIONNAME = elasticthreads;
 			};
 			buildConfigurationList = 212B842709780B5000F3597F /* Build configuration list for PBXProject "Notation" */;
@@ -1915,6 +1915,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = DFEE005644AB46C38B24B6C8 /* Pods.xcconfig */;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 			};
 			name = Development;
 		};
@@ -2022,6 +2023,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = DFEE005644AB46C38B24B6C8 /* Pods.xcconfig */;
 			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
 			};
 			name = ForBuilding;
 		};

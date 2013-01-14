@@ -465,6 +465,19 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, NSUInteger charIndex) 
 	return NULL;
 }
 
+- (BOOL)couldCopyLowercaseASCIIString {
+	const char *cStringPtr = NULL;
+
+	//here we are making assumptions (based on observations and CFString.c) about the implementation of CFStringGetCStringPtr:
+	//with a non-western language preference, kCFStringEncodingASCII or another Latin variant must be used instead of kCFStringEncodingMacRoman
+	if ((cStringPtr = CFStringGetCStringPtr((__bridge CFStringRef)self, kCFStringEncodingMacRoman)) ||
+		(cStringPtr = CFStringGetCStringPtr((__bridge CFStringRef)self, kCFStringEncodingASCII))) {
+		return YES;
+	}
+
+	return NO;
+}
+
 - (NSString *)stringByReplacingPercentEscapes {
     return (NSString*) CFBridgingRelease(CFURLCreateStringByReplacingPercentEscapes(NULL, (CFStringRef) self, CFSTR("")));
 }
@@ -529,6 +542,10 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, NSUInteger charIndex) 
 	CFDataRef outData = SecTransformExecute(decoder, NULL);
 	CFRelease(decoder);
 	return (__bridge_transfer NSData *)outData;
+}
+
+- (BOOL)containsHighASCII {
+	return (ContainsHighAscii(self.UTF8String, self.length));
 }
 
 @end

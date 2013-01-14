@@ -53,7 +53,9 @@ typedef struct NSRange32 {
 typedef NSRange NSRange32;
 #endif
 
-@interface NoteObject ()
+@interface NoteObject () {
+	NSMutableAttributedString *_contentString;
+}
 
 @property (nonatomic, copy, readwrite) NSString *filename;
 @property (nonatomic, readwrite) NoteStorageFormat storageFormat;
@@ -67,6 +69,7 @@ typedef NSRange NSRange32;
 @property (nonatomic, readwrite) CFAbsoluteTime createdDate;
 @property (nonatomic, readwrite) NSStringEncoding fileEncoding;
 @property (nonatomic, strong, readwrite) NSMutableArray *prefixParents;
+
 
 @end
 
@@ -108,18 +111,9 @@ static FSRef *noteFileRefInit(NoteObject* obj);
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	
 	[self invalidateFSRef];
-	
-	
+
 	if (perDiskInfoGroups)
 		free(perDiskInfoGroups);
-		
-	if (cTitle)
-		free(cTitle);
-	if (cContents)
-		free(cContents);
-	if (cLabels)
-	    free(cLabels);
-	
 }
 
 - (id)delegate {
@@ -355,7 +349,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 			
 			titleString = [decoder decodeObjectForKey:VAR_STR(titleString)];
 			labelString = [decoder decodeObjectForKey:VAR_STR(labelString)];
-			contentString = [decoder decodeObjectForKey:VAR_STR(contentString)];
+			self.contentString = [decoder decodeObjectForKey:VAR_STR(contentString)];
 			filename = [decoder decodeObjectForKey:VAR_STR(filename)];
 			
 		} else {
@@ -404,7 +398,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 			
 			titleString = [decoder decodeObject];
 			labelString = [decoder decodeObject];
-			contentString = [decoder decodeObject];
+			self.contentString = [decoder decodeObject];
 			filename = [decoder decodeObject];
 #else 
 			[decoder decodeValuesOfObjCTypes: "dd{NSRange=ii}fIiI{UTCDateTime=SIS}I[16C]I@@@@", &modifiedDate, &createdDate, &range32, 
@@ -419,16 +413,10 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		//re-created at runtime to save space
 		[self initContentCacheCString];
 
-		NSString *lowerTitle = titleString.lowercaseString;
-		NSString *lowerLabel = labelString.lowercaseString;
-
-		cTitleFoundPtr = cTitle = titleString ? strdup(lowerTitle.UTF8String) : NULL;
-		cLabelsFoundPtr = cLabels = labelString ? strdup(lowerLabel.UTF8String) : NULL;
-		
 		dateCreatedString = [NSString relativeDateStringWithAbsoluteTime:createdDate];
 		dateModifiedString = [NSString relativeDateStringWithAbsoluteTime:modifiedDate];
 		
-		if (!titleString && !contentString && !labelString) return nil;
+		if (!titleString && !self.contentString && !labelString) return nil;
 	}
 	return self;
 }
@@ -462,7 +450,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		
 		[coder encodeObject:titleString forKey:VAR_STR(titleString)];
 		[coder encodeObject:labelString forKey:VAR_STR(labelString)];
-		[coder encodeObject:contentString forKey:VAR_STR(contentString)];
+		[coder encodeObject:self.contentString forKey:VAR_STR(contentString)];
 		[coder encodeObject:filename forKey:VAR_STR(filename)];
 		
 	} else {
@@ -512,19 +500,14 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		}
 		delegate = aDelegate;
 
-		contentString = [[NSMutableAttributedString alloc] initWithAttributedString:bodyText];
+		self.contentString = [[NSMutableAttributedString alloc] initWithAttributedString:bodyText];
 		[self initContentCacheCString];
-		if (!cContents) {
-			NSLog(@"couldn't get UTF8 string from contents?!?");
-			return nil;
-		}
 
 		if (![self _setTitleString:aNoteTitle])
 		    titleString = NSLocalizedString(@"Untitled Note", @"Title of a nameless note");
-		
+
 		if (![self _setLabelString:aLabelString]) {
 			labelString = @"";
-			cLabelsFoundPtr = cLabels = strdup("");
 		}
 		
 		currentFormatID = formatID;
@@ -567,9 +550,8 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 			titleString = NSLocalizedString(@"Untitled Note", @"Title of a nameless note");
 		
 		labelString = @""; //set by updateFromCatalogEntry if there are openmeta extended attributes 
-		cLabelsFoundPtr = cLabels = strdup("");	
-				
-		contentString = [[NSMutableAttributedString alloc] initWithString:@""];
+
+		self.contentString = [[NSMutableAttributedString alloc] initWithString:@""];
 		[self initContentCacheCString];
 		
 		if (![self updateFromCatalogEntry:entry]) {						
@@ -595,7 +577,10 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 //assume any changes have been synchronized with undomanager
 - (void)setContentString:(NSAttributedString*)attributedString {
 	if (attributedString) {
-		[contentString setAttributedString:attributedString];
+		if (!_contentString)
+			_contentString = [attributedString mutableCopy];
+		else
+			[_contentString setAttributedString: attributedString];
 		
 		[self updateTablePreviewString];
 		contentCacheNeedsUpdate = YES;
@@ -606,43 +591,19 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		[self makeNoteDirtyUpdateTime:YES updateFile:YES];
 	}
 }
-- (NSAttributedString*)contentString {
-	return contentString;
-}
 
 - (void)updateContentCacheCStringIfNecessary {
 	if (contentCacheNeedsUpdate) {
-		//NSLog(@"updating ccache strs");
-		cContentsFoundPtr = cContents = replaceString(cContents, contentString.string.lowercaseString.UTF8String);
-		contentCacheNeedsUpdate = NO;
-		
-		NSInteger len = strlen(cContents);
-		contentsWere7Bit = !(ContainsHighAscii(cContents, len));
-		
-		//could cache dumbwordcount here for faster launch, but string creation takes more time, anyway
-		//if (wordCountString) CFRelease((CFStringRef*)wordCountString); //this is CFString, so bridge will just call back to CFRelease, anyway
-		//wordCountString = (NSString*)CFStringCreateFromBase10Integer(DumbWordCount(cContents, len));
+		contentsWere7Bit = self.contentString.string.containsHighASCII;
 	}
 }
 
 - (void)initContentCacheCString {
-
 	if (contentsWere7Bit) {
-		if (!(cContentsFoundPtr = cContents = [[contentString string] copyLowercaseASCIIString]))
-			contentsWere7Bit = NO;
+		if (!self.contentString.string.couldCopyLowercaseASCIIString) contentsWere7Bit = NO;
+	} else {
+		contentsWere7Bit = self.contentString ? !self.contentString.string.containsHighASCII : NO;
 	}
-	
-	size_t len = -1;
-	
-	if (!contentsWere7Bit) {
-		cContentsFoundPtr = cContents = contentString.length ? strdup(contentString.string.lowercaseString.UTF8String) : NULL;
-		contentsWere7Bit = cContents ? !(ContainsHighAscii(cContents, (len = strlen(cContents)))) : NO;
-	}
-	
-	//if (len < 0) len = strlen(cContents);
-	//wordCountString = (NSString*)CFStringCreateFromBase10Integer(DumbWordCount(cContents, len));
-	
-	contentCacheNeedsUpdate = NO;
 }
 
 - (BOOL)contentsWere7Bit {
@@ -658,7 +619,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	//if separator does not exist or chars do not match trailing and leading chars of title and body, respectively,
 	//then just delimit with a double-newline
 	
-	NSString *content = [contentString string];
+	NSString *content = self.contentString.string;
 	
 	BOOL defaultJoin = NO;
 	if (![sepWContext length] || ![content length] || ![titleString length] || 
@@ -713,10 +674,10 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 			//is called for visible notes at launch and resize only, generation of images for invisible notes is delayed until after launch
 			
 			NSSize labelBlockSize = ColumnIsSet(NoteLabelsColumn, [prefs tableColumnsBitmap]) ? [self sizeOfLabelBlocks] : NSZeroSize;
-			tableTitleString = [titleString attributedMultiLinePreviewFromBodyText:contentString upToWidth:[delegate titleColumnWidth] 
+			tableTitleString = [titleString attributedMultiLinePreviewFromBodyText: self.contentString upToWidth:[delegate titleColumnWidth] 
 																	 intrusionWidth:labelBlockSize.width];
 		} else {
-			tableTitleString = [titleString attributedSingleLinePreviewFromBodyText:contentString upToWidth:[delegate titleColumnWidth]];
+			tableTitleString = [titleString attributedSingleLinePreviewFromBodyText: self.contentString upToWidth:[delegate titleColumnWidth]];
 		}
 	} else {
 		if ([prefs horizontalLayout]) {
@@ -771,8 +732,6 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 
     titleString = [aNewTitle copy];
 
-    cTitleFoundPtr = cTitle = replaceString(cTitle, titleString.lowercaseString.UTF8String);
-    
     return YES;
 }
 
@@ -811,14 +770,14 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 
 - (void)setForegroundTextColorOnly:(NSColor*)aColor {
 	//called when notationPrefs font doesn't match globalprefs font, or user changes the font
-	[contentString removeAttribute:NSForegroundColorAttributeName range:NSMakeRange(0, [contentString length])];
+	[_contentString removeAttribute:NSForegroundColorAttributeName range:NSMakeRange(0, self.contentString.length)];
 	if (aColor) {
-		[contentString addAttribute:NSForegroundColorAttributeName value:aColor range:NSMakeRange(0, [contentString length])];
+		[_contentString addAttribute:NSForegroundColorAttributeName value:aColor range:NSMakeRange(0, self.contentString.length)];
 	}
 }
 
 - (void)_resanitizeContent {
-	[contentString santizeForeignStylesForImporting];
+	[_contentString santizeForeignStylesForImporting];
 	
 	//renormalize the title, in case it is still somehow derived from decomposed HFS+ filenames
 	CFMutableStringRef normalizedString = CFStringCreateMutableCopy(NULL, 0, (CFStringRef)titleString);
@@ -835,7 +794,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 
 - (void)updateUnstyledTextWithBaseFont:(NSFont*)baseFont {
 
-	if ([contentString restyleTextToFont:[[GlobalPrefs defaultPrefs] noteBodyFont] usingBaseFont:baseFont] > 0) {
+	if ([_contentString restyleTextToFont:[[GlobalPrefs defaultPrefs] noteBodyFont] usingBaseFont:baseFont] > 0) {
 		[undoManager removeAllActions];
 		
 		if ([delegate currentNoteStorageFormat] == RTFTextFormat)
@@ -869,7 +828,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	
 	//don't save the range if it's invalid, it's equal to the current range, or the entire note is selected
 	if ((newRange.location != NSNotFound) && !NSEqualRanges(newRange, selectedRange) && 
-		!NSEqualRanges(newRange, NSMakeRange(0, [contentString length]))) {
+		!NSEqualRanges(newRange, NSMakeRange(0, self.contentString.length))) {
 	//	NSLog(@"saving: old range: %@, new range: %@", NSStringFromRange(selectedRange), NSStringFromRange(newRange));
 		selectedRange = newRange;
 		[self makeNoteDirtyUpdateTime:NO updateFile:NO];
@@ -945,8 +904,6 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	if (newLabelString && ![newLabelString isEqualToString:labelString]) {
 		
 		labelString = [newLabelString copy];
-		
-		cLabelsFoundPtr = cLabels = replaceString(cLabels, labelString.lowercaseString.UTF8String);
 		
 		[self updateLabelConnections];
 		return YES;
@@ -1139,7 +1096,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 			return NO;
 		case PlainTextFormat:
 			
-			if (!(formattedData = [[contentString string] dataUsingEncoding:fileEncoding allowLossyConversion:NO])) {
+			if (!(formattedData = [self.contentString.string dataUsingEncoding:fileEncoding allowLossyConversion:NO])) {
 				
 				//just make the file unicode and ram it through
 				//unicode is probably better than UTF-8, as it's more easily auto-detected by other programs via the BOM
@@ -1147,18 +1104,18 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 				[self _setFileEncoding:NSUTF8StringEncoding];
 				//maybe we could rename the file file.utf8.txt here
 				NSLog(@"promoting to unicode (UTF-8)");
-				formattedData = [[contentString string] dataUsingEncoding:fileEncoding allowLossyConversion:YES];
+				formattedData = [self.contentString.string dataUsingEncoding:fileEncoding allowLossyConversion:YES];
 			}
 			break;
 		case RTFTextFormat:
-			contentMinusColor = [contentString mutableCopy];
+			contentMinusColor = [self.contentString mutableCopy];
 			[contentMinusColor removeAttribute:NSForegroundColorAttributeName range:NSMakeRange(0, [contentMinusColor length])];
 			formattedData = [contentMinusColor RTFFromRange:NSMakeRange(0, [contentMinusColor length]) documentAttributes:nil];
 			
 			break;
 		case HTMLFormat:
 			//export to HTML document here using NSHTMLTextDocumentType;
-			formattedData = [contentString dataFromRange:NSMakeRange(0, [contentString length]) 
+			formattedData = [self.contentString dataFromRange:NSMakeRange(0, self.contentString.length)
 									  documentAttributes:[NSDictionary dictionaryWithObject:NSHTMLTextDocumentType 
 																					 forKey:NSDocumentTypeDocumentAttribute] error:&error];
 			//our links will always be to filenames, so hopefully we shouldn't have to change anything
@@ -1472,8 +1429,8 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		return NO;
     }
     
-	contentString = attributedStringFromData;
-	[contentString santizeForeignStylesForImporting];
+	_contentString = attributedStringFromData;
+	[_contentString santizeForeignStylesForImporting];
 	//NSLog(@"%s(%@): %@", _cmd, [self noteFilePath], [contentString string]);
 	
 	//[contentString setAttributedString:attributedStringFromData];
@@ -1586,7 +1543,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	NSData *formattedData = nil;
 	NSError *error = nil;
 	
-	NSMutableAttributedString *contentMinusColor = [contentString mutableCopy];
+	NSMutableAttributedString *contentMinusColor = [self.contentString mutableCopy];
 	[contentMinusColor removeAttribute:NSForegroundColorAttributeName range:NSMakeRange(0, [contentMinusColor length])];
 
 	
@@ -1697,8 +1654,8 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	//return location of NSNotFound and length 0 if none of the words could be found inRange
 	
 	//an optimization would be to fall back on cached cString if contentsWere7Bit is true, but then we have to handle opts ourselves
-	unsigned int i;
-	NSString *haystack = [contentString string];
+	NSUInteger i;
+	NSString *haystack = self.contentString.string;
 	NSRange nextRange = NSMakeRange(NSNotFound, 0);
 	for (i=0; i<[words count]; i++) {
 		NSString *word = [words objectAtIndex:i];
@@ -1712,40 +1669,21 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	return nextRange;
 }
 
-force_inline void resetFoundPtrsForNote(NoteObject *note) {
-	note->cTitleFoundPtr = note->cTitle;
-	note->cContentsFoundPtr = note->cContents;
-	note->cLabelsFoundPtr = note->cLabels;	
-}
-
 BOOL noteContainsUTF8String(NoteObject *note, NoteFilterContext *context) {
-	
-    if (!context->useCachedPositions) {
-		resetFoundPtrsForNote(note);
-    }
-	
-	char *needle = context->needle;
-    
-	/* NOTE: strstr in Darwin is heinously, supernaturally optimized; it blows boyer-moore out of the water. 
-	implementations on other OSes will need considerably more code in this function. */
-	
-    if (note->cTitleFoundPtr)
-		note->cTitleFoundPtr = strstr(note->cTitleFoundPtr, needle);
-    
-    if (note->cContentsFoundPtr)
-		note->cContentsFoundPtr = strstr(note->cContentsFoundPtr, needle);
-    
-    if (note->cLabelsFoundPtr)
-		note->cLabelsFoundPtr = strstr(note->cLabelsFoundPtr, needle);
+	NSString *needleStr = [NSString stringWithUTF8String: context->needle];
+
+	BOOL foundInTitle = ([note.title rangeOfString: needleStr options: NSCaseInsensitiveSearch].location != NSNotFound);
+	BOOL foundInContents = ([note.contentString.string rangeOfString: needleStr options: NSCaseInsensitiveSearch].location != NSNotFound);
+	BOOL foundInLabel = ([note.labels rangeOfString: needleStr options: NSCaseInsensitiveSearch].location != NSNotFound);
         
-    return note->cContentsFoundPtr || note->cTitleFoundPtr || note->cLabelsFoundPtr;
+    return foundInContents || foundInTitle || foundInLabel;
 }
 
 BOOL noteTitleHasPrefixOfUTF8String(NoteObject *note, const char* fullString, size_t stringLen) {
-	return !strncmp(note->cTitle, fullString, stringLen);
+	return [note.title hasPrefix: [NSString stringWithUTF8String: fullString]];
 }
 BOOL noteTitleIsAPrefixOfOtherNoteTitle(NoteObject *longerNote, NoteObject *shorterNote) {
-	return !strncmp(longerNote->cTitle, shorterNote->cTitle, strlen(shorterNote->cTitle));
+	return [longerNote.title hasPrefix: shorterNote.title];
 }
 
 - (void)addPrefixParentNote:(NoteObject*)aNote {
@@ -1762,22 +1700,6 @@ BOOL noteTitleIsAPrefixOfOtherNoteTitle(NoteObject *longerNote, NoteObject *shor
 - (NSSet*)labelSet {
     return labelSet;
 }
-
-/*
-- (CFArrayRef)rangesForWords:(NSString*)string inRange:(NSRange)rangeLimit {
-	//use cstring caches if note is all 7-bit, as we [REALLY OUGHT TO] be able to assume a 1-to-1 character mapping
-	
-	if (contentsWere7Bit) {
-		char *manglingString = strdup([string UTF8String]);
-		char *token, *separators = separatorsForCString(manglingString);
-		
-		while ((token = strsep(&manglingString, separators))) {
-			if (*token != '\0') {
-				//find all occurrences of token in cContents and add cfranges to cfmutablearray
-			}
-		}
-	}
-}*/
 
 - (NSUndoManager*)undoManager {
     if (!undoManager) {

@@ -411,8 +411,8 @@ terminate:
 //whenever a note uses this method to change its filename, we will have to re-establish all the links to it
 - (NSString*)uniqueFilenameForTitle:(NSString*)title fromNote:(NoteObject*)note {
     //generate a unique filename based on title, varying numbers
-    BOOL isUnique = YES;
-    NSString *uniqueFilename = title;
+    __block BOOL isUnique = YES;
+    __block NSString *uniqueFilename = title;
 	
 	//remove illegal characters
 	NSMutableString *sanitizedName = [[uniqueFilename stringByReplacingOccurrencesOfString:@":" withString:@"-"] mutableCopy];
@@ -430,26 +430,24 @@ terminate:
 	//assume that we won't have more than 999 notes with the exact same name and of more than 247 chars
 	uniqueFilename = [uniqueFilename filenameExpectingAdditionalCharCount:3 + [extension length] + 2];
 	
-    unsigned int iteration = 0;
+    __block NSUInteger iteration = 0;
     do {
 		isUnique = YES;
-		unsigned int i;
 		
 		//this ought to just use an nsset, but then we'd have to maintain a parallel data structure for marginal benefit
 		//also, it won't quite work right for filenames with no (real) extensions and periods in their names
-		for (i=0; i<[allNotes count]; i++) {
-			NoteObject *aNote = [allNotes objectAtIndex:i];
-			NSString *basefilename = [note.filename stringByDeletingPathExtension];
-			
+		[allNotes enumerateObjectsWithOptions: NSEnumerationConcurrent usingBlock:^(NoteObject *aNote, NSUInteger idx, BOOL *stop) {
+			NSString *basefilename = [aNote.filename stringByDeletingPathExtension];
+
 			if (note != aNote && [basefilename caseInsensitiveCompare:uniqueFilename] == NSOrderedSame) {
 				isUnique = NO;
-				
+
 				uniqueFilename = [uniqueFilename stringByDeletingPathExtension];
-				NSString *numberPath = [[NSNumber numberWithInt:++iteration] stringValue];
+				NSString *numberPath = [@(++iteration) stringValue];
 				uniqueFilename = [uniqueFilename stringByAppendingPathExtension:numberPath];
-				break;
+				*stop = YES;
 			}
-		}
+		}];
     } while (!isUnique);
 	
     return [uniqueFilename stringByAppendingPathExtension:extension];

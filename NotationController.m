@@ -1310,21 +1310,6 @@
 		}
     }
     
-	//PHASE 3: reset found pointers in case have been cleared
-	
-    if (didFilterNotes) {
-		
-		if (!touchedNotes) {
-			//I can't think of any situation where notes were filtered and not touched--EXCEPT WHEN REMOVING A NOTE (>= vs. ==)
-			NSAssert(self.filteredNotesList.count >= [allNotes count], @"filtered notes were claimed to be filtered but were not");
-			
-			//reset found-ptr values; the search string was effectively blank and so no notes were examined
-			for (NoteObject *obj in self.filteredNotesList) {
-				resetFoundPtrsForNote(obj);
-			}
-		}
-	}
-    
 	//PHASE 4: autocomplete based on results
 	//even if the controller didn't filter, the search string could have changed its representation wrt spacing
 	//which will still influence note title prefixes 
