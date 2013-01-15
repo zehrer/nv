@@ -80,7 +80,8 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 
 - (void)validateNoteObject {
 	NoteObject *newNote = nil;
-	
+	id <NoteBookmarkDelegate> delegate = self.delegate;
+
 	//if we already had a valid note and our uuidBytes don't resolve to the same note
 	//then use that new note from the delegate. in 100% of the cases newNote should be nil
 	if (noteObject && (newNote = [delegate noteWithUUIDBytes:uuidBytes]) != noteObject) {
@@ -89,7 +90,10 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 }
 
 - (NoteObject*)noteObject {
-	if (!noteObject) noteObject = [delegate noteWithUUIDBytes:uuidBytes];
+	if (!noteObject) {
+		id <NoteBookmarkDelegate> delegate = self.delegate;
+		noteObject = [delegate noteWithUUIDBytes:uuidBytes];
+	}
 	return noteObject;
 }
 - (NSDictionary*)dictionaryRep {
@@ -103,14 +107,6 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 		return [searchString length] ? [NSString stringWithFormat:@"%@ [%@]", note.title, searchString] : note.title;
 	}
 	return nil;
-}
-
-- (void)setDelegate:(id)aDelegate {
-	delegate = aDelegate;
-}
-
-- (id)delegate {
-	return delegate;
 }
 
 - (BOOL)isEqual:(id)anObject {
@@ -154,7 +150,9 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 - (void)dealloc {
 	[window setDelegate:nil];
 	[bookmarksTableView setDelegate:nil];
-	[bookmarks makeObjectsPerformSelector:@selector(setDelegate:) withObject:nil];
+	for (NoteBookmark *bookmark in bookmarks) {
+		bookmark.delegate = nil;
+	}
 	
 }
 

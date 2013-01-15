@@ -17,15 +17,16 @@
 
 
 #import <Cocoa/Cocoa.h>
-
 #import "SynchronizedNoteProtocol.h"
+#import "NTNFileManager.h"
+#import "NoteObject.h"
 
 @class SyncResponseFetcher;
 @class NotationPrefs;
 
 @protocol SyncServiceSession;
 
-@protocol SyncServiceSessionDelegate <NSObject>
+@protocol SyncServiceSessionDelegate <NSObject, NoteObjectDelegate, NTNFileManager>
 
 - (void)syncSessionProgressStarted:(id <SyncServiceSession>)syncSession;
 - (void)syncSession:(id <SyncServiceSession>)syncSession didStopWithError:(NSString*)errString;

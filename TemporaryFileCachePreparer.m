@@ -180,14 +180,6 @@ static NSString *TempDirectoryPathForEditing() {
 	[delegate temporaryFileCachePreparerDidNotFinish:self];
 }
 
-- (void)setDelegate:(id)aDelegate {
-	if (aDelegate) {
-		NSAssert([aDelegate respondsToSelector:@selector(temporaryFileCachePreparerDidNotFinish:)], @"delegate is bad (1)");
-		NSAssert([aDelegate respondsToSelector:@selector(temporaryFileCachePreparerFinished:)], @"delegate is bad (2)");
-	}
-	_delegate = aDelegate;
-}
-
 - (BOOL)_createFolderAtPath:(NSString*)path {
 	NSError *err = nil;
 	NSFileManager *fileMan = [NSFileManager defaultManager];

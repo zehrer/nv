@@ -58,8 +58,6 @@ extern NSString *SimplenoteSeparatorKey;
 	//used to span multiple partial index fetches (when mark is present in response)
 	NSMutableArray *indexEntryBuffer;
 	NSString *indexMark;
-	
-	id delegate;
 }
 
 - (id)initWithNotationPrefs:(NotationPrefs*)prefs;
@@ -96,8 +94,7 @@ extern NSString *SimplenoteSeparatorKey;
 
 - (id)initWithUsername:(NSString*)aUserString andPassword:(NSString*)aPassString;
 
-- (void)setDelegate:(id)aDelegate;
-- (id)delegate;
+@property (nonatomic, weak) id <SyncServiceSessionDelegate> delegate;
 
 - (SyncResponseFetcher*)loginFetcher;
 - (SyncResponseFetcher*)listFetcher;

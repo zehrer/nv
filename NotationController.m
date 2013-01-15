@@ -262,7 +262,9 @@
 		
 		allNotes = [[NSMutableArray alloc] init];
 	} else {
-		[allNotes makeObjectsPerformSelector:@selector(setDelegate:) withObject:self];
+		for (NoteObject *note in allNotes) {
+			note.delegate = self;
+		}
 	}
 	
 	if (!(deletedNotes = [frozenNotation deletedNotes]))
@@ -289,8 +291,6 @@
 	if ((err = FSRefMakePath(&noteDirectoryRef, convertedPath, maxPathSize)) == noErr) {
 		//initialize the journal if necessary
 		if ((walWriter = [[WALStorageController alloc] initWithParentFSRep:(char*)convertedPath encryptionKey:walSessionKey])) {
-			[walWriter setDelegate:self];
-			
 			success = YES;
 		} else {
 			//journal file probably already exists, so try to recover it
@@ -1540,9 +1540,10 @@
 
 - (void)dealloc {
  
-	[walWriter setDelegate:nil];
 	[notationPrefs setDelegate:nil];
-	[allNotes makeObjectsPerformSelector:@selector(setDelegate:) withObject:nil];
+	for (NoteObject *note in allNotes) {
+		note.delegate = nil;
+	}
 
 	if (fsCatInfoArray)
 		free(fsCatInfoArray);

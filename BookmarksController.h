@@ -20,12 +20,16 @@
 
 @class NoteObject;
 
+@protocol NoteBookmarkDelegate <NSObject>
+
+- (NoteObject*)noteWithUUIDBytes:(CFUUIDBytes)bytes;
+
+@end
+
 @interface NoteBookmark : NSObject {
 	NSString *searchString;
 	CFUUIDBytes uuidBytes;
 	NoteObject *noteObject;
-
-	id delegate;
 }
 
 - (id)initWithDictionary:(NSDictionary*)aDict;
@@ -36,8 +40,8 @@
 - (NoteObject*)noteObject;
 - (void)validateNoteObject;
 - (NSDictionary*)dictionaryRep;
-- (void)setDelegate:(id)aDelegate;
-- (id)delegate;
+
+@property (nonatomic, weak) id <NoteBookmarkDelegate> delegate;
 
 @end
 
@@ -77,7 +81,7 @@
 
 @end
 
-@interface BookmarksController : NSObject <NSWindowDelegate, NSTableViewDelegate, NSTableViewDataSource>
+@interface BookmarksController : NSObject <NSWindowDelegate, NSTableViewDelegate, NSTableViewDataSource, NoteBookmarkDelegate>
 {
 	//model
 	NSMutableArray *bookmarks;

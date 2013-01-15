@@ -6,6 +6,7 @@
 //  Copyright (c) 2013 elasticthreads. All rights reserved.
 //
 
+#import "NotationPrefs.h"
 @class NoteObject;
 
 @protocol NTNFileManager <NSObject>

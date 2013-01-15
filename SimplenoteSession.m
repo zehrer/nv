@@ -269,7 +269,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 	if (newSession) {
 		newSession->authToken = [authToken copy];
 		newSession->lastSyncedTime = lastSyncedTime;
-		newSession->delegate = delegate;
+		newSession.delegate = self.delegate;
 	}
 	
 	//may not want these to come with the copy, as they are specific to transactions-in-progress
@@ -354,6 +354,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 	if (!aString) {
 		[self _updateSyncTime];
 	}
+	id <SyncServiceSessionDelegate> delegate = self.delegate;
 	[delegate syncSession:self didStopWithError:lastErrorString];
 }
 
@@ -514,7 +515,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 	//thus, all notes in unsyncedServiceNotes and notesBeingModified should be allowed to fully complete first
 	
 	BOOL didStart = NO;
-	
+
 	if (![self _checkToken]) {
 		
 		InvocationRecorder *invRecorder = [InvocationRecorder invocationRecorder];
@@ -537,6 +538,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 	if (didStart && lastSyncedTime == 0.0) {
 		//don't report that we started syncing _here_ unless it was the first time doing so; 
 		//after the first time alert the user only when actual modifications are occurring
+		id <SyncServiceSessionDelegate> delegate = self.delegate;
 		[delegate syncSessionProgressStarted:self];
 	}
 	return didStart;
@@ -568,8 +570,9 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 
 - (void)addedEntryCollectorDidFinish:(SimplenoteEntryCollector *)collector {
 	NSArray *newNotes = [self _notesWithEntries:[collector entriesCollected]];
-	
+
 	if ([newNotes count]) {
+		id <SyncServiceSessionDelegate> delegate = self.delegate;
 		[delegate syncSession:self receivedAddedNotes:newNotes];		
 	}
 	
@@ -642,6 +645,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 	}
 	
 	if ([changedNotes count]) {
+		id <SyncServiceSessionDelegate> delegate = self.delegate;
 		[delegate syncSession:self didModifyNotes:changedNotes];
 	}
 	
@@ -726,6 +730,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		NSNumber *hashNum = [sngLocalNoteHashes objectAtIndex:i];
 		if ([serverContentNotes objectForKey:hashNum]) [localNotesToUpload removeObject:[singleNewlineLocalNotes objectForKey:hashNum]];
 	}
+	id <SyncServiceSessionDelegate> delegate = self.delegate;
 		
 	if ([downloadedNotesToKeep count]) {
 		NSLog(@"%@: found %lu genuinely new notes on the server",NSStringFromSelector(_cmd), [downloadedNotesToKeep count]);
@@ -748,6 +753,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 - (NSArray*)_notesWithEntries:(NSArray*)entries {
 	NSMutableArray *newNotes = [NSMutableArray arrayWithCapacity:[entries count]];
 	NSUInteger i = 0;
+	id <SyncServiceSessionDelegate> delegate = self.delegate;
 	for (i=0; i<[entries count]; i++) {
 		NSDictionary *info = [entries objectAtIndex:i];
 		NSAssert(![info objectForKey:@"NoteObject"], @"this note is supposed to be new!");
@@ -763,7 +769,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		[attributedBody addStrikethroughNearDoneTagsForRange:NSMakeRange(0, [attributedBody length])];
 		
 		NSString *labelString = [[info objectForKey:@"tags"] count] ? [[info objectForKey:@"tags"] componentsJoinedByString:@" "] : nil;
-		NoteObject *note = [[NoteObject alloc] initWithNoteBody:attributedBody title:title delegate:delegate format:SingleDatabaseFormat labels:labelString];
+		NoteObject *note = [[NoteObject alloc] initWithNoteBody:attributedBody title:title delegate: delegate format:SingleDatabaseFormat labels:labelString];
 		if (note) {
 			NSNumber *modNum = [info objectForKey:@"modify"];
 			[note setDateAdded:[[info objectForKey:@"create"] doubleValue]];
@@ -781,6 +787,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 
 - (void)_registerCollector:(SimplenoteEntryCollector*)collector {
 	[collectorsInProgress addObject:collector];
+	id <SyncServiceSessionDelegate> delegate = self.delegate;
 	[delegate syncSessionProgressStarted:self];
 }
 
@@ -926,7 +933,8 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 	//perhaps entriesInError should be re-queued? (except for 404-deletions)
 	//notes-in-error that were to be created should probably be specifically merged instead,
 	//in case the operation actually succeeded and the error occurred outside of the simplenote server
-	
+
+	id <SyncServiceSessionDelegate> delegate = self.delegate;
 	if ([[modifier entriesCollected] count]) [delegate syncSessionDidFinishRemoteModifications:self];
 }
 
@@ -1060,6 +1068,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 			[[self listFetcher] start];
 		} else {
 			[self _updateSyncTime];
+			id <SyncServiceSessionDelegate> delegate = self.delegate;
 			[delegate syncSession:self receivedFullNoteList:indexEntryBuffer];
 			 indexEntryBuffer = nil;
 		}
@@ -1067,14 +1076,6 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 	} else {
 		NSLog(@"unknown fetcher returned: %@, body: %@", fetcher, data);
 	}
-}
-
-- (void)setDelegate:(id)aDelegate {
-	delegate = aDelegate;
-}
-
-- (id)delegate {
-	return delegate;
 }
 
 - (void)dealloc {
