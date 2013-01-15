@@ -9,6 +9,9 @@
 #import "GlobalPrefs.h"
 #import "AppController.h"
 
+@interface ETClipView () <GlobalPrefsResponder>
+
+@end
 
 @implementation ETClipView
 

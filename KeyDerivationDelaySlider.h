@@ -25,18 +25,18 @@
 
 @end
 
-@interface KeyDerivationDelaySlider : NSSlider {
-	id delegate;
-}
+@class KeyDerivationDelaySlider;
 
-- (void)mouseUp;
-- (id)delegate;
-- (void)setDelegate:(id)aDelegate;
+@protocol KeyDerivationDelaySliderDelegate <NSObject>
+
+- (void)mouseUpForKeyDerivationDelaySlider:(KeyDerivationDelaySlider*)aSlider;
 
 @end
 
-@interface KeyDerivationDelaySlider (KeyDerivationDelaySliderDelegate)
+@interface KeyDerivationDelaySlider : NSSlider
 
-- (void)mouseUpForKeyDerivationDelaySlider:(KeyDerivationDelaySlider*)aSlider;
+@property (nonatomic, weak) id <KeyDerivationDelaySliderDelegate> delegate;
+
+- (void)mouseUp;
 
 @end

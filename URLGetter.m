@@ -15,14 +15,14 @@
 
 @implementation URLGetter
 
-- (id)initWithURL:(NSURL*)aUrl delegate:(id)aDelegate userData:(id)someObj {
+- (id)initWithURL:(NSURL*)aUrl delegate:(id <URLGetterDelegate>)aDelegate userData:(id)someObj {
 	if (!aUrl || [aUrl isFileURL]) {
 		return nil;
 	}
 	if ((self = [super init])) {
 		maxExpectedByteCount = 0;
 		isImporting = isIndicating = NO;
-		delegate = aDelegate;
+		self.delegate = aDelegate;
 		url = aUrl;
 		userData = someObj;
 		
@@ -141,8 +141,9 @@
 - (void)endDownloadWithPath:(NSString*)path {
 	isImporting = YES;
 	[self updateProgress];
-	
-	[delegate URLGetter:self returnedDownloadedFile:path];
+
+	id <URLGetterDelegate> delegate = self.delegate;
+	if (delegate) [delegate URLGetter: self returnedDownloadedFile: path];
 	
 	//clean up after ourselves
 	NSFileManager *fileMan = [NSFileManager defaultManager];
@@ -168,13 +169,6 @@
 
 - (NSString*)downloadPath {
 	return downloadPath;
-}
-
-- (id)delegate {
-	return delegate;
-}
-- (void)setDelegate:(id)aDelegate {
-	delegate = aDelegate;
 }
 
 @end

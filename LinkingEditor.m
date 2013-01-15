@@ -50,6 +50,10 @@ static long (*GetGetScriptManagerVariablePointer())(short);
 @end
 
 
+@interface LinkingEditor () <GlobalPrefsResponder>
+
+@end
+
 @implementation LinkingEditor
 
 @synthesize beforeString;

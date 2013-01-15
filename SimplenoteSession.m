@@ -37,6 +37,10 @@ NSString *SimplenoteServiceName = @"SN";
 NSString *SimplenoteSeparatorKey = @"SepStr";
 #define kSimplenoteSessionIndexBatchSize 100
 
+@interface SimplenoteSession () <SyncResponseFetcherDelegate>
+
+@end
+
 @implementation SimplenoteSession
 
 static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkConnectionFlags flags, void * info);

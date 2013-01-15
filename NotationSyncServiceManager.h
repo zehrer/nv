@@ -21,7 +21,7 @@
 #import "NotationController.h"
 #import "SyncServiceSessionProtocol.h"
 
-@interface NotationController (NotationSyncServiceManager)
+@interface NotationController (NotationSyncServiceManager) <SynchronizedNoteObjectDelegate>
 
 - (NSDictionary*)invertedDictionaryOfEntries:(NSArray*)entries keyedBy:(NSString*)keyName;
 - (NSDictionary*)invertedDictionaryOfNotes:(NSArray*)someNotes forSession:(id<SyncServiceSession>)aSession;

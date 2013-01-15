@@ -118,8 +118,9 @@ static const NSStringEncoding AllowedEncodings[] = {
 	note = aNote;
 	
 	bzero(&fsRef, sizeof(FSRef));
-	
-	if (!(noteData = [[note delegate] dataFromFileInNotesDirectory:&fsRef forFilename:note.filename])) {
+
+	id <NoteObjectDelegate, NTNFileManager> localNoteDelegate = note.delegate;
+	if (!(noteData = [localNoteDelegate dataFromFileInNotesDirectory:&fsRef forFilename:note.filename])) {
 		NSRunAlertPanel([NSString stringWithFormat:NSLocalizedString(@"Error: unable to read the contents of the file quotemark%@.quotemark",nil), aNote.filename],
 						NSLocalizedString(@"The file may no longer exist or has incorrect permissions.",nil), NSLocalizedString(@"OK",nil), NULL, NULL);
 		return;
@@ -239,7 +240,9 @@ static const NSStringEncoding AllowedEncodings[] = {
 - (BOOL)shouldUpdateNoteFromDisk {
 	FSCatalogInfo info;
 	OSStatus err = noErr;
-	if ((err = [[note delegate] fileInNotesDirectory:&fsRef isOwnedByUs:NULL hasCatalogInfo:&info]) != noErr) {
+	id <NoteObjectDelegate, NTNFileManager> localNoteDelegate = note.delegate;
+	
+	if ((err = [localNoteDelegate fileInNotesDirectory:&fsRef isOwnedByUs:NULL hasCatalogInfo:&info]) != noErr) {
 		NSRunAlertPanel([NSString stringWithFormat:NSLocalizedString(@"Error: the modification date of the file quotemark%@quotemark could not be determined because %@",nil), 
 			note.filename, [NSString reasonStringFromCarbonFSError:err]], NSLocalizedString(@"The file may no longer exist or has incorrect permissions.",nil),
 						NSLocalizedString(@"OK",nil), NULL, NULL);

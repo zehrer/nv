@@ -23,6 +23,20 @@
 @class SyncResponseFetcher;
 @class NotationPrefs;
 
+@protocol SyncServiceSession;
+
+@protocol SyncServiceSessionDelegate <NSObject>
+
+- (void)syncSessionProgressStarted:(id <SyncServiceSession>)syncSession;
+- (void)syncSession:(id <SyncServiceSession>)syncSession didStopWithError:(NSString*)errString;
+
+- (void)syncSession:(id <SyncServiceSession>)syncSession receivedFullNoteList:(NSArray*)allEntries;
+- (void)syncSession:(id <SyncServiceSession>)syncSession receivedAddedNotes:(NSArray*)addedNotes;
+- (void)syncSession:(id <SyncServiceSession>)syncSession didModifyNotes:(NSArray*)changedNotes;
+- (void)syncSessionDidFinishRemoteModifications:(id <SyncServiceSession>)syncSession;
+
+@end
+
 @protocol SyncServiceSession <NSObject>
 
 + (NSString*)localizedServiceTitle;
@@ -63,30 +77,16 @@
 - (void)startModifyingNotes:(NSArray*)notes;
 - (void)startCreatingNotes:(NSArray*)notes;
 
-- (void)setDelegate:(id)aDelegate;
-- (id)delegate;
+@property (nonatomic, weak) id <SyncServiceSessionDelegate> delegate;
 
 - (BOOL)pushSyncServiceChanges;
 - (BOOL)hasUnsyncedChanges;
 
 @end
 
-@protocol SyncServiceTask
+@protocol SyncServiceTask <NSObject>
 
 - (NSString*)statusText;
 - (SyncResponseFetcher*)currentFetcher;
-
-@end
-
-@interface NSObject (SyncServiceSessionDelegate)
-
-- (void)syncSessionProgressStarted:(id <SyncServiceSession>)syncSession;
-- (void)syncSession:(id <SyncServiceSession>)syncSession didStopWithError:(NSString*)errString;
-
-- (void)syncSession:(id <SyncServiceSession>)syncSession receivedFullNoteList:(NSArray*)allEntries;
-- (void)syncSession:(id <SyncServiceSession>)syncSession receivedAddedNotes:(NSArray*)addedNotes;
-- (void)syncSession:(id <SyncServiceSession>)syncSession didModifyNotes:(NSArray*)changedNotes;
-- (void)syncSessionDidFinishRemoteModifications:(id <SyncServiceSession>)syncSession;
-
 
 @end

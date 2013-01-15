@@ -31,6 +31,10 @@ NSString * const ODBEditorClientContext		= @"ODBEditorClientContext";
 NSString * const ODBEditorFileName			= @"ODBEditorFileName";
 NSString * const ODBEditorIsEditingString	= @"ODBEditorIsEditingString";
 
+@interface ODBEditor () <TemporaryFileCachePreparerDelegate>
+
+@end
+
 @interface ODBEditor(Private)
 
 - (BOOL)_launchExternalEditor:(ExternalEditor*)ed;

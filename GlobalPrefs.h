@@ -42,6 +42,11 @@ enum { NoteTitleColumn, NoteLabelsColumn, NoteDateModifiedColumn, NoteDateCreate
 
 #define ColumnIsSet(__ColumnEnum, __columnsBitmap) (((1 << (__ColumnEnum)) & (__columnsBitmap)) != 0)
 
+@protocol GlobalPrefsResponder <NSObject>
+
+- (void)settingChangedForSelectorString:(NSString*)selectorString;
+
+@end
 
 BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2);
 
@@ -64,10 +69,10 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2);
 
 + (GlobalPrefs *)defaultPrefs;
 
-- (void)registerWithTarget:(id)sender forChangesInSettings:(SEL)firstSEL, ...;
-- (void)registerForSettingChange:(SEL)selector withTarget:(id)sender;
-- (void)unregisterForNotificationsFromSelector:(SEL)selector sender:(id)sender;
-- (void)notifyCallbacksForSelector:(SEL)selector excludingSender:(id)sender;
+- (void)registerWithTarget:(id <GlobalPrefsResponder>)sender forChangesInSettings:(SEL)firstSEL, ...;
+- (void)registerForSettingChange:(SEL)selector withTarget:(id <GlobalPrefsResponder>)sender;
+- (void)unregisterForNotificationsFromSelector:(SEL)selector sender:(id <GlobalPrefsResponder>)sender;
+- (void)notifyCallbacksForSelector:(SEL)selector excludingSender:(id <GlobalPrefsResponder>)sender;
 
 - (void)setNotationPrefs:(NotationPrefs*)newNotationPrefs sender:(id)sender;
 - (NotationPrefs*)notationPrefs;
@@ -194,9 +199,3 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2);
 - (BOOL)managesTextWidthInWindow;
 - (CGFloat)maxNoteBodyWidth;
 @end
-
-@interface NSObject (GlobalPrefsDelegate)
-	- (void)settingChangedForSelectorString:(NSString*)selectorString;
-@end
-
-

@@ -62,7 +62,7 @@
 	[advancedView setHidden:[value boolValue]];
 }
 
-- (void)showAroundWindow:(NSWindow*)mainWindow resultDelegate:(id)aDelegate {
+- (void)showAroundWindow:(NSWindow*)mainWindow resultDelegate:(id <PassphrasePickerDelegate>)aDelegate {
 	if (!newPassphraseWindow) {
 		if (![NSBundle loadNibNamed:@"PassphrasePicker" owner:self])  {
 			NSLog(@"Failed to load PassphrasePicker.nib");
@@ -71,7 +71,7 @@
 		}
 	}
 	
-	resultDelegate = aDelegate;
+	self.delegate = aDelegate;
 	
 	if (!keyDerivation) {
 		keyDerivation = [[KeyDerivationManager alloc] initWithNotationPrefs:notationPrefs];
@@ -93,9 +93,9 @@
 - (void)sheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo {
 	[newPasswordField setStringValue:@""];
 	[verifyNewPasswordField setStringValue:@""];
-		
-	if ([resultDelegate respondsToSelector:@selector(passphrasePicker:choseAPassphrase:)])
-		[resultDelegate passphrasePicker:self choseAPassphrase:returnCode];
+
+	id <PassphrasePickerDelegate> delegate = self.delegate;
+	[delegate passphrasePicker:self choseAPassphrase:returnCode];
 }
 
 

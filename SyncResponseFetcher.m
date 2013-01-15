@@ -19,6 +19,12 @@
 #import "SyncResponseFetcher.h"
 #import "NSData_transformations.h"
 
+@interface SyncResponseFetcher ()
+
+@property (nonatomic, weak, readwrite) id <SyncResponseFetcherDelegate> delegate;
+
+@end
+
 @implementation SyncResponseFetcher
 
 + (void)initialize {
@@ -51,7 +57,7 @@
 	if ((self = [self init])) {
 		receivedData = [[NSMutableData alloc] init];
 		requestURL = aURL;
-		delegate = aDelegate;
+		self.delegate = aDelegate;
 		dataToSend = POSTData;
 		dataToSendContentType = [contentType copy];
 	}
@@ -131,11 +137,6 @@
 													 @"Error string returned to indicate that the user cancelled a syncing service operation")];
 }
 
-
-- (id)delegate {
-	return delegate;
-}
-
 - (NSURL*)requestURL {
 	return requestURL;
 }
@@ -163,6 +164,7 @@
 		return;
 	}
 	//assumes that anErrString will always be provided in the case of any error, and thus indicates the presence of such
+	id <SyncResponseFetcherDelegate> delegate = self.delegate;
 	[delegate syncResponseFetcher:self receivedData:anErrString ? nil : receivedData returningError:anErrString];
 
 	//delegate just had another opportunity to stop us, so check to see if he did that

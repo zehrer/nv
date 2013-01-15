@@ -42,6 +42,7 @@
 #import "UnifiedCell.h"
 #import "LabelColumnCell.h"
 #import "ODBEditor.h"
+#import "NotationSyncServiceManager.h"
 
 #if __LP64__
 // Needed for compatability with data created by 32bit app
@@ -69,7 +70,6 @@ typedef NSRange NSRange32;
 @property (nonatomic, readwrite) CFAbsoluteTime createdDate;
 @property (nonatomic, readwrite) NSStringEncoding fileEncoding;
 @property (nonatomic, strong, readwrite) NSMutableArray *prefixParents;
-
 
 @end
 
@@ -116,17 +116,13 @@ static FSRef *noteFileRefInit(NoteObject* obj);
 		free(perDiskInfoGroups);
 }
 
-- (id)delegate {
-	return delegate;
-}
+- (void)setDelegate:(id <NoteObjectDelegate, NTNFileManager>)theDelegate {
+	_delegate = theDelegate;
 
-- (void)setDelegate:(id)theDelegate {
-	
-	if (theDelegate) {
-		delegate = theDelegate;
-		
+	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
+	if (localDelegate) {
 		//do things that ought to have been done during init, but were not possible due to lack of delegate information
-		if (!self.filename) self.filename = [delegate uniqueFilenameForTitle:titleString fromNote:self];
+		if (!self.filename) self.filename = [localDelegate uniqueFilenameForTitle:titleString fromNote:self];
 		if (!tableTitleString && !didUnarchive) [self updateTablePreviewString];
 		if (!labelSet && !didUnarchive) [self updateLabelConnectionsAfterDecoding];
 	}
@@ -140,14 +136,19 @@ static FSRef *noteFileRefInit(NoteObject* obj) {
 }
 
 - (void)setAttrsModifiedDate:(UTCDateTime *)dateTime {
-	NSUInteger idx = SetPerDiskInfoWithTableIndex(dateTime, NULL, (UInt32)diskUUIDIndexForNotation(self.delegate), &perDiskInfoGroups, &perDiskInfoGroupCount);
+	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
+	if (!localDelegate) return;
+	NSUInteger idx = SetPerDiskInfoWithTableIndex(dateTime, NULL, (UInt32)[localDelegate diskUUIDIndex], &perDiskInfoGroups, &perDiskInfoGroupCount);
 	attrsModifiedDate = &(perDiskInfoGroups[idx].attrTime);
 }
 
 - (UTCDateTime *)attrsModifiedDate {
 	if (!attrsModifiedDate) {
+		id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
+		if (!localDelegate) return NULL;
+		
 		//init from delegate based on disk table index
-		NSUInteger i, tableIndex = diskUUIDIndexForNotation(delegate);
+		NSUInteger i, tableIndex = [localDelegate diskUUIDIndex];
 		
 		for (i=0; i<perDiskInfoGroupCount; i++) {
 			//check if this date has actually been initialized; this entry could be here only because -setFileNoteID: was called
@@ -163,7 +164,10 @@ static FSRef *noteFileRefInit(NoteObject* obj) {
 
 - (UInt32)fileNodeID {
 	if (!nodeID) {
-		NSUInteger i, tableIndex = diskUUIDIndexForNotation(delegate);
+		id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
+		if (!localDelegate) return -1;
+		
+		NSUInteger i, tableIndex = [localDelegate diskUUIDIndex];
 		
 		for (i=0; i<perDiskInfoGroupCount; i++) {
 			//check if this nodeID has actually been initialized; this entry could be here only because -setAttrsModifiedDate: was called
@@ -171,6 +175,7 @@ static FSRef *noteFileRefInit(NoteObject* obj) {
 				return (nodeID = perDiskInfoGroups[i].nodeID);
 			}
 		}
+		
 		//this note doesn't have a file-modified date, so initialize something that at least won't repeat this lookup
 		self.fileNodeID = 1;
 	}
@@ -178,7 +183,9 @@ static FSRef *noteFileRefInit(NoteObject* obj) {
 }
 
 - (void)setFileNodeID:(UInt32)fileNodeID {
-	SetPerDiskInfoWithTableIndex(NULL, &fileNodeID, (UInt32)diskUUIDIndexForNotation(delegate), &perDiskInfoGroups, &perDiskInfoGroupCount);
+	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
+	if (!localDelegate) return;
+	SetPerDiskInfoWithTableIndex(NULL, &fileNodeID, (UInt32)[localDelegate diskUUIDIndex], &perDiskInfoGroups, &perDiskInfoGroupCount);
 	nodeID = fileNodeID;
 }
 
@@ -491,14 +498,16 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	}
 }
 
-- (id)initWithNoteBody:(NSAttributedString*)bodyText title:(NSString*)aNoteTitle delegate:(id)aDelegate format:(int)formatID labels:(NSString*)aLabelString {
+- (id)initWithNoteBody:(NSAttributedString*)bodyText title:(NSString*)aNoteTitle delegate:(id <NoteObjectDelegate, NTNFileManager>)aDelegate format:(NoteStorageFormat)formatID labels:(NSString*)aLabelString {
 	//delegate optional here
     if ((self = [self init])) {
 		
 		if (!bodyText || !aNoteTitle) {
 			return nil;
 		}
-		delegate = aDelegate;
+
+		self.delegate = aDelegate;
+		id <NoteObjectDelegate, NTNFileManager> localDelegate = aDelegate;
 
 		self.contentString = [[NSMutableAttributedString alloc] initWithAttributedString:bodyText];
 		[self initContentCacheCString];
@@ -511,7 +520,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		}
 		
 		currentFormatID = formatID;
-		filename = [delegate uniqueFilenameForTitle:titleString fromNote:nil];
+		filename = [localDelegate uniqueFilenameForTitle:titleString fromNote:nil];
 		
 		CFUUIDRef uuidRef = CFUUIDCreate(kCFAllocatorDefault);
 		uniqueNoteIDBytes = CFUUIDGetUUIDBytes(uuidRef);
@@ -522,8 +531,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		dateModifiedString = [NSString relativeDateStringWithAbsoluteTime: modifiedDate];
 		UCConvertCFAbsoluteTimeToUTCDateTime(modifiedDate, &fileModifiedDate);
 		
-		if (delegate)
-			[self updateTablePreviewString];
+		if (localDelegate) [self updateTablePreviewString];
     }
     
     return self;
@@ -535,8 +543,9 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	NSAssert(aDelegate != nil, @"must supply a delegate");
     if ((self = [self init])) {
 		self.delegate = aDelegate;
+		id <NoteObjectDelegate, NTNFileManager> localDelegate = aDelegate;
 		self.filename = (__bridge NSString*)entry->filename;
-		self.storageFormat = [delegate currentNoteStorageFormat];
+		self.storageFormat = [localDelegate currentNoteStorageFormat];
 		self.fileModifiedDate = entry->lastModified;
 		self.attrsModifiedDate = &(entry->lastAttrModified);
 		self.fileNodeID = entry->nodeID;
@@ -585,8 +594,9 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		[self updateTablePreviewString];
 		contentCacheNeedsUpdate = YES;
 		//[self updateContentCacheCStringIfNecessary];
-		
-		[delegate note:self attributeChanged:NotePreviewString];
+
+		id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
+		if (localDelegate) [localDelegate note:self attributeChanged:NotePreviewString];
 	
 		[self makeNoteDirtyUpdateTime:YES updateFile:YES];
 	}
@@ -668,16 +678,17 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 - (void)updateTablePreviewString {
 	//delegate required for this method
 	GlobalPrefs *prefs = [GlobalPrefs defaultPrefs];
+	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
 
 	if ([prefs tableColumnsShowPreview]) {
 		if ([prefs horizontalLayout]) {
 			//is called for visible notes at launch and resize only, generation of images for invisible notes is delayed until after launch
 			
 			NSSize labelBlockSize = ColumnIsSet(NoteLabelsColumn, [prefs tableColumnsBitmap]) ? [self sizeOfLabelBlocks] : NSZeroSize;
-			tableTitleString = [titleString attributedMultiLinePreviewFromBodyText: self.contentString upToWidth:[delegate titleColumnWidth] 
+			tableTitleString = [titleString attributedMultiLinePreviewFromBodyText: self.contentString upToWidth:[localDelegate titleColumnWidth]
 																	 intrusionWidth:labelBlockSize.width];
 		} else {
-			tableTitleString = [titleString attributedSingleLinePreviewFromBodyText: self.contentString upToWidth:[delegate titleColumnWidth]];
+			tableTitleString = [titleString attributedSingleLinePreviewFromBodyText: self.contentString upToWidth:[localDelegate titleColumnWidth]];
 		}
 	} else {
 		if ([prefs horizontalLayout]) {
@@ -695,16 +706,15 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		
 		//solution: don't change the name in that case and allow its new name to be generated
 		//when the format is changed and the file rewritten?
-		
-		
+		id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
 		
 		//however, the filename is used for exporting and potentially other purposes, so we should also update
 		//it if we know that is has no currently existing (older) counterpart in the notes directory
 		
 		//woe to the exporter who also left the note files in the notes directory after switching to a singledb format
 		//his note names might not be up-to-date
-		if ([delegate currentNoteStorageFormat] != SingleDatabaseFormat || 
-			![delegate notesDirectoryContainsFile:filename returningFSRef:noteFileRefInit(self)]) {
+		if ([localDelegate currentNoteStorageFormat] != SingleDatabaseFormat ||
+			![localDelegate notesDirectoryContainsFile:filename returningFSRef:noteFileRefInit(self)]) {
 			
 			[self setFilenameFromTitle];
 		}
@@ -721,8 +731,8 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		if (![undoMan isUndoing] && ![undoMan isRedoing])
 			[undoMan setActionName:[NSString stringWithFormat:@"Rename Note \"%@\"", titleString]];
 		*/
-		
-		[delegate note:self attributeChanged:NoteTitleColumnString];
+
+		[localDelegate note:self attributeChanged:NoteTitleColumnString];
     }
 }
 
@@ -736,17 +746,19 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 }
 
 - (void)setFilenameFromTitle {
-	[self setFilename:[delegate uniqueFilenameForTitle:titleString fromNote:self] withExternalTrigger:NO];
+	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
+	[self setFilename: [localDelegate uniqueFilenameForTitle:titleString fromNote:self] withExternalTrigger:NO];
 }
 
 - (void)setFilename:(NSString*)aString withExternalTrigger:(BOOL)externalTrigger {
-    
+    id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
+	
     if (!filename || ![aString isEqualToString:filename]) {
 		NSString *oldName = filename;
 		filename = [aString copy];
 		
 		if (!externalTrigger) {
-			if ([delegate noteFileRenamed:noteFileRefInit(self) fromName:oldName toName:filename] != noErr) {
+			if ([localDelegate noteFileRenamed:noteFileRefInit(self) fromName:oldName toName:filename] != noErr) {
 				NSLog(@"Couldn't rename note %@", titleString);
 				
 				//revert name
@@ -757,12 +769,12 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 			[self _setTitleString:[aString stringByDeletingPathExtension]];	
 			
 			[self updateTablePreviewString];
-			[delegate note:self attributeChanged:NoteTitleColumnString];
+			[localDelegate note:self attributeChanged:NoteTitleColumnString];
 		}
 		
 		[self makeNoteDirtyUpdateTime:YES updateFile:NO];
 		
-		[delegate updateLinksToNote:self fromOldName:oldName];
+		[localDelegate updateLinksToNote:self fromOldName:oldName];
 		//update all the notes that link to the old filename as well!!
 		
     }
@@ -785,8 +797,9 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	
 	[self _setTitleString:[(__bridge NSString*)normalizedString copy]];
 	if (normalizedString) CFRelease(normalizedString);
-	
-	if ([delegate currentNoteStorageFormat] == RTFTextFormat)
+
+	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
+	if (localDelegate && [localDelegate currentNoteStorageFormat] == RTFTextFormat)
 		[self makeNoteDirtyUpdateTime:NO updateFile:YES];
 }
 
@@ -796,8 +809,9 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 
 	if ([_contentString restyleTextToFont:[[GlobalPrefs defaultPrefs] noteBodyFont] usingBaseFont:baseFont] > 0) {
 		[undoManager removeAllActions];
-		
-		if ([delegate currentNoteStorageFormat] == RTFTextFormat)
+
+		id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
+		if (localDelegate && [localDelegate currentNoteStorageFormat] == RTFTextFormat)
 			[self makeNoteDirtyUpdateTime:NO updateFile:YES];
 	}
 }
@@ -861,8 +875,9 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 }
 
 - (void)updateLabelConnections {
-	//find differences between previous labels and new ones	
-	if (delegate) {
+	//find differences between previous labels and new ones
+	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
+	if (localDelegate) {
 		NSMutableSet *oldLabelSet = labelSet;
 		NSMutableSet *newLabelSet = [self labelSetFromCurrentString];
 		
@@ -884,16 +899,17 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		
 		//update our status within the list of all labels, adding or removing from the list and updating the labels where appropriate
 		//these end up calling replaceMatchingLabel*
-		[delegate note:self didRemoveLabelSet:oldLabels];
-		[delegate note:self didAddLabelSet:newLabels];
+		[localDelegate note:self didRemoveLabelSet:oldLabels];
+		[localDelegate note:self didAddLabelSet:newLabels];
 		
 	}
 }
 
 - (void)disconnectLabels {
 	//when removing this note from NotationController, other LabelObjects as well as the label controller should know not to list it
-	if (delegate) {
-		[delegate note:self didRemoveLabelSet:labelSet];
+	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
+	if (localDelegate) {
+		[localDelegate note:self didRemoveLabelSet:labelSet];
 		labelSet = nil;
 	} else {
 		NSLog(@"not disconnecting labels because no delegate exists");
@@ -921,8 +937,9 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		
 		[self makeNoteDirtyUpdateTime:YES updateFile:YES];
 		//[self registerModificationWithOwnedServices];
-		
-		[delegate note:self attributeChanged:NoteLabelsColumnString];
+
+		id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
+		[localDelegate note:self attributeChanged:NoteLabelsColumnString];
 	}
 }
 
@@ -972,7 +989,8 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		
 		for (NSString *word in self.orderedLabelTitles) {
 			if (word.length) {
-				NSImage *img = [delegate cachedLabelImageForWord:word highlighted:isHighlighted];
+				id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
+				NSImage *img = localDelegate ? [localDelegate cachedLabelImageForWord:word highlighted:isHighlighted] : nil;
 				
 				if (!reqSize) {
 					if (onRight) {
@@ -1014,7 +1032,8 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 
 - (NSString*)noteFilePath {
 	UniChar chars[256];
-	if ([delegate refreshFileRefIfNecessary:noteFileRefInit(self) withName:filename charsBuffer:chars] == noErr)
+	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
+	if (localDelegate && [localDelegate refreshFileRefIfNecessary:noteFileRefInit(self) withName:filename charsBuffer:chars] == noErr)
 		return [[NSFileManager defaultManager] pathWithFSRef:noteFileRefInit(self)];
 	return nil;
 }
@@ -1037,8 +1056,9 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 - (BOOL)writeUsingCurrentFileFormatIfNonExistingOrChanged {
     BOOL fileWasCreated = NO;
     BOOL fileIsOwned = NO;
-	
-    if ([delegate createFileIfNotPresentInNotesDirectory:noteFileRefInit(self) forFilename:filename fileWasCreated:&fileWasCreated] != noErr)
+	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
+
+    if (localDelegate && [localDelegate createFileIfNotPresentInNotesDirectory:noteFileRefInit(self) forFilename:filename fileWasCreated:&fileWasCreated] != noErr)
 		return NO;
     
     if (fileWasCreated) {
@@ -1048,7 +1068,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
     
 	//createFileIfNotPresentInNotesDirectory: works by name, so if this file is not owned by us at this point, it was a race with moving it
     FSCatalogInfo info;
-    if ([delegate fileInNotesDirectory:noteFileRefInit(self) isOwnedByUs:&fileIsOwned hasCatalogInfo:&info] != noErr)
+    if (localDelegate && [localDelegate fileInNotesDirectory:noteFileRefInit(self) isOwnedByUs:&fileIsOwned hasCatalogInfo:&info] != noErr)
 		return NO;
     
     CFAbsoluteTime timeOnDisk, lastTime;
@@ -1075,7 +1095,8 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		//update formatID to absolutely ensure we don't reload an earlier note back from disk, from text encoding menu, for example
 		//currentFormatID = SingleDatabaseFormat;
 	} else {
-		[delegate noteDidNotWrite:self errorCode:kWriteJournalErr];
+		id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
+		[localDelegate noteDidNotWrite:self errorCode:kWriteJournalErr];
 	}
     
     return wroteAllOfNote;
@@ -1086,8 +1107,9 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
     NSData *formattedData = nil;
     NSError *error = nil;
 	NSMutableAttributedString *contentMinusColor = nil;
-	
-    int formatID = [delegate currentNoteStorageFormat];
+
+	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
+    NoteStorageFormat formatID = [localDelegate currentNoteStorageFormat];
     switch (formatID) {
 		case SingleDatabaseFormat:
 			//we probably shouldn't be here
@@ -1121,7 +1143,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 			//our links will always be to filenames, so hopefully we shouldn't have to change anything
 			break;
 		default:
-			NSLog(@"Attempted to write using unknown format ID: %d", formatID);
+			NSLog(@"Attempted to write using unknown format ID: %ld", formatID);
 			//return NO;
     }
     
@@ -1141,10 +1163,10 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		//could offer to merge or revert changes
 		
 		OSStatus err = noErr;
-		if ((err = [delegate storeDataAtomicallyInNotesDirectory:formattedData withName:filename destinationRef:noteFileRefInit(self)]) != noErr) {
+		if ((err = [localDelegate storeDataAtomicallyInNotesDirectory:formattedData withName:filename destinationRef:noteFileRefInit(self)]) != noErr) {
 			NSLog(@"Unable to save note file %@", filename);
 			
-			[delegate noteDidNotWrite:self errorCode:err];
+			[localDelegate noteDidNotWrite:self errorCode:err];
 			return NO;
 		}
 		//if writing plaintext set the file encoding with setxattr
@@ -1172,8 +1194,8 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		//tell any external editors that we've changed
 		
     } else {
-		[delegate noteDidNotWrite:self errorCode:kDataFormattingErr];
-		NSLog(@"Unable to convert note contents into format %d", formatID);
+		[localDelegate noteDidNotWrite:self errorCode:kDataFormattingErr];
+		NSLog(@"Unable to convert note contents into format %ld", formatID);
 		return NO;
     }
     
@@ -1182,7 +1204,8 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 
 - (OSStatus)writeFileDatesAndUpdateTrackingInfo {
 	if (SingleDatabaseFormat == currentFormatID) return noErr;
-	
+	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
+
 	//sync the file's creation and modification date:
 	FSCatalogInfo catInfo;
 	UCConvertCFAbsoluteTimeToUTCDateTime(createdDate, &catInfo.createDate);
@@ -1193,7 +1216,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	OSStatus err = noErr;
 	do {
 		if (noErr != err || IsZeros(noteFileRefInit(self), sizeof(FSRef))) {
-			if (![delegate notesDirectoryContainsFile:filename returningFSRef:noteFileRefInit(self)]) return fnfErr;
+			if (![localDelegate notesDirectoryContainsFile:filename returningFSRef:noteFileRefInit(self)]) return fnfErr;
 		}
 		err = FSSetCatalogInfo(noteFileRefInit(self), kFSCatInfoCreateDate | kFSCatInfoContentMod, &catInfo);
 	} while (fnfErr == err);
@@ -1205,7 +1228,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	
 	//regardless of whether FSSetCatalogInfo was successful, the file mod date could still have changed
 	
-	if ((err = [delegate fileInNotesDirectory:noteFileRefInit(self) isOwnedByUs:NULL hasCatalogInfo:&catInfo]) != noErr) {
+	if ((err = [localDelegate fileInNotesDirectory:noteFileRefInit(self) isOwnedByUs:NULL hasCatalogInfo:&catInfo]) != noErr) {
 		NSLog(@"Unable to get new modification date of file %@: %d", filename, err);
 		return err;
 	}
@@ -1240,6 +1263,8 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 - (BOOL)upgradeEncodingToUTF8 {
 	//"convert" the file to have a UTF-8 encoding
 	BOOL didUpgrade = YES;
+
+	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
 	
 	if (NSUTF8StringEncoding != fileEncoding) {
 		[self _setFileEncoding:NSUTF8StringEncoding];
@@ -1247,12 +1272,12 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		if (!contentsWere7Bit && PlainTextFormat == currentFormatID) {
 			//this note exists on disk as a plaintext file, and its encoding is incompatible with UTF-8
 			
-			if ([delegate currentNoteStorageFormat] == PlainTextFormat) {
+			if ([localDelegate currentNoteStorageFormat] == PlainTextFormat) {
 				//actual conversion is expected because notes are presently being maintained as plain text files
 				
 				NSLog(@"rewriting %@ as utf8 data", titleString);
 				didUpgrade = [self writeUsingCurrentFileFormat];
-			} else if ([delegate currentNoteStorageFormat] == SingleDatabaseFormat) {
+			} else if ([localDelegate currentNoteStorageFormat] == SingleDatabaseFormat) {
 				//update last-written-filemod time to guarantee proper encoding at next DB storage format switch, 
 				//in case this note isn't otherwise modified before that happens.
 				//a side effect is that if the user switches to an RTF or HTML format,
@@ -1281,9 +1306,11 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		//write the file encoding extended attribute before updating from disk. why?
 		//a) to ensure -updateFromData: finds the right encoding when re-reading the file, and
 		//b) because the file is otherwise not being rewritten, and the extended attribute--if it existed--may have been different
+
+		id <NTNFileManager, SynchronizedNoteObjectDelegate> localDelegate = (id)self.delegate;
 		
 		UniChar chars[256];
-		if ([delegate refreshFileRefIfNecessary:noteFileRefInit(self) withName:filename charsBuffer:chars] != noErr)
+		if ([localDelegate refreshFileRefIfNecessary:noteFileRefInit(self) withName:filename charsBuffer:chars] != noErr)
 			return NO;
 		
 		if ([self writeCurrentFileEncodingToFSRef:noteFileRefInit(self)] != noErr)
@@ -1293,7 +1320,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 			[self makeNoteDirtyUpdateTime:NO updateFile:NO];
 			//need to update modification time manually
 			[self registerModificationWithOwnedServices];
-			[delegate schedulePushToAllSyncServicesForNote:self];
+			[localDelegate schedulePushToAllSyncServicesForNote:self];
 			//[[delegate delegate] contentsUpdatedForNote:self];
 		}
 	}
@@ -1302,7 +1329,8 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 }
 
 - (BOOL)updateFromFile {
-    NSMutableData *data = [delegate dataFromFileInNotesDirectory:noteFileRefInit(self) forFilename:filename];
+	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
+    NSMutableData *data = [localDelegate dataFromFileInNotesDirectory:noteFileRefInit(self) forFilename:filename];
     if (!data) {
 		NSLog(@"Couldn't update note from file on disk");
 		return NO;
@@ -1310,7 +1338,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	
     if ([self updateFromData:data inFormat:currentFormatID]) {
 		FSCatalogInfo info;
-		if ([delegate fileInNotesDirectory:noteFileRefInit(self) isOwnedByUs:NULL hasCatalogInfo:&info] == noErr) {
+		if ([localDelegate fileInNotesDirectory:noteFileRefInit(self) isOwnedByUs:NULL hasCatalogInfo:&info] == noErr) {
 			self.fileModifiedDate = info.contentModDate;
 			self.attrsModifiedDate = &info.attributeModDate;
 			self.fileNodeID = info.nodeID;
@@ -1324,8 +1352,10 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 
 - (BOOL)updateFromCatalogEntry:(NoteCatalogEntry*)catEntry {
 	BOOL didRestoreLabels = NO;
+
+	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
 	
-    NSMutableData *data = [delegate dataFromFileInNotesDirectory:noteFileRefInit(self) forCatalogEntry:catEntry];
+    NSMutableData *data = [localDelegate dataFromFileInNotesDirectory:noteFileRefInit(self) forCatalogEntry:catEntry];
     if (!data) {
 		NSLog(@"Couldn't update note from file on disk given catalog entry");
 		return NO;
@@ -1370,7 +1400,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		//or if this file has just been altered, grab its newly-changed modification dates
 		
 		FSCatalogInfo info;
-		if ([delegate fileInNotesDirectory:noteFileRefInit(self) isOwnedByUs:NULL hasCatalogInfo:&info] == noErr) {
+		if ([localDelegate fileInNotesDirectory:noteFileRefInit(self) isOwnedByUs:NULL hasCatalogInfo:&info] == noErr) {
 			if (createdDate == 0.0 && UCConvertUTCDateTimeToCFAbsoluteTime(&info.createDate, &aCreateDate) == noErr) {
 				[self setDateAdded:aCreateDate];
 			}
@@ -1464,7 +1494,8 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 
 - (void)moveFileToTrash {
 	OSStatus err = noErr;
-	if ((err = [delegate moveFileToTrash:noteFileRefInit(self) forFilename:filename]) != noErr) {
+	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
+	if ((err = [localDelegate moveFileToTrash:noteFileRefInit(self) forFilename:filename]) != noErr) {
 		NSLog(@"Couldn't move file to trash: %d", err);
 	} else {
 		//file's gone! don't assume it's not coming back. if the storage format was not single-db, this note better be removed
@@ -1510,11 +1541,13 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	if (updateFile)
 		shouldWriteToFile = YES;
 	//else we don't turn file updating off--we might be overwriting the state of a previous note-dirty message
+
+	id <NoteObjectDelegate, SynchronizedNoteObjectDelegate> localDelegate = (id)self.delegate;
 	
 	if (updateTime) {
 		[self setDateModified:CFAbsoluteTimeGetCurrent()];
 		
-		if ([delegate currentNoteStorageFormat] == SingleDatabaseFormat) {
+		if ([localDelegate currentNoteStorageFormat] == SingleDatabaseFormat) {
 			//only set if we're not currently synchronizing to avoid re-reading old data
 			//this will be updated again when writing to a file, but for now we have the newest version
 			//we must do this to allow new notes to be written when switching formats, and for encodingmanager checks
@@ -1526,11 +1559,11 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		//if this is a change that affects the actual content of a note such that we would need to updateFile
 		//and the modification time was actually updated, then dirty the note with the sync services, too
 		[self registerModificationWithOwnedServices];
-		[delegate schedulePushToAllSyncServicesForNote:self];
+		[localDelegate schedulePushToAllSyncServicesForNote:self];
 	}
 	
 	//queue note to be written
-    [delegate scheduleWriteForNote:self];	
+    [localDelegate scheduleWriteForNote:self];	
 	
 	//tell delegate that the date modified changed
 	//[delegate note:self attributeChanged:NoteDateModifiedColumnString];
@@ -1600,7 +1633,9 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		return dupFNErr;
 	}
 	//yes, the file is probably not on the same volume as our notes directory
-	if ((err = FSRefWriteData(&fileRef, BlockSizeForNotation(delegate), [formattedData length], [formattedData bytes], 0, true)) != noErr) {
+
+	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
+	if ((err = FSRefWriteData(&fileRef, localDelegate.blockSize, [formattedData length], [formattedData bytes], 0, true)) != noErr) {
 		NSLog(@"error writing to temporary file: %d", err);
 		return err;
     }
@@ -1636,9 +1671,9 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	if ([self updateFromData:[NSMutableData dataWithContentsOfFile:path options:NSUncachedRead error:NULL] inFormat:PlainTextFormat]) {
 		//reflect the temp file's changes directly back to the backing-store-file, database, and sync services
 		[self makeNoteDirtyUpdateTime:YES updateFile:YES];
-		
-		[delegate note:self attributeChanged:NotePreviewString];
-		[[delegate delegate] contentsUpdatedForNote:self];
+		id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
+		[localDelegate note:self attributeChanged:NotePreviewString];
+		[localDelegate noteDidUpdateContents: self];
 	} else {
 		NSBeep();
 		NSLog(@"odbEditor:didModifyFile: unable to get data from %@", path);

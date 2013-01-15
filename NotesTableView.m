@@ -44,6 +44,10 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 
 @end
 
+@interface NotesTableView () <GlobalPrefsResponder>
+
+@end
+
 @implementation NotesTableView
 
 //there's something wrong with this initialization under panther, I think

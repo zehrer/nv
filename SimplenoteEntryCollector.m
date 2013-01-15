@@ -26,6 +26,10 @@
 #import "DeletedNoteObject.h"
 #import <objc/message.h>
 
+@interface SimplenoteEntryCollector () <SyncResponseFetcherDelegate>
+
+@end
+
 @implementation SimplenoteEntryCollector
 
 //instances this short-lived class are intended to be started only once, and then deallocated

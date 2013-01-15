@@ -18,7 +18,6 @@
 
 #import <Cocoa/Cocoa.h>
 
-@class AppController;
 @class NoteObject;
 
 @interface NoteBookmark : NSObject {
@@ -61,17 +60,28 @@
  */
 
 @class GlobalPrefs;
+@class BookmarksController;
+
+@protocol BookmarksControllerDelegate <NSObject>
+
+- (void)bookmarksController:(BookmarksController *)controller restoreNoteBookmark:(NoteBookmark *)aBookmark inBackground:(BOOL)inBG;
+- (NSMenu *)statBarMenu;
+- (NoteObject*)selectedNoteObject;
+- (NSString*)fieldSearchString;
+
+@end
+
+@protocol BookmarksControllerDataSource <NSObject>
+
+- (NoteObject *)noteForUUIDBytes:(CFUUIDBytes *)bytes;
+
+@end
 
 @interface BookmarksController : NSObject <NSWindowDelegate, NSTableViewDelegate, NSTableViewDataSource>
 {
 	//model
 	NSMutableArray *bookmarks;
-		
-	//for NoteObject <-> UUID lookups
-	id dataSource;
 	
-	//for notifications
-	AppController *appController;
 	BOOL isRestoringSearch, isSelectingProgrammatically;
 	
 	GlobalPrefs *prefsController;
@@ -89,8 +99,6 @@
 - (id)initWithBookmarks:(NSArray*)array;
 - (NSArray*)dictionaryReps;
 
-- (id)dataSource;
-- (void)setDataSource:(id)aDataSource;
 - (NoteObject*)noteWithUUIDBytes:(CFUUIDBytes)bytes;
 - (void)removeBookmarkForNote:(NoteObject*)aNote;
 
@@ -115,20 +123,7 @@
 
 - (void)updateBookmarksUI;
 
-- (AppController*)appController;
-- (void)setAppController:(id)aDelegate;
+@property (nonatomic, weak) id <BookmarksControllerDelegate> delegate;
+@property (nonatomic, weak) id <BookmarksControllerDataSource> dataSource;
 
 @end
-
-@interface NSObject (BookmarksControllerRevealDelegate)
-
-- (void)bookmarksController:(BookmarksController*)controller restoreNoteBookmark:(NoteBookmark*)aBookmark inBackground:(BOOL)inBG;
-
-@end
-
-@interface NSObject (BookmarksControllerDataSource)
-
-- (NoteObject*)noteForUUIDBytes:(CFUUIDBytes*)bytes;
-
-@end
-

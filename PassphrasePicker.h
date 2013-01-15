@@ -17,6 +17,14 @@
 @class NotationPrefs;
 @class KeyDerivationManager;
 
+@class PassphrasePicker;
+
+@protocol PassphrasePickerDelegate <NSObject>
+
+- (void)passphrasePicker:(PassphrasePicker*)picker choseAPassphrase:(BOOL)success;
+
+@end
+
 @interface PassphrasePicker : NSObject
 {
     IBOutlet NSButton *cancelNewButton;
@@ -31,18 +39,15 @@
 	
 	KeyDerivationManager *keyDerivation;
 	NotationPrefs *notationPrefs;
-	id resultDelegate;
 }
+
+@property (nonatomic, weak) id <PassphrasePickerDelegate> delegate;
 
 - (IBAction)discloseAdvancedSettings:(id)sender;
 
-- (void)showAroundWindow:(NSWindow*)mainWindow resultDelegate:(id)aDelegate;
+- (void)showAroundWindow:(NSWindow*)mainWindow resultDelegate:(id <PassphrasePickerDelegate>)aDelegate;
 - (IBAction)cancelNewPassword:(id)sender;
 - (IBAction)okNewPassword:(id)sender;
 
 - (id)initWithNotationPrefs:(NotationPrefs*)prefs;
-@end
-
-@interface NSObject (PassphrasePickerDelegate)
-- (void)passphrasePicker:(PassphrasePicker*)picker choseAPassphrase:(BOOL)success;
 @end

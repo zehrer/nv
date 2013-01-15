@@ -69,7 +69,8 @@ NSString *ExternalEditorsChangedNotification = @"ExternalEditorsChanged";
 	if (![self isInstalled]) return NO;
 	
 	//and if this note isn't actually stored in a separate file, then obviously it can't be opened directly
-	if ([[aNote delegate] currentNoteStorageFormat] == SingleDatabaseFormat) return NO;
+	id <NoteObjectDelegate> localNoteDelegate = aNote.delegate;
+	if ([localNoteDelegate currentNoteStorageFormat] == SingleDatabaseFormat) return NO;
 	
 	//and if aNote is in plaintext format and this editor is ODB-capable, then it should also be a general-purpose texteditor
 	//conversely ODB editors should never be allowed to open non-plain-text documents; for some reason LSCanURLAcceptURL claims they can do that

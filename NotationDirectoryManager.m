@@ -24,11 +24,11 @@
 #import "NoteObject.h"
 #import "DeletionManager.h"
 #import "NSCollection_utils.h"
+#import "NotationFileManager.h"
 
 #define kMaxFileIteratorCount 100
 
 @implementation NotationController (NotationDirectoryManager)
-
 
 NSInteger compareCatalogEntryName(const void *one, const void *two) {
     return (int)CFStringCompare((CFStringRef)((*(NoteCatalogEntry **)one)->filename), 
@@ -324,12 +324,13 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t nu
 			}
 			//do not call makeNoteDirty because use of the WAL in this instance would cause redundant disk activity
 			//in the event of a crash this change could still be recovered; 
-			
+
 			[aNoteObject registerModificationWithOwnedServices];
 			[self schedulePushToAllSyncServicesForNote:aNoteObject];
 			
 			[self note:aNoteObject attributeChanged:NotePreviewString]; //reverse delegate?
-			
+
+			id <NotationControllerDelegate> delegate = self.delegate;
 			[delegate contentsUpdatedForNote:aNoteObject];
 			
 			[self performSelector:@selector(scheduleUpdateListForAttribute:) withObject:NoteDateModifiedColumnString afterDelay:0.0];

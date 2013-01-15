@@ -80,15 +80,9 @@
 	return [KeyDerivationDelaySliderCell class];
 }
 
-- (id)delegate {
-	return delegate;
-}
-- (void)setDelegate:(id)aDelegate {
-	delegate = aDelegate;
-}
-
 - (void)mouseUp {
 	//send a message to our delegate
+	id <KeyDerivationDelaySliderDelegate> delegate = self.delegate;
 	if ([delegate respondsToSelector:@selector(mouseUpForKeyDerivationDelaySlider:)]) {
 		[delegate mouseUpForKeyDerivationDelaySlider:self];
 	}

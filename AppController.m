@@ -66,6 +66,10 @@ static const CGFloat kMaxNotesListDimension = 600.0f;
 
 @end
 
+@interface AppController () <GlobalPrefsResponder>
+
+@end
+
 @implementation AppController
 
 
@@ -238,7 +242,7 @@ void outletObjectAwoke(id sender) {
 }
 
 - (void)runDelayedUIActionsAfterLaunch {
-	[[prefsController bookmarksController] setAppController:self];
+	[[prefsController bookmarksController] setDelegate:self];
 	[[prefsController bookmarksController] restoreWindowFromSave];
 	[[prefsController bookmarksController] updateBookmarksUI];
 	[self updateNoteMenus];
@@ -1677,7 +1681,7 @@ void outletObjectAwoke(id sender) {
 	[notesTableView scrollRowToVisible:NSNotFound == idx ? 0 : idx withVerticalOffset:[prefsController scrollOffsetOfLastSelectedNote]];
 }
 
-- (NSUInteger)revealNote:(NoteObject*)note options:(NSUInteger)opts {
+- (NSUInteger)revealNote:(NoteObject*)note options:(NVNoteRevealOptions)opts {
 	if (note) {
 		NSUInteger selectedNoteIndex = [notationController indexInFilteredListForNoteIdenticalTo:note];
 		
@@ -1715,7 +1719,7 @@ void outletObjectAwoke(id sender) {
 	}
 }
 
-- (void)notation:(NotationController*)notation revealNote:(NoteObject*)note options:(NSUInteger)opts {
+- (void)notation:(NotationController*)notation revealNote:(NoteObject*)note options:(NVNoteRevealOptions)opts {
 	[self revealNote:note options:opts];
 }
 

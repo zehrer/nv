@@ -15,12 +15,15 @@
    - Neither the name of Notational Velocity nor the names of its contributors may be used to endorse 
      or promote products derived from this software without specific prior written permission. */
 
+@class SyncResponseFetcher;
 
-#import <Cocoa/Cocoa.h>
+@protocol SyncResponseFetcherDelegate <NSObject>
 
+- (void)syncResponseFetcher:(SyncResponseFetcher*)fetcher receivedData:(NSData*)data returningError:(NSString*)errString;
+
+@end
 
 //carries out a single request
-
 @interface SyncResponseFetcher : NSObject {
 
 	NSMutableData *receivedData;
@@ -35,13 +38,12 @@
 	NSInteger lastStatusCode;
 	
 	NSInvocation *successInvocation;
-	id delegate;
 	BOOL isRunning, didCancel;
 }
 
-- (id)initWithURL:(NSURL*)aURL bodyStringAsUTF8B64:(NSString*)stringToEncode delegate:(id)aDelegate;
-- (id)initWithURL:(NSURL*)aURL POSTData:(NSData*)POSTData delegate:(id)aDelegate;
-- (id)initWithURL:(NSURL*)aURL POSTData:(NSData*)POSTData contentType:(NSString*)contentType delegate:(id)aDelegate;
+- (id)initWithURL:(NSURL*)aURL bodyStringAsUTF8B64:(NSString*)stringToEncode delegate:(id <SyncResponseFetcherDelegate>)aDelegate;
+- (id)initWithURL:(NSURL*)aURL POSTData:(NSData*)POSTData delegate:(id <SyncResponseFetcherDelegate>)aDelegate;
+- (id)initWithURL:(NSURL*)aURL POSTData:(NSData*)POSTData contentType:(NSString*)contentType delegate:(id <SyncResponseFetcherDelegate>)aDelegate;
 - (void)setRepresentedObject:(id)anObject;
 - (id)representedObject;
 - (NSInvocation*)successInvocation;
@@ -50,17 +52,12 @@
 - (NSInteger)statusCode;
 - (NSString*)errorMessage;
 - (void)_fetchDidFinishWithError:(NSString*)anErrString;
-- (id)delegate;
 - (BOOL)start;
 - (BOOL)startWithSuccessInvocation:(NSInvocation*)anInvocation;
 - (BOOL)isRunning;
 - (BOOL)didCancel;
 - (void)cancel;
-@end
 
-
-@interface NSObject (SyncResponseFetcherDelegate)
-
-- (void)syncResponseFetcher:(SyncResponseFetcher*)fetcher receivedData:(NSData*)data returningError:(NSString*)errString;
+@property (nonatomic, weak, readonly) id <SyncResponseFetcherDelegate> delegate;
 
 @end

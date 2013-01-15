@@ -22,9 +22,10 @@
 
 
 #import <Cocoa/Cocoa.h>
-#import "NotationController.h"
 #import "BufferUtils.h"
 #import "SynchronizedNoteProtocol.h"
+#import "NotationPrefs.h"
+#import "NTNFileManager.h"
 
 @class LabelObject;
 @class WALStorageController;
@@ -35,6 +36,34 @@ typedef struct _NoteFilterContext {
 	char* needle;
 	BOOL useCachedPositions;
 } NoteFilterContext;
+
+@class NoteObject;
+
+@protocol NoteObjectDelegate <NSObject>
+
+- (void)note:(NoteObject*)note didAddLabelSet:(NSSet*)labelSet;
+- (void)note:(NoteObject*)note didRemoveLabelSet:(NSSet*)labelSet;
+- (void)note:(NoteObject*)note attributeChanged:(NSString*)attribute;
+- (void)updateLinksToNote:(NoteObject*)aNoteObject fromOldName:(NSString*)oldname;
+- (void)noteDidNotWrite:(NoteObject*)note errorCode:(OSStatus)error;
+
+- (float)titleColumnWidth;
+
+- (void)scheduleWriteForNote:(NoteObject*)note;
+- (void)noteDidUpdateContents:(NoteObject *)note;
+
+
+- (NoteStorageFormat)currentNoteStorageFormat;
+
+- (NSImage*)cachedLabelImageForWord:(NSString*)aWord highlighted:(BOOL)isHighlighted;
+
+@end
+
+@protocol SynchronizedNoteObjectDelegate <NoteObjectDelegate, NSObject>
+
+- (void)schedulePushToAllSyncServicesForNote:(id <SynchronizedNote>)aNote;
+
+@end
 
 @interface NoteObject : NSObject <NSCoding, SynchronizedNote> {
 	NSAttributedString *tableTitleString;
@@ -47,8 +76,6 @@ typedef struct _NoteFilterContext {
 	
 //	NSString *wordCountString;
 	NSString *dateModifiedString, *dateCreatedString;
-	
-	id delegate; //the notes controller
 	
 	//for syncing to text file
 	NSString *filename;
@@ -134,11 +161,11 @@ NSInteger compareFileSize(id *a, id *b);
 	BOOL noteTitleHasPrefixOfUTF8String(NoteObject *note, const char* fullString, size_t stringLen);
 	BOOL noteTitleIsAPrefixOfOtherNoteTitle(NoteObject *longerNote, NoteObject *shorterNote);
 
-- (id)delegate;
-- (void)setDelegate:(id)theDelegate;
+@property (nonatomic, weak) id <NoteObjectDelegate, NTNFileManager> delegate;
+
 - (id)initWithNoteBody:(NSAttributedString*)bodyText title:(NSString*)aNoteTitle 
-			  delegate:(id)aDelegate format:(int)formatID labels:(NSString*)aLabelString;
-- (id)initWithCatalogEntry:(NoteCatalogEntry*)entry delegate:(id)aDelegate;
+			  delegate:(id <NoteObjectDelegate, NTNFileManager>)aDelegate format:(NoteStorageFormat)formatID labels:(NSString*)aLabelString;
+- (id)initWithCatalogEntry:(NoteCatalogEntry*)entry delegate:(id <NoteObjectDelegate, NTNFileManager>)aDelegate;
 
 - (NSSet*)labelSet;
 - (void)replaceMatchingLabelSet:(NSSet*)aLabelSet;
@@ -219,10 +246,3 @@ NSInteger compareFileSize(id *a, id *b);
 - (void)_undoManagerDidChange:(NSNotification *)notification;
 
 @end
-
-@interface NSObject (NoteObjectDelegate)
-- (void)note:(NoteObject*)note didAddLabelSet:(NSSet*)labelSet;
-- (void)note:(NoteObject*)note didRemoveLabelSet:(NSSet*)labelSet;
-- (void)note:(NoteObject*)note attributeChanged:(NSString*)attribute;
-@end
-

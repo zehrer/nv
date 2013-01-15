@@ -167,7 +167,8 @@ static NSString *TempDirectoryPathForEditing() {
 	preparedCachePath = aPath;
 	
 	startedPreparing = NO;
-	
+
+	id <TemporaryFileCachePreparerDelegate> delegate = self.delegate;
 	[delegate temporaryFileCachePreparerFinished:self];
 }
 
@@ -175,6 +176,7 @@ static NSString *TempDirectoryPathForEditing() {
 
 	startedPreparing = NO;
 
+	id <TemporaryFileCachePreparerDelegate> delegate = self.delegate;
 	[delegate temporaryFileCachePreparerDidNotFinish:self];
 }
 
@@ -183,10 +185,7 @@ static NSString *TempDirectoryPathForEditing() {
 		NSAssert([aDelegate respondsToSelector:@selector(temporaryFileCachePreparerDidNotFinish:)], @"delegate is bad (1)");
 		NSAssert([aDelegate respondsToSelector:@selector(temporaryFileCachePreparerFinished:)], @"delegate is bad (2)");
 	}
-	delegate = aDelegate;
-}
-- (id)delegate {
-	return delegate;
+	_delegate = aDelegate;
 }
 
 - (BOOL)_createFolderAtPath:(NSString*)path {

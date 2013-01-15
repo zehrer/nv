@@ -244,6 +244,10 @@ static struct statfs *StatFSVolumeInfo(NotationController *controller) {
 	return controller->statfsInfo;
 }
 
+- (NSUInteger)diskUUIDIndex {
+	return diskUUIDIndex;
+}
+
 NSUInteger diskUUIDIndexForNotation(NotationController *controller) {
 	return controller->diskUUIDIndex;
 }
@@ -540,13 +544,13 @@ terminate:
 }
 
 - (OSStatus)storeDataAtomicallyInNotesDirectory:(NSData*)data withName:(NSString*)filename destinationRef:(FSRef*)destRef {
-	return [self storeDataAtomicallyInNotesDirectory:data withName:filename destinationRef:destRef verifyWithSelector:NULL verificationDelegate:nil];
+	return [self storeDataAtomicallyInNotesDirectory:data withName:filename destinationRef:destRef verifyWithBlock: NULL];
 }
 
 //either name or destRef must be valid; destRef is declared invalid by filling the struct with 0
 
-- (OSStatus)storeDataAtomicallyInNotesDirectory:(NSData*)data withName:(NSString*)filename destinationRef:(FSRef*)destRef 
-							 verifyWithSelector:(SEL)verificationSel verificationDelegate:(id)verifyDelegate {
+- (OSStatus)storeDataAtomicallyInNotesDirectory:(NSData*)data withName:(NSString*)filename destinationRef:(FSRef*)destRef
+								verifyWithBlock:(OSStatus(^)(FSRef *notesFileRef, NSString *filename))block {
     OSStatus err = noErr;
     	
 	FSRef tempFileRef;
@@ -564,9 +568,8 @@ terminate:
 	
 	//before we try to swap the data contents of this temp file with the (possibly even soon-to-be-created) Notes & Settings file,
 	//try to read it back and see if it can be decrypted and decoded:
-	if (verifyDelegate && verificationSel) {
-		NSValue *pointerRef = [NSValue valueWithPointer:&tempFileRef];
-		if (noErr != (err = [(NSNumber *)objc_msgSend(verifyDelegate, verificationSel, pointerRef, filename) intValue])) {
+	if (block) {
+		if (noErr != block(&tempFileRef, filename)) {
 			NSLog(@"couldn't verify written notes, so not continuing to save");
 			(void)FSDeleteObject(&tempFileRef);
 			return err;
@@ -608,7 +611,6 @@ terminate:
     
     return noErr;
 }
-
 
 - (void)notifyOfChangedTrash {
 	FSRef folder;
@@ -705,6 +707,19 @@ terminate:
 	}
     
     return err;
+}
+
+- (long)blockSize {
+	if (!blockSize) {
+		long iosize = 0;
+
+		struct statfs *sfsb = StatFSVolumeInfo(self);
+		if (sfsb) iosize = sfsb->f_iosize;
+
+		blockSize = MAX(iosize, 16 * 1024);
+    }
+
+    return blockSize;
 }
 
 @end

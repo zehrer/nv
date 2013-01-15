@@ -24,14 +24,19 @@ extern NSString *RetrievedPasswordKey;
 @class NotationPrefs;
 @class NoteObject;
 
+@class AlienNoteImporter;
+
+@protocol AlienNoteImporterReceptionDelegate <NSObject>
+
+- (void)noteImporter:(AlienNoteImporter*)importer importedNotes:(NSArray*)notes;
+
+@end
+
 @interface AlienNoteImporter : NSObject {
 	IBOutlet NSButton *grabCreationDatesButton;
 	IBOutlet NSView *importAccessoryView;
 	
 	SEL importerSelector;
-	
-	//for URL downloading
-	id receptionDelegate;
 	
 	id source;
 	NSMutableDictionary *documentSettings;
@@ -45,8 +50,8 @@ extern NSString *RetrievedPasswordKey;
 - (id)initWithStoragePath:(NSString*)filename;
 + (void)importBlorOrHelpFilesIfNecessaryIntoNotation:(NotationController*)notation;
 + (AlienNoteImporter *)importerWithPath:(NSString*)path;
-- (void)importNotesFromDialogAroundWindow:(NSWindow*)mainWindow receptionDelegate:(id)receiver;
-- (void)importURLInBackground:(NSURL*)aURL linkTitle:(NSString*)linkTitle receptionDelegate:(id)receiver;
+- (void)importNotesFromDialogAroundWindow:(NSWindow*)mainWindow receptionDelegate:(id <AlienNoteImporterReceptionDelegate>)receiver;
+- (void)importURLInBackground:(NSURL*)aURL linkTitle:(NSString*)linkTitle receptionDelegate:(id <AlienNoteImporterReceptionDelegate>)receiver;
 + (NSString*)blorPath;
 
 + (NSBundle *)PDFKitBundle;
@@ -70,8 +75,6 @@ extern NSString *RetrievedPasswordKey;
 - (NSString*) contentUsingReadability: (NSString *)htmlFile;
 - (NSString*) markdownFromSource: (NSString *)htmlString;
 - (NSString*) markdownFromHTMLFile: (NSString *)htmlFile;
-@end
 
-@interface AlienNoteImporter (DialogDelegate)
-- (void)noteImporter:(AlienNoteImporter*)importer importedNotes:(NSArray*)notes;
+@property (nonatomic, weak, readonly) id <AlienNoteImporterReceptionDelegate> receptionDelegate;
 @end

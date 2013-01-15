@@ -18,6 +18,7 @@
 
 #import <Cocoa/Cocoa.h>
 #import "AppController.h"
+#import "AlienNoteImporter.h"
 
 @interface AppController (Importing)
 

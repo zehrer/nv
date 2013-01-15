@@ -44,6 +44,8 @@
 #import "NSBezierPath_NV.h"
 #import "LabelObject.h"
 #import <objc/message.h>
+#include <sys/param.h>
+#include <sys/mount.h>
 
 @interface NotationController ()
 
@@ -165,19 +167,9 @@
     return self;
 }
 
-- (id)delegate {
-	return delegate;
-}
-
-- (void)setDelegate:(id)theDelegate {
-	
-	delegate = theDelegate;
-
-}
-
 - (void)upgradeDatabaseIfNecessary {
 	if (![notationPrefs firstTimeUsed]) {
-		
+
 		const UInt32 epochIteration = [notationPrefs epochIteration];
 		
 		//upgrade note-text-encodings here if there might exist notes with the wrong encoding (check NotationPrefs values)
@@ -218,63 +210,6 @@
 		}
 	}	
 }
-
-//used to ensure a newly-written Notes & Settings file is valid before finalizing the save
-//read the file back from disk, deserialize it, decrypt and decompress it, and compare the notes roughly to our current notes
-- (NSNumber*)verifyDataAtTemporaryFSRef:(NSValue*)fsRefValue withFinalName:(NSString*)filename {
-	
-	NSDate *date = [NSDate date];
-	
-	NSAssert([filename isEqualToString:NotesDatabaseFileName], @"attempting to verify something other than the database");
-	
-	FSRef *notesFileRef = [fsRefValue pointerValue];
-	UInt64 fileSize = 0;
-	char *notesData = NULL;
-	OSStatus err = noErr, result = noErr;
-	if ((err = FSRefReadData(notesFileRef, BlockSizeForNotation(self), &fileSize, (void**)&notesData, forceReadMask)) != noErr)
-		return @(err);
-	
-	FrozenNotation *frozenNotation = nil;
-	if (!fileSize) {
-		result = eofErr;
-		return @(result);
-	}
-	
-	NSData *archivedNotation = [[NSData alloc] initWithBytesNoCopy:notesData length:fileSize freeWhenDone: YES];
-	@try {
-		frozenNotation = [NSKeyedUnarchiver unarchiveObjectWithData:archivedNotation];
-	} @catch (NSException *e) {
-		NSLog(@"(VERIFY) Error unarchiving notes and preferences from data (%@, %@)", [e name], [e reason]);
-		result = kCoderErr;
-		return @(result);
-	}
-	
-	//unpack notes using the current NotationPrefs instance (not the just-unarchived one), with which we presumably just used to encrypt it
-	NSMutableArray *notesToVerify = [frozenNotation unpackedNotesWithPrefs:notationPrefs returningError:&err];	
-	if (noErr != err) {
-		result = err;
-		return @(result);
-	}
-	
-	//notes were unpacked--now roughly compare notesToVerify with allNotes, plus deletedNotes and notationPrefs
-	if (!notesToVerify || [notesToVerify count] != [allNotes count] || [[frozenNotation deletedNotes] count] != [deletedNotes  count] || 
-		[[frozenNotation notationPrefs] notesStorageFormat] != [notationPrefs notesStorageFormat] ||
-		[[frozenNotation notationPrefs] hashIterationCount] != [notationPrefs hashIterationCount]) {
-		result = kItemVerifyErr;
-		return @(result);
-	}
-	
-	for (NSUInteger i=0; i<[notesToVerify count]; i++) {
-		if ([[[notesToVerify objectAtIndex:i] contentString] length] != [[[allNotes objectAtIndex:i] contentString] length]) {
-			result = kItemVerifyErr;
-			return @(result);
-		}
-	}
-	
-	NSLog(@"verified %lu notes in %g s", [notesToVerify count], (float)[[NSDate date] timeIntervalSinceDate:date]);
-	return @(result);
-}
-
 
 - (OSStatus)_readAndInitializeSerializedNotes {
 
@@ -547,9 +482,59 @@
 		}
 		
 		//we should have all journal records on disk by now
-		if ([self storeDataAtomicallyInNotesDirectory:serializedData withName:NotesDatabaseFileName destinationRef:&noteDatabaseRef 
-								   verifyWithSelector:@selector(verifyDataAtTemporaryFSRef:withFinalName:) verificationDelegate:self] != noErr)
-			return NO;
+		//ensure a newly-written Notes & Settings file is valid before finalizing the save
+		//read the file back from disk, deserialize it, decrypt and decompress it, and compare the notes roughly to our current notes
+		if ([self storeDataAtomicallyInNotesDirectory: serializedData withName: NotesDatabaseFileName destinationRef: &noteDatabaseRef verifyWithBlock:^OSStatus(FSRef *notesFileRef, NSString *filename) {
+			NSDate *date = [NSDate date];
+
+			NSAssert([filename isEqualToString:NotesDatabaseFileName], @"attempting to verify something other than the database");
+
+			UInt64 fileSize = 0;
+			char *notesData = NULL;
+			OSStatus err = noErr, result = noErr;
+			if ((err = FSRefReadData(notesFileRef, BlockSizeForNotation(self), &fileSize, (void**)&notesData, forceReadMask)) != noErr)
+				return @(err);
+
+			FrozenNotation *frozenNotation = nil;
+			if (!fileSize) {
+				result = eofErr;
+				return @(result);
+			}
+
+			NSData *archivedNotation = [[NSData alloc] initWithBytesNoCopy:notesData length:fileSize freeWhenDone: YES];
+			@try {
+				frozenNotation = [NSKeyedUnarchiver unarchiveObjectWithData:archivedNotation];
+			} @catch (NSException *e) {
+				NSLog(@"(VERIFY) Error unarchiving notes and preferences from data (%@, %@)", [e name], [e reason]);
+				result = kCoderErr;
+				return @(result);
+			}
+
+			//unpack notes using the current NotationPrefs instance (not the just-unarchived one), with which we presumably just used to encrypt it
+			NSMutableArray *notesToVerify = [frozenNotation unpackedNotesWithPrefs:notationPrefs returningError:&err];
+			if (noErr != err) {
+				result = err;
+				return @(result);
+			}
+
+			//notes were unpacked--now roughly compare notesToVerify with allNotes, plus deletedNotes and notationPrefs
+			if (!notesToVerify || [notesToVerify count] != [allNotes count] || [[frozenNotation deletedNotes] count] != [deletedNotes  count] ||
+				[[frozenNotation notationPrefs] notesStorageFormat] != [notationPrefs notesStorageFormat] ||
+				[[frozenNotation notationPrefs] hashIterationCount] != [notationPrefs hashIterationCount]) {
+				result = kItemVerifyErr;
+				return @(result);
+			}
+
+			for (NSUInteger i=0; i<[notesToVerify count]; i++) {
+				if ([[[notesToVerify objectAtIndex:i] contentString] length] != [[[allNotes objectAtIndex:i] contentString] length]) {
+					result = kItemVerifyErr;
+					return @(result);
+				}
+			}
+
+			NSLog(@"verified %lu notes in %g s", [notesToVerify count], (float)[[NSDate date] timeIntervalSinceDate:date]);
+			return @(result);
+		}] != noErr) return NO;
 		
 		[notationPrefs setPreferencesAreStored];
 		notesChanged = NO;
@@ -564,7 +549,7 @@
     //we can be static because the resulting action (exit) is global to the app
     static BOOL displayedAlert = NO;
     
-    if (delegate && !displayedAlert) {
+    if (self.delegate && !displayedAlert) {
 	//we already have a delegate, so this must be a result of the format or file changing after initialization
 	
 	displayedAlert = YES;
@@ -810,8 +795,9 @@
     
 	[self resortAllNotes];
     [self refilterNotes];
-    
-    [delegate notation:self revealNote:note options:NVEditNoteToReveal | NVOrderFrontWindow];	
+
+	id <NotationControllerDelegate> delegate = self.delegate;
+    [delegate notation:self revealNote:note options:NVEditNoteToReveal | NVOrderFrontWindow];
 }
 
 //do not update the view here (why not?)
@@ -884,7 +870,8 @@
 	}
 	[self resortAllNotes];
 	[self refilterNotes];
-	
+
+	id <NotationControllerDelegate> delegate = self.delegate;
 	if ([noteArray count] > 1)
 		[delegate notation:self revealNotes:noteArray];
 	else
@@ -892,6 +879,7 @@
 }
 
 - (void)note:(NoteObject*)note attributeChanged:(NSString*)attribute {
+	id <NotationControllerDelegate> delegate = self.delegate;
 	
 	if ([attribute isEqualToString:NotePreviewString]) {
 		if ([prefsController tableColumnsShowPreview]) {
@@ -930,8 +918,9 @@
 		
 		//probably should sync directory here to make sure notesWithFilenames has the freshest data
 		[self synchronizeNotesFromDirectory];
-		
+
 		NSSet *existingNotes = [self notesWithFilenames:filenames unknownFiles:&unknownPaths];
+		id <NotationControllerDelegate> delegate = self.delegate;
 		if ([existingNotes count] > 1) {
 			[delegate notation:self revealNotes:[existingNotes allObjects]];
 			return YES;
@@ -956,7 +945,7 @@
 	[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(scheduleUpdateListForAttribute:) object:attribute];
 	
 	if ([[sortColumn identifier] isEqualToString:attribute]) {
-		
+		id <NotationControllerDelegate> delegate = self.delegate;
 		if ([delegate notationListShouldChange:self]) {
 			[self sortAndRedisplayNotes];
 		} else {
@@ -971,6 +960,7 @@
 		//check to see if appropriate col is visible
 		while ((colIdentifier = [enumerator nextObject])) {
 			if ([colIdentifier isEqualToString:attribute]) {
+				id <NotationControllerDelegate> delegate = self.delegate;
 				if ([delegate notationListShouldChange:self]) {
 					[delegate notationListMightChange:self];
 					[delegate notationListDidChange:self];
@@ -1151,6 +1141,8 @@
 	if (currentHours != lastCheckedDateInHours || isHorizontalLayout != lastLayoutStyleGenerated) {
 		lastCheckedDateInHours = currentHours;
 		lastLayoutStyleGenerated = (int)isHorizontalLayout;
+
+		id <NotationControllerDelegate> delegate = self.delegate;
 		
 		[delegate notationListMightChange:self];
 		resetCurrentDayTime();
@@ -1224,6 +1216,7 @@
 }
 
 - (BOOL)filterNotesFromString:(NSString*)string {
+	id <NotationControllerDelegate> delegate = self.delegate;
 	
 	[delegate notationListMightChange:self];
 	if ([self filterNotesFromUTF8String: string.lowercaseString.UTF8String forceUncached:NO]) {
@@ -1236,7 +1229,7 @@
 }
 
 - (void)refilterNotes {
-	
+	id <NotationControllerDelegate> delegate = self.delegate;
     [delegate notationListMightChange:self];
     [self filterNotesFromUTF8String:(currentFilterStr ? currentFilterStr : "") forceUncached:YES];
     [delegate notationListDidChange:self];
@@ -1275,9 +1268,7 @@
 	//perhaps we could add some additional delimiters like punctuation marks here
     char *token, *separators = (strchr(searchString, '"') ? "\"" : " :\t\r\n");
     manglingString = replaceString(manglingString, searchString);
-    
-    BOOL touchedNotes = NO;
-    
+        
     if (!didFilterNotes || newLen > 0) {
 		//only bother searching each note if we're actually searching for something
 		//otherwise, filtered notes already reflect all-notes-state
@@ -1289,9 +1280,7 @@
 				//if this is the same token that we had scanned previously
 				filterContext.useCachedPositions = stringHasExistingPrefix && (token == manglingString + lastWordInFilterStr);
 				filterContext.needle = token;
-				
-				touchedNotes = YES;
-				
+								
 				NSMutableArray *newArray = [NSMutableArray arrayWithCapacity: self.filteredNotesList.count];
 				
 				for (id obj in self.filteredNotesList) {
@@ -1410,7 +1399,7 @@
 
 //re-sort without refiltering, to avoid removing notes currently being edited
 - (void)sortAndRedisplayNotes {
-	
+	id <NotationControllerDelegate> delegate = self.delegate;
 	[delegate notationListMightChange:self];
 
 	NoteAttributeColumn *col = sortColumn;
@@ -1446,13 +1435,13 @@
 		    //mirror from allNotes; filteredNotesList is not filtered
 			[self.filteredNotesList setArray: allNotes];
 		}
-		
+
 		[delegate notationListDidChange:self];
 	}
 }
 
 - (void)resortAllNotes {
-	
+
 	NoteAttributeColumn *col = sortColumn;
 	
 	if (col) {
@@ -1640,6 +1629,13 @@
 //- (NSDragOperation)tableView:(NSTableView *)tableView validateDrop:(id <NSDraggingInfo>)info proposedRow:(NSInteger)row proposedDropOperation:(NSTableViewDropOperation)dropOperation;
 //- (BOOL)tableView:(NSTableView *)tableView acceptDrop:(id <NSDraggingInfo>)info row:(NSInteger)row dropOperation:(NSTableViewDropOperation)dropOperation;
 //- (NSArray *)tableView:(NSTableView *)tableView namesOfPromisedFilesDroppedAtDestination:(NSURL *)dropDestination forDraggedRowsWithIndexes:(NSIndexSet *)indexSet;
+
+#pragma mark - NotesObjectDelegate
+
+- (void)noteDidUpdateContents:(NoteObject *)note {
+	id <NotationControllerDelegate> delegate = self.delegate;
+	[delegate contentsUpdatedForNote: note];
+}
 
 @end
 

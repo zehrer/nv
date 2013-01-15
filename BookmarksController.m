@@ -19,7 +19,6 @@
 #import "BookmarksController.h"
 #import "NoteObject.h"
 #import "GlobalPrefs.h"
-#import "AppController.h"
 #import "NSString_NV.h"
 #import "NSCollection_utils.h"
 
@@ -185,18 +184,14 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 	return array;
 }
 
-- (id)dataSource {
-	return dataSource;
-}
-- (void)setDataSource:(id)aDataSource {
-	dataSource = aDataSource;
-	
+- (void)setDataSource:(id <BookmarksControllerDataSource>)aDataSource {
+	_dataSource = aDataSource;
 	[bookmarks makeObjectsPerformSelector:@selector(validateNoteObject)];
 }
 
 - (NoteObject*)noteWithUUIDBytes:(CFUUIDBytes)bytes {
-
-	return [dataSource noteForUUIDBytes:&bytes];	
+	id <BookmarksControllerDataSource> dataSource = self.dataSource;
+	return [dataSource noteForUUIDBytes:&bytes];
 }
 
 - (void)removeBookmarkForNote:(NoteObject*)aNote {
@@ -221,8 +216,8 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 		[bookmarksMenu removeItemAtIndex:0];
 	}
 	
-	
-	NSMenu *menu2 = [appController statBarMenu];
+	id <BookmarksControllerDelegate> delegate = self.delegate;
+	NSMenu *menu2 = delegate ? [delegate statBarMenu] : nil;
 	NSMenu *bkSubMenu = [[menu2  itemWithTag:901] submenu];
 	while ([bkSubMenu numberOfItems]) {
 		[bkSubMenu removeItemAtIndex:0];
@@ -292,11 +287,13 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 
 - (BOOL)validateMenuItem:(NSMenuItem*)menuItem {
 	//need to fix this for better style detection
+	id <BookmarksControllerDelegate> delegate = self.delegate;
+	if (!delegate) return NO;
 	
 	SEL action = [menuItem action];
 	if (action == @selector(addBookmark:)) {
 		
-		return ([bookmarks count] < 27 && [appController selectedNoteObject]);
+		return ([bookmarks count] < 27 && [delegate selectedNoteObject]);
 	}
 	
 	return YES;
@@ -313,7 +310,8 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 		isRestoringSearch = YES;
 		
 		//BOOL inBG = ([[window currentEvent] modifierFlags] & NSCommandKeyMask) == 0;
-		[appController bookmarksController:self restoreNoteBookmark:bookmark inBackground:inBG];
+		id <BookmarksControllerDelegate> delegate = self.delegate;
+		if (delegate) [delegate bookmarksController: self restoreNoteBookmark: bookmark inBackground: inBG];
 		[self selectBookmarkInTableView:bookmark];
 		
 		isRestoringSearch = NO;
@@ -349,7 +347,7 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 }
 
 - (NSInteger)numberOfRowsInTableView:(NSTableView *)aTableView {
-    return dataSource ? [bookmarks count] : 0;
+    return self.dataSource ? [bookmarks count] : 0;
 }
 
 - (BOOL)tableView:(NSTableView *)aTableView shouldEditTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex {
@@ -508,15 +506,17 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 }
 
 - (void)addBookmark:(id)sender {
-	
-	if (![appController selectedNoteObject]) {
+	id <BookmarksControllerDelegate> delegate = self.delegate;
+	if (!delegate) return;
+
+	if (![delegate selectedNoteObject]) {
 		
 		NSRunAlertPanel(NSLocalizedString(@"No note selected.",@"alert title when bookmarking no note"), NSLocalizedString(@"You must select a note before it can be added as a bookmark.",nil), NSLocalizedString(@"OK",nil), nil, NULL);
 		
 	} else if ([bookmarks count] < 27) {
-		NSString *newString = [[appController fieldSearchString] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];		
+		NSString *newString = [[delegate fieldSearchString] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
 		
-		NoteBookmark *bookmark = [[NoteBookmark alloc] initWithNoteObject:[appController selectedNoteObject] searchString:newString];
+		NoteBookmark *bookmark = [[NoteBookmark alloc] initWithNoteObject:[delegate selectedNoteObject] searchString:newString];
 		if (bookmark) {
 			
 			NSUInteger existingIndex = [bookmarks indexOfObject:bookmark];
@@ -546,13 +546,6 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 		[bookmarks removeObjectIdenticalTo:bookmark];
 		[self updateBookmarksUI];
 	}
-}
-
-- (AppController*)appController {
-	return appController;
-}
-- (void)setAppController:(id)aDelegate {
-	appController = aDelegate;
 }
 
 @end

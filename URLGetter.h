@@ -11,8 +11,13 @@
    - Neither the name of Notational Velocity nor the names of its contributors may be used to endorse 
      or promote products derived from this software without specific prior written permission. */
 
+@class URLGetter;
 
-#import <Cocoa/Cocoa.h>
+@protocol URLGetterDelegate <NSObject>
+
+- (void)URLGetter:(URLGetter *)getter returnedDownloadedFile:(NSString *)filename;
+
+@end
 
 @interface URLGetter : NSObject <NSURLDownloadDelegate>
 {
@@ -28,8 +33,6 @@
 	
 	id userData;
 	
-	id delegate;
-	
 	BOOL isIndicating, isImporting;
 	
 	long long totalReceivedByteCount, maxExpectedByteCount;
@@ -41,8 +44,7 @@
 - (NSURL*)url;
 - (id)userData;
 
-- (id)delegate;
-- (void)setDelegate:(id)aDelegate;
+@property (nonatomic, weak) id <URLGetterDelegate> delegate;
 
 - (void)stopProgressIndication;
 - (void)startProgressIndication:(id)sender;
@@ -51,8 +53,4 @@
 
 - (void)endDownloadWithPath:(NSString*)path;
 
-@end
-
-@interface URLGetter (Delegate)
-- (void)URLGetter:(URLGetter*)getter returnedDownloadedFile:(NSString*)filename;
 @end

@@ -36,12 +36,13 @@ NSString *PasswordWasRetrievedFromKeychainKey = @"PasswordRetrievedFromKeychain"
 NSString *RetrievedPasswordKey = @"RetrievedPassword";
 NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 
-@interface AlienNoteImporter (Private)
+@interface AlienNoteImporter ()
 - (NSArray*)_importStickies:(NSString*)filename;
 - (NSArray*)_importBlorNotes:(NSString*)filename;
 - (NSArray*)_importTSVFile:(NSString*)filename;
 - (NSArray*)_importCSVFile:(NSString*)filename;
 - (NSArray*)_importDelimitedFile:(NSString*)filename withDelimiter:(NSString*)delimiter;
+@property (nonatomic, weak, readwrite) id <AlienNoteImporterReceptionDelegate> receptionDelegate;
 @end
 
 @implementation AlienNoteImporter
@@ -74,7 +75,9 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 			NSArray *helpNotes = [[[AlienNoteImporter alloc] initWithStoragePaths:paths] importedNotes];
 			if ([helpNotes count] > 0) {
 				[notation addNotes:helpNotes];
-				[[notation delegate] notation:notation revealNote:[helpNotes lastObject] options:NVEditNoteToReveal];
+
+				id <NotationControllerDelegate> notationDelegate = notation.delegate;
+				[notationDelegate notation:notation revealNote:[helpNotes lastObject] options:NVEditNoteToReveal];
 			}
 		}
 		[prefsController setBlorImportAttempted:YES];
@@ -207,6 +210,8 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 - (void)URLGetter:(URLGetter*)getter returnedDownloadedFile:(NSString*)filename {
 	
 	BOOL foundNotes = NO;
+
+	id <AlienNoteImporterReceptionDelegate> receptionDelegate = self.receptionDelegate;
 	if ([receptionDelegate respondsToSelector:@selector(noteImporter:importedNotes:)]) {
 
 		if (filename) {
@@ -257,7 +262,7 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 
 - (void)importURLInBackground:(NSURL*)aURL linkTitle:(NSString*)linkTitle receptionDelegate:(id)receiver {
 	
-	receptionDelegate = receiver;
+	self.receptionDelegate = receiver;
 		
 	[[[URLGetter alloc] initWithURL:aURL delegate:self userData:linkTitle] startProgressIndication: self];
 }
@@ -606,10 +611,6 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 {
 	shouldUseReadability = value;
 }
-
-@end
-
-@implementation AlienNoteImporter (Private)
 
 - (NSArray*)_importStickies:(NSString*)filename {
 	NSMutableArray *stickyNotes = nil;

@@ -23,6 +23,10 @@
 
 #define SYSTEM_LIST_FONT_SIZE 12.0f
 
+@interface PrefsWindowController () <GlobalPrefsResponder>
+
+@end
+
 @implementation PrefsWindowController
 
 - (id)init {

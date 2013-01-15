@@ -13,11 +13,11 @@
 
 
 #import <Cocoa/Cocoa.h>
+#import "KeyDerivationDelaySlider.h"
 
 @class NotationPrefs;
-@class KeyDerivationDelaySlider;
 
-@interface KeyDerivationManager : NSObject
+@interface KeyDerivationManager : NSObject <KeyDerivationDelaySliderDelegate>
 {
     IBOutlet NSTextField *hashDurationField;
     IBOutlet KeyDerivationDelaySlider *slider;

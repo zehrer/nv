@@ -654,6 +654,7 @@
 		6CCC108016A4801F00A4E469 /* English */ = {isa = PBXFileReference; explicitFileType = text.rtf; name = English; path = "English.lproj/Contact Information.nvhelp"; sourceTree = "<group>"; };
 		6CCC108516A480E800A4E469 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		6CCC108716A480FD00A4E469 /* Quartz.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Quartz.framework; path = System/Library/Frameworks/Quartz.framework; sourceTree = SDKROOT; };
+		6CFF565116A5243E00E56664 /* NTNFileManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NTNFileManager.h; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* nvALT.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = nvALT.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		93099627138BD61000368C45 /* tp2md.rb */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.ruby; path = tp2md.rb; sourceTree = "<group>"; };
@@ -747,6 +748,7 @@
 				21469C8A0BEBA6A10094835F /* TemporaryFileCache.m */,
 				2114C13D0957732800614E74 /* NotationController.h */,
 				2114C13E0957732800614E74 /* NotationController.m */,
+				6CFF565116A5243E00E56664 /* NTNFileManager.h */,
 				2114C1440957733200614E74 /* NoteObject.h */,
 				2114C1450957733200614E74 /* NoteObject.m */,
 				2155DF42097C992800163A10 /* AttributedPlainText.h */,

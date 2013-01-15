@@ -21,9 +21,9 @@
 #import "NotationPrefs.h"
 #import <CoreServices/CoreServices.h>
 #import "NotesTableView.h"
+#import "BookmarksController.h"
+#import "NoteObject.h"
 
-
-@class NoteObject;
 @class DeletedNoteObject;
 @class SyncSessionController;
 @class NotationPrefs;
@@ -32,12 +32,34 @@
 @class DeletionManager;
 @class GlobalPrefs;
 
-@interface NotationController : NSObject <NSTableViewDataSource, NVPreferencesDelegate, NVLabelsListSource> {
+@class NotationController;
+
+typedef NS_OPTIONS(NSInteger, NVNoteRevealOptions) {
+	NVDefaultReveal = 0,
+	NVDoNotChangeScrollPosition = 1,
+	NVOrderFrontWindow = 2,
+	NVEditNoteToReveal = 4
+};
+
+@protocol NotationControllerDelegate <NSObject>
+
+- (BOOL)notationListShouldChange:(NotationController*)someNotation;
+- (void)notationListMightChange:(NotationController*)someNotation;
+- (void)notationListDidChange:(NotationController*)someNotation;
+- (void)notation:(NotationController*)notation revealNote:(NoteObject*)note options:(NVNoteRevealOptions)opts;
+- (void)notation:(NotationController*)notation revealNotes:(NSArray*)notes;
+
+- (void)contentsUpdatedForNote:(NoteObject*)aNoteObject;
+- (void)titleUpdatedForNote:(NoteObject*)aNoteObject;
+- (void)rowShouldUpdate:(NSInteger)affectedRow;
+
+@end
+
+@interface NotationController : NSObject <NSTableViewDataSource, NVPreferencesDelegate, NVLabelsListSource, BookmarksControllerDataSource, NoteObjectDelegate> {
     NSMutableArray *allNotes;
 	GlobalPrefs *prefsController;
 	SyncSessionController *syncSessionController;
 	DeletionManager *deletionManager;
-	id delegate;
 	
 	float titleColumnWidth;
 	NoteAttributeColumn* sortColumn;
@@ -101,8 +123,7 @@
 
 - (void)upgradeDatabaseIfNecessary;
 
-- (id)delegate;
-- (void)setDelegate:(id)theDelegate;
+@property (nonatomic, weak) id <NotationControllerDelegate> delegate;
 
 - (void)databaseEncryptionSettingsChanged;
 - (void)databaseSettingsChangedFromOldFormat:(NoteStorageFormat)oldFormat;
@@ -136,9 +157,6 @@
 
 - (BOOL)openFiles:(NSArray*)filenames;
 
-- (void)note:(NoteObject*)note didAddLabelSet:(NSSet*)labelSet;
-- (void)note:(NoteObject*)note didRemoveLabelSet:(NSSet*)labelSet;
-
 - (void)updateLabelConnectionsAfterDecoding;
 
 - (void)refilterNotes;
@@ -168,21 +186,5 @@
 
 - (void)invalidateCachedLabelImages;
 - (NSImage*)cachedLabelImageForWord:(NSString*)aWord highlighted:(BOOL)isHighlighted;
-
-@end
-
-
-enum { NVDefaultReveal = 0, NVDoNotChangeScrollPosition = 1, NVOrderFrontWindow = 2, NVEditNoteToReveal = 4 };
-
-@interface NSObject (NotationControllerDelegate)
-- (BOOL)notationListShouldChange:(NotationController*)someNotation;
-- (void)notationListMightChange:(NotationController*)someNotation;
-- (void)notationListDidChange:(NotationController*)someNotation;
-- (void)notation:(NotationController*)notation revealNote:(NoteObject*)note options:(NSUInteger)opts;
-- (void)notation:(NotationController*)notation revealNotes:(NSArray*)notes;
-
-- (void)contentsUpdatedForNote:(NoteObject*)aNoteObject;
-- (void)titleUpdatedForNote:(NoteObject*)aNoteObject;
-- (void)rowShouldUpdate:(NSInteger)affectedRow;
 
 @end

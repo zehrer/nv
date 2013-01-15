@@ -183,10 +183,10 @@ static void sendCallbacksForGlobalPrefs(GlobalPrefs* self, SEL selector, id orig
 }
 
 
-- (void)registerWithTarget:(id)sender forChangesInSettings:(SEL)firstSEL, ... {
+- (void)registerWithTarget:(id <GlobalPrefsResponder>)sender forChangesInSettings:(SEL)firstSEL, ... {
 	NSAssert(firstSEL != NULL, @"need at least one selector");
 
-	if ([sender respondsToSelector:(@selector(settingChangedForSelectorString:))]) {
+	if (sender) {
 	
 		va_list argList;
 		va_start(argList, firstSEL);
@@ -209,11 +209,11 @@ static void sendCallbacksForGlobalPrefs(GlobalPrefs* self, SEL selector, id orig
 	}
 }
 
-- (void)registerForSettingChange:(SEL)selector withTarget:(id)sender {
+- (void)registerForSettingChange:(SEL)selector withTarget:(id <GlobalPrefsResponder>)sender {
 	[self registerWithTarget:sender forChangesInSettings:selector, nil];
 }
 
-- (void)unregisterForNotificationsFromSelector:(SEL)selector sender:(id)sender {
+- (void)unregisterForNotificationsFromSelector:(SEL)selector sender:(id <GlobalPrefsResponder>)sender {
 	NSString *selectorKey = NSStringFromSelector(selector);
 	
 	NSMutableArray *senders = [selectorObservers objectForKey:selectorKey];
@@ -227,7 +227,7 @@ static void sendCallbacksForGlobalPrefs(GlobalPrefs* self, SEL selector, id orig
 	}
 }
 
-- (void)notifyCallbacksForSelector:(SEL)selector excludingSender:(id)sender {
+- (void)notifyCallbacksForSelector:(SEL)selector excludingSender:(id <GlobalPrefsResponder>)sender {
 	NSArray *observers = nil;
 	id observer = nil;
 	
@@ -237,7 +237,7 @@ static void sendCallbacksForGlobalPrefs(GlobalPrefs* self, SEL selector, id orig
 		unsigned int i;
 		
 		for (i=0; i<[observers count]; i++) {
-			
+
 			if ((observer = [observers objectAtIndex:i]) != sender && observer)
 				[observer performSelector:@selector(settingChangedForSelectorString:) withObject:selectorKey];
 		}

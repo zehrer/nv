@@ -18,6 +18,8 @@
 #import "NotationController.h"
 #import "NotesTableView.h"
 #import "Spaces.h"
+#import "BookmarksController.h"
+#import "AlienNoteImporter.h"
 
 @class LinkingEditor;
 @class EmptyView;
@@ -45,8 +47,7 @@
 #define TextilePreview 13373
 #endif
 
-@interface AppController : NSObject <NSToolbarDelegate, NSTableViewDelegate, NSWindowDelegate, NSTextFieldDelegate, NSTextViewDelegate, NSSplitViewDelegate>
-{
+@interface AppController : NSObject <NSToolbarDelegate, NSTableViewDelegate, NSWindowDelegate, NSTextFieldDelegate, NSTextViewDelegate, NSSplitViewDelegate, BookmarksControllerDelegate, NotationControllerDelegate, AlienNoteImporterReceptionDelegate> {
 	IBOutlet NSMenuItem *fsMenuItem;
 	BOOL wasVert;
     BOOL wasDFVisible;
@@ -138,7 +139,7 @@ extern void outletObjectAwoke(id sender);
 - (IBAction)fieldAction:(id)sender;
 - (NoteObject*)createNoteIfNecessary;
 - (void)searchForString:(NSString*)string;
-- (NSUInteger)revealNote:(NoteObject*)note options:(NSUInteger)opts;
+- (NSUInteger)revealNote:(NoteObject*)note options:(NVNoteRevealOptions)opts;
 - (BOOL)displayContentsForNoteAtIndex:(NSInteger)noteIndex;
 - (void)processChangedSelectionForTable:(NSTableView*)table;
 - (void)setEmptyViewState:(BOOL)state;

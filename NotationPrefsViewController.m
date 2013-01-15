@@ -41,6 +41,12 @@
 
 enum {VERIFY_NOT_ATTEMPTED, VERIFY_FAILED, VERIFY_IN_PROGRESS, VERIFY_SUCCESS};
 
+@interface NotationPrefsViewController () <GlobalPrefsResponder,
+											PassphrasePickerDelegate,
+											SyncResponseFetcherDelegate>
+
+@end
+
 @implementation NotationPrefsViewController
 
 - (NSView*)view {
