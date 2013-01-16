@@ -110,7 +110,7 @@ static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange)
 			NSMutableDictionary *newAttributes = [defaultBodyAttributes mutableCopyWithZone:nil];
 			[newAttributes addDesiredAttributesFromDictionary:attributes];
 			
-			NSFont *aFont = [attributes objectForKey:NSFontAttributeName];
+			NSFont *aFont = attributes[NSFontAttributeName];
 			NSFont *newFont = currentFont;
 			BOOL needToMatchAttributes = NO;
 			NSFontTraitMask traits = 0;
@@ -131,8 +131,8 @@ static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange)
 				needToMatchAttributes = YES;
 			}
 			
-			BOOL hasFakeItalic = [attributes objectForKey:NSObliquenessAttributeName] != nil;
-			BOOL hasFakeBold = [attributes objectForKey:NSStrokeWidthAttributeName] != nil;
+			BOOL hasFakeItalic = attributes[NSObliquenessAttributeName] != nil;
+			BOOL hasFakeBold = attributes[NSStrokeWidthAttributeName] != nil;
 			
 			if (needToMatchAttributes || hasFakeItalic || hasFakeBold) {
 				newFont = [fontMan convertFont:aFont toFamily:[currentFont familyName]];
@@ -143,12 +143,12 @@ static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange)
 				NSFontTraitMask newTraits = [fontMan traitsOfFont:newFont];
 				
 				if (!(newTraits & NSItalicFontMask) && (traits & NSItalicFontMask)) {
-					[newAttributes setObject:[NSNumber numberWithFloat:0.20] forKey:NSObliquenessAttributeName];
+					newAttributes[NSObliquenessAttributeName] = @0.20f;
 				} else if (newTraits & NSItalicFontMask) {
 					[newAttributes removeObjectForKey:NSObliquenessAttributeName];
 				}
 				if (!(newTraits & NSBoldFontMask) && (traits & NSBoldFontMask)) {
-					[newAttributes setObject:[NSNumber numberWithFloat:-3.50] forKey:NSStrokeWidthAttributeName];
+					newAttributes[NSStrokeWidthAttributeName] = @-3.50f;
 				} else if (newTraits & NSBoldFontMask) {
 					[newAttributes removeObjectForKey:NSStrokeWidthAttributeName];
 				}
@@ -158,7 +158,7 @@ static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange)
 				newFont = [fontMan convertFont:newFont toSize:[currentFont pointSize]];
 			}
 			
-			[newAttributes setObject:newFont ? newFont : currentFont forKey:NSFontAttributeName];
+			newAttributes[NSFontAttributeName] = newFont ? newFont : currentFont;
 			[self setAttributes:newAttributes range:effectiveRange];
 			
 			rangesChanged++;
@@ -310,8 +310,7 @@ static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange)
 			if (doneTagFound.location != NSNotFound) {
                 
 				//add strikethrough and NVHiddenDoneTagAttributeName attributes, because this line contains @done
-				[self addAttributes:[NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithInt:NSUnderlineStyleSingle],
-									 NSStrikethroughStyleAttributeName, [NSNull null], NVHiddenDoneTagAttributeName, nil]
+				[self addAttributes:@{NSStrikethroughStyleAttributeName: @(NSUnderlineStyleSingle), NVHiddenDoneTagAttributeName: [NSNull null]}
 							  range:NSMakeRange(thisLineRange.location, doneTagFound.location)];
                 
 				//and the done tag itself should never be struck-through; remove that just in case typing attributes had carried over from elsewhere
@@ -461,14 +460,14 @@ static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange)
 		[centerStyle setAlignment:NSCenterTextAlignment];
 
 		approxCharStr = [[NSAttributedString alloc] initWithString:[NSString stringWithCharacters:&ch length:1] attributes:
-						 [NSDictionary dictionaryWithObjectsAndKeys:[NSFont fontWithName:@"Symbol" size:16.0f], NSFontAttributeName, centerStyle, NSParagraphStyleAttributeName, nil]];
+						 @{NSFontAttributeName: [NSFont fontWithName:@"Symbol" size:16.0f], NSParagraphStyleAttributeName: centerStyle}];
 	}
 	NSMutableAttributedString *mutableStr = [approxCharStr mutableCopy];
 	
 	NSString *timeStr = seconds < 1.0 ? [NSString stringWithFormat:@" %0.0f ms", seconds*1000] : [NSString stringWithFormat:@" %0.2f secs", seconds];
 	
 	[mutableStr appendAttributedString:[[NSAttributedString alloc] initWithString:timeStr attributes:
-										 [NSDictionary dictionaryWithObject:[NSFont systemFontOfSize:13.0f] forKey:NSFontAttributeName]]];
+										 @{NSFontAttributeName: [NSFont systemFontOfSize:13.0f]}]];
 	return mutableStr;
 }
 

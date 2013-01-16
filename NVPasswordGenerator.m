@@ -47,7 +47,7 @@ static const char nvSymbolSet[] = "!@#$%^&*()-+=?/<>";
         gen[i+1] = 0;
     }
 
-    return ([NSString stringWithCString:gen encoding:NSASCIIStringEncoding]);
+    return (@(gen));
 }
 
 + (NSString*)numericPasswordWithLength:(NSUInteger)len

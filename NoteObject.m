@@ -286,7 +286,7 @@ force_inline id unifiedCellSingleLineForNote(NotesTableView *tv, NoteObject *not
 	
 	id obj = note->tableTitleString ? (id)note->tableTitleString : note.title;
 	
-	UnifiedCell *cell = [[[tv tableColumns] objectAtIndex:0] dataCellForRow:row];
+	UnifiedCell *cell = [[tv tableColumns][0] dataCellForRow:row];
 	[cell setNoteObject:note];
 	[cell setPreviewIsHidden:YES];
 	
@@ -297,7 +297,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	//snow leopard is stricter about applying the default highlight-attributes (e.g., no shadow unless no paragraph formatting)
 	//so add the shadow here for snow leopard on selected rows
 	
-	UnifiedCell *cell = [[[tv tableColumns] objectAtIndex:0] dataCellForRow:row];
+	UnifiedCell *cell = [[tv tableColumns][0] dataCellForRow:row];
 	[cell setNoteObject:note];
 	[cell setPreviewIsHidden:NO];
 
@@ -658,7 +658,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 - (NSAttributedString*)printableStringRelativeToBodyFont:(NSFont*)bodyFont {
 	NSFont *titleFont = [NSFont fontWithName:[bodyFont fontName] size:[bodyFont pointSize] + 6.0f];
 	
-	NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:titleFont, NSFontAttributeName, nil];
+	NSDictionary *dict = @{NSFontAttributeName: titleFont};
 	
 	NSMutableAttributedString *largeAttributedTitleString = [[NSMutableAttributedString alloc] initWithString:titleString attributes:dict];
 	
@@ -950,7 +950,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	
 	unsigned int i;
 	for (i=0; i<[words count]; i++) {
-		NSString *aWord = [words objectAtIndex:i];
+		NSString *aWord = words[i];
 		
 		if ([aWord length] > 0) {
 			LabelObject *aLabel = [[LabelObject alloc] initWithTitle:aWord];
@@ -1020,11 +1020,10 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	//include all identifying keys in case the title changes later
 	NSUInteger i = 0;
 	for (i=0; i<[svcs count]; i++) {
-		NSString *syncID = [[syncServicesMD objectForKey:[svcs objectAtIndex:i]]
-							objectForKey:[[[SyncSessionController allServiceClasses] objectAtIndex:i] nameOfKeyElement]];
-		if (syncID) [idsDict setObject:syncID forKey:[svcs objectAtIndex:i]];
+		NSString *syncID = syncServicesMD[svcs[i]][[[SyncSessionController allServiceClasses][i] nameOfKeyElement]];
+		if (syncID) idsDict[svcs[i]] = syncID;
 	}
-	[idsDict setObject:[[NSData dataWithBytes:&uniqueNoteIDBytes length:16] encodeBase64] forKey:@"NV"];
+	idsDict[@"NV"] = [[NSData dataWithBytes:&uniqueNoteIDBytes length:16] encodeBase64];
 	
 	return [NSURL URLWithString:[@"nv://find/" stringByAppendingFormat:@"%@/?%@", [titleString stringWithPercentEscapes], 
 								 [idsDict URLEncodedString]]];
@@ -1138,8 +1137,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		case HTMLFormat:
 			//export to HTML document here using NSHTMLTextDocumentType;
 			formattedData = [self.contentString dataFromRange:NSMakeRange(0, self.contentString.length)
-									  documentAttributes:[NSDictionary dictionaryWithObject:NSHTMLTextDocumentType 
-																					 forKey:NSDocumentTypeDocumentAttribute] error:&error];
+										   documentAttributes: @{NSDocumentTypeDocumentAttribute: NSHTMLTextDocumentType} error:&error];
 			//our links will always be to filenames, so hopefully we shouldn't have to change anything
 			break;
 		default:
@@ -1595,16 +1593,14 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 			break;
 		case HTMLFormat:
 			formattedData = [contentMinusColor dataFromRange:NSMakeRange(0, [contentMinusColor length]) 
-									  documentAttributes:[NSDictionary dictionaryWithObject:NSHTMLTextDocumentType 
-																					 forKey:NSDocumentTypeDocumentAttribute] error:&error];
+										  documentAttributes: @{NSDocumentTypeDocumentAttribute: NSHTMLTextDocumentType} error:&error];
 			break;
 		case WordDocFormat:
 			formattedData = [contentMinusColor docFormatFromRange:NSMakeRange(0, [contentMinusColor length]) documentAttributes:nil];
 			break;
 		case WordXMLFormat:
 			formattedData = [contentMinusColor dataFromRange:NSMakeRange(0, [contentMinusColor length]) 
-									  documentAttributes:[NSDictionary dictionaryWithObject:NSWordMLTextDocumentType 
-																					 forKey:NSDocumentTypeDocumentAttribute] error:&error];
+										  documentAttributes: @{NSDocumentTypeDocumentAttribute: NSWordMLTextDocumentType} error:&error];
 			break;
 		default:
 			NSLog(@"Attempted to export using unknown format ID: %ld", storageFormat);
@@ -1693,7 +1689,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	NSString *haystack = self.contentString.string;
 	NSRange nextRange = NSMakeRange(NSNotFound, 0);
 	for (i=0; i<[words count]; i++) {
-		NSString *word = [words objectAtIndex:i];
+		NSString *word = words[i];
 		if ([word length] > 0) {
 			nextRange = [haystack rangeOfString:word options:opts range:inRange];
 			if (nextRange.location != NSNotFound && nextRange.length)
@@ -1705,7 +1701,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 }
 
 BOOL noteContainsUTF8String(NoteObject *note, NoteFilterContext *context) {
-	NSString *needleStr = [NSString stringWithUTF8String: context->needle];
+	NSString *needleStr = @(context->needle);
 
 	BOOL foundInTitle = ([note.title rangeOfString: needleStr options: NSCaseInsensitiveSearch].location != NSNotFound);
 	BOOL foundInContents = ([note.contentString.string rangeOfString: needleStr options: NSCaseInsensitiveSearch].location != NSNotFound);
@@ -1715,7 +1711,7 @@ BOOL noteContainsUTF8String(NoteObject *note, NoteFilterContext *context) {
 }
 
 BOOL noteTitleHasPrefixOfUTF8String(NoteObject *note, const char* fullString, size_t stringLen) {
-	return [note.title hasPrefix: [NSString stringWithUTF8String: fullString]];
+	return [note.title hasPrefix: @(fullString)];
 }
 BOOL noteTitleIsAPrefixOfOtherNoteTitle(NoteObject *longerNote, NoteObject *shorterNote) {
 	return [longerNote.title hasPrefix: shorterNote.title];
@@ -1723,7 +1719,7 @@ BOOL noteTitleIsAPrefixOfOtherNoteTitle(NoteObject *longerNote, NoteObject *shor
 
 - (void)addPrefixParentNote:(NoteObject*)aNote {
 	if (!prefixParentNotes) {
-		prefixParentNotes = [[NSMutableArray alloc] initWithObjects:&aNote count:1];
+		prefixParentNotes = [@[aNote] mutableCopy];
 	} else {
 		[prefixParentNotes addObject:aNote];
 	}

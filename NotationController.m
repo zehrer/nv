@@ -381,7 +381,7 @@
 				
 				if (existingNoteIndex != NSNotFound) {
 					
-					NoteObject *existingNote = [allNotes objectAtIndex:existingNoteIndex];
+					NoteObject *existingNote = allNotes[existingNoteIndex];
 					if ([existingNote youngerThanLogObject:obj]) {
 						NSLog(@"got a newer deleted note %@", obj);
 						//except that normally the undomanager doesn't exist by this point			
@@ -401,12 +401,12 @@
 				}
 			} else if (existingNoteIndex != NSNotFound) {
 				
-				if ([[allNotes objectAtIndex:existingNoteIndex] youngerThanLogObject:obj]) {
+				if ([allNotes[existingNoteIndex] youngerThanLogObject:obj]) {
 					// NSLog(@"replacing old note with new: %@", [[(NoteObject*)obj contentString] string]);
 					
 					[(NoteObject*)obj setDelegate:self];
 					[(NoteObject*)obj updateLabelConnectionsAfterDecoding];
-					[allNotes replaceObjectAtIndex:existingNoteIndex withObject:obj];
+					allNotes[existingNoteIndex] = obj;
 					notesChanged = YES;
 				} else {
 					// NSLog(@"note %@ is not being replaced because its LSN is %u, while the old note's LSN is %u", 
@@ -526,7 +526,7 @@
 			}
 
 			for (NSUInteger i=0; i<[notesToVerify count]; i++) {
-				if ([[[notesToVerify objectAtIndex:i] contentString] length] != [[[allNotes objectAtIndex:i] contentString] length]) {
+				if ([[notesToVerify[i] contentString] length] != [[allNotes[i] contentString] length]) {
 					result = kItemVerifyErr;
 					return @(result);
 				}
@@ -755,12 +755,12 @@
 
 	NSUInteger j, i = 0, count = [allNotesAlpha count];
 	for (i=0; i<count - 1; i++) {
-		NoteObject *shorterNote = [allNotesAlpha objectAtIndex:i];
+		NoteObject *shorterNote = allNotesAlpha[i];
 		BOOL isAPrefix = NO;
 		//scan all notes sorted beneath this one for matching prefixes
 		j = i + 1;
 		do {
-			NoteObject *longerNote = [allNotesAlpha objectAtIndex:j];
+			NoteObject *longerNote = allNotesAlpha[j];
 			if ((isAPrefix = noteTitleIsAPrefixOfOtherNoteTitle(longerNote, shorterNote))) {
 				[longerNote addPrefixParentNote:shorterNote];
 			}
@@ -820,7 +820,7 @@
 	
 	if ([[self undoManager] isUndoing]) [undoManager beginUndoGrouping];
 	for (i=0; i<[noteArray count]; i++) {
-		NoteObject * note = [noteArray objectAtIndex:i];
+		NoteObject * note = noteArray[i];
 		
 		[self _addNote:note];
 		
@@ -849,7 +849,7 @@
 	
 	if ([[self undoManager] isUndoing]) [undoManager beginUndoGrouping];
 	for (i=0; i<[noteArray count]; i++) {
-		NoteObject * note = [noteArray objectAtIndex:i];
+		NoteObject * note = noteArray[i];
 		
 		[self _addNote:note];
 		
@@ -1085,7 +1085,7 @@
 	NSUInteger i = 0;
 	NSArray *dnArray = [deletedNotes allObjects];
 	for (i = 0; i<[dnArray count]; i++) {
-		DeletedNoteObject *dnObj = [dnArray objectAtIndex:i];
+		DeletedNoteObject *dnObj = dnArray[i];
 		if (![[dnObj syncServicesMD] count]) {
 			[deletedNotes removeObject:dnObj];
 			notesChanged = YES;
@@ -1187,7 +1187,7 @@
 
 - (NoteObject*)noteForUUIDBytes:(CFUUIDBytes*)bytes {
 	NSUInteger noteIndex = [allNotes indexOfNoteWithUUIDBytes:bytes];
-	if (noteIndex != NSNotFound) return [allNotes objectAtIndex:noteIndex];
+	if (noteIndex != NSNotFound) return allNotes[noteIndex];
 	return nil;	
 }
 
@@ -1347,7 +1347,7 @@
 	NSUInteger i, titleLen, strLen = strlen(searchString), j = 0, shortestTitleLen = UINT_MAX;
 
 	for (i=0; i<[allNotes count]; i++) {
-		NoteObject *thisNote = [allNotes objectAtIndex:i];
+		NoteObject *thisNote = allNotes[i];
 		if (noteTitleHasPrefixOfUTF8String(thisNote, searchString, strLen)) {
 			[objs addObject: thisNote.title];
 			if (anIndex && (titleLen = thisNote.title.length) < shortestTitleLen) {
@@ -1507,8 +1507,9 @@
 	if (!img) {
 		//generate the image and add it to labelImages under imgKey
 		float tableFontSize = [[GlobalPrefs defaultPrefs] tableFontSize] - 1.0;
-		NSDictionary *attrs = [NSDictionary dictionaryWithObject:[NSFont systemFontOfSize:tableFontSize] forKey:NSFontAttributeName];
-		NSSize wordSize = [aWord sizeWithAttributes:attrs];
+		
+		NSDictionary *attrs = @{NSFontAttributeName: [NSFont systemFontOfSize:tableFontSize]};
+		NSSize wordSize = [aWord sizeWithAttributes: attrs];
 		NSRect wordRect = NSMakeRect(0, 0, roundf(wordSize.width + 4.0), roundf(tableFontSize * 1.3));
 		
 		//peter hosey's suggestion, rather than doing setWindingRule: and appendBezierPath: as before:

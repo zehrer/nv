@@ -129,7 +129,7 @@ static NSString *TempDirectoryPathForEditing() {
 	NSAssert(numberOfMegabytes > 0 && numberOfMegabytes < 100, @"unreasonable capacity requested");
 
 	[(attachTask = [NSTask new]) setLaunchPath:@"/usr/bin/hdiutil"];
-	[attachTask setArguments:[NSArray arrayWithObjects:@"attach", @"-nomount", @"-nobrowse", [NSString stringWithFormat:@"ram://%lu", (2 * 1024 * numberOfMegabytes)], nil]];
+	[attachTask setArguments:@[@"attach", @"-nomount", @"-nobrowse", [NSString stringWithFormat:@"ram://%lu", (2 * 1024 * numberOfMegabytes)]]];
 	[attachTask setStandardOutput:[NSPipe pipe]];
 	[attachTask launch];
 }
@@ -139,7 +139,7 @@ static NSString *TempDirectoryPathForEditing() {
 	NSAssert(aDeviceName != nil, @"no device name passed");
 	
 	[(newfsTask = [NSTask new]) setLaunchPath:@"/sbin/newfs_hfs"];
-	[newfsTask setArguments:[NSArray arrayWithObjects:@"-v", [RAMDiskMountPath() lastPathComponent], aDeviceName, nil]];
+	[newfsTask setArguments:@[@"-v", [RAMDiskMountPath() lastPathComponent], aDeviceName]];
 	[newfsTask launch];
 }
 
@@ -148,7 +148,7 @@ static NSString *TempDirectoryPathForEditing() {
 	NSAssert(aDeviceName != nil, @"no device name passed");
 	
 	[(mountTask = [NSTask new]) setLaunchPath:@"/sbin/mount"];
-	[mountTask setArguments:[NSArray arrayWithObjects:@"-t", @"hfs", @"-o", @"nobrowse", aDeviceName, RAMDiskMountPath(), nil]];
+	[mountTask setArguments:@[@"-t", @"hfs", @"-o", @"nobrowse", aDeviceName, RAMDiskMountPath()]];
 	[mountTask launch];
 }
 
@@ -184,8 +184,7 @@ static NSString *TempDirectoryPathForEditing() {
 	NSError *err = nil;
 	NSFileManager *fileMan = [NSFileManager defaultManager];
 	BOOL isDirectory = NO, didCreate = ([fileMan fileExistsAtPath:path isDirectory:&isDirectory] && isDirectory) ? YES : 
-	[fileMan createDirectoryAtPath:path withIntermediateDirectories:NO attributes:
-	 [NSDictionary dictionaryWithObject:[NSNumber numberWithUnsignedLong:0700] forKey:NSFilePosixPermissions] error:&err];
+	[fileMan createDirectoryAtPath:path withIntermediateDirectories:NO attributes: @{NSFilePosixPermissions: @0700} error:&err];
 	if (!didCreate) NSLog(@"couldn't create directory '%@': %@", path, (err ? [err localizedDescription] : @"(unknown error)"));
 	return didCreate;
 }

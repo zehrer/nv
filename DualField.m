@@ -414,10 +414,9 @@
 	static NSDictionary *smallTextAttrs = nil;
 	static NSMutableDictionary *smallTextBackAttrs = nil;
 	if (!smallTextAttrs) {
-		smallTextAttrs = [NSDictionary dictionaryWithObjectsAndKeys:
-						   [NSFont systemFontOfSize:[NSFont smallSystemFontSize]], NSFontAttributeName, 
-						   [NSColor whiteColor], NSForegroundColorAttributeName, nil];
-		[(smallTextBackAttrs = [smallTextAttrs mutableCopy]) setObject:[NSColor colorWithCalibratedWhite:0.44 alpha:1.0] forKey:NSForegroundColorAttributeName];
+		smallTextAttrs = @{NSFontAttributeName: [NSFont systemFontOfSize:[NSFont smallSystemFontSize]], 
+						   NSForegroundColorAttributeName: [NSColor whiteColor]};
+		(smallTextBackAttrs = [smallTextAttrs mutableCopy])[NSForegroundColorAttributeName] = [NSColor colorWithCalibratedWhite:0.44 alpha:1.0];
 	}
 	
 	if ([string length] > 15) string = [[string substringToIndex:15] stringByAppendingString:NSLocalizedString(@"...", @"ellipsis character")];

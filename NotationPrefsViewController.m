@@ -144,7 +144,7 @@ enum {VERIFY_NOT_ATTEMPTED, VERIFY_FAILED, VERIFY_IN_PROGRESS, VERIFY_SUCCESS};
 		[confirmFileDeletionButton setState:[notationPrefs confirmFileDeletion]];
 		
 		[enabledSyncButton setState:[notationPrefs syncServiceIsEnabled:SimplenoteServiceName]];
-		NSString *username = [[notationPrefs syncAccountForServiceName:SimplenoteServiceName] objectForKey:@"username"];
+		NSString *username = [notationPrefs syncAccountForServiceName:SimplenoteServiceName][@"username"];
 		NSString *password = [notationPrefs syncPasswordForServiceName:SimplenoteServiceName];
 		[syncAccountField setStringValue:username ? username : @""];
 		[syncPasswordField setStringValue:password ? password : @""];
@@ -240,8 +240,7 @@ enum {VERIFY_NOT_ATTEMPTED, VERIFY_FAILED, VERIFY_IN_PROGRESS, VERIFY_SUCCESS};
 		
 		if ([notationPrefs indexOfChosenPathExtension] == (unsigned int)rowIndex) {
 			return [[NSAttributedString alloc] initWithString:extension attributes:
-					[NSDictionary dictionaryWithObjectsAndKeys:
-					 [NSFont boldSystemFontOfSize:[NSFont smallSystemFontSize]], NSFontAttributeName, nil]];
+					@{NSFontAttributeName: [NSFont boldSystemFontOfSize:[NSFont smallSystemFontSize]]}];
 		}
 		return extension;
 			
@@ -448,7 +447,7 @@ enum {VERIFY_NOT_ATTEMPTED, VERIFY_FAILED, VERIFY_IN_PROGRESS, VERIFY_SUCCESS};
 	if (!loginVerifier && [[syncAccountField stringValue] length] && [[syncPasswordField stringValue] length]) {
 		NSURL *loginURL = [SimplenoteSession servletURLWithPath:@"/api/login" parameters:nil];
 		loginVerifier = [[SyncResponseFetcher alloc] initWithURL:loginURL bodyStringAsUTF8B64:
-						[[NSDictionary dictionaryWithObjectsAndKeys: [syncAccountField stringValue], @"email", [syncPasswordField stringValue], @"password", nil] 
+						[@{@"email": [syncAccountField stringValue], @"password": [syncPasswordField stringValue]} 
 						 URLEncodedString] delegate:self];
 		[loginVerifier start];
 		[self setVerificationStatus:VERIFY_IN_PROGRESS withString:@""];

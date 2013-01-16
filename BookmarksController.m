@@ -34,9 +34,9 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 	}
 	
 	if ((self = [super init])) {
-		NSString *uuidString = [aDict objectForKey:BMNoteUUIDStringKey];
+		NSString *uuidString = aDict[BMNoteUUIDStringKey];
 		if (uuidString) {
-			if (!(self = [self initWithNoteUUIDBytes:[uuidString uuidBytes] searchString:[aDict objectForKey:BMSearchStringKey]])) return nil;
+			if (!(self = [self initWithNoteUUIDBytes:[uuidString uuidBytes] searchString:aDict[BMSearchStringKey]])) return nil;
 		} else {
 			NSLog(@"NoteBookmark init: supplied nil uuidString");
 		}
@@ -97,8 +97,8 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 	return noteObject;
 }
 - (NSDictionary*)dictionaryRep {
-	return [NSDictionary dictionaryWithObjectsAndKeys:searchString, BMSearchStringKey, 
-		[NSString uuidStringWithBytes:uuidBytes], BMNoteUUIDStringKey, nil];
+	return @{BMSearchStringKey: searchString, 
+		BMNoteUUIDStringKey: [NSString uuidStringWithBytes:uuidBytes]};
 }
 
 - (NSString *)description {
@@ -144,7 +144,7 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 	[bookmarksTableView setTarget:self];
 	[bookmarksTableView setDoubleAction:@selector(doubleClicked:)];
 	
-	[bookmarksTableView registerForDraggedTypes:[NSArray arrayWithObjects:MovedBookmarksType, nil]];
+	[bookmarksTableView registerForDraggedTypes:@[MovedBookmarksType]];
 }
 
 - (void)dealloc {
@@ -160,7 +160,7 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 	if ((self = [self init])) {
 		unsigned int i;
 		for (i=0; i<[array count]; i++) {
-			NSDictionary *dict = [array objectAtIndex:i];
+			NSDictionary *dict = array[i];
 			NoteBookmark *bookmark = [[NoteBookmark alloc] initWithDictionary:dict];
 			[bookmark setDelegate:self];
 			[bookmarks addObject:bookmark];
@@ -175,7 +175,7 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 	NSMutableArray *array = [NSMutableArray arrayWithCapacity:[bookmarks count]];
 	unsigned int i;
 	for (i=0; i<[bookmarks count]; i++) {
-		NSDictionary *dict = [[bookmarks objectAtIndex:i] dictionaryRep];
+		NSDictionary *dict = [bookmarks[i] dictionaryRep];
 		if (dict) [array addObject:dict];
 	}
 	
@@ -196,7 +196,7 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 	unsigned int i;
 
 	for (i=0; i<[bookmarks count]; i++) {
-		if ([[bookmarks objectAtIndex:i] noteObject] == aNote) {
+		if ([bookmarks[i] noteObject] == aNote) {
 			[bookmarks removeObjectAtIndex:i];
 			
 			[self updateBookmarksUI];
@@ -245,7 +245,7 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 	unsigned int i;
 	for (i=0; i<[bookmarks count]; i++) {
 
-		NoteBookmark *bookmark = [bookmarks objectAtIndex:i];
+		NoteBookmark *bookmark = bookmarks[i];
 		NSString *description = [bookmark description];
 		if (description) {
 			theMenuItem = [[NSMenuItem alloc] initWithTitle:description action:@selector(restoreBookmark:) 
@@ -325,10 +325,10 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 
 - (id)tableView:(NSTableView *)aTableView objectValueForTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex {
 	if ([[aTableColumn identifier] isEqualToString:@"description"]) {
-		NSString *description = [[bookmarks objectAtIndex:rowIndex] description];
+		NSString *description = [bookmarks[rowIndex] description];
 		if (description) 
 			return description;
-		return [NSString stringWithFormat:NSLocalizedString(@"(Unknown Note) [%@]",nil), [[bookmarks objectAtIndex:rowIndex] searchString]];
+		return [NSString stringWithFormat:NSLocalizedString(@"(Unknown Note) [%@]",nil), [bookmarks[rowIndex] searchString]];
 	}
 	
 	static NSString *shiftCharStr = nil, *cmdCharStr = nil, *ctrlCharStr = nil;
@@ -354,15 +354,15 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 
 - (void)doubleClicked:(id)sender {
 	NSInteger row = [bookmarksTableView selectedRow];
-	if (row > -1) [self restoreNoteBookmark:[bookmarks objectAtIndex:row] inBackground:NO];
+	if (row > -1) [self restoreNoteBookmark:bookmarks[row] inBackground:NO];
 }
 
 - (void)tableViewSelectionDidChange:(NSNotification *)aNotification {
 	if (!isRestoringSearch && !isSelectingProgrammatically) {
 		NSInteger row = [bookmarksTableView selectedRow];
 		if (row > -1) {
-			if ([bookmarks objectAtIndex:row] != currentBookmark) {
-				[self restoreNoteBookmark:[bookmarks objectAtIndex:row] inBackground:YES];
+			if (bookmarks[row] != currentBookmark) {
+				[self restoreNoteBookmark:bookmarks[row] inBackground:YES];
 			}
 		}
 		
@@ -371,9 +371,7 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 }
 
 - (BOOL)tableView:(NSTableView *)tv writeRows:(NSArray*)rows toPasteboard:(NSPasteboard*)pboard {
-    NSArray *typesArray = [NSArray arrayWithObject:MovedBookmarksType];
-	
-	[pboard declareTypes:typesArray owner:self];
+	[pboard declareTypes: @[MovedBookmarksType] owner:self];
     [pboard setPropertyList:rows forType:MovedBookmarksType];
 	
     return YES;
@@ -395,14 +393,14 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
     
     if ([info draggingSource] == bookmarksTableView) {
 		NSArray *rows = [[info draggingPasteboard] propertyListForType:MovedBookmarksType];
-		NSInteger theRow = [[rows objectAtIndex:0] intValue];
+		NSInteger theRow = [rows[0] intValue];
 		
-		id object = [bookmarks objectAtIndex:theRow];
+		id object = bookmarks[theRow];
 		
 		if (row != theRow + 1 && row != theRow) {
 			NoteBookmark* selectedBookmark = nil;
 			NSInteger selRow = [bookmarksTableView selectedRow];
-			if (selRow > -1) selectedBookmark = [bookmarks objectAtIndex:selRow];
+			if (selRow > -1) selectedBookmark = bookmarks[selRow];
 			
 			if (row < theRow)
 				[bookmarks removeObjectAtIndex:theRow];
@@ -520,7 +518,7 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 			NSUInteger existingIndex = [bookmarks indexOfObject:bookmark];
 			if (existingIndex != NSNotFound) {
 				//show them what they've already got
-				NoteBookmark *existingBookmark = [bookmarks objectAtIndex:existingIndex];
+				NoteBookmark *existingBookmark = bookmarks[existingIndex];
 				if ([window isVisible]) [self selectBookmarkInTableView:existingBookmark];
 			} else {
 				[bookmark setDelegate:self];
@@ -540,7 +538,7 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 	NoteBookmark *bookmark = nil;
 	NSInteger row = [bookmarksTableView selectedRow];
 	if (row > -1) {
-		bookmark = [bookmarks objectAtIndex:row];
+		bookmark = bookmarks[row];
 		[bookmarks removeObjectIdenticalTo:bookmark];
 		[self updateBookmarksUI];
 	}

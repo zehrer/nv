@@ -89,8 +89,8 @@ extern NSString *NotationPrefsDidChangeNotification;
 NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serviceName);
 
 + (int)appVersion;
-+ (NSMutableArray*)defaultTypeStringsForFormat:(NoteStorageFormat)formatID;
-+ (NSMutableArray*)defaultPathExtensionsForFormat:(NoteStorageFormat)formatID;
++ (NSArray*)defaultTypeStringsForFormat:(NoteStorageFormat)formatID;
++ (NSArray*)defaultPathExtensionsForFormat:(NoteStorageFormat)formatID;
 - (BOOL)preferencesChanged;
 - (void)setForegroundTextColor:(NSColor*)aColor;
 - (NSColor*)foregroundColor;

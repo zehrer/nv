@@ -41,7 +41,7 @@
 		// I get EINVAL sometimes when setting/getting xattrs on afp servers running 10.5. When I get this error, I find that everything is working correctly... so it seems to make sense to ignore them
 		// EINVAL means invalid argument. I know that the args are fine. 
 		//if ((errno != ENOATTR) && (errno != EINVAL) && error) // it is not an error to have no attribute set 
-		//	*error = [NSError errorWithDomain:NSPOSIXErrorDomain code:errno userInfo:[NSDictionary dictionaryWithObject:[self errnoString:errno] forKey:@"info"]];
+		//	*error = [NSError errorWithDomain:NSPOSIXErrorDomain code:errno userInfo:@{@"info": [self errnoString:errno]}];
 		return nil;
 	}
 	
@@ -108,7 +108,7 @@
 		return NO;
 	}
 	NSString *textEncStr = [(NSString *)CFStringConvertEncodingToIANACharSetName(cfStringEncoding) stringByAppendingFormat:@";%@", 
-							[[NSNumber numberWithInt:cfStringEncoding] stringValue]];
+							[@(cfStringEncoding) stringValue]];
 	const char *textEncUTF8Str = [textEncStr UTF8String];
 	
 	if (setxattr(path, "com.apple.TextEncoding", textEncUTF8Str, strlen(textEncUTF8Str), 0, 0) < 0) {
@@ -130,17 +130,17 @@
 		return 0;
 	}
 	
-	NSString *encodingStr = [NSString stringWithUTF8String:xattrValueBytes];
+	NSString *encodingStr = @(xattrValueBytes);
 	if (!encodingStr) {
 		NSLog(@"couldn't make attribute data from %s into a string", path);
 		return 0;
 	}
 	
 	NSArray *segs = [encodingStr componentsSeparatedByString:@";"];
-	if ([segs count] >= 2 && [(NSString*)[segs objectAtIndex:1] length] > 1) {
-		return CFStringConvertEncodingToNSStringEncoding([[segs objectAtIndex:1] intValue]);
-	} else if ([(NSString*)[segs objectAtIndex:0] length] > 1) {
-		CFStringEncoding theCFEncoding = CFStringConvertIANACharSetNameToEncoding((CFStringRef)[segs objectAtIndex:0]);
+	if ([segs count] >= 2 && [(NSString*)segs[1] length] > 1) {
+		return CFStringConvertEncodingToNSStringEncoding([segs[1] intValue]);
+	} else if ([(NSString*)segs[0] length] > 1) {
+		CFStringEncoding theCFEncoding = CFStringConvertIANACharSetNameToEncoding((CFStringRef)segs[0]);
 		if (theCFEncoding == kCFStringEncodingInvalidId) {
 			NSLog(@"couldn't convert IANA charset");
 			return 0;

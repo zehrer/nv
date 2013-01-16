@@ -42,13 +42,13 @@ NSString *NotationPrefsDidChangeNotification = @"NotationPrefsDidChangeNotificat
 @implementation NotationPrefs
 
 NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serviceName) {
-	NSMutableDictionary *accountDict = [prefs->syncServiceAccounts objectForKey:serviceName];
-	if (!accountDict) [prefs->syncServiceAccounts setObject:(accountDict = [NSMutableDictionary dictionary]) forKey:serviceName];
+	NSMutableDictionary *accountDict = prefs->syncServiceAccounts[serviceName];
+	if (!accountDict) prefs->syncServiceAccounts[serviceName] = (accountDict = [NSMutableDictionary dictionary]);
 	return accountDict;
 }
 
 + (int)appVersion {
-	return [[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"] intValue];
+	return [[[NSBundle mainBundle] infoDictionary][@"CFBundleVersion"] intValue];
 }
 
 - (id)init {
@@ -57,8 +57,8 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 		
 		unsigned int i;
 		for (i=0; i<4; i++) {
-			typeStrings[i] = [NotationPrefs defaultTypeStringsForFormat:i];
-			pathExtensions[i] = [NotationPrefs defaultPathExtensionsForFormat:i];
+			typeStrings[i] = [[NotationPrefs defaultTypeStringsForFormat:i] mutableCopy];
+			pathExtensions[i] = [[NotationPrefs defaultPathExtensionsForFormat:i] mutableCopy];
 			chosenExtIndices[i] = 0;
 		}
 		
@@ -131,9 +131,9 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 		unsigned int i;
 		for (i=0; i<4; i++) {
 			if (!(typeStrings[i] = [decoder decodeObjectForKey:[VAR_STR(typeStrings) stringByAppendingFormat:@".%d",i]]))
-				typeStrings[i] = [NotationPrefs defaultTypeStringsForFormat:i];
+				typeStrings[i] = [[NotationPrefs defaultTypeStringsForFormat:i] mutableCopy];
 			if (!(pathExtensions[i] = [decoder decodeObjectForKey:[VAR_STR(pathExtensions) stringByAppendingFormat:@".%d",i]]))
-				pathExtensions[i] = [NotationPrefs defaultPathExtensionsForFormat:i];
+				pathExtensions[i] = [[NotationPrefs defaultPathExtensionsForFormat:i] mutableCopy];
 			chosenExtIndices[i] = [decoder decodeIntForKey:[VAR_STR(chosenExtIndices) stringByAppendingFormat:@".%d",i]];
 		}
 		
@@ -209,45 +209,39 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
     
 }
 
-+ (NSMutableArray*)defaultTypeStringsForFormat:(NoteStorageFormat)formatID {
++ (NSArray*)defaultTypeStringsForFormat:(NoteStorageFormat)formatID {
     switch (formatID) {
-	case SingleDatabaseFormat:
-	    return [NSMutableArray arrayWithCapacity:0];
-	case PlainTextFormat: 
-	    return [NSMutableArray arrayWithObjects:(id)CFBridgingRelease(UTCreateStringForOSType(TEXT_TYPE_ID)), 
-			(id)CFBridgingRelease(UTCreateStringForOSType(UTXT_TYPE_ID)), nil];
-	case RTFTextFormat: 
-	    return [NSMutableArray arrayWithObjects:(id)CFBridgingRelease(UTCreateStringForOSType(RTF_TYPE_ID)), nil];
-	case HTMLFormat:
-	    return [NSMutableArray arrayWithObjects:(id)CFBridgingRelease(UTCreateStringForOSType(HTML_TYPE_ID)), nil];
-	case WordDocFormat:
-		return [NSMutableArray arrayWithObjects:(id)CFBridgingRelease(UTCreateStringForOSType(WORD_DOC_TYPE_ID)), nil];
-	default:
-	    NSLog(@"Unknown format ID: %ld", formatID);
+		case PlainTextFormat: 
+			return @[(id)CFBridgingRelease(UTCreateStringForOSType(TEXT_TYPE_ID)),
+				(id)CFBridgingRelease(UTCreateStringForOSType(UTXT_TYPE_ID))];
+		case RTFTextFormat: 
+			return @[(id)CFBridgingRelease(UTCreateStringForOSType(RTF_TYPE_ID))];
+		case HTMLFormat:
+			return @[(id)CFBridgingRelease(UTCreateStringForOSType(HTML_TYPE_ID))];
+		case WordDocFormat:
+			return @[(id)CFBridgingRelease(UTCreateStringForOSType(WORD_DOC_TYPE_ID))];
+		default:
+			NSLog(@"Unknown format ID: %ld", formatID);
+			return @[];
     }
-    
-    return [NSMutableArray arrayWithCapacity:0];
 }
 
-+ (NSMutableArray*)defaultPathExtensionsForFormat:(NoteStorageFormat)formatID {
++ (NSArray*)defaultPathExtensionsForFormat:(NoteStorageFormat)formatID {
     switch (formatID) {
-	case SingleDatabaseFormat:
-	    return [NSMutableArray arrayWithCapacity:0];
-	case PlainTextFormat: 
-	    return [NSMutableArray arrayWithObjects:@"txt", @"text", @"utf8", @"taskpaper", nil];
-	case RTFTextFormat: 
-	    return [NSMutableArray arrayWithObjects:@"rtf", nil];
-	case HTMLFormat:
-	    return [NSMutableArray arrayWithObjects:@"html", @"htm", nil];
-	case WordDocFormat:
-		return [NSMutableArray arrayWithObjects:@"doc", nil];
-	case WordXMLFormat:
-		return [NSMutableArray arrayWithObjects:@"docx", nil];
-	default:
-	    NSLog(@"Unknown format ID: %ldd", formatID);
+		case PlainTextFormat: 
+			return @[@"txt", @"text", @"utf8", @"taskpaper"];
+		case RTFTextFormat: 
+			return @[@"rtf"];
+		case HTMLFormat:
+			return @[@"html", @"htm"];
+		case WordDocFormat:
+			return @[@"doc"];
+		case WordXMLFormat:
+			return @[@"docx"];
+		default:
+			NSLog(@"Unknown format ID: %ldd", formatID);
+			return @[];
     }
-    
-    return [NSMutableArray arrayWithCapacity:0];
 }
 
 - (BOOL)preferencesChanged {
@@ -278,7 +272,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 }
 
 - (NSDictionary*)syncAccountForServiceName:(NSString*)serviceName {
-	return [syncServiceAccounts objectForKey:serviceName];
+	return syncServiceAccounts[serviceName];
 }
 
 - (NSString*)syncPasswordForServiceName:(NSString*)serviceName {
@@ -286,7 +280,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 	
 	INIT_DICT_ACCT();
 	
-	NSString *password = [accountDict objectForKey:@"password"];
+	NSString *password = accountDict[@"password"];
 	if (password) return password;
 	
 	//fetch keychain
@@ -306,7 +300,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 	password = [[NSString alloc] initWithBytes:passwordData length:passwordLength encoding:NSUTF8StringEncoding];
 	
 	//cache password found in keychain
-	[accountDict setObject:password forKey:@"password"];
+	accountDict[@"password"] = password;
 	
 	SecKeychainItemFreeContent(NULL, passwordData);
 	return password;
@@ -319,7 +313,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 	NSMutableDictionary *account = nil;
 	while ((account = [enumerator nextObject])) {
 		
-		if (![(NSString*)[account objectForKey:@"username"] length]) {
+		if (![(NSString*)account[@"username"] length]) {
 			//don't store the "enabled" flag if the account has no username
 			//give password the benefit of the doubt as it may eventually become available via the keychain
 			[account removeObjectForKey:@"enabled"];
@@ -331,17 +325,17 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 
 - (BOOL)syncNotesShouldMergeForServiceName:(NSString*)serviceName {
 	NSDictionary *accountDict = [self syncAccountForServiceName:serviceName];
-	NSString *username = [accountDict objectForKey:@"username"];
-	return username && [[accountDict objectForKey:@"shouldmerge"] isEqualToString:username];
+	NSString *username = accountDict[@"username"];
+	return username && [accountDict[@"shouldmerge"] isEqualToString:username];
 }
 
 - (NSUInteger)syncFrequencyInMinutesForServiceName:(NSString*)serviceName {
-	NSUInteger freq = MIN([[[self syncAccountForServiceName:serviceName] objectForKey:@"frequency"] unsignedIntValue], 30U);
+	NSUInteger freq = MIN([[self syncAccountForServiceName:serviceName][@"frequency"] unsignedIntValue], 30U);
 	return freq == 0 ? 5 : freq;
 }
 
 - (BOOL)syncServiceIsEnabled:(NSString*)serviceName {
-	return [[[self syncAccountForServiceName:serviceName] objectForKey:@"enabled"] boolValue];
+	return [[self syncAccountForServiceName:serviceName][@"enabled"] boolValue];
 }
 
 - (unsigned int)keyLengthInBits {
@@ -683,7 +677,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 	INIT_DICT_ACCT();
 	
 	if ([self syncServiceIsEnabled:serviceName] != isEnabled) {
-		[accountDict setObject:[NSNumber numberWithBool:isEnabled] forKey:@"enabled"];
+		accountDict[@"enabled"] = @(isEnabled);
 		
 		preferencesChanged = YES;
 		[self.delegate syncSettingsChangedForService:serviceName];
@@ -694,7 +688,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 	INIT_DICT_ACCT();
 	
 	if ([self syncFrequencyInMinutesForServiceName:serviceName] != frequencyInMinutes) {
-		[accountDict setObject:@(frequencyInMinutes) forKey:@"frequency"];
+		accountDict[@"frequency"] = @(frequencyInMinutes);
 		preferencesChanged = YES;
 		[self.delegate syncSettingsChangedForService:serviceName];
 	}
@@ -704,11 +698,11 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 	INIT_DICT_ACCT();
 	
 	if ([self syncNotesShouldMergeForServiceName:serviceName] != shouldMerge) {
-		NSString *username = [accountDict objectForKey:@"username"];
+		NSString *username = accountDict[@"username"];
 		if (username) {
 			NSLog(@"%@: %d, %@", NSStringFromSelector(_cmd), shouldMerge, username);
 			if (shouldMerge) {
-				[accountDict setObject:username forKey:@"shouldmerge"];
+				accountDict[@"shouldmerge"] = username;
 			} else {
 				[accountDict removeObjectForKey:@"shouldmerge"];
 			}
@@ -723,8 +717,8 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 	
 	INIT_DICT_ACCT();
 	
-	if (![[accountDict objectForKey:@"username"] isEqualToString:username]) {
-		[accountDict setObject:username forKey:@"username"];
+	if (![accountDict[@"username"] isEqualToString:username]) {
+		accountDict[@"username"] = username;
 		
 		preferencesChanged = YES;
 		[self.delegate syncSettingsChangedForService:serviceName];
@@ -732,7 +726,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 }
 
 - (const char*)keychainSyncAccountNameForService:(NSString*)serviceName {
-	NSString *username = [[self syncAccountForServiceName:serviceName] objectForKey:@"username"];
+	NSString *username = [self syncAccountForServiceName:serviceName][@"username"];
 	return [username length] ? [[username stringByAppendingFormat:@"-%@", serviceName] UTF8String] : NULL;
 }
 
@@ -741,8 +735,8 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 	
 	INIT_DICT_ACCT();
 	
-	if (![[accountDict objectForKey:@"password"] isEqualToString:password]) {
-		[accountDict setObject:password forKey:@"password"];
+	if (![accountDict[@"password"] isEqualToString:password]) {
+		accountDict[@"password"] = password;
 		
 		NSData *passwordData = [password dataUsingEncoding:NSUTF8StringEncoding];
 		
@@ -786,7 +780,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 - (void)removeSyncPasswordForService:(NSString*)serviceName {
 	INIT_DICT_ACCT();
 	
-	if ([accountDict objectForKey:@"password"]) {
+	if (accountDict[@"password"]) {
 		[accountDict removeObjectForKey:@"password"];
 		
 		const char *kcSyncAccountName = [self keychainSyncAccountNameForService:serviceName];
@@ -815,7 +809,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 	
 	NSUInteger idx = [seenDiskUUIDEntries indexOfObject: diskEntry];
 	if (NSNotFound != idx) {
-		[[seenDiskUUIDEntries objectAtIndex:idx] see];
+		[seenDiskUUIDEntries[idx] see];
 		return idx;
 	}
 	
@@ -833,14 +827,14 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 	//then display warning
 	
 	NSArray *enabledValues = [[syncServiceAccounts allValues] objectsFromDictionariesForKey:@"enabled"];	
-	if ([enabledValues containsObject:[NSNumber numberWithBool:YES]] && SingleDatabaseFormat != notesStorageFormat) {
+	if ([enabledValues containsObject:@YES] && SingleDatabaseFormat != notesStorageFormat) {
 		//this DB is syncing with a service and is storing separate files; could it be syncing with anything else, too?
 		
 		//this logic will need to be more sophisticated anyway when multiple sync services are supported
 		NSString *syncServiceTitle = [SimplenoteSession localizedServiceTitle];
 		
 		NSDictionary *stDict = [[NSUserDefaults standardUserDefaults] persistentDomainForName:@"com.hogbaysoftware.SimpleText"];
-		NSString *simpleTextFolder = [stDict objectForKey:@"SyncedDocumentsPathKey"];
+		NSString *simpleTextFolder = stDict[@"SyncedDocumentsPathKey"];
 		if (!simpleTextFolder) simpleTextFolder = [NSHomeDirectory() stringByAppendingPathComponent:@"SimpleText"];
 		//for dropbox, a 'select value from config where key = "dropbox_path";' sqlite query would be necessary to get the true path
 		NSString *dropboxFolder = [NSHomeDirectory() stringByAppendingPathComponent:@"Dropbox"];
@@ -906,10 +900,10 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 
 - (NSString*)typeStringAtIndex:(NSInteger)typeIndex {
 
-    return [typeStrings[notesStorageFormat] objectAtIndex:typeIndex];
+    return typeStrings[notesStorageFormat][typeIndex];
 }
 - (NSString*)pathExtensionAtIndex:(NSInteger)pathIndex {
-    return [pathExtensions[notesStorageFormat] objectAtIndex:pathIndex];
+    return pathExtensions[notesStorageFormat][pathIndex];
 }
 - (NSUInteger)indexOfChosenPathExtension {
 	return chosenExtIndices[notesStorageFormat];
@@ -918,7 +912,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 	if (chosenExtIndices[format] >= [pathExtensions[format] count])
 		return [NotationPrefs pathExtensionForFormat:format];
 	
-	return [pathExtensions[format] objectAtIndex:chosenExtIndices[format]];
+	return pathExtensions[format][chosenExtIndices[format]];
 }
 
 - (void)updateOSTypesArray {
@@ -929,7 +923,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
     allowedTypes = (OSType*)realloc(allowedTypes, newSize);
 	
     for (i=0; i<[typeStrings[notesStorageFormat] count]; i++)
-		allowedTypes[i] = UTGetOSTypeFromString((__bridge CFStringRef)[typeStrings[notesStorageFormat] objectAtIndex:i]);
+		allowedTypes[i] = UTGetOSTypeFromString((__bridge CFStringRef)typeStrings[notesStorageFormat][i]);
 }
 
 - (void)addAllowedPathExtension:(NSString*)extension {
@@ -955,7 +949,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 }
 - (BOOL)setChosenPathExtensionAtIndex:(NSUInteger)extensionIndex {
 	if ([pathExtensions[notesStorageFormat] count] > extensionIndex &&
-		[[pathExtensions[notesStorageFormat] objectAtIndex:extensionIndex] length]) {
+		[pathExtensions[notesStorageFormat][extensionIndex] length]) {
 		chosenExtIndices[notesStorageFormat] = extensionIndex;
 		
 		preferencesChanged = YES;
@@ -988,10 +982,10 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
     if (oldIndex < [pathExtensions[notesStorageFormat] count]) {
 		
 		if ([newExtension length] > 0) { 
-			[pathExtensions[notesStorageFormat] replaceObjectAtIndex:oldIndex withObject:[newExtension stringAsSafePathExtension]];
+			pathExtensions[notesStorageFormat][oldIndex] = [newExtension stringAsSafePathExtension];
 			
 			preferencesChanged = YES;
-		} else if (![(NSString*)[pathExtensions[notesStorageFormat] objectAtIndex:oldIndex] length]) {
+		} else if (![(NSString*)pathExtensions[notesStorageFormat][oldIndex] length]) {
 			return NO;
 		}
     }
@@ -1004,14 +998,14 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
     if (oldIndex < [typeStrings[notesStorageFormat] count]) {
 		
 		if ([newType length] > 0) {
-			[typeStrings[notesStorageFormat] replaceObjectAtIndex:oldIndex withObject:[newType fourCharTypeString]];
+			typeStrings[notesStorageFormat][oldIndex] = [newType fourCharTypeString];
 			[self updateOSTypesArray];
 				
 			preferencesChanged = YES;
 				
 			return YES;
 		}
-		if (!UTGetOSTypeFromString((__bridge CFStringRef)[typeStrings[notesStorageFormat] objectAtIndex:oldIndex])) {
+		if (!UTGetOSTypeFromString((__bridge CFStringRef)typeStrings[notesStorageFormat][oldIndex])) {
 			return NO;
 		}
     }
@@ -1022,7 +1016,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 - (BOOL)pathExtensionAllowed:(NSString*)anExtension forFormat:(int)formatID {
 	NSUInteger i;
     for (i=0; i<[pathExtensions[formatID] count]; i++) {
-		if ([anExtension compare:[pathExtensions[formatID] objectAtIndex:i] 
+		if ([anExtension compare:pathExtensions[formatID][i] 
 						 options:NSCaseInsensitiveSearch] == NSOrderedSame) {
 			return YES;
 		}

@@ -115,8 +115,7 @@
 	}
 
 	NSFont *font = [prefsController noteBodyFont];
-	NSDictionary *attributes = [NSDictionary dictionaryWithObjectsAndKeys:font ? font : [NSFont systemFontOfSize:12.0],
-		NSFontAttributeName, [NSColor blackColor], NSForegroundColorAttributeName, centerStyle, NSParagraphStyleAttributeName, nil];
+	NSDictionary *attributes = @{NSFontAttributeName: font ? font : [NSFont systemFontOfSize:12.0], NSForegroundColorAttributeName: [NSColor blackColor], NSParagraphStyleAttributeName: centerStyle};
 
 	NSString *fontNameAndSize = font ? [NSString stringWithFormat:@"%@ %g", [font fontName], [font pointSize]] : @"Unknown";
 	NSAttributedString *attributedString = [[NSAttributedString alloc] initWithString:fontNameAndSize attributes:attributes];
@@ -361,7 +360,7 @@
     [item setImage:[[NSImage alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:name ofType:@"tiff"]]];
     [item setTarget:self];
     [item setAction:@selector(switchViews:)];
-    [items setObject:item forKey:name];
+    items[name] = item;
 }
 
 - (void)awakeFromNib {
@@ -442,7 +441,7 @@
 
 
 - (NSToolbarItem *)toolbar:(NSToolbar *)toolbar itemForItemIdentifier:(NSString *)itemIdentifier willBeInsertedIntoToolbar:(BOOL)flag {
-    return [items objectForKey:itemIdentifier];
+    return items[itemIdentifier];
 }
 
 - (NSArray *)toolbarAllowedItemIdentifiers:(NSToolbar*)theToolbar {
@@ -450,7 +449,7 @@
 }
 
 - (NSArray *)toolbarDefaultItemIdentifiers:(NSToolbar*)theToolbar {
-    return [NSArray arrayWithObjects:@"General", @"Notes", @"Editing", @"Fonts & Colors", nil];
+    return @[@"General", @"Notes", @"Editing", @"Fonts & Colors"];
 }
 
 - (NSArray *)toolbarSelectableItemIdentifiers: (NSToolbar *)toolbar {
@@ -540,7 +539,7 @@ NSRect ScaleRectWithFactor(NSRect rect, float factor) {
         [stdDefaults setBool:NO forKey:@"ShowDockIcon"];
     }
     [stdDefaults synchronize];
-	[[NSNotificationCenter defaultCenter]postNotificationName:@"AppShouldToggleDockIcon" object:[NSNumber numberWithBool:showIt]];
+	[[NSNotificationCenter defaultCenter]postNotificationName:@"AppShouldToggleDockIcon" object:@(showIt)];
 }
 
 

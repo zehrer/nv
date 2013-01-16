@@ -494,7 +494,7 @@ void outletObjectAwoke(id sender) {
 }
 
 - (NSArray *)toolbarDefaultItemIdentifiers:(NSToolbar*)theToolbar {
-	return [NSArray arrayWithObject:@"DualField"];
+	return @[@"DualField"];
 }
 
 
@@ -803,7 +803,7 @@ void outletObjectAwoke(id sender) {
 		TagEditer = [[TagEditingManager alloc] init];
 		[TagEditer setDel:self];
 		@try {			
-			cTags = [[NSArray alloc] initWithArray:[self commonLabels]];
+			cTags = [[self commonLabels] copy];
 			if ([cTags count]>0) {
 				[TagEditer setTF:[cTags componentsJoinedByString:@","]];
 			}else {
@@ -936,7 +936,7 @@ void outletObjectAwoke(id sender) {
 			path = [[NSBundle mainBundle] pathForResource:NSLocalizedString(@"Excruciatingly Useful Shortcuts", nil) ofType:@"nvhelp" inDirectory:nil];
 		case 2:		//acknowledgments
 			if (!path) path = [[NSBundle mainBundle] pathForResource:@"Acknowledgments" ofType:@"txt" inDirectory:nil];
-			[[NSWorkspace sharedWorkspace] openURLs:[NSArray arrayWithObject:[NSURL fileURLWithPath:path]] withAppBundleIdentifier:@"com.apple.TextEdit" 
+			[[NSWorkspace sharedWorkspace] openURLs: @[[NSURL fileURLWithPath:path]] withAppBundleIdentifier:@"com.apple.TextEdit" 
 											options:NSWorkspaceLaunchDefault additionalEventParamDescriptor:nil launchIdentifiers:NULL];
 			break;
 		case 3:		//product site
@@ -1235,7 +1235,7 @@ void outletObjectAwoke(id sender) {
 		typedStringIsCached = NO;
 		isFilteringFromTyping = YES;
 		
-		NSTextView *fieldEditor = [[aNotification userInfo] objectForKey:@"NSFieldEditor"];
+		NSTextView *fieldEditor = [aNotification userInfo][@"NSFieldEditor"];
 		NSString *fieldString = [fieldEditor string];
 		
 		BOOL didFilter = [notationController filterNotesFromString:fieldString];
@@ -1305,7 +1305,7 @@ void outletObjectAwoke(id sender) {
             searchString = [[searchString componentsSeparatedByCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@", "]] lastObject];
             selRange = [tagString rangeOfString:searchString options:NSBackwardsSearch];
             NSArray *theTags = [notesTableView labelCompletionsForString:searchString index:0];
-            if ((theTags)&&([theTags count]>0)&&(![[theTags objectAtIndex:0] isEqualToString:@""])){
+            if ((theTags)&&([theTags count]>0)&&(![theTags[0] isEqualToString:@""])){
                 NSString *useStr;
                 for (useStr in theTags) {
                     if ([tagString rangeOfString:useStr].location==NSNotFound) {
@@ -1806,7 +1806,7 @@ void outletObjectAwoke(id sender) {
 #pragma mark -
 
 - (void)tableViewColumnDidResize:(NSNotification *)aNotification {
-	NoteAttributeColumn *col = [[aNotification userInfo] objectForKey:@"NSTableColumn"];
+	NoteAttributeColumn *col = [aNotification userInfo][@"NSTableColumn"];
 	if ([[col identifier] isEqualToString:NoteTitleColumnString]) {
 		[notationController regeneratePreviewsForColumn:col visibleFilteredRows:[notesTableView rowsInRect:[notesTableView visibleRect]] forceUpdate:NO];
 		
@@ -2117,7 +2117,7 @@ void outletObjectAwoke(id sender) {
 
 - (NSArray *)commonLabels{
 	NSCharacterSet *tagSeparators = [NSCharacterSet  characterSetWithCharactersInString:@", "];
-	NSArray *retArray = [[NSArray alloc]initWithObjects:@"",nil];
+	NSArray *retArray = @[@""];
 	NSIndexSet *indexes = [notesTableView selectedRowIndexes];
 	NSEnumerator *noteEnum = [[notationController notesAtIndexes:indexes] objectEnumerator];
 	NoteObject *aNote = [noteEnum nextObject];
@@ -2170,7 +2170,7 @@ void outletObjectAwoke(id sender) {
 	NSString *existTagString;
 	NSMutableArray *theTags = [[NSMutableArray alloc] init];
 	NSString *thisTag = [TagEditer newMultinoteLabels];
-	NSArray *newTags = [NSArray arrayWithArray:[thisTag componentsSeparatedByCharactersInSet:tagSeparators]];
+	NSArray *newTags = [[thisTag componentsSeparatedByCharactersInSet:tagSeparators] copy];
     for (thisTag in newTags) {
         if (([thisTag hasPrefix:@" "])||([thisTag hasSuffix:@" "])) {
 			thisTag = [thisTag stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
@@ -2342,7 +2342,7 @@ void outletObjectAwoke(id sender) {
 
 - (void)windowDidEnterFullScreen:(NSNotification *)aNotification{
      if (!wasDFVisible) {         
-         [self performSelector:@selector(postToggleToolbar:) withObject:[NSNumber numberWithBool:NO] afterDelay:0.0001];
+         [self performSelector:@selector(postToggleToolbar:) withObject:@NO afterDelay:0.0001];
      } 
 }
 
@@ -2355,10 +2355,10 @@ void outletObjectAwoke(id sender) {
 - (void)windowDidExitFullScreen:(NSNotification *)notification{
     if (wasDFVisible!=[nsSplitView isSubviewCollapsed: notesScrollView]) {
         if (!wasDFVisible) {
-            [self performSelector:@selector(postToggleToolbar:) withObject:[NSNumber numberWithBool:NO] afterDelay:0.0001];
+            [self performSelector:@selector(postToggleToolbar:) withObject:@NO afterDelay:0.0001];
            
         }else{
-            [self performSelector:@selector(postToggleToolbar:) withObject:[NSNumber numberWithBool:YES] afterDelay:0.0001];
+            [self performSelector:@selector(postToggleToolbar:) withObject:@YES afterDelay:0.0001];
         }
     }
 }
@@ -2429,7 +2429,7 @@ void outletObjectAwoke(id sender) {
 //			//
 //		}
 //		NSString *path = nil;
-//		NSMutableArray *retArray= [[[NSMutableArray alloc] initWithObjects:nil] autorelease];
+//		NSMutableArray *retArray= [NSMutableArray array];
 //		
 //		path = [[notationController noteObjectAtFilteredIndex:0] noteFilePath];
 //		CFURLRef myURL = CFURLCreateWithFileSystemPath(kCFAllocatorDefault,(CFStringRef)path,kCFURLPOSIXPathStyle,false);
@@ -2560,13 +2560,13 @@ void outletObjectAwoke(id sender) {
 }
 
 - (void)updateFieldAttributes{
-        if (!foregrndColor) {
-          foregrndColor = [self foregrndColor];
-        }
-        if (!backgrndColor) {
-            backgrndColor = [self backgrndColor];
-        }
-        fieldAttributes = [NSDictionary dictionaryWithObject:[textView _selectionColorForForegroundColor:foregrndColor backgroundColor:backgrndColor] forKey:NSBackgroundColorAttributeName];
+	if (!foregrndColor) {
+	  foregrndColor = [self foregrndColor];
+	}
+	if (!backgrndColor) {
+		backgrndColor = [self backgrndColor];
+	}
+	fieldAttributes = @{NSBackgroundColorAttributeName: [textView _selectionColorForForegroundColor:foregrndColor backgroundColor:backgrndColor]};
     
     if (isEd) {
         [theFieldEditor setDrawsBackground:NO];
@@ -2909,7 +2909,7 @@ void outletObjectAwoke(id sender) {
         }
     }else {//if (client==field) {
             [theFieldEditor setDrawsBackground:NO];
-            [theFieldEditor setSelectedTextAttributes:[NSDictionary dictionaryWithObjectsAndKeys:[NSColor selectedTextBackgroundColor], NSBackgroundColorAttributeName, nil]];
+            [theFieldEditor setSelectedTextAttributes:@{NSBackgroundColorAttributeName: [NSColor selectedTextBackgroundColor]}];
         [theFieldEditor setInsertionPointColor:[NSColor blackColor]];
     }
        // NSLog(@"window first is :%@",[window firstResponder]);
@@ -2960,7 +2960,7 @@ void outletObjectAwoke(id sender) {
 
 - (void)relaunchNV:(id)sender{
     id fullPath = [[NSBundle mainBundle] executablePath];
-    NSArray *arg = [NSArray arrayWithObjects:nil];    
+    NSArray *arg = @[];    
     [NSTask launchedTaskWithLaunchPath:fullPath arguments:arg];
     [NSApp terminate:sender];
 }
@@ -3016,11 +3016,11 @@ void outletObjectAwoke(id sender) {
         }	
     }];
     //create an immutable array safe for returning
-    NSArray *returnArray=[NSArray array];
+    NSArray *returnArray=@[];
     //see if we found anything
     if(referenceLinks&&([referenceLinks count]>0))
     {
-        returnArray=[NSArray arrayWithArray:referenceLinks];
+        returnArray= [referenceLinks copy];
     }
     return returnArray;
 }

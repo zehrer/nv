@@ -187,7 +187,7 @@
 	//assume that the LSNs have been incremented already if they needed to be
 	NSUInteger i;
     for (i=0; i<[notes count]; i++) {
-		[self writeNoteObject:[notes objectAtIndex:i]];
+		[self writeNoteObject:notes[i]];
 	}
 }
 

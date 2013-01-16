@@ -49,7 +49,7 @@
 	
 	NSInteger col = [tv editedColumn];
 	BOOL isEditing = [self isHighlighted] && [tv currentEditor] &&
-	(col > -1 && [[[[tv tableColumns] objectAtIndex:col] identifier] isEqualToString:NoteLabelsColumnString]);
+	(col > -1 && [[[tv tableColumns][col] identifier] isEqualToString:NoteLabelsColumnString]);
 	
 	if (isEditing) {
 		[super drawWithFrame:cellFrame inView:controlView];	

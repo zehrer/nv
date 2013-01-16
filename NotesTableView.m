@@ -57,12 +57,11 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 		globalPrefs = [GlobalPrefs defaultPrefs];
       
     userDefaults = [NSUserDefaults standardUserDefaults];
-    [userDefaults registerDefaults: [NSDictionary dictionaryWithObjectsAndKeys: [NSNumber numberWithBool: NO], @"UseCtrlForSwitchingNotes", nil]];
+    [userDefaults registerDefaults: @{@"UseCtrlForSwitchingNotes": @NO}];
       
 		loadStatusString = NSLocalizedString(@"Loading Notes...",nil);
-		loadStatusAttributes = [NSDictionary dictionaryWithObjectsAndKeys:
-								 [NSFont fontWithName:@"Helvetica" size:STATUS_STRING_FONT_SIZE], NSFontAttributeName,
-								 [NSColor colorWithCalibratedRed:0.0f green:0.0f blue:0.0f alpha:0.5f], NSForegroundColorAttributeName, nil];
+		loadStatusAttributes = @{NSFontAttributeName: [NSFont fontWithName:@"Helvetica" size:STATUS_STRING_FONT_SIZE],
+								 NSForegroundColorAttributeName: [NSColor colorWithCalibratedRed:0.0f green:0.0f blue:0.0f alpha:0.5f]};
 		loadStatusStringWidth = [loadStatusString sizeWithAttributes:loadStatusAttributes].width;
 		
 		affinity = 0;
@@ -102,7 +101,7 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 			column.reverseSortingFunction = reverseSortFunctions[i];
 			[column setResizingMask:NSTableColumnUserResizingMask];
 			
-			[allColsDict setObject:column forKey:colStrings[i]];
+			allColsDict[colStrings[i]] = column;
 			[allColumns addObject:column];
 		}
 		
@@ -136,15 +135,15 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 	//if columns currently exist, then remove them first, so that nstableview's autosave/restore works properly
 	if ([[self tableColumns] count]) {
 		for (i=0; i<[allColumns count]; i++) {
-			[self removeTableColumn:[allColumns objectAtIndex:i]];
+			[self removeTableColumn:allColumns[i]];
 		}
 	}
 	
 	//horizontal view has only a single column; store column widths separately for it
-	NSArray *columnsToDisplay = [globalPrefs horizontalLayout] ? [NSArray arrayWithObject:NoteTitleColumnString] : [globalPrefs visibleTableColumns];
+	NSArray *columnsToDisplay = [globalPrefs horizontalLayout] ? @[NoteTitleColumnString] : [globalPrefs visibleTableColumns];
 	
 	for (i=0; i<[allColumns count]; i++) {
-		NoteAttributeColumn *column = [allColumns objectAtIndex:i];
+		NoteAttributeColumn *column = allColumns[i];
 		if ([columnsToDisplay containsObject:[column identifier]])
 			[self addTableColumn:column];
 		
@@ -165,7 +164,7 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 	 @selector(setTableFontSize:sender:),
 	 @selector(setHorizontalLayout:sender:), nil];
 	
-	[self registerForDraggedTypes:[NSArray arrayWithObjects:NSFilenamesPboardType, NSRTFPboardType, NSRTFDPboardType, NSStringPboardType, nil]];
+	[self registerForDraggedTypes:@[NSFilenamesPboardType, NSRTFPboardType, NSRTFDPboardType, NSStringPboardType]];
 	
 	NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
 	
@@ -317,7 +316,7 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 	NSFont *font = [NSFont systemFontOfSize:[globalPrefs tableFontSize]];
 	NSUInteger i;
 	for (i=0; i<[allColumns count]; i++) {
-		[[[allColumns objectAtIndex:i] dataCell] setFont:font];
+		[[allColumns[i] dataCell] setFont:font];
 	}	
 	BOOL isOneRow = !horiz || (![globalPrefs tableColumnsShowPreview] && !ColumnIsSet(NoteLabelsColumn, [globalPrefs tableColumnsBitmap]));
 	
@@ -460,7 +459,7 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 }
 
 - (NoteAttributeColumn*)noteAttributeColumnForIdentifier:(NSString*)identifier {
-	return [allColsDict objectForKey:identifier];
+	return allColsDict[identifier];
 }
 
 - (BOOL)addPermanentTableColumn:(NSTableColumn*)column {
@@ -786,7 +785,7 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 		NSMutableArray *paths = [NSMutableArray arrayWithCapacity:[notes count]];
 		unsigned int i;
 		for (i=0;i<[notes count]; i++) {
-			NoteObject *note = [notes objectAtIndex:i];
+			NoteObject *note = notes[i];
 			//for now, allow option-dragging-out only for notes with separate file-backing stores
 			if (note.storageFormat != SingleDatabaseFormat) {
 				NSString *aPath = [note noteFilePath];
@@ -797,7 +796,7 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 			NSImage *image = [[NSWorkspace sharedWorkspace] iconForFile:[paths lastObject]];
 			
 			NSPasteboard *pboard = [NSPasteboard pasteboardWithName:NSDragPboard]; 
-			[pboard declareTypes:[NSArray arrayWithObject:NSFilenamesPboardType] owner:nil];
+			[pboard declareTypes: @[NSFilenamesPboardType] owner:nil];
 			[pboard setPropertyList:paths forType:NSFilenamesPboardType];			
 			
 			[NSApp preventWindowOrdering]; 
@@ -1061,7 +1060,7 @@ enum { kNext_Tag = 'j', kPrev_Tag = 'k' };
 													  indexOfSelectedItem:anIndex minusWordSet:existingWordSet];
 		}
 	}
-	return [NSArray array];
+	return @[];
 }
 
 
@@ -1078,7 +1077,7 @@ enum { kNext_Tag = 'j', kPrev_Tag = 'k' };
 		NSPoint p = [self convertPoint:[event locationInWindow] fromView:nil];
 		
 		//mouse is inside this column's row's cell's tags frame
-		UnifiedCell *cell = [[[self tableColumns] objectAtIndex:columnIndex] dataCellForRow:rowIndex];
+		UnifiedCell *cell = [[self tableColumns][columnIndex] dataCellForRow:rowIndex];
 		NSRect tagCellRect = [cell nv_tagsRectForFrame:[self frameOfCellAtColumn:columnIndex row:rowIndex]];
 		
 		return [self mouse:p inRect:tagCellRect];
@@ -1147,7 +1146,7 @@ enum { kNext_Tag = 'j', kPrev_Tag = 'k' };
 			[editor setFont:smallerFont range:range];
 			NSMutableParagraphStyle *pstyle = [[[NSMutableParagraphStyle alloc] init] autorelease];
 			[pstyle setAlignment:NSRightTextAlignment];
-			[editor setTypingAttributes:[NSDictionary dictionaryWithObjectsAndKeys:pstyle, NSParagraphStyleAttributeName, smallerFont, NSFontAttributeName, nil]];
+			[editor setTypingAttributes: @{NSParagraphStyleAttributeName: pstyle, NSFontAttributeName: smallerFont}];
 		}
 #endif
 		
@@ -1175,7 +1174,7 @@ enum { kNext_Tag = 'j', kPrev_Tag = 'k' };
 
 - (void)textDidChange:(NSNotification *)aNotification {
 	NSInteger col = [self editedColumn];
-	if (col > -1 && [self attributeSetterForColumn:[[self tableColumns] objectAtIndex:col]] == @selector(setLabelString:)) {
+	if (col > -1 && [self attributeSetterForColumn:[self tableColumns][col]] == @selector(setLabelString:)) {
 		//text changed while editing tags; autocomplete!
 		
 		NSTextView *editor = [aNotification object];
@@ -1191,7 +1190,7 @@ enum { kNext_Tag = 'j', kPrev_Tag = 'k' };
 
 - (NSArray *)labelCompletionsForString:(NSString *)fieldString index:(NSInteger)index{
     NSRange charRange = [fieldString rangeOfString:fieldString];
-    NSArray *tags = [NSArray arrayWithObject:@""];
+    NSArray *tags = @[@""];
     if (charRange.location != NSNotFound) {		
 		NSCharacterSet *set = [NSCharacterSet labelSeparatorCharacterSet];
 		NSString *str = fieldString;

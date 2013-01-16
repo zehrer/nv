@@ -13,11 +13,11 @@
 //used by DeletedNoteObject and NoteObject
 
 - (void)setSyncObjectAndKeyMD:(NSDictionary*)aDict forService:(NSString*)serviceName {
-	NSMutableDictionary *dict = [syncServicesMD objectForKey:serviceName];
+	NSMutableDictionary *dict = syncServicesMD[serviceName];
 	if (!dict) {
 		dict = [[NSMutableDictionary alloc] initWithDictionary:aDict];
 		if (!syncServicesMD) syncServicesMD = [[NSMutableDictionary alloc] init];
-		[syncServicesMD setObject:dict forKey:serviceName];
+		syncServicesMD[serviceName] = dict;
 	} else {
 		[dict addEntriesFromDictionary:aDict];
 	}

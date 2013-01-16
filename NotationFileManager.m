@@ -318,7 +318,7 @@ long BlockSizeForNotation(NotationController *controller) {
 	NoteObject *dbNote = nil, *walNote = nil;
 	
 	for (i=0; i<[allNotes count]; i++) {
-		NoteObject *obj = [allNotes objectAtIndex:i];
+		NoteObject *obj = allNotes[i];
 		
 		if (!dbNote && [obj.filename isEqualToString:NotesDatabaseFileName])
 			dbNote = obj;
@@ -627,7 +627,7 @@ terminate:
 	
 	 NSInteger tag = 0;
 	 [[NSWorkspace sharedWorkspace] performFileOperation:NSWorkspaceRecycleOperation source:NSTemporaryDirectory() destination:@"" 
-												   files:[NSArray arrayWithObject:[sillyDirectory lastPathComponent]] tag:&tag];
+												   files: @[sillyDirectory.lastPathComponent] tag:&tag];
 }
 
 + (OSStatus)trashFolderRef:(FSRef*)trashRef forChild:(FSRef*)childRef {

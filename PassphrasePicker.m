@@ -47,7 +47,7 @@
 	
 	if (disclosed) {
 		[self performSelector:@selector(setAdvancedViewHidden:) 
-				   withObject:[NSNumber numberWithBool:NO] afterDelay:0.0];
+				   withObject:@NO afterDelay:0.0];
 	} else {
 		[advancedView setHidden:YES];
 	}

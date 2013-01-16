@@ -159,7 +159,7 @@ NSAttributedString *AttributedStringForSelection(NSAttributedString *str, BOOL w
 		alignStyle = [[NSMutableParagraphStyle alloc] init];
 		[alignStyle setAlignment:NSRightTextAlignment];
 	}
-	return [NSMutableDictionary dictionaryWithObjectsAndKeys:alignStyle, NSParagraphStyleAttributeName, [self font], NSFontAttributeName, nil];
+	return [@{NSParagraphStyleAttributeName: alignStyle, NSFontAttributeName: self.font} mutableCopy];
 }
 
 - (void)drawWithFrame:(NSRect)cellFrame inView:(NSView *)controlView {	
@@ -175,9 +175,9 @@ NSAttributedString *AttributedStringForSelection(NSAttributedString *str, BOOL w
 	
 	NSColor *textColor = ([self isHighlighted] && isActive) ? [NSColor whiteColor] : (![self isHighlighted] ? [[self class] dateColorForTint]/*[NSColor grayColor]*/ : nil);
 	if (textColor)
-		[baseAttrs setObject:textColor forKey:NSForegroundColorAttributeName];
+		baseAttrs[NSForegroundColorAttributeName] = textColor;
 	if ([self isHighlighted] && ([tv selectionHighlightStyle] == NSTableViewSelectionHighlightStyleSourceList)) {
-		[baseAttrs setObject:ShadowForSnowLeopard() forKey:NSShadowAttributeName];
+		baseAttrs[NSShadowAttributeName] = ShadowForSnowLeopard();
 	}
 	
 	float fontHeight = [tv tableFontHeight];
@@ -213,8 +213,7 @@ NSAttributedString *AttributedStringForSelection(NSAttributedString *str, BOOL w
 	if ([tv currentEditor] && [self isHighlighted]) {
 		//needed because the body text is normally not drawn while editing
 		NSMutableAttributedString *cloneStr = [[self attributedStringValue] mutableCopy];
-		[cloneStr addAttributes:[NSDictionary dictionaryWithObjectsAndKeys:[self font], NSFontAttributeName, textColor, 
-								 NSForegroundColorAttributeName, nil] range:NSMakeRange(0, [cloneStr length])];
+		[cloneStr addAttributes:@{NSFontAttributeName: [self font], NSForegroundColorAttributeName: textColor} range:NSMakeRange(0, [cloneStr length])];
 		[cloneStr addAttributes:LineTruncAttributesForTitle() range:NSMakeRange(0, noteObject.title.length)];
 		
 		[cloneStr drawWithRect:NSInsetRect([self titleRectForBounds:cellFrame], 2., 0.) options: NSStringDrawingTruncatesLastVisibleLine | NSStringDrawingUsesLineFragmentOrigin];

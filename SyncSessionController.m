@@ -49,13 +49,13 @@ static void SleepCallBack(void *refcon, io_service_t y, natural_t messageType, v
 
 + (NSArray*)allServiceNames {
 	static NSArray *allNames = nil;
-	if (!allNames) allNames = [[NSArray alloc] initWithObjects:SimplenoteServiceName, nil];
+	if (!allNames) allNames = @[SimplenoteServiceName];
 	return allNames;
 }
 
 + (NSArray*)allServiceClasses {
 	static NSArray *allClasses = nil;
-	if (!allClasses) allClasses = [[NSArray alloc] initWithObjects:NSClassFromString(@"SimplenoteSession"), nil];
+	if (!allClasses) allClasses = @[NSClassFromString(@"SimplenoteSession")];
 	
 	return allClasses;
 }
@@ -130,7 +130,7 @@ static void SleepCallBack(void *refcon, io_service_t y, natural_t messageType, v
 	
 	if (!syncServiceSessions) syncServiceSessions = [[NSMutableDictionary alloc] initWithCapacity:1];
 	
-	id<SyncServiceSession> session = [syncServiceSessions objectForKey:serviceName];
+	id<SyncServiceSession> session = syncServiceSessions[serviceName];
 	
 	if (!session) {		
 		if ([serviceName isEqualToString:SimplenoteServiceName]) {
@@ -139,7 +139,7 @@ static void SleepCallBack(void *refcon, io_service_t y, natural_t messageType, v
 			
 			SimplenoteSession *snSession = [[SimplenoteSession alloc] initWithNotationPrefs:notationPrefs];
 			if (snSession) {
-				[syncServiceSessions setObject:snSession forKey:serviceName];
+				syncServiceSessions[serviceName] = snSession;
 				[snSession setDelegate:syncDelegate];
 				 //owned by syncServiceSessions				
 			}
@@ -156,7 +156,7 @@ static void SleepCallBack(void *refcon, io_service_t y, natural_t messageType, v
 }
 
 - (void)invalidateSyncService:(NSString*)serviceName {
-	id<SyncServiceSession> session = [syncServiceSessions objectForKey:serviceName];
+	id<SyncServiceSession> session = syncServiceSessions[serviceName];
 	
 	//ensure that reachability is unscheduled if dealloc of session does not occur here
 	if ([session respondsToSelector:@selector(invalidateReachabilityRefs)])
@@ -166,7 +166,7 @@ static void SleepCallBack(void *refcon, io_service_t y, natural_t messageType, v
 	[session setDelegate:nil];
 	[syncServiceSessions removeObjectForKey:serviceName];
 	
-	[[syncServiceTimers objectForKey:serviceName] invalidate];
+	[syncServiceTimers[serviceName] invalidate];
 	[syncServiceTimers removeObjectForKey:serviceName];
 	
 	//can't unregister power-change-callback here because network interruptions could extend sleep via dissociating the notifier
@@ -177,11 +177,11 @@ static void SleepCallBack(void *refcon, io_service_t y, natural_t messageType, v
 	
 	id <SyncServiceSession> session = [self _sessionForSyncService:serviceName];
 	if (session) {
-		if (![syncServiceTimers objectForKey:serviceName]) {
+		if (!syncServiceTimers[serviceName]) {
 			
 			NSTimer *timer = [NSTimer scheduledTimerWithTimeInterval:[notationPrefs syncFrequencyInMinutesForServiceName:serviceName] * 60.0
 															  target:self selector:@selector(handleSyncServiceTimer:) userInfo:session repeats:YES];
-			[syncServiceTimers setObject:timer forKey:serviceName];
+			syncServiceTimers[serviceName] = timer;
 		}
 		
 		[self _registerPowerChangeCallbackIfNecessary];
@@ -216,13 +216,13 @@ static void SleepCallBack(void *refcon, io_service_t y, natural_t messageType, v
 - (void)invalidateAllServices {
 	NSArray *svcs = [[syncServiceSessions allKeys] copy];
 	NSUInteger i = 0;
-	for (i=0; i<[svcs count]; i++) [self invalidateSyncService:[svcs objectAtIndex:i]];
+	for (i=0; i<[svcs count]; i++) [self invalidateSyncService:svcs[i]];
 }
 
 - (void)initializeAllServices {
 	NSArray *svcs = [[self class] allServiceNames];
 	NSUInteger i = 0;
-	for (i=0; i<[svcs count]; i++) [self initializeService:[svcs objectAtIndex:i]];
+	for (i=0; i<[svcs count]; i++) [self initializeService:svcs[i]];
 }
 
 
@@ -249,8 +249,8 @@ static void SleepCallBack(void *refcon, io_service_t y, natural_t messageType, v
 	NSArray *svcs = [[self class] allServiceNames];
 	NSUInteger i = 0;
 	for (i=0; i<[svcs count]; i++) {
-		Class class = [[[self class] allServiceClasses] objectAtIndex:i];
-		NSString *serviceName = [svcs objectAtIndex:i];
+		Class class = [[self class] allServiceClasses][i];
+		NSString *serviceName = svcs[i];
 		BOOL isEnabled = [notationPrefs syncServiceIsEnabled:serviceName];
 		
 		//"<Name>" (if disabled, "<Name>: Disabled")
@@ -260,14 +260,14 @@ static void SleepCallBack(void *refcon, io_service_t y, natural_t messageType, v
 		[serviceHeaderItem setEnabled:NO];
 		[aMenu addItem:serviceHeaderItem];
 		
-		id <SyncServiceSession> session = [syncServiceSessions objectForKey:serviceName];
+		id <SyncServiceSession> session = syncServiceSessions[serviceName];
 		if (session) {
 			NSArray *tasks = [[session activeTasks] allObjects];
 			if ([tasks count]) {
 				//one item per task
 				NSUInteger j = 0;
 				for (j=0; j<[tasks count]; j++) {
-					NSMenuItem *taskItem = [[NSMenuItem alloc] initWithTitle:[[tasks objectAtIndex:j] statusText] action:NULL keyEquivalent:@""];
+					NSMenuItem *taskItem = [[NSMenuItem alloc] initWithTitle:[tasks[j] statusText] action:NULL keyEquivalent:@""];
 					[taskItem setEnabled:NO];
 					[aMenu addItem:taskItem];
 				}
@@ -302,7 +302,7 @@ static void SleepCallBack(void *refcon, io_service_t y, natural_t messageType, v
 			//if neither is missing, a generic error that ought never appear
 			NSDictionary *acctDict = [notationPrefs syncAccountForServiceName:serviceName];
 			NSMenuItem *badItem = nil;
-			if (![acctDict objectForKey:@"username"] || ![acctDict objectForKey:@"password"]) {
+			if (!acctDict[@"username"] || !acctDict[@"password"]) {
 				badItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Incorrect login and password", @"sync status menu msg")
 													  action:nil keyEquivalent:@""];
 			} else if (isEnabled) {
@@ -331,7 +331,7 @@ static void SleepCallBack(void *refcon, io_service_t y, natural_t messageType, v
 	NSArray *sessions = [syncServiceSessions allValues];
 	NSUInteger i = 0;
 	for (i=0; i<[sessions count]; i++) {
-		if ([[sessions objectAtIndex:i] isRunning]) return YES;
+		if ([sessions[i] isRunning]) return YES;
 	}
 	return NO;
 }
@@ -340,10 +340,10 @@ static void SleepCallBack(void *refcon, io_service_t y, natural_t messageType, v
 	NSArray *svcs = [[self class] allServiceNames];
 	NSUInteger i = 0;
 	for (i=0; i<[svcs count]; i++) {
-		NSString *serviceName = [svcs objectAtIndex:i];
+		NSString *serviceName = svcs[i];
 		if ([notationPrefs syncServiceIsEnabled:serviceName]) {
 			//only report errors for those services with which the user is expecting (or hoping) to sync
-			id <SyncServiceSession> session = [syncServiceSessions objectForKey:serviceName];
+			id <SyncServiceSession> session = syncServiceSessions[serviceName];
 			if (!session) return YES;
 			if (![session isRunning]) {
 				//report errors for only stopped sessions
@@ -396,7 +396,7 @@ static void SleepCallBack(void *refcon, io_service_t y, natural_t messageType, v
 	NSArray *sessions = [syncServiceSessions allValues];
 	NSUInteger i = 0;
 	for (i=0; i<[sessions count]; i++) {
-		id <SyncServiceSession> session = [sessions objectAtIndex:i];
+		id <SyncServiceSession> session = sessions[i];
 		if ([session hasUnsyncedChanges]) {
 			
 			//if the session has an error, the last reachability status is bad, and nothing is currently in progress, then skip pushing for it

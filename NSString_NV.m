@@ -189,7 +189,7 @@ CFDateFormatterRef simplenoteDateFormatter(NSInteger lowPrecision) {
 	
 	NSUInteger i;
 	for (i=0; i<[array count]; i++) {
-		NSString *aWord = [array objectAtIndex:i];
+		NSString *aWord = array[i];
 		if ([aWord length] > 0) {
 			[titles addObject:aWord];
 		}
@@ -275,7 +275,7 @@ CFDateFormatterRef simplenoteDateFormatter(NSInteger lowPrecision) {
 - (void)copyItemToPasteboard:(id)sender {
 	
 	NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
-	[pasteboard declareTypes:[NSArray arrayWithObject:NSStringPboardType] owner:nil];
+	[pasteboard declareTypes: @[NSStringPboardType] owner:nil];
 	[pasteboard setString:[sender isKindOfClass:[NSMenuItem class]] ? [sender representedObject] : self
 				  forType:NSStringPboardType];
 }
@@ -493,7 +493,7 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, NSUInteger charIndex) 
 		reasons = [NSDictionary dictionaryWithContentsOfFile:path];
 	}
 	
-	NSString *reason = [reasons objectForKey:[[NSNumber numberWithInt:(int)err] stringValue]];
+	NSString *reason = reasons[[@((int)err) stringValue]];
 	if (!reason)
 		return [NSString stringWithFormat:NSLocalizedString(@"an error of type %d occurred", @"string of last resort for errors not found in CarbonErrorStrings"), (int)err];
 	return reason;

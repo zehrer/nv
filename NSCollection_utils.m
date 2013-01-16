@@ -26,9 +26,9 @@
 @implementation NSDictionary (FontTraits)
 
 - (BOOL)attributesHaveFontTrait:(NSFontTraitMask)desiredTrait orAttribute:(NSString*)attrName {
-	if ([self objectForKey:attrName])
+	if (self[attrName])
 		return YES;
-	NSFont *font = [self objectForKey:NSFontAttributeName];
+	NSFont *font = self[NSFontAttributeName];
 	if (font) {
 		NSFontTraitMask traits = [[NSFontManager sharedFontManager] traitsOfFont:font];
 		return traits & desiredTrait;
@@ -43,22 +43,22 @@
 @implementation NSMutableDictionary (FontTraits)
 
 - (void)addDesiredAttributesFromDictionary:(NSDictionary*)dict {
-	id strikethroughStyle = [dict objectForKey:NSStrikethroughStyleAttributeName];
-	id hiddenDoneTagStyle = [dict objectForKey:NVHiddenDoneTagAttributeName];
-	id strokeWidthStyle = [dict objectForKey:NSStrokeWidthAttributeName];
-	id obliquenessStyle = [dict objectForKey:NSObliquenessAttributeName];
-	id linkStyle = [dict objectForKey:NSLinkAttributeName];
+	id strikethroughStyle = dict[NSStrikethroughStyleAttributeName];
+	id hiddenDoneTagStyle = dict[NVHiddenDoneTagAttributeName];
+	id strokeWidthStyle = dict[NSStrokeWidthAttributeName];
+	id obliquenessStyle = dict[NSObliquenessAttributeName];
+	id linkStyle = dict[NSLinkAttributeName];
 	
 	if (linkStyle)
-		[self setObject:linkStyle forKey:NSLinkAttributeName];
+		self[NSLinkAttributeName] = linkStyle;
 	if (strikethroughStyle)
-		[self setObject:[NSNumber numberWithInt:NSUnderlineStyleSingle] forKey:NSStrikethroughStyleAttributeName];
+		self[NSStrikethroughStyleAttributeName] = @(NSUnderlineStyleSingle);
 	if (strokeWidthStyle)
-		[self setObject:strokeWidthStyle forKey:NSStrokeWidthAttributeName];
+		self[NSStrokeWidthAttributeName] = strokeWidthStyle;
 	if (obliquenessStyle)
-		[self setObject:obliquenessStyle forKey:NSObliquenessAttributeName];
+		self[NSObliquenessAttributeName] = obliquenessStyle;
 	if (hiddenDoneTagStyle)
-		[self setObject:hiddenDoneTagStyle forKey:NVHiddenDoneTagAttributeName];
+		self[NVHiddenDoneTagAttributeName] = hiddenDoneTagStyle;
 }
 
 - (void)applyStyleInverted:(BOOL)opposite trait:(NSFontTraitMask)trait forFont:(NSFont*)font 
@@ -74,12 +74,12 @@
 		NSFontTraitMask newTraits = [fontMan traitsOfFont:font];
 		
 		if (!(newTraits & trait)) {
-			[self setObject:value forKey:attrName];
+			self[attrName] = value;
 		} else {
 			[self removeObjectForKey:attrName];
 		}
 	}
-	[self setObject:font forKey:NSFontAttributeName];
+	self[NSFontAttributeName] = font;
 }
 
 @end
@@ -87,7 +87,7 @@
 @implementation NSDictionary (HTTP)
 
 + (NSDictionary*)optionsDictionaryWithTimeout:(float)timeout {
-	return [NSDictionary dictionaryWithObject:[NSNumber numberWithFloat:timeout] forKey:NSTimeoutDocumentOption];
+	return @{NSTimeoutDocumentOption: @(timeout)};
 }
 
 - (NSString*)URLEncodedString {
@@ -98,7 +98,7 @@
 	NSString *aKey = nil;
 	while ((aKey = [enumerator nextObject])) {
 		[pairs addObject:[NSString stringWithFormat: @"%@=%@", 
-						  [aKey stringWithPercentEscapes], [[self objectForKey:aKey] stringWithPercentEscapes]]];
+						  [aKey stringWithPercentEscapes], [self[aKey] stringWithPercentEscapes]]];
 		
 	}
 	return [pairs componentsJoinedByString:@"&"];
@@ -126,7 +126,7 @@
 	NSUInteger i = 0;
 	NSMutableArray *objects = [NSMutableArray arrayWithCapacity:[self count]];
 	for (i=0; i<[self count]; i++) {
-		id obj = [[self objectAtIndex:i] objectForKey:aKey];
+		id obj = self[i][aKey];
 		if (obj) [objects addObject:obj];
 	}
 	return objects;
@@ -135,7 +135,7 @@
 - (NSUInteger)indexOfNoteWithUUIDBytes:(CFUUIDBytes*)bytes {
 	NSUInteger i;
     for (i=0; i<[self count]; i++) {
-		NoteObject *note = [self objectAtIndex:i];
+		NoteObject *note = self[i];
 		CFUUIDBytes *noteBytes = [note uniqueNoteIDBytes];
 		if (!memcmp(noteBytes, bytes, sizeof(CFUUIDBytes)))
 			return i;
@@ -179,14 +179,14 @@
 	//}
 	
 //	NSMenu *urlsMenu = [[NSMenu alloc] initWithTitle:@"URLs Menu"];
-	NSDictionary *blackAttrs = [NSDictionary dictionaryWithObjectsAndKeys:[NSFont menuFontOfSize:13.0f], NSFontAttributeName, nil];
-	NSDictionary *grayAttrs = [NSDictionary dictionaryWithObjectsAndKeys:[NSColor grayColor], NSForegroundColorAttributeName, 
-		[NSFont menuFontOfSize:13.0f], NSFontAttributeName, nil];
+	NSDictionary *blackAttrs = @{NSFontAttributeName: [NSFont menuFontOfSize:13.0f]};
+	NSDictionary *grayAttrs = @{NSForegroundColorAttributeName: [NSColor grayColor], 
+		NSFontAttributeName: [NSFont menuFontOfSize:13.0f]};
 
 	BOOL didAddInitialSeparator = NO;
 	
 	for (i = 0; i<[self count]; i++) {
-		NoteObject *aNote = [self objectAtIndex:i];
+		NoteObject *aNote = self[i];
 		NSArray *urls = [[aNote contentString] allLinks];
 		if ([urls count] > 0) {
 			if (!didAddInitialSeparator) {
@@ -196,7 +196,7 @@
 			
 			unsigned int j;
 			for (j=0; j<[urls count]; j++) {
-				NSURL *url = [urls objectAtIndex:j];
+				NSURL *url = urls[j];
 				NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Copy URL",@"contextual menu item title to copy urls")
 															  action:@selector(copyItemToPasteboard:) keyEquivalent:@""];
 				//_other_ people would use "_web_userVisibleString" here, but resourceSpecifier looks like it's good enough
