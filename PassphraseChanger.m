@@ -120,15 +120,12 @@
 	[currentPasswordField selectText:nil];
 	
 	[okChangeButton setEnabled:NO];
-		
-	[NSApp beginSheet:changePassphraseWindow modalForWindow:window modalDelegate:self 
-	   didEndSelector:@selector(sheetDidEnd:returnCode:contextInfo:) contextInfo:NULL];
-}
 
-- (void)sheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo {
-	[newPasswordField setStringValue:@""];
-	[verifyChangedPasswordField setStringValue:@""];
-	[currentPasswordField setStringValue:@""];
+	[NSApp rbl_beginSheet: changePassphraseWindow modalForWindow: window completionHandler: ^(NSInteger returnCode) {
+		[newPasswordField setStringValue:@""];
+		[verifyChangedPasswordField setStringValue:@""];
+		[currentPasswordField setStringValue:@""];
+	}];
 }
 
 - (void)textDidChange:(NSNotification *)aNotification {

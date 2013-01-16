@@ -85,17 +85,14 @@
 	[newPasswordField selectText:nil];
 	
 	[okNewButton setEnabled:NO];
-	
-	[NSApp beginSheet:newPassphraseWindow modalForWindow:mainWindow modalDelegate:self 
-	   didEndSelector:@selector(sheetDidEnd:returnCode:contextInfo:) contextInfo:NULL];
-}
 
-- (void)sheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo {
-	[newPasswordField setStringValue:@""];
-	[verifyNewPasswordField setStringValue:@""];
+	[NSApp rbl_beginSheet: newPassphraseWindow modalForWindow: mainWindow completionHandler: ^(NSInteger returnCode) {
+		[newPasswordField setStringValue:@""];
+		[verifyNewPasswordField setStringValue:@""];
 
-	id <PassphrasePickerDelegate> delegate = self.delegate;
-	[delegate passphrasePicker:self choseAPassphrase:returnCode];
+		id <PassphrasePickerDelegate> delegate = self.delegate;
+		[delegate passphrasePicker:self choseAPassphrase:returnCode];
+	}];
 }
 
 

@@ -141,16 +141,13 @@ static const NSStringEncoding AllowedEncodings[] = {
 		
 		//setup panel for given note
 		if ([self tryToUpdateTextForEncoding:currentEncoding]) {
-			[NSApp beginSheet:window modalForWindow:[[NSApp delegate] window] modalDelegate:self 
-			   didEndSelector:@selector(sheetDidEnd:returnCode:contextInfo:) contextInfo:NULL];
+			[NSApp rbl_beginSheet: window modalForWindow: [[NSApp delegate] window] completionHandler:^(NSInteger returnCode) {
+				note = nil;
+			}];
 		} else {
 			//this shouldn't happen
 		}
 	}
-}
-
-- (void)sheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode  contextInfo:(void  *)contextInfo {
-	note = nil;
 }
 
 
