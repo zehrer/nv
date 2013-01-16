@@ -43,7 +43,7 @@
 #define TextilePreview 13373
 #endif
 
-@interface AppController : NSObject <NSToolbarDelegate, NSTableViewDelegate, NSWindowDelegate, NSTextFieldDelegate, NSTextViewDelegate, NSSplitViewDelegate, BookmarksControllerDelegate, NotationControllerDelegate, AlienNoteImporterReceptionDelegate> {
+@interface AppController : NSObject <NSToolbarDelegate, NSTableViewDelegate, NSWindowDelegate, NSTextFieldDelegate, NSTextViewDelegate, NSSplitViewDelegate, BookmarksControllerDelegate, NotationControllerDelegate> {
 	IBOutlet NSMenuItem *fsMenuItem;
 	BOOL wasVert;
 	BOOL wasDFVisible;

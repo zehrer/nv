@@ -79,7 +79,9 @@
 					linkTitleType = [NSString customPasteboardTypeOfCode:0x75726C64];
 					linkTitle = [types containsObject:linkTitleType] ? [[pasteboard stringForType:linkTitleType] syntheticTitleAndTrimmedBody:NULL] : nil;
 				}
-				[[[AlienNoteImporter alloc] init] importURLInBackground:url linkTitle:linkTitle receptionDelegate:self];
+				[[[AlienNoteImporter alloc] init] importURLInBackground:url linkTitle:linkTitle completion: ^(NSArray *notes) {
+					[notationController addNotes: notes];
+				}];
 				return YES;
 			}
 		}
@@ -232,7 +234,10 @@
 				if (title) {
 					linkTitle = title;
 				}
-				[[[AlienNoteImporter alloc] init] importURLInBackground:theURL linkTitle:linkTitle receptionDelegate:self];
+
+				[[[AlienNoteImporter alloc] init] importURLInBackground: theURL linkTitle: linkTitle completion: ^(NSArray *notes) {
+					[notationController addNotes: notes];
+				}];
 			}
 			return YES;
 		} else {

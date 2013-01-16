@@ -22,19 +22,9 @@ extern NSString *RetrievedPasswordKey;
 @class NotationPrefs;
 @class NoteObject;
 
-@class AlienNoteImporter;
-
-@protocol AlienNoteImporterReceptionDelegate <NSObject>
-
-- (void)noteImporter:(AlienNoteImporter *)importer importedNotes:(NSArray *)notes;
-
-@end
-
 @interface AlienNoteImporter : NSObject {
 	IBOutlet NSButton *grabCreationDatesButton;
 	IBOutlet NSView *importAccessoryView;
-
-	SEL importerSelector;
 
 	id source;
 	NSMutableDictionary *documentSettings;
@@ -52,13 +42,11 @@ extern NSString *RetrievedPasswordKey;
 
 + (AlienNoteImporter *)importerWithPath:(NSString *)path;
 
-- (void)importNotesFromDialogAroundWindow:(NSWindow *)mainWindow receptionDelegate:(id <AlienNoteImporterReceptionDelegate>)receiver;
+- (void)importNotesFromDialogAroundWindow:(NSWindow *)mainWindow completion:(void(^)(NSArray *notes))block;
 
-- (void)importURLInBackground:(NSURL *)aURL linkTitle:(NSString *)linkTitle receptionDelegate:(id <AlienNoteImporterReceptionDelegate>)receiver;
+- (void)importURLInBackground:(NSURL *)aURL linkTitle:(NSString *)linkTitle completion:(void(^)(NSArray *notes))block;
 
 + (NSString *)blorPath;
-
-+ (NSBundle *)PDFKitBundle;
 
 + (Class)PDFDocClass;
 
@@ -89,5 +77,4 @@ extern NSString *RetrievedPasswordKey;
 
 - (NSString *)markdownFromHTMLFile:(NSString *)htmlFile;
 
-@property(nonatomic, weak, readonly) id <AlienNoteImporterReceptionDelegate> receptionDelegate;
 @end

@@ -75,10 +75,12 @@ static const NSStringEncoding AllowedEncodings[] = {
 
 
 + (EncodingsManager *)sharedManager {
-	static EncodingsManager *man = nil;
-	if (!man)
-		man = [[EncodingsManager alloc] init];
-	return man;
+	static dispatch_once_t onceToken;
+	static EncodingsManager *sharedManager = nil;
+	dispatch_once(&onceToken, ^{
+		sharedManager = [[EncodingsManager alloc] init];
+	});
+	return sharedManager;
 }
 
 - (BOOL)checkUnicode {

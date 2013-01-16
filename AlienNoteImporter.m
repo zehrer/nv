@@ -31,6 +31,13 @@
 #import <objc/message.h>
 #import <Quartz/Quartz.h>
 
+typedef NS_ENUM(NSInteger, NTVNoteImportType) {
+	NTVNoteImportTypeNone,
+	NTVNoteImportTypePaths,
+	NTVNoteImportTypeDirectory,
+	NTVNoteImportTypeFile
+};
+
 NSString *PasswordWasRetrievedFromKeychainKey = @"PasswordRetrievedFromKeychain";
 NSString *RetrievedPasswordKey = @"RetrievedPassword";
 NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
@@ -46,7 +53,7 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 
 - (NSArray *)_importDelimitedFile:(NSString *)filename withDelimiter:(NSString *)delimiter;
 
-@property(nonatomic, weak, readwrite) id <AlienNoteImporterReceptionDelegate> receptionDelegate;
+@property (nonatomic) NTVNoteImportType importType;
 @end
 
 @implementation AlienNoteImporter
@@ -104,15 +111,10 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 }
 
 - (id)initWithStoragePaths:(NSArray *)filenames {
+	if (!filenames) return nil;
 	if ((self = [self init])) {
-		if ((source = filenames)) {
-
-			importerSelector = @selector(notesWithPaths:);
-		} else {
-			return nil;
-		}
+		self.importType = NTVNoteImportTypePaths;
 	}
-
 	return self;
 }
 
@@ -124,10 +126,9 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 			NSDictionary *pathAttributes = [[NSFileManager defaultManager] attributesOfItemAtPath:filename error:NULL];;
 			if ([[filename pathExtension] caseInsensitiveCompare:@"rtfd"] != NSOrderedSame &&
 					[pathAttributes[NSFileType] isEqualToString:NSFileTypeDirectory]) {
-
-				importerSelector = @selector(notesInDirectory:);
+				self.importType = NTVNoteImportTypeDirectory;
 			} else {
-				importerSelector = @selector(notesInFile:);
+				self.importType = NTVNoteImportTypeFile;
 			}
 		} else {
 			return nil;
@@ -138,31 +139,8 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 }
 
 
-+ (NSBundle *)PDFKitBundle {
-	static NSBundle *PDFKitBundle = nil;
-	if (PDFKitBundle == nil) {
-		NSString *PDFKitPath = @"/System/Library/Frameworks/Quartz.framework/Frameworks/PDFKit.framework";
-		if (![[NSFileManager defaultManager] fileExistsAtPath:PDFKitPath]) {
-			NSLog(@"Couldn't find PDFKit.framework");
-			return nil;
-		}
-		PDFKitBundle = [NSBundle bundleWithPath:PDFKitPath];
-		if (![PDFKitBundle load]) {
-			NSLog(@"Couldn't load PDFKit.framework");
-		}
-	}
-	return PDFKitBundle;
-}
-
 + (Class)PDFDocClass {
-	static Class PDFDocClass = nil;
-	if (PDFDocClass == nil) {
-		PDFDocClass = [[self PDFKitBundle] classNamed:@"PDFDocument"];
-		if (PDFDocClass == nil) {
-			NSLog(@"Couldn't find PDFDocument class in PDFKit.framework");
-		}
-	}
-	return PDFDocClass;
+	return [PDFDocument class];
 }
 
 - (NSDictionary *)documentSettings {
@@ -180,7 +158,7 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 	return importAccessoryView;
 }
 
-- (void)importNotesFromDialogAroundWindow:(NSWindow *)mainWindow receptionDelegate:(id)receiver {
+- (void)importNotesFromDialogAroundWindow:(NSWindow *)mainWindow completion:(void(^)(NSArray *notes))block {
 	NSOpenPanel *openPanel = [NSOpenPanel openPanel];
 	[openPanel setCanChooseFiles:YES];
 	[openPanel setAllowsMultipleSelection:YES];
@@ -192,17 +170,16 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 	[grabCreationDatesButton setState:[[NSUserDefaults standardUserDefaults] boolForKey:ShouldImportCreationDates]];
 
 	[openPanel beginSheetModalForWindow:mainWindow completionHandler:^(NSInteger result) {
-		if (receiver && [receiver respondsToSelector:@selector(noteImporter:importedNotes:)]) {
-
+		if (block) {
 			if (result == NSOKButton) {
 				shouldGrabCreationDates = [grabCreationDatesButton state] == NSOnState;
 				[[NSUserDefaults standardUserDefaults] setBool:shouldGrabCreationDates forKey:ShouldImportCreationDates];
 				NSArray *notes = [self notesWithURLs:openPanel.URLs];
 				if (notes && [notes count])
-					[receiver noteImporter:self importedNotes:notes];
+					block(notes);
 				else
 					NSRunAlertPanel(NSLocalizedString(@"None of the selected files could be imported.", nil),
-							NSLocalizedString(@"Please choose other files.", nil), NSLocalizedString(@"OK", nil), nil, nil);
+									NSLocalizedString(@"Please choose other files.", nil), NSLocalizedString(@"OK", nil), nil, nil);
 			}
 		} else {
 			NSLog(@"Where's my note importing delegate?");
@@ -211,12 +188,18 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 	}];
 }
 
+static NSString *const NTVNoteImporterCompletionBlockKey = @"NTVNoteImporterCompletionBlock";
+static NSString *const NTVNoteImporterLinkTitleKey = @"NTVNoteImporterLinkTitle";
+
 - (void)URLGetter:(URLGetter *)getter returnedDownloadedFile:(NSString *)filename {
 
 	BOOL foundNotes = NO;
 
-	id <AlienNoteImporterReceptionDelegate> receptionDelegate = self.receptionDelegate;
-	if ([receptionDelegate respondsToSelector:@selector(noteImporter:importedNotes:)]) {
+	NSDictionary *userInfo = getter.userData;
+	void (^block)(NSArray *) = userInfo[NTVNoteImporterCompletionBlockKey];
+	NSString *linkTitle = userInfo[NTVNoteImporterLinkTitleKey];
+
+	if (block) {
 
 		if (filename) {
 			NSArray *notes = [self notesInFile:filename];
@@ -229,14 +212,14 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 					[content santizeForeignStylesForImporting];
 
 					[[notes lastObject] setContentString:content];
-					if ([getter userData]) [[notes lastObject] setTitleString:[getter userData]];
+					if (linkTitle.length) [[notes lastObject] setTitleString: linkTitle];
 
 					//prefixing should push existing selections forward:
 					NSRange selRange = [[notes lastObject] lastSelectedRange];
 					if (selRange.length && prefixedSourceLength)
 						[[notes lastObject] setSelectedRange:NSMakeRange(selRange.location + prefixedSourceLength, selRange.length)];
 
-					[receptionDelegate noteImporter:self importedNotes:notes];
+					block(notes);
 
 					foundNotes = YES;
 				}
@@ -249,31 +232,39 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 				NSMutableAttributedString *newString = [[NSMutableAttributedString alloc] initWithString:urlString];
 				[newString santizeForeignStylesForImporting];
 
-				NoteObject *noteObject = [[NoteObject alloc] initWithNoteBody:newString title:[getter userData] ? [getter userData] : urlString
+				NoteObject *noteObject = [[NoteObject alloc] initWithNoteBody:newString title: linkTitle.length ? linkTitle : urlString
 																	 delegate:nil format:SingleDatabaseFormat labels:nil];
 
-				[receptionDelegate noteImporter:self importedNotes:@[noteObject]];
+				block(@[noteObject]);
 			}
 		}
 
 	} else {
-		NSLog(@"Where's my note importing delegate?");
+		NSLog(@"Where's my note importing callback?");
 		NSBeep();
 	}
 
 
 }
 
-- (void)importURLInBackground:(NSURL *)aURL linkTitle:(NSString *)linkTitle receptionDelegate:(id)receiver {
-
-	self.receptionDelegate = receiver;
-
-	[[[URLGetter alloc] initWithURL:aURL delegate:self userData:linkTitle] startProgressIndication:self];
+- (void)importURLInBackground:(NSURL *)aURL linkTitle:(NSString *)linkTitle completion:(void(^)(NSArray *notes))block {
+	[[[URLGetter alloc] initWithURL:aURL delegate:self userData: @{
+		NTVNoteImporterCompletionBlockKey: block ? [block copy] : [NSNull null],
+		NTVNoteImporterLinkTitleKey: linkTitle ? [linkTitle copy] : [NSNull null],
+	}] startProgressIndication:self];
 }
 
 - (NSArray *)importedNotes {
-	if (!importerSelector) return nil;
-	return objc_msgSend(self, importerSelector, source);
+	switch (self.importType) {
+		case NTVNoteImportTypeFile:
+			return [self notesInFile: source]; break;
+		case NTVNoteImportTypePaths:
+			return [self notesWithPaths: source]; break;
+		case NTVNoteImportTypeDirectory:
+			return [self notesInDirectory: source]; break;
+		default:
+			return nil; break;
+	}
 }
 
 - (NSArray *)notesWithPaths:(NSArray *)paths {

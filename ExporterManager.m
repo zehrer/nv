@@ -18,10 +18,12 @@
 @implementation ExporterManager
 
 + (ExporterManager *)sharedManager {
-	static ExporterManager *man = nil;
-	if (!man)
-		man = [[ExporterManager alloc] init];
-	return man;
+	static dispatch_once_t onceToken;
+	static ExporterManager *sharedManager = nil;
+	dispatch_once(&onceToken, ^{
+		sharedManager = [[ExporterManager alloc] init];
+	});
+	return sharedManager;
 }
 
 - (void)awakeFromNib {

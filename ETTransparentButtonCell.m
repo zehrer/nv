@@ -9,7 +9,6 @@
 #import "ETTransparentButtonCell.h"
 
 static NSImage *buttonLeftN, *buttonFillN, *buttonRightN, *buttonLeftP, *buttonFillP, *buttonRightP;
-static NSColor *disabledColor, *enabledColor;
 
 @interface NSCell (BWTBCPrivate)
 - (NSDictionary *)_textAttributes;
@@ -30,9 +29,6 @@ static NSColor *disabledColor, *enabledColor;
 	buttonLeftP = [[NSImage alloc] initWithContentsOfFile:[bundle pathForImageResource:@"TransparentButtonLeftP.tiff"]];
 	buttonFillP = [[NSImage alloc] initWithContentsOfFile:[bundle pathForImageResource:@"TransparentButtonFillP.tiff"]];
 	buttonRightP = [[NSImage alloc] initWithContentsOfFile:[bundle pathForImageResource:@"TransparentButtonRightP.tiff"]];
-
-	enabledColor = [NSColor whiteColor];
-	disabledColor = [NSColor colorWithCalibratedWhite:0.6 alpha:1];
 }
 
 - (void)drawBezelWithFrame:(NSRect)cellFrame inView:(NSView *)controlView {
@@ -74,15 +70,16 @@ static NSColor *disabledColor, *enabledColor;
 	return attributes;
 }
 
++ (NSColor *)ett_disabledColor {
+	return [NSColor colorWithCalibratedWhite:0.6 alpha:1];
+}
+
++ (NSColor *)ett_enabledColor {
+	return [NSColor whiteColor];
+}
+
 - (NSColor *)interiorColor {
-	NSColor *interiorColor;
-
-	if ([self isEnabled])
-		interiorColor = enabledColor;
-	else
-		interiorColor = disabledColor;
-
-	return interiorColor;
+	return self.isEnabled ? [[self class] ett_enabledColor] : [[self class] ett_disabledColor];
 }
 
 - (NSControlSize)controlSize {

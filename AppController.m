@@ -810,13 +810,10 @@ void outletObjectAwoke(id sender) {
 	}
 }
 
-- (void)noteImporter:(AlienNoteImporter *)importer importedNotes:(NSArray *)notes {
-
-	[notationController addNotes:notes];
-}
-
 - (IBAction)importNotes:(id)sender {
-	[[[AlienNoteImporter alloc] init] importNotesFromDialogAroundWindow:window receptionDelegate:self];
+	[[[AlienNoteImporter alloc] init] importNotesFromDialogAroundWindow: window completion: ^(NSArray *notes) {
+		[notationController addNotes: notes];
+	}];
 }
 
 - (void)settingChangedForSelectorString:(NSString *)selectorString {
