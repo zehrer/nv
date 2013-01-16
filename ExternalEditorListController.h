@@ -4,7 +4,8 @@
 //
 //  Created by Zachary Schneirov on 3/14/11.
 
-/*Copyright (c) 2010, Zachary Schneirov. All rights reserved.
+/*
+ Copyright (c) 2010, Zachary Schneirov. All rights reserved.
  This file is part of Notational Velocity.
  
  Notational Velocity is free software: you can redistribute it and/or modify
@@ -18,10 +19,8 @@
  GNU General Public License for more details.
  
  You should have received a copy of the GNU General Public License
- along with Notational Velocity.  If not, see <http://www.gnu.org/licenses/>. */
-
-
-#import <Cocoa/Cocoa.h>
+ along with Notational Velocity.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 extern NSString *ExternalEditorsChangedNotification;
 
@@ -37,15 +36,23 @@ extern NSString *ExternalEditorsChangedNotification;
 	NSMutableDictionary *knownPathExtensions;
 }
 
-- (id)initWithBundleID:(NSString*)aBundleIdentifier resolvedURL:(NSURL*)aURL;
-- (BOOL)canEditNoteDirectly:(NoteObject*)aNote;
-- (BOOL)canEditAllNotes:(NSArray*)notes;
-- (NSImage*)iconImage;
-- (NSURL*)resolvedURL;
-- (NSString*)displayName;
+- (id)initWithBundleID:(NSString *)aBundleIdentifier resolvedURL:(NSURL *)aURL;
+
+- (BOOL)canEditNoteDirectly:(NoteObject *)aNote;
+
+- (BOOL)canEditAllNotes:(NSArray *)notes;
+
+- (NSImage *)iconImage;
+
+- (NSURL *)resolvedURL;
+
+- (NSString *)displayName;
+
 - (BOOL)isInstalled;
+
 - (BOOL)isODBEditor;
-- (NSString*)bundleIdentifier;
+
+- (NSString *)bundleIdentifier;
 
 @end
 
@@ -54,24 +61,38 @@ extern NSString *ExternalEditorsChangedNotification;
 	NSMutableArray *userEditorList;
 	NSArray *ODBEditorList;
 	ExternalEditor *defaultEditor;
-	
+
 	NSMutableSet *editNotesMenus, *editorPrefsMenus;
-	
+
 	NSMutableArray *_installedODBEditors;
 }
 - (id)initWithUserDefaults;
-+ (ExternalEditorListController*)sharedInstance;
+
++ (ExternalEditorListController *)sharedInstance;
+
 - (void)addUserEditorFromDialog:(id)sender;
+
 - (void)resetUserEditors:(id)sender;
+
 - (void)_initDefaults;
-- (NSArray*)_installedODBEditors;
-- (BOOL)editorIsMember:(ExternalEditor*)anEditor;
-+ (NSSet*)ODBAppIdentifiers;
-- (NSArray*)userEditorIdentifiers;
-- (NSMenu*)addEditorPrefsMenu;
-- (NSMenu*)addEditNotesMenu;
+
+- (NSArray *)_installedODBEditors;
+
+- (BOOL)editorIsMember:(ExternalEditor *)anEditor;
+
++ (NSSet *)ODBAppIdentifiers;
+
+- (NSArray *)userEditorIdentifiers;
+
+- (NSMenu *)addEditorPrefsMenu;
+
+- (NSMenu *)addEditNotesMenu;
+
 - (void)menusChanged;
-- (void)_updateMenu:(NSMenu*)theMenu;
-- (ExternalEditor*)defaultExternalEditor;
+
+- (void)_updateMenu:(NSMenu *)theMenu;
+
+- (ExternalEditor *)defaultExternalEditor;
+
 - (void)setDefaultEditor:(id)anEditor;
 @end

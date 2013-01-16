@@ -13,12 +13,12 @@
 
 	//[self setDrawsBackground:YES];
 	//[self setBackgroundColor:[NSColor colorWithCalibratedRed:1.0f green:(252.0f/255.0f) blue:(223.0f/255.0f) alpha:1.0]];
-	
+
 	NSDictionary *defaultTypingAttributes = [[NSDictionary dictionaryWithObject:[NSColor colorWithCalibratedRed:0.3f green:0.3f blue:0.3f alpha:1.0]
 																		 forKey:NSForegroundColorAttributeName] retain];
 	[self setTypingAttributes:defaultTypingAttributes];
 	[self setUsesFontPanel:NO];
-	
+
 	[self setTextContainerInset:NSMakeSize(37, 0)];
 
 	NSRect textFrame = [self frame];
@@ -45,8 +45,8 @@
 
 
 - (void)insertText:(id)aString {
-    
-    [super insertText:[aString stringByTrimmingCharactersInSet:illegalTagCharacters]];
+
+	[super insertText:[aString stringByTrimmingCharactersInSet:illegalTagCharacters]];
 }
 
 @end

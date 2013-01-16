@@ -15,15 +15,14 @@
    - Neither the name of Notational Velocity nor the names of its contributors may be used to endorse 
      or promote products derived from this software without specific prior written permission. */
 
-#import <Cocoa/Cocoa.h>
-
 @class NoteObject;
 
 @interface LabelColumnCell : NSTextFieldCell {
 	NoteObject *noteObject;
 }
 
-- (NoteObject*)noteObject;
-- (void)setNoteObject:(NoteObject*)obj;
+- (NoteObject *)noteObject;
+
+- (void)setNoteObject:(NoteObject *)obj;
 
 @end

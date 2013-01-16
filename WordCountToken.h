@@ -5,9 +5,6 @@
 //  Created by ElasticThreads on 3/1/11.
 //
 
-#import <Cocoa/Cocoa.h>
-
-
 @interface WordCountToken : NSTokenField {
 	//NSColor *txtColor;
 	//NSColor *fldColor;

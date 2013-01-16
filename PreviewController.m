@@ -11,37 +11,34 @@
 #import "NSString_MultiMarkdown.h"
 #import "NSString_Markdown.h"
 #import "NSString_Textile.h"
-#import "NoteObject.h"
 #import "ETTransparentButtonCell.h"
-#import "ETTransparentButton.h"
 #import "NSFileManager+DirectoryLocations.h"
 
 #define kDefaultMarkupPreviewVisible @"markupPreviewVisible"
 
 @interface NSString (MIMEAdditions)
-+ (NSString*)MIMEBoundary;
-+ (NSString*)multipartMIMEStringWithDictionary:(NSDictionary*)dict;
++ (NSString *)MIMEBoundary;
+
++ (NSString *)multipartMIMEStringWithDictionary:(NSDictionary *)dict;
 @end
 
 @implementation NSString (MIMEAdditions)
 //this returns a unique boundary which is used in constructing the multipart MIME body of the POST request
-+ (NSString*)MIMEBoundary
-{
-    static NSString* MIMEBoundary = nil;
-    if(!MIMEBoundary)
-        MIMEBoundary = [[NSString alloc] initWithFormat:@"----_=_nvALT_%@_=_----",[[NSProcessInfo processInfo] globallyUniqueString]];
-    return MIMEBoundary;
++ (NSString *)MIMEBoundary {
+	static NSString *MIMEBoundary = nil;
+	if (!MIMEBoundary)
+		MIMEBoundary = [[NSString alloc] initWithFormat:@"----_=_nvALT_%@_=_----", [[NSProcessInfo processInfo] globallyUniqueString]];
+	return MIMEBoundary;
 }
+
 //this create a correctly structured multipart MIME body for the POST request from a dictionary
-+ (NSString*)multipartMIMEStringWithDictionary:(NSDictionary*)dict
-{
-    NSMutableString* result = [NSMutableString string];
-    for (NSString* key in dict)
-    {
-        [result appendFormat:@"--%@\nContent-Disposition: form-data; name=\"%@\"\n\n%@\n",[NSString MIMEBoundary],key,dict[key]];
-    }
-    [result appendFormat:@"\n--%@--\n",[NSString MIMEBoundary]];
-    return result;
++ (NSString *)multipartMIMEStringWithDictionary:(NSDictionary *)dict {
+	NSMutableString *result = [NSMutableString string];
+	for (NSString *key in dict) {
+		[result appendFormat:@"--%@\nContent-Disposition: form-data; name=\"%@\"\n\n%@\n", [NSString MIMEBoundary], key, dict[key]];
+	}
+	[result appendFormat:@"\n--%@--\n", [NSString MIMEBoundary]];
+	return result;
 }
 @end
 
@@ -51,31 +48,29 @@
 @synthesize isPreviewOutdated;
 @synthesize isPreviewSticky;
 
-+(void)initialize
-{
-	NSDictionary *appDefaults = @{kDefaultMarkupPreviewVisible: @NO};
++ (void)initialize {
+	NSDictionary *appDefaults = @{kDefaultMarkupPreviewVisible : @NO};
 
 	[[NSUserDefaults standardUserDefaults] registerDefaults:appDefaults];
 	[[NSUserDefaults standardUserDefaults] setBool:TRUE forKey:@"WebKitDeveloperExtras"];
 	[[NSUserDefaults standardUserDefaults] synchronize];
 }
 
--(id)init
-{
-    if ((self = [super initWithWindowNibName:@"MarkupPreview" owner:self])) {
-        self.isPreviewOutdated = YES;
-        self.isPreviewSticky = NO;
+- (id)init {
+	if ((self = [super initWithWindowNibName:@"MarkupPreview" owner:self])) {
+		self.isPreviewOutdated = YES;
+		self.isPreviewSticky = NO;
 //        [[self class] createCustomFiles];
-        BOOL showPreviewWindow = [[NSUserDefaults standardUserDefaults] boolForKey:kDefaultMarkupPreviewVisible];
-        if (showPreviewWindow) {
-            [[self window] orderFront:self];
-        }
+		BOOL showPreviewWindow = [[NSUserDefaults standardUserDefaults] boolForKey:kDefaultMarkupPreviewVisible];
+		if (showPreviewWindow) {
+			[[self window] orderFront:self];
+		}
 
-        NSRect shCon = [[[self window] contentView]visibleRect];
-        shCon.origin.x +=20;
-        shCon.origin.y -= 2;
-        shCon.size.width = 99;
-        shCon.size.height = 28;
+		NSRect shCon = [[[self window] contentView] visibleRect];
+		shCon.origin.x += 20;
+		shCon.origin.y -= 2;
+		shCon.size.width = 99;
+		shCon.size.height = 28;
 //        tabSwitcher = [[[ETTransparentButton alloc]initWithFrame:shCon] retain];
 //        shCon.origin.x = [[[self window] contentView]visibleRect].origin.x + [[[self window] contentView]visibleRect].size.width - 80;
 //        shCon.size.width = 56;
@@ -115,89 +110,84 @@
 //        [[[self window] contentView] addSubview:saveButton];
 //        [[[self window] contentView] addSubview:stickyPreviewButton];
 //        [[[self window] contentView] addSubview:printPreviewButton];
-        [tabView selectTabViewItem:[tabView tabViewItemAtIndex:0]];
+		[tabView selectTabViewItem:[tabView tabViewItemAtIndex:0]];
 
-        shCon = [shareConfirmation visibleRect];
-        shCon.origin.x = shCon.size.width - 106;
-        shCon.origin.y = 1;
-        shCon.size.width = 81;
-        shCon.size.height = 28;        
-        shareConfirm = [[ETTransparentButton alloc]initWithFrame:shCon];
-        shCon.origin.x = [shareConfirmation visibleRect].origin.x + 25;
-        shareCancel = [[ETTransparentButton alloc]initWithFrame:shCon];
-        [shareConfirm setTitle:@"Yes"];
-        [shareConfirm setTarget:self];
-        [shareConfirm setAction:@selector(shareNote:)];
-        [shareCancel setTitle:@"No, thanks"];
-        [shareCancel setTarget:self];
-        [shareCancel setAction:@selector(cancelShare:)];
-        [shareConfirmation addSubview:shareCancel];
-        [shareConfirmation addSubview:shareConfirm];
+		shCon = [shareConfirmation visibleRect];
+		shCon.origin.x = shCon.size.width - 106;
+		shCon.origin.y = 1;
+		shCon.size.width = 81;
+		shCon.size.height = 28;
+		shareConfirm = [[ETTransparentButton alloc] initWithFrame:shCon];
+		shCon.origin.x = [shareConfirmation visibleRect].origin.x + 25;
+		shareCancel = [[ETTransparentButton alloc] initWithFrame:shCon];
+		[shareConfirm setTitle:@"Yes"];
+		[shareConfirm setTarget:self];
+		[shareConfirm setAction:@selector(shareNote:)];
+		[shareCancel setTitle:@"No, thanks"];
+		[shareCancel setTarget:self];
+		[shareCancel setAction:@selector(cancelShare:)];
+		[shareConfirmation addSubview:shareCancel];
+		[shareConfirmation addSubview:shareConfirm];
 
-        shCon = [shareNotification visibleRect];
-        shCon.size.width = 116;
-        shCon.size.height = 28;
-        shCon.origin.x = 70;
-        viewOnWebButton = [[ETTransparentButton alloc]initWithFrame:shCon];
-        [viewOnWebButton setTitle:@"View in Browser"];
-        [viewOnWebButton setTarget:self];
-        [viewOnWebButton setAction:@selector(openShareURL:)];
-        [shareNotification addSubview:viewOnWebButton];
-       // [[[self window] contentView] setNeedsDisplay:YES];
+		shCon = [shareNotification visibleRect];
+		shCon.size.width = 116;
+		shCon.size.height = 28;
+		shCon.origin.x = 70;
+		viewOnWebButton = [[ETTransparentButton alloc] initWithFrame:shCon];
+		[viewOnWebButton setTitle:@"View in Browser"];
+		[viewOnWebButton setTarget:self];
+		[viewOnWebButton setAction:@selector(openShareURL:)];
+		[shareNotification addSubview:viewOnWebButton];
+		// [[[self window] contentView] setNeedsDisplay:YES];
 
 //		[preview setPolicyDelegate:self];
 //		[preview setUIDelegate:self];
-    }
-    return self;
+	}
+	return self;
 }
 
--(void)awakeFromNib
-{    
+- (void)awakeFromNib {
 	cssString = [[self class] css];
-    htmlString = [[self class] html];
+	htmlString = [[self class] html];
 	lastNote = [[NSApp delegate] selectedNoteObject];
-    [sourceView setTextContainerInset:NSMakeSize(10.0,12.0)];
-    NSScrollView *scrlView=[sourceView enclosingScrollView];   
-    [scrlView setScrollsDynamically:YES];
+	[sourceView setTextContainerInset:NSMakeSize(10.0, 12.0)];
+	NSScrollView *scrlView = [sourceView enclosingScrollView];
+	[scrlView setScrollsDynamically:YES];
 	[scrlView setHorizontalScrollElasticity:NSScrollElasticityNone];
 	[scrlView setVerticalScrollElasticity:NSScrollElasticityAutomatic];
-	[scrlView setScrollerStyle:NSScrollerStyleOverlay];  
+	[scrlView setScrollerStyle:NSScrollerStyleOverlay];
 }
 
 //this returns a nice name for the method in the JavaScript environment
-+(NSString*)webScriptNameForSelector:(SEL)sel
-{
-    if(sel == @selector(logJavaScriptString:))
-        return @"log";
-    return nil;
++ (NSString *)webScriptNameForSelector:(SEL)sel {
+	if (sel == @selector(logJavaScriptString:))
+		return @"log";
+	return nil;
 }
 
 //this allows JavaScript to call the -logJavaScriptString: method
-+ (BOOL)isSelectorExcludedFromWebScript:(SEL)sel
-{
-    if(sel == @selector(logJavaScriptString:))
-        return NO;
-    return YES;
++ (BOOL)isSelectorExcludedFromWebScript:(SEL)sel {
+	if (sel == @selector(logJavaScriptString:))
+		return NO;
+	return YES;
 }
 
 //this is a simple log command
-- (void)logJavaScriptString:(NSString*) logText
-{
-    NSLog(@"JavaScript: %@",logText);
+- (void)logJavaScriptString:(NSString *)logText {
+	NSLog(@"JavaScript: %@", logText);
 }
 
 //this is called as soon as the script environment is ready in the webview
-- (void)webView:(WebView *)sender didClearWindowObject:(WebScriptObject *)windowScriptObject forFrame:(WebFrame *)frame
-{
-    //add the controller to the script environment
-    //the "Cocoa" object will now be available to JavaScript
-    [windowScriptObject setValue:self forKey:@"Cocoa"];
+- (void)webView:(WebView *)sender didClearWindowObject:(WebScriptObject *)windowScriptObject forFrame:(WebFrame *)frame {
+	//add the controller to the script environment
+	//the "Cocoa" object will now be available to JavaScript
+	[windowScriptObject setValue:self forKey:@"Cocoa"];
 }
 
 // Above webView methods from <http://stackoverflow.com/questions/2288582/embedded-webkit-script-callbacks-how/2293305#2293305>
 
-- (void)webView:(WebView *)sender decidePolicyForNavigationAction:(NSDictionary *)actionInformation request:(NSURLRequest *)request frame:(WebFrame *)frame decisionListener:(id<WebPolicyDecisionListener>)listener {
-	if (![actionInformation[@"WebActionNavigationTypeKey"] isEqualToNumber: @(5)]) {
+- (void)webView:(WebView *)sender decidePolicyForNavigationAction:(NSDictionary *)actionInformation request:(NSURLRequest *)request frame:(WebFrame *)frame decisionListener:(id <WebPolicyDecisionListener>)listener {
+	if (![actionInformation[@"WebActionNavigationTypeKey"] isEqualToNumber:@(5)]) {
 		[[NSWorkspace sharedWorkspace] openURL:[request URL]];
 		[listener ignore];
 	} else {
@@ -205,135 +195,131 @@
 	}
 }
 
-- (void)webView:(WebView *)sender decidePolicyForNewWindowAction:(NSDictionary *)actionInformation request:(NSURLRequest *)request newFrameName:(NSString *)frameName decisionListener:(id<WebPolicyDecisionListener>)listener {
-	NSLog(@"NEW WIN ACTION SENDER: %@",sender);
-    [[NSWorkspace sharedWorkspace] openURL:actionInformation[WebActionOriginalURLKey]];
-    [listener ignore];
+- (void)webView:(WebView *)sender decidePolicyForNewWindowAction:(NSDictionary *)actionInformation request:(NSURLRequest *)request newFrameName:(NSString *)frameName decisionListener:(id <WebPolicyDecisionListener>)listener {
+	NSLog(@"NEW WIN ACTION SENDER: %@", sender);
+	[[NSWorkspace sharedWorkspace] openURL:actionInformation[WebActionOriginalURLKey]];
+	[listener ignore];
 }
 
--(void)requestPreviewUpdate:(NSNotification *)notification
-{
-    if (![[self window] isVisible]) {
-        self.isPreviewOutdated = YES;
-        return;
-    }
+- (void)requestPreviewUpdate:(NSNotification *)notification {
+	if (![[self window] isVisible]) {
+		self.isPreviewOutdated = YES;
+		return;
+	}
 
-    if (self.isPreviewSticky) {
-      return;
-    }
+	if (self.isPreviewSticky) {
+		return;
+	}
 
-    AppController *app = [notification object];
-    [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(preview:) object:app];
+	AppController *app = [notification object];
+	[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(preview:) object:app];
 
-    [self performSelector:@selector(preview:) withObject:app afterDelay:0.05];
+	[self performSelector:@selector(preview:) withObject:app afterDelay:0.05];
 }
 
-- (BOOL)previewIsVisible{
+- (BOOL)previewIsVisible {
 	return [[self window] isVisible];
 }
 
--(void)togglePreview:(id)sender
-{
+- (void)togglePreview:(id)sender {
 
-    NSWindow *wnd = [self window];
-    if ([wnd isVisible]) {
-      if (attachedWindow) {
-        [[shareButton window] removeChildWindow:attachedWindow];
-        [attachedWindow orderOut:self];
-        attachedWindow = nil;
-      }
+	NSWindow *wnd = [self window];
+	if ([wnd isVisible]) {
+		if (attachedWindow) {
+			[[shareButton window] removeChildWindow:attachedWindow];
+			[attachedWindow orderOut:self];
+			attachedWindow = nil;
+		}
 //      // TODO: should the "stuck" note remain stuck when preview is closed?
 //      if (self.isPreviewSticky)
 //        [self makePreviewNotSticky:self];
-      [wnd orderOut:self];
-    } else {
-      if (self.isPreviewOutdated) {
-          // TODO high coupling; too many assumptions on architecture:
-          [self performSelector:@selector(preview:) withObject:[[NSApplication sharedApplication] delegate] afterDelay:0.0];
-      }
-      [tabView selectTabViewItem:[tabView tabViewItemAtIndex:0]];
-      [tabSwitcher setTitle:@"View Source"];
+		[wnd orderOut:self];
+	} else {
+		if (self.isPreviewOutdated) {
+			// TODO high coupling; too many assumptions on architecture:
+			[self performSelector:@selector(preview:) withObject:[[NSApplication sharedApplication] delegate] afterDelay:0.0];
+		}
+		[tabView selectTabViewItem:[tabView tabViewItemAtIndex:0]];
+		[tabSwitcher setTitle:@"View Source"];
 
-      [wnd orderFront:self];
-    }
+		[wnd orderFront:self];
+	}
 
-    // save visibility to defaults
-    [[NSUserDefaults standardUserDefaults] setObject:@([wnd isVisible])
-                                              forKey:kDefaultMarkupPreviewVisible];
+	// save visibility to defaults
+	[[NSUserDefaults standardUserDefaults] setObject:@([wnd isVisible])
+											  forKey:kDefaultMarkupPreviewVisible];
 }
 
--(void)windowWillClose:(NSNotification *)notification
-{
+- (void)windowWillClose:(NSNotification *)notification {
 	[[NSUserDefaults standardUserDefaults] setObject:@NO
-                                              forKey:kDefaultMarkupPreviewVisible];
+											  forKey:kDefaultMarkupPreviewVisible];
 	NSMenu *previewMenu = [[[NSApp mainMenu] itemWithTitle:@"Preview"] submenu];
-	[[previewMenu itemWithTitle:@"Toggle Preview Window"]setState:0];
+	[[previewMenu itemWithTitle:@"Toggle Preview Window"] setState:0];
 }
 
-+(NSString*)css {
-		NSFileManager *mgr = [NSFileManager defaultManager];
-		NSString *folder = [[NSFileManager defaultManager] applicationSupportDirectory];
-		NSString *cssFileName = @"custom.css";
-		NSString *customCSSPath = [folder stringByAppendingPathComponent: cssFileName];
-		if ([mgr fileExistsAtPath:customCSSPath]) {
-				return [NSString stringWithContentsOfFile:customCSSPath
-																				 encoding:NSUTF8StringEncoding
-																						error:NULL];
-		} else {
-				NSString *cssPath = [[NSBundle mainBundle] pathForResource:@"custom" ofType:@"css" inDirectory:nil];
-				return [NSString stringWithContentsOfFile:cssPath encoding:NSUTF8StringEncoding error:nil];
-		}
++ (NSString *)css {
+	NSFileManager *mgr = [NSFileManager defaultManager];
+	NSString *folder = [[NSFileManager defaultManager] applicationSupportDirectory];
+	NSString *cssFileName = @"custom.css";
+	NSString *customCSSPath = [folder stringByAppendingPathComponent:cssFileName];
+	if ([mgr fileExistsAtPath:customCSSPath]) {
+		return [NSString stringWithContentsOfFile:customCSSPath
+										 encoding:NSUTF8StringEncoding
+											error:NULL];
+	} else {
+		NSString *cssPath = [[NSBundle mainBundle] pathForResource:@"custom" ofType:@"css" inDirectory:nil];
+		return [NSString stringWithContentsOfFile:cssPath encoding:NSUTF8StringEncoding error:nil];
+	}
 
-		//	if (![mgr fileExistsAtPath:customCSSPath]) {
-		//		[[self class] createCustomFiles];
-		//	}
+	//	if (![mgr fileExistsAtPath:customCSSPath]) {
+	//		[[self class] createCustomFiles];
+	//	}
 
 
 }
 
-+(NSString*)html {
-		NSFileManager *mgr = [NSFileManager defaultManager];
++ (NSString *)html {
+	NSFileManager *mgr = [NSFileManager defaultManager];
 
-		NSString *folder = [[NSFileManager defaultManager] applicationSupportDirectory];
-		NSString *htmlFileName = @"template.html";
-		NSString *customHTMLPath = [folder stringByAppendingPathComponent: htmlFileName];
-	  if ([mgr fileExistsAtPath:customHTMLPath]) {
-				return [NSString stringWithContentsOfFile:customHTMLPath
-																				 encoding:NSUTF8StringEncoding
-																						error:NULL];
-		} else {
-				NSString *htmlPath = [[NSBundle mainBundle] pathForResource:@"template" ofType:@"html" inDirectory:nil];
-				return [NSString stringWithContentsOfFile:htmlPath encoding:NSUTF8StringEncoding error:nil];
-		}
-		//	if (![mgr fileExistsAtPath:customHTMLPath]) {
-		//		[[self class] createCustomFiles];
-		//	}
+	NSString *folder = [[NSFileManager defaultManager] applicationSupportDirectory];
+	NSString *htmlFileName = @"template.html";
+	NSString *customHTMLPath = [folder stringByAppendingPathComponent:htmlFileName];
+	if ([mgr fileExistsAtPath:customHTMLPath]) {
+		return [NSString stringWithContentsOfFile:customHTMLPath
+										 encoding:NSUTF8StringEncoding
+											error:NULL];
+	} else {
+		NSString *htmlPath = [[NSBundle mainBundle] pathForResource:@"template" ofType:@"html" inDirectory:nil];
+		return [NSString stringWithContentsOfFile:htmlPath encoding:NSUTF8StringEncoding error:nil];
+	}
+	//	if (![mgr fileExistsAtPath:customHTMLPath]) {
+	//		[[self class] createCustomFiles];
+	//	}
 }
 
--(void)preview:(id)object
-{
+- (void)preview:(id)object {
 	if (self.isPreviewSticky) {
-    return;
-  }
-		NSString *lastScrollPosition = [preview stringByEvaluatingJavaScriptFromString:@"document.getElementsByTagName('body')[0].scrollTop"];
+		return;
+	}
+	NSString *lastScrollPosition = [preview stringByEvaluatingJavaScriptFromString:@"document.getElementsByTagName('body')[0].scrollTop"];
 //	NSString *lastScrollPosition = [[preview windowScriptObject] evaluateWebScript:@"document.getElementsByTagName('body')[0].scrollTop"];
 	AppController *app = object;
 	NSString *rawString = [app noteContent];
 	SEL mode = [self markupProcessorSelector:[app currentPreviewMode]];
 	NSString *processedString = [NSString performSelector:mode withObject:rawString];
-  NSString *previewString = processedString;
-	NSMutableString *outputString = [NSMutableString stringWithString:(NSString *)htmlString];
+	NSString *previewString = processedString;
+	NSMutableString *outputString = [NSMutableString stringWithString:(NSString *) htmlString];
 	NSString *noteTitle = app.selectedNoteObject ? [app.selectedNoteObject.title copy] : @"";
-	
+
 	if (lastNote == [app selectedNoteObject]) {
-		NSString *restoreScrollPosition = [NSString stringWithFormat:@"\n<script>var body = document.getElementsByTagName('body')[0],oldscroll = %@;body.scrollTop = oldscroll;</script>",lastScrollPosition];
+		NSString *restoreScrollPosition = [NSString stringWithFormat:@"\n<script>var body = document.getElementsByTagName('body')[0],oldscroll = %@;body.scrollTop = oldscroll;</script>", lastScrollPosition];
 		previewString = [processedString stringByAppendingString:restoreScrollPosition];
 	} else {
 		cssString = [[self class] css];
 		htmlString = [[self class] html];
 		lastNote = [app selectedNoteObject];
 	}
-		NSString *nvSupportPath = [[NSFileManager defaultManager] applicationSupportDirectory];
+	NSString *nvSupportPath = [[NSFileManager defaultManager] applicationSupportDirectory];
 
 	[outputString replaceOccurrencesOfString:@"{%support%}" withString:nvSupportPath options:0 range:NSMakeRange(0, [outputString length])];
 	[outputString replaceOccurrencesOfString:@"{%title%}" withString:noteTitle options:0 range:NSMakeRange(0, [outputString length])];
@@ -343,153 +329,139 @@
 	[[preview mainFrame] loadHTMLString:outputString baseURL:nil];
 	preview.window.title = noteTitle;
 	[sourceView replaceCharactersInRange:NSMakeRange(0, sourceView.string.length) withString:processedString];
-    self.isPreviewOutdated = NO;
+	self.isPreviewOutdated = NO;
 }
 
--(SEL)markupProcessorSelector:(NSInteger)previewMode
-{
-    if (previewMode == MarkdownPreview) {
-        return @selector(stringWithProcessedMultiMarkdown:);
-    } else if (previewMode == MultiMarkdownPreview) {
-        return @selector(stringWithProcessedMultiMarkdown:);
-    } else if (previewMode == TextilePreview) {
-        return @selector(stringWithProcessedTextile:);
-    }
+- (SEL)markupProcessorSelector:(NSInteger)previewMode {
+	if (previewMode == MarkdownPreview) {
+		return @selector(stringWithProcessedMultiMarkdown:);
+	} else if (previewMode == MultiMarkdownPreview) {
+		return @selector(stringWithProcessedMultiMarkdown:);
+	} else if (previewMode == TextilePreview) {
+		return @selector(stringWithProcessedTextile:);
+	}
 
-    return nil;
+	return nil;
 }
 
-+ (void) createCustomFiles
-{
-		NSFileManager *fileManager = [NSFileManager defaultManager];
++ (void)createCustomFiles {
+	NSFileManager *fileManager = [NSFileManager defaultManager];
 
-		NSString *folder = [[NSFileManager defaultManager] applicationSupportDirectory];
-		if ([fileManager fileExistsAtPath: folder] == NO)
-		{
-			[fileManager createDirectoryAtPath: folder withIntermediateDirectories: YES attributes: nil error: NULL];
-		}
+	NSString *folder = [[NSFileManager defaultManager] applicationSupportDirectory];
+	if ([fileManager fileExistsAtPath:folder] == NO) {
+		[fileManager createDirectoryAtPath:folder withIntermediateDirectories:YES attributes:nil error:NULL];
+	}
 
-		NSString *cssFileName = @"custom.css";
-		NSString *cssFile = [folder stringByAppendingPathComponent: cssFileName];
+	NSString *cssFileName = @"custom.css";
+	NSString *cssFile = [folder stringByAppendingPathComponent:cssFileName];
 
-		if ([fileManager fileExistsAtPath:cssFile] == NO)
-		{
-				NSString *cssPath = [[NSBundle mainBundle] pathForResource:@"customclean" ofType:@"css" inDirectory:nil];
-				NSString *cssString = [NSString stringWithContentsOfFile:cssPath encoding:NSUTF8StringEncoding error:nil];
-				NSData *cssData = [NSData dataWithBytes:[cssString UTF8String] length:[cssString length]];
-				[fileManager createFileAtPath:cssFile contents:cssData attributes:nil];
-    }
+	if ([fileManager fileExistsAtPath:cssFile] == NO) {
+		NSString *cssPath = [[NSBundle mainBundle] pathForResource:@"customclean" ofType:@"css" inDirectory:nil];
+		NSString *cssString = [NSString stringWithContentsOfFile:cssPath encoding:NSUTF8StringEncoding error:nil];
+		NSData *cssData = [NSData dataWithBytes:[cssString UTF8String] length:[cssString length]];
+		[fileManager createFileAtPath:cssFile contents:cssData attributes:nil];
+	}
 
-		NSString *htmlFileName = @"template.html";
-		NSString *htmlFile = [folder stringByAppendingPathComponent: htmlFileName];
+	NSString *htmlFileName = @"template.html";
+	NSString *htmlFile = [folder stringByAppendingPathComponent:htmlFileName];
 
-		if ([fileManager fileExistsAtPath:htmlFile] == NO)
-		{
-				NSString *htmlPath = [[NSBundle mainBundle] pathForResource:@"templateclean" ofType:@"html" inDirectory:nil];
-				NSString *htmlString = [NSString stringWithContentsOfFile:htmlPath encoding:NSUTF8StringEncoding error:nil];
-				NSData *htmlData = [NSData dataWithBytes:[htmlString UTF8String] length:[htmlString length]];
-				[fileManager createFileAtPath:htmlFile contents:htmlData attributes:nil];
-    }
+	if ([fileManager fileExistsAtPath:htmlFile] == NO) {
+		NSString *htmlPath = [[NSBundle mainBundle] pathForResource:@"templateclean" ofType:@"html" inDirectory:nil];
+		NSString *htmlString = [NSString stringWithContentsOfFile:htmlPath encoding:NSUTF8StringEncoding error:nil];
+		NSData *htmlData = [NSData dataWithBytes:[htmlString UTF8String] length:[htmlString length]];
+		[fileManager createFileAtPath:htmlFile contents:htmlData attributes:nil];
+	}
 
 }
 
-- (NSString *)urlEncodeValue:(NSString *)str
-{
-	NSString *result = (NSString *) CFBridgingRelease(CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, (CFStringRef)str, NULL, CFSTR("?=&+"), kCFStringEncodingUTF8));
+- (NSString *)urlEncodeValue:(NSString *)str {
+	NSString *result = (NSString *) CFBridgingRelease(CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, (CFStringRef) str, NULL, CFSTR("?=&+"), kCFStringEncodingUTF8));
 	return result;
 }
 
--(IBAction)makePreviewSticky:(id)sender
-{
-  self.isPreviewSticky = YES;
+- (IBAction)makePreviewSticky:(id)sender {
+	self.isPreviewSticky = YES;
 //  [[preview window] setTitle:@"Locked"];
-  [stickyPreviewButton setState:YES];
-  [stickyPreviewButton setToolTip:@"Return the preview to normal functionality."];
-  [stickyPreviewButton setAction:@selector(makePreviewNotSticky:)];
-  [shareButton setEnabled:NO];
-  [saveButton setEnabled:NO];
-  [[self window] setHidesOnDeactivate:NO];
+	[stickyPreviewButton setState:YES];
+	[stickyPreviewButton setToolTip:@"Return the preview to normal functionality."];
+	[stickyPreviewButton setAction:@selector(makePreviewNotSticky:)];
+	[shareButton setEnabled:NO];
+	[saveButton setEnabled:NO];
+	[[self window] setHidesOnDeactivate:NO];
 }
 
--(IBAction)makePreviewNotSticky:(id)sender
-{
-  self.isPreviewSticky = NO;
-  [[preview window] setTitle:@"Preview"];
-  [stickyPreviewButton setState:NO];
-  [stickyPreviewButton setToolTip:@"Maintain current note in Preview, even if you switch to other notes."];
-  [stickyPreviewButton setAction:@selector(makePreviewSticky:)];
-  [shareButton setEnabled:YES];
-  [saveButton setEnabled:YES];
-  self.isPreviewOutdated = YES;
-  [self performSelector:@selector(preview:) withObject:[[NSApplication sharedApplication] delegate] afterDelay:0.0];
-  [[self window] setHidesOnDeactivate:YES];
+- (IBAction)makePreviewNotSticky:(id)sender {
+	self.isPreviewSticky = NO;
+	[[preview window] setTitle:@"Preview"];
+	[stickyPreviewButton setState:NO];
+	[stickyPreviewButton setToolTip:@"Maintain current note in Preview, even if you switch to other notes."];
+	[stickyPreviewButton setAction:@selector(makePreviewSticky:)];
+	[shareButton setEnabled:YES];
+	[saveButton setEnabled:YES];
+	self.isPreviewOutdated = YES;
+	[self performSelector:@selector(preview:) withObject:[[NSApplication sharedApplication] delegate] afterDelay:0.0];
+	[[self window] setHidesOnDeactivate:YES];
 }
 
--(IBAction)printPreview:(id)sender
-{
-  NSPrintInfo* printInfo = [NSPrintInfo sharedPrintInfo];
+- (IBAction)printPreview:(id)sender {
+	NSPrintInfo *printInfo = [NSPrintInfo sharedPrintInfo];
 
-  [printInfo setHorizontallyCentered:YES];
-  [printInfo setVerticallyCentered:NO];
-  [[[[preview mainFrame] frameView] documentView] print:nil];
+	[printInfo setHorizontallyCentered:YES];
+	[printInfo setVerticallyCentered:NO];
+	[[[[preview mainFrame] frameView] documentView] print:nil];
 }
 
--(IBAction)shareNote:(id)sender
-{
-  AppController *app = [NSApp delegate];
+- (IBAction)shareNote:(id)sender {
+	AppController *app = [NSApp delegate];
 	NSString *noteTitle = app.selectedNoteObject ? [app.selectedNoteObject.title copy] : @"";
-  NSString *rawString = [app noteContent];
-  SEL mode = [self markupProcessorSelector:[app currentPreviewMode]];
-  NSString *processedString = [NSString performSelector:mode withObject:rawString];
+	NSString *rawString = [app noteContent];
+	SEL mode = [self markupProcessorSelector:[app currentPreviewMode]];
+	NSString *processedString = [NSString performSelector:mode withObject:rawString];
 
 
 	NSMutableURLRequest *request = [[NSMutableURLRequest alloc]
-                                  initWithURL:
-                                  [NSURL URLWithString:@"http://peg.gd/nvapi.php"]];
-  [request setHTTPMethod:@"POST"];
-  [request addValue:@"8bit" forHTTPHeaderField:@"Content-Transfer-Encoding"];
-  [request addValue: [NSString stringWithFormat:@"multipart/form-data; boundary=%@",[NSString MIMEBoundary]] forHTTPHeaderField: @"Content-Type"];
-  NSDictionary* postData = @{@"key": @"8c4205ec33d8f6caeaaaa0c10a14138c",
-                            @"title": noteTitle,
-                            @"body": processedString};
-  [request setHTTPBody: [[NSString multipartMIMEStringWithDictionary: postData] dataUsingEncoding: NSUTF8StringEncoding]];
-	NSHTTPURLResponse * response = nil;
-	NSError * error = nil;
-	NSData * responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
-	NSString * responseString = [[NSString alloc] initWithData:responseData encoding:NSASCIIStringEncoding];
+			initWithURL:
+					[NSURL URLWithString:@"http://peg.gd/nvapi.php"]];
+	[request setHTTPMethod:@"POST"];
+	[request addValue:@"8bit" forHTTPHeaderField:@"Content-Transfer-Encoding"];
+	[request addValue:[NSString stringWithFormat:@"multipart/form-data; boundary=%@", [NSString MIMEBoundary]] forHTTPHeaderField:@"Content-Type"];
+	NSDictionary *postData = @{@"key" : @"8c4205ec33d8f6caeaaaa0c10a14138c",
+			@"title" : noteTitle,
+			@"body" : processedString};
+	[request setHTTPBody:[[NSString multipartMIMEStringWithDictionary:postData] dataUsingEncoding:NSUTF8StringEncoding]];
+	NSHTTPURLResponse *response = nil;
+	NSError *error = nil;
+	NSData *responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
+	NSString *responseString = [[NSString alloc] initWithData:responseData encoding:NSASCIIStringEncoding];
 	NSLog(@"RESPONSE STRING: %@", responseString);
-	NSLog(@"%ld",response.statusCode);
+	NSLog(@"%ld", response.statusCode);
 	shareURL = [NSString stringWithString:responseString];
 	if (response.statusCode == 200) {
-		[self showShareURL:[NSString stringWithFormat:@"View %@",shareURL] isError:NO];
+		[self showShareURL:[NSString stringWithFormat:@"View %@", shareURL] isError:NO];
 	} else {
 		[self showShareURL:@"Error connecting" isError:YES];
 	}
-  
-	
+
+
 }
 
-- (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response
-{
-    [receivedData setLength:0];
+- (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
+	[receivedData setLength:0];
 }
 
 
-- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
-{
-    [receivedData appendData:data];
+- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
+	[receivedData appendData:data];
 }
 
-- (void)connectionDidFinishLoading:(NSURLConnection *)connection
-{
-    NSLog(@"Succeeded! Received %ld bytes of data",[receivedData length]);
-	
-	NSString * responseString = [[NSString alloc] initWithData:receivedData encoding:NSASCIIStringEncoding];
+- (void)connectionDidFinishLoading:(NSURLConnection *)connection {
+	NSLog(@"Succeeded! Received %ld bytes of data", [receivedData length]);
+
+	NSString *responseString = [[NSString alloc] initWithData:receivedData encoding:NSASCIIStringEncoding];
 	NSLog(@"RESPONSE STRING: %@", responseString);
 }
 
--(IBAction)saveHTML:(id)sender
-{
+- (IBAction)saveHTML:(id)sender {
 	if (!accessoryView) {
 		if (![NSBundle loadNibNamed:@"SaveHTMLPreview" owner:self]) {
 			NSLog(@"Failed to load SaveHTMLPreview.nib");
@@ -506,35 +478,35 @@
 	[savePanel setCanCreateDirectories:YES];
 	[savePanel setCanSelectHiddenExtension:YES];
 
-	NSArray *fileTypes = @[@"html",@"xhtml",@"htm"];
+	NSArray *fileTypes = @[@"html", @"xhtml", @"htm"];
 	[savePanel setAllowedFileTypes:fileTypes];
 
 
-  NSString *rawString = [app noteContent];
-  NSString *xhtmlOutput = [NSString xhtmlWithProcessedMultiMarkdown:rawString];
-  if ([xhtmlOutput hasPrefix:@"<?xml version="]) {
-    [includeTemplate setState:0];
-    [includeTemplate setEnabled:NO];
-    [templateNote setStringValue:@"Template embed unavailable because your note will render as a full XHTML document"];
-  } else {
-    [includeTemplate setEnabled:YES];
-    [templateNote setStringValue:@"Select this to embed the ouput within your current preview HTML and CSS"];
-  }
+	NSString *rawString = [app noteContent];
+	NSString *xhtmlOutput = [NSString xhtmlWithProcessedMultiMarkdown:rawString];
+	if ([xhtmlOutput hasPrefix:@"<?xml version="]) {
+		[includeTemplate setState:0];
+		[includeTemplate setEnabled:NO];
+		[templateNote setStringValue:@"Template embed unavailable because your note will render as a full XHTML document"];
+	} else {
+		[includeTemplate setEnabled:YES];
+		[templateNote setStringValue:@"Select this to embed the ouput within your current preview HTML and CSS"];
+	}
 
 	savePanel.nameFieldStringValue = app.selectedNoteObject ? [app.selectedNoteObject.title copy] : @"";
-	
-	[savePanel beginSheetModalForWindow: self.window completionHandler:^(NSInteger result) {
-		if (result == NSFileHandlingPanelOKButton) {			
+
+	[savePanel beginSheetModalForWindow:self.window completionHandler:^(NSInteger result) {
+		if (result == NSFileHandlingPanelOKButton) {
 			NSString *processedString = [[NSString alloc] init];
-			
+
 			if ([app currentPreviewMode] == MarkdownPreview) {
 				processedString = [NSString stringWithProcessedMarkdown:rawString];
 			} else if ([app currentPreviewMode] == MultiMarkdownPreview) {
-				processedString = ( [includeTemplate state] == NSOnState ) ? [NSString documentWithProcessedMultiMarkdown:rawString] : [NSString xhtmlWithProcessedMultiMarkdown:rawString];
+				processedString = ([includeTemplate state] == NSOnState) ? [NSString documentWithProcessedMultiMarkdown:rawString] : [NSString xhtmlWithProcessedMultiMarkdown:rawString];
 			} else if ([app currentPreviewMode] == TextilePreview) {
-				processedString = ( [includeTemplate state] == NSOnState ) ? [NSString documentWithProcessedTextile:rawString] : [NSString xhtmlWithProcessedTextile:rawString];
+				processedString = ([includeTemplate state] == NSOnState) ? [NSString documentWithProcessedTextile:rawString] : [NSString xhtmlWithProcessedTextile:rawString];
 			}
-			
+
 			NSURL *file = [savePanel URL];
 			NSError *error;
 			[processedString writeToURL:file atomically:YES encoding:NSUTF8StringEncoding error:&error];
@@ -542,8 +514,7 @@
 	}];
 }
 
--(IBAction)switchTabs:(id)sender
-{
+- (IBAction)switchTabs:(id)sender {
 	NSUInteger tabSelection = [tabView indexOfTabViewItem:[tabView selectedTabViewItem]];
 
 	if (tabSelection == 0) {
@@ -555,30 +526,29 @@
 	}
 }
 
-- (IBAction)shareAsk:(id)sender
-{
+- (IBAction)shareAsk:(id)sender {
 	if (!confirmWindow && !attachedWindow) {
-        int side = 3;
-        NSPoint buttonPoint = NSMakePoint(NSMidX([shareButton frame]),
-                                          NSMidY([shareButton frame]));
-        confirmWindow = [[MAAttachedWindow alloc] initWithView:shareConfirmation
-                                                attachedToPoint:buttonPoint
-                                                       inWindow:[shareButton window]
-                                                         onSide:side
-                                                     atDistance:15.0f];
-        [confirmWindow setBorderColor:[NSColor colorWithCalibratedHue:0.278 saturation:0.000 brightness:0.871 alpha:0.950]];
-        [confirmWindow setBackgroundColor:[NSColor colorWithCalibratedRed:0.134 green:0.134 blue:0.134 alpha:0.950]];
-        [confirmWindow setViewMargin:3.0f];
-        [confirmWindow setBorderWidth:1.0f];
-        [confirmWindow setCornerRadius:10.0f];
-        [confirmWindow setHasArrow:YES];
-        [confirmWindow setDrawsRoundCornerBesideArrow:YES];
-        [confirmWindow setArrowBaseWidth:10.0f];
-        [confirmWindow setArrowHeight:6.0f];
+		int side = 3;
+		NSPoint buttonPoint = NSMakePoint(NSMidX([shareButton frame]),
+				NSMidY([shareButton frame]));
+		confirmWindow = [[MAAttachedWindow alloc] initWithView:shareConfirmation
+											   attachedToPoint:buttonPoint
+													  inWindow:[shareButton window]
+														onSide:side
+													atDistance:15.0f];
+		[confirmWindow setBorderColor:[NSColor colorWithCalibratedHue:0.278 saturation:0.000 brightness:0.871 alpha:0.950]];
+		[confirmWindow setBackgroundColor:[NSColor colorWithCalibratedRed:0.134 green:0.134 blue:0.134 alpha:0.950]];
+		[confirmWindow setViewMargin:3.0f];
+		[confirmWindow setBorderWidth:1.0f];
+		[confirmWindow setCornerRadius:10.0f];
+		[confirmWindow setHasArrow:YES];
+		[confirmWindow setDrawsRoundCornerBesideArrow:YES];
+		[confirmWindow setArrowBaseWidth:10.0f];
+		[confirmWindow setArrowHeight:6.0f];
 
-        [[shareButton window] addChildWindow:confirmWindow ordered:NSWindowAbove];
+		[[shareButton window] addChildWindow:confirmWindow ordered:NSWindowAbove];
 
-    } else {
+	} else {
 		if (confirmWindow)
 			[self cancelShare:self];
 		else if (attachedWindow)
@@ -586,36 +556,35 @@
 	}
 }
 
-- (void)showShareURL:(NSString *)url isError:(BOOL)isError
-{
+- (void)showShareURL:(NSString *)url isError:(BOOL)isError {
 	if (confirmWindow) {
 		[[shareButton window] removeChildWindow:confirmWindow];
 		[confirmWindow orderOut:self];
 		confirmWindow = nil;
 	}
-		// Attach/detach window
-    if (!attachedWindow) {
-        int side = 3;
-        NSPoint buttonPoint = NSMakePoint(NSMidX([shareButton frame]),
-                                          NSMidY([shareButton frame]));
-        attachedWindow = [[MAAttachedWindow alloc] initWithView:shareNotification
-                                                attachedToPoint:buttonPoint
-                                                       inWindow:[shareButton window]
-                                                         onSide:side
-                                                     atDistance:15.0f];
-        [attachedWindow setBorderColor:[NSColor colorWithCalibratedHue:0.278 saturation:0.000 brightness:0.871 alpha:0.950]];
-        [attachedWindow setBackgroundColor:[NSColor colorWithCalibratedRed:0.134 green:0.134 blue:0.134 alpha:0.950]];
-        [attachedWindow setViewMargin:3.0f];
-        [attachedWindow setBorderWidth:1.0f];
-        [attachedWindow setCornerRadius:10.0f];
-        [attachedWindow setHasArrow:YES];
-        [attachedWindow setDrawsRoundCornerBesideArrow:YES];
-        [attachedWindow setArrowBaseWidth:10.0f];
-        [attachedWindow setArrowHeight:6.0f];
+	// Attach/detach window
+	if (!attachedWindow) {
+		int side = 3;
+		NSPoint buttonPoint = NSMakePoint(NSMidX([shareButton frame]),
+				NSMidY([shareButton frame]));
+		attachedWindow = [[MAAttachedWindow alloc] initWithView:shareNotification
+												attachedToPoint:buttonPoint
+													   inWindow:[shareButton window]
+														 onSide:side
+													 atDistance:15.0f];
+		[attachedWindow setBorderColor:[NSColor colorWithCalibratedHue:0.278 saturation:0.000 brightness:0.871 alpha:0.950]];
+		[attachedWindow setBackgroundColor:[NSColor colorWithCalibratedRed:0.134 green:0.134 blue:0.134 alpha:0.950]];
+		[attachedWindow setViewMargin:3.0f];
+		[attachedWindow setBorderWidth:1.0f];
+		[attachedWindow setCornerRadius:10.0f];
+		[attachedWindow setHasArrow:YES];
+		[attachedWindow setDrawsRoundCornerBesideArrow:YES];
+		[attachedWindow setArrowBaseWidth:10.0f];
+		[attachedWindow setArrowHeight:6.0f];
 
-        [[shareButton window] addChildWindow:attachedWindow ordered:NSWindowAbove];
+		[[shareButton window] addChildWindow:attachedWindow ordered:NSWindowAbove];
 
-    }
+	}
 
 	if (isError) {
 		[urlTextField setStringValue:url];
@@ -626,34 +595,30 @@
 		[pb declareTypes:types owner:self];
 		[pb setString:shareURL forType:NSStringPboardType];
 		[urlTextField setHidden:NO];
-        [urlTextField setStringValue:[@"Copied " stringByAppendingString:[shareURL stringByAppendingString:@" to clipboard"]]];
+		[urlTextField setStringValue:[@"Copied " stringByAppendingString:[shareURL stringByAppendingString:@" to clipboard"]]];
 		//[viewOnWebButton setTitle:url];
 	}
 
 
 }
 
--(void)closeShareURLView
-{
+- (void)closeShareURLView {
 	[[shareButton window] removeChildWindow:attachedWindow];
 	[attachedWindow orderOut:self];
 	attachedWindow = nil;
 }
 
-- (IBAction)hideShareURL:(id)sender
-{
+- (IBAction)hideShareURL:(id)sender {
 	[self closeShareURLView];
 }
 
-- (IBAction)cancelShare:(id)sender
-{
+- (IBAction)cancelShare:(id)sender {
 	[[shareButton window] removeChildWindow:confirmWindow];
 	[confirmWindow orderOut:self];
 	confirmWindow = nil;
 }
 
-- (IBAction)openShareURL:(id)sender
-{
+- (IBAction)openShareURL:(id)sender {
 	[[NSWorkspace sharedWorkspace] openURL:[NSURL URLWithString:shareURL]];
 	[[shareButton window] removeChildWindow:attachedWindow];
 	[attachedWindow orderOut:self];

@@ -26,21 +26,21 @@
 	return YES;
 }
 
-- (void)keyDown:(NSEvent*)theEvent {
+- (void)keyDown:(NSEvent *)theEvent {
 	unichar keyChar = [theEvent firstCharacter];
-	
-    if (keyChar == NSDeleteCharacter || keyChar == NSDeleteFunctionKey) {
-		[(BookmarksController*)[self dataSource] removeBookmark:nil];
+
+	if (keyChar == NSDeleteCharacter || keyChar == NSDeleteFunctionKey) {
+		[(BookmarksController *) [self dataSource] removeBookmark:nil];
 		return;
 	}
-	
+
 	[super keyDown:theEvent];
 }
-	
+
 
 //force column re-layout while resizing
 - (void)drawRect:(NSRect)aRect {
-	
+
 	[super drawRect:aRect];
 }
 

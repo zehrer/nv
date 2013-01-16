@@ -27,13 +27,14 @@
 - (id)target {
 	return target;
 }
+
 - (NSInvocation *)invocation {
-	return invocation; 
+	return invocation;
 }
 
 - (NSMethodSignature *)methodSignatureForSelector:(SEL)aSEL {
 	//check the superclass first
-	
+
 	NSMethodSignature *theMethodSignature = [super methodSignatureForSelector:aSEL];
 	return theMethodSignature ? theMethodSignature : [target methodSignatureForSelector:aSEL];
 }
@@ -41,7 +42,7 @@
 - (void)forwardInvocation:(NSInvocation *)anInvocation {
 	if (invocation != anInvocation) {
 		invocation = anInvocation;
-		
+
 		[anInvocation setTarget:target];
 		[invocation retainArguments];
 	}
@@ -56,9 +57,9 @@
 
 @end
 
-@implementation ComparableInvocation 
+@implementation ComparableInvocation
 
-- (id)initWithInvocation:(NSInvocation*)anInvocation {
+- (id)initWithInvocation:(NSInvocation *)anInvocation {
 	if ((self = [super init])) {
 		if (!(innerInvocation = anInvocation))
 			return nil;
@@ -75,24 +76,24 @@
 	return [[innerInvocation methodSignature] hash];
 }
 
-- (NSInvocation*)invocation {
+- (NSInvocation *)invocation {
 	return innerInvocation;
 }
 
 - (BOOL)isEqual:(id)anObject {
 	NSInvocation *anInvocation = [anObject invocation];
-	
+
 	//targets should have pointer equality to ensure they are the same object
-	return [innerInvocation target] == [anInvocation target] && 
-	[innerInvocation selector] == [anInvocation selector] &&
-	[[innerInvocation methodSignature] isEqual:[anInvocation methodSignature]];
+	return [innerInvocation target] == [anInvocation target] &&
+			[innerInvocation selector] == [anInvocation selector] &&
+			[[innerInvocation methodSignature] isEqual:[anInvocation methodSignature]];
 }
 
 @end
 
 @implementation NSInvocation (MissingMethods)
 
-- (NSString*)description {
+- (NSString *)description {
 	return [NSString stringWithFormat:@"%@: %@", [self target], NSStringFromSelector([self selector])];
 }
 

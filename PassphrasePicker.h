@@ -11,9 +11,6 @@
    - Neither the name of Notational Velocity nor the names of its contributors may be used to endorse 
      or promote products derived from this software without specific prior written permission. */
 
-
-#import <Cocoa/Cocoa.h>
-
 @class NotationPrefs;
 @class KeyDerivationManager;
 
@@ -21,33 +18,34 @@
 
 @protocol PassphrasePickerDelegate <NSObject>
 
-- (void)passphrasePicker:(PassphrasePicker*)picker choseAPassphrase:(BOOL)success;
+- (void)passphrasePicker:(PassphrasePicker *)picker choseAPassphrase:(BOOL)success;
 
 @end
 
-@interface PassphrasePicker : NSObject
-{
-    IBOutlet NSButton *cancelNewButton;
-    IBOutlet NSPanel *newPassphraseWindow, *window;
-    IBOutlet NSSecureTextField *newPasswordField;
-    IBOutlet NSButton *okNewButton;
-    IBOutlet NSButton *rememberNewButton;
-    IBOutlet NSSecureTextField *verifyNewPasswordField;
+@interface PassphrasePicker : NSObject {
+	IBOutlet NSButton *cancelNewButton;
+	IBOutlet NSPanel *newPassphraseWindow, *window;
+	IBOutlet NSSecureTextField *newPasswordField;
+	IBOutlet NSButton *okNewButton;
+	IBOutlet NSButton *rememberNewButton;
+	IBOutlet NSSecureTextField *verifyNewPasswordField;
 	IBOutlet NSButton *disclosureButton;
 	IBOutlet NSTextField *advancedHelpField;
 	IBOutlet NSView *dismissalButtonsView, *upperButtonsView, *advancedView;
-	
+
 	KeyDerivationManager *keyDerivation;
 	NotationPrefs *notationPrefs;
 }
 
-@property (nonatomic, weak) id <PassphrasePickerDelegate> delegate;
+@property(nonatomic, weak) id <PassphrasePickerDelegate> delegate;
 
 - (IBAction)discloseAdvancedSettings:(id)sender;
 
-- (void)showAroundWindow:(NSWindow*)mainWindow resultDelegate:(id <PassphrasePickerDelegate>)aDelegate;
+- (void)showAroundWindow:(NSWindow *)mainWindow resultDelegate:(id <PassphrasePickerDelegate>)aDelegate;
+
 - (IBAction)cancelNewPassword:(id)sender;
+
 - (IBAction)okNewPassword:(id)sender;
 
-- (id)initWithNotationPrefs:(NotationPrefs*)prefs;
+- (id)initWithNotationPrefs:(NotationPrefs *)prefs;
 @end

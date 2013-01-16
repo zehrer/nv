@@ -19,40 +19,44 @@
     You should have received a copy of the GNU General Public License
     along with Notational Velocity.  If not, see <http://www.gnu.org/licenses/>. */
 
-
-#import <Cocoa/Cocoa.h>
-
 @class NotationPrefs;
 @class TemporaryFileCachePreparer;
 
 @protocol TemporaryFileCachePreparerDelegate <NSObject>
 
-- (void)temporaryFileCachePreparerDidNotFinish:(TemporaryFileCachePreparer*)preparer;
-- (void)temporaryFileCachePreparerFinished:(TemporaryFileCachePreparer*)preparer;
+- (void)temporaryFileCachePreparerDidNotFinish:(TemporaryFileCachePreparer *)preparer;
+
+- (void)temporaryFileCachePreparerFinished:(TemporaryFileCachePreparer *)preparer;
 
 @end
 
 @interface TemporaryFileCachePreparer : NSObject {
 	NSString *cachePath;
 
-	NotationPrefs *notationPrefs;	
+	NotationPrefs *notationPrefs;
 	BOOL startedPreparing;
 	NSTask *mountTask, *newfsTask, *attachTask;
 	NSString *deviceName, *preparedCachePath;
 }
 
-- (void)prepEditingSpaceIfNecessaryForNotationPrefs:(NotationPrefs*)prefs;
-- (void)_attachRAMDiskOfCapacity:(NSUInteger)numberOfMegabytes;
-- (void)_buildHFSFileSystemOnDevice:(NSString*)aDeviceName;
-- (void)_mountHFSFileSystemOnDevice:(NSString*)aDeviceName;
+- (void)prepEditingSpaceIfNecessaryForNotationPrefs:(NotationPrefs *)prefs;
 
-- (BOOL)_createFolderAtPath:(NSString*)path;
+- (void)_attachRAMDiskOfCapacity:(NSUInteger)numberOfMegabytes;
+
+- (void)_buildHFSFileSystemOnDevice:(NSString *)aDeviceName;
+
+- (void)_mountHFSFileSystemOnDevice:(NSString *)aDeviceName;
+
+- (BOOL)_createFolderAtPath:(NSString *)path;
 
 - (BOOL)isPreparing;
-- (void)_finishPreparationWithPath:(NSString*)aPath;
-- (void)_stopPreparation;
-- (NSString*)preparedCachePath;
 
-@property (nonatomic, weak) id <TemporaryFileCachePreparerDelegate> delegate;
+- (void)_finishPreparationWithPath:(NSString *)aPath;
+
+- (void)_stopPreparation;
+
+- (NSString *)preparedCachePath;
+
+@property(nonatomic, weak) id <TemporaryFileCachePreparerDelegate> delegate;
 
 @end

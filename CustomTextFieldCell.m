@@ -27,7 +27,7 @@
 //}
 
 - (void)drawWithFrame:(NSRect)cellFrame inView:(NSView *)controlView {
-	if( [self isHighlighted] ) {
+	if ([self isHighlighted]) {
 		[[NSColor colorWithCalibratedRed:0.131 green:0.297 blue:0.458 alpha:1.000] set];
 		NSRectFill(cellFrame);
 //		[super drawWithFrame:cellFrame inView:controlView];
@@ -41,31 +41,28 @@
 }
 
 - (NSColor *)highlightColorWithFrame:(NSRect)cellFrame inView:(NSView
-															   *)controlView {
+*)controlView {
 	return nil;
 }
-		 
 
-		 
- - (void)drawInteriorWithFrame:(NSRect)cellFrame
-				inView:(NSView *)controlView
-{
+
+- (void)drawInteriorWithFrame:(NSRect)cellFrame
+					   inView:(NSView *)controlView {
 	cellFrame.origin.x += kLeftMargin;
 	cellFrame.size.width -= kLeftMargin;
 	cellFrame.origin.y += kTopMargin;
 	cellFrame.size.height -= kTopMargin;
-	
+
 	[super drawInteriorWithFrame:cellFrame
 						  inView:controlView];
 }
- 
- - (void)selectWithFrame:(NSRect)aRect
-				inView:(NSView *)controlView
-				editor:(NSText *)textObj
-			  delegate:(id)anObject
-				 start:(NSInteger)selStart
-				length:(NSInteger)selLength
-{
+
+- (void)selectWithFrame:(NSRect)aRect
+				 inView:(NSView *)controlView
+				 editor:(NSText *)textObj
+			   delegate:(id)anObject
+				  start:(NSInteger)selStart
+				 length:(NSInteger)selLength {
 	aRect.origin.x += kLeftMargin;
 	aRect.size.width -= kLeftMargin;
 	aRect.origin.y += kTopMargin;
@@ -78,10 +75,9 @@
 					 start:selStart
 					length:selLength];
 }
- 
- - (NSRect)_focusRingFrameForFrame:(NSRect)frame
-			 cellFrame:(NSRect)cellFrame
-{
+
+- (NSRect)_focusRingFrameForFrame:(NSRect)frame
+						cellFrame:(NSRect)cellFrame {
 	return [[self controlView] bounds];
 }
 

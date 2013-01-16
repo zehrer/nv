@@ -12,49 +12,55 @@
 
 //used by DeletedNoteObject and NoteObject
 
-- (void)setSyncObjectAndKeyMD:(NSDictionary*)aDict forService:(NSString*)serviceName {
-	NSMutableDictionary *dict = syncServicesMD[serviceName];
-	if (!dict) {
-		dict = [[NSMutableDictionary alloc] initWithDictionary:aDict];
-		if (!syncServicesMD) syncServicesMD = [[NSMutableDictionary alloc] init];
-		syncServicesMD[serviceName] = dict;
-	} else {
-		[dict addEntriesFromDictionary:aDict];
-	}
+- (void)setSyncObjectAndKeyMD:(NSDictionary *)
+aDict forService:(NSString*)serviceName {
+NSMutableDictionary *dict = syncServicesMD[serviceName];
+if (!dict) {
+dict = [[NSMutableDictionary alloc] initWithDictionary:aDict];
+if (!syncServicesMD) syncServicesMD = [[NSMutableDictionary alloc] init];
+syncServicesMD[serviceName] = dict;
+} else {
+[dict addEntriesFromDictionary:
+aDict];
 }
-- (void)removeAllSyncMDForService:(NSString*)serviceName {
-	[syncServicesMD removeObjectForKey:serviceName];
+}
+- (void)removeAllSyncMDForService:(NSString *)
+serviceName {
+[syncServicesMD removeObjectForKey:
+serviceName];
 }
 //- (void)removeKey:(NSString*)aKey forService:(NSString*)serviceName {
 //	[[syncServicesMD objectForKey:serviceName] removeObjectForKey:aKey];
 //}
 
 - (CFUUIDBytes *)uniqueNoteIDBytes {
-    return &uniqueNoteIDBytes;
+return &uniqueNoteIDBytes;
 }
 - (NSDictionary*)syncServicesMD {
-    return syncServicesMD;
+return syncServicesMD;
 }
 - (unsigned int)logSequenceNumber {
-    return logSequenceNumber;
+return logSequenceNumber;
 }
 - (void)incrementLSN {
-    logSequenceNumber++;
+logSequenceNumber++;
 }
-- (BOOL)youngerThanLogObject:(id<SynchronizedNote>)obj {
-	return [self logSequenceNumber] < [obj logSequenceNumber];
+- (BOOL)youngerThanLogObject:(id < SynchronizedNote >)
+obj {
+return [self logSequenceNumber] < [obj logSequenceNumber];
 }
 
 - (NSUInteger)hash {
-	//XOR successive native-WORDs of CFUUIDBytes
-	NSUInteger finalHash = 0;
-	NSUInteger i, *noteIDBytesPtr = (NSUInteger *)&uniqueNoteIDBytes;
-	for (i = 0; i<sizeof(CFUUIDBytes) / sizeof(NSUInteger); i++) {
-		finalHash ^= *noteIDBytesPtr++;
-	}
-	return finalHash;
+//XOR successive native-WORDs of CFUUIDBytes
+NSUInteger finalHash = 0;
+NSUInteger i, *noteIDBytesPtr = (NSUInteger *) &uniqueNoteIDBytes;
+for (i = 0; i<sizeof(CFUUIDBytes) / sizeof(NSUInteger); i++) {
+finalHash ^= *noteIDBytesPtr++;
 }
-- (BOOL)isEqual:(id)otherNote {
-	CFUUIDBytes *otherBytes = [(id <SynchronizedNote>)otherNote uniqueNoteIDBytes];
-	return memcmp(otherBytes, &uniqueNoteIDBytes, sizeof(CFUUIDBytes)) == 0;
+return finalHash;
+}
+- (BOOL)isEqual:(id)
+otherNote {
+CFUUIDBytes *otherBytes = [(id <SynchronizedNote>) otherNote uniqueNoteIDBytes];
+return memcmp(otherBytes, &uniqueNoteIDBytes, sizeof(CFUUIDBytes)) == 0;
 }

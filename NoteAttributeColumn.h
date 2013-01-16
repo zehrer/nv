@@ -11,23 +11,21 @@
    - Neither the name of Notational Velocity nor the names of its contributors may be used to endorse 
      or promote products derived from this software without specific prior written permission. */
 
-
-#import <Cocoa/Cocoa.h>
-
 @class NotesTableView;
 
 @interface NoteAttributeColumn : NSTableColumn {
 	float absoluteMinimumWidth;
 }
 
-+ (NSDictionary*)standardDictionary;
++ (NSDictionary *)standardDictionary;
+
 - (void)updateWidthForHighlight;
 
-@property (nonatomic, assign) SEL mutatingSelector;
-@property (nonatomic, assign) id (*attributeFunction)(id, id, NSInteger);
-@property (nonatomic, assign) NSInteger (*sortingFunction)(id*, id*);
-@property (nonatomic, assign) NSInteger (*reverseSortingFunction)(id*, id*);
+@property(nonatomic, assign) SEL mutatingSelector;
+@property(nonatomic, assign) id (*attributeFunction)(id, id, NSInteger);
+@property(nonatomic, assign) NSInteger (*sortingFunction)(id *, id *);
+@property(nonatomic, assign) NSInteger (*reverseSortingFunction)(id *, id *);
 
-- (void)setResizingMaskNumber:(NSNumber*)resizingMaskNumber;
+- (void)setResizingMaskNumber:(NSNumber *)resizingMaskNumber;
 
 @end

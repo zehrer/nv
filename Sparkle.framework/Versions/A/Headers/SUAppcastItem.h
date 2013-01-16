@@ -13,16 +13,16 @@
 	NSString *title;
 	NSDate *date;
 	NSString *itemDescription;
-	
+
 	NSURL *releaseNotesURL;
-	
-	NSString *DSASignature;	
+
+	NSString *DSASignature;
 	NSString *minimumSystemVersion;
-	
+
 	NSURL *fileURL;
 	NSString *versionString;
 	NSString *displayVersionString;
-	
+
 	NSDictionary *propertiesDictionary;
 }
 
@@ -30,13 +30,21 @@
 - initWithDictionary:(NSDictionary *)dict;
 
 - (NSString *)title;
+
 - (NSString *)versionString;
+
 - (NSString *)displayVersionString;
+
 - (NSDate *)date;
+
 - (NSString *)itemDescription;
+
 - (NSURL *)releaseNotesURL;
+
 - (NSURL *)fileURL;
+
 - (NSString *)DSASignature;
+
 - (NSString *)minimumSystemVersion;
 
 // Returns the dictionary provided in initWithDictionary; this might be useful later for extensions.

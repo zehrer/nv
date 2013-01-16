@@ -9,7 +9,7 @@
 
 #define kTextMargins 50.0
 
-@interface ETClipView : NSClipView{
+@interface ETClipView : NSClipView {
 }
 
 - (void)clipWidthSettingChanged:(NSRect)frameRect;

@@ -15,14 +15,11 @@
    - Neither the name of Notational Velocity nor the names of its contributors may be used to endorse 
      or promote products derived from this software without specific prior written permission. */
 
-
-#import <Cocoa/Cocoa.h>
-
 @class NoteObject;
 
 @protocol NoteBookmarkDelegate <NSObject>
 
-- (NoteObject*)noteWithUUIDBytes:(CFUUIDBytes)bytes;
+- (NoteObject *)noteWithUUIDBytes:(CFUUIDBytes)bytes;
 
 @end
 
@@ -32,16 +29,21 @@
 	NoteObject *noteObject;
 }
 
-- (id)initWithDictionary:(NSDictionary*)aDict;
-- (id)initWithNoteObject:(NoteObject*)aNote searchString:(NSString*)aString;
-- (id)initWithNoteUUIDBytes:(CFUUIDBytes)bytes searchString:(NSString*)aString;
+- (id)initWithDictionary:(NSDictionary *)aDict;
 
-- (NSString*)searchString;
-- (NoteObject*)noteObject;
+- (id)initWithNoteObject:(NoteObject *)aNote searchString:(NSString *)aString;
+
+- (id)initWithNoteUUIDBytes:(CFUUIDBytes)bytes searchString:(NSString *)aString;
+
+- (NSString *)searchString;
+
+- (NoteObject *)noteObject;
+
 - (void)validateNoteObject;
-- (NSDictionary*)dictionaryRep;
 
-@property (nonatomic, weak) id <NoteBookmarkDelegate> delegate;
+- (NSDictionary *)dictionaryRep;
+
+@property(nonatomic, weak) id <NoteBookmarkDelegate> delegate;
 
 @end
 
@@ -69,9 +71,12 @@
 @protocol BookmarksControllerDelegate <NSObject>
 
 - (void)bookmarksController:(BookmarksController *)controller restoreNoteBookmark:(NoteBookmark *)aBookmark inBackground:(BOOL)inBG;
+
 - (NSMenu *)statBarMenu;
-- (NoteObject*)selectedNoteObject;
-- (NSString*)fieldSearchString;
+
+- (NoteObject *)selectedNoteObject;
+
+- (NSString *)fieldSearchString;
 
 @end
 
@@ -81,44 +86,50 @@
 
 @end
 
-@interface BookmarksController : NSObject <NSWindowDelegate, NSTableViewDelegate, NSTableViewDataSource, NoteBookmarkDelegate>
-{
+@interface BookmarksController : NSObject <NSWindowDelegate, NSTableViewDelegate, NSTableViewDataSource, NoteBookmarkDelegate> {
 	//model
 	NSMutableArray *bookmarks;
-	
+
 	BOOL isRestoringSearch, isSelectingProgrammatically;
-	
+
 	GlobalPrefs *prefsController;
-	
+
 	IBOutlet NSButton *addBookmarkButton;
-    IBOutlet NSButton *removeBookmarkButton;
-    IBOutlet NSTableView *bookmarksTableView;
-    IBOutlet NSPanel *window;
-	
+	IBOutlet NSButton *removeBookmarkButton;
+	IBOutlet NSTableView *bookmarksTableView;
+	IBOutlet NSPanel *window;
+
 	NSMenuItem *showHideBookmarksItem;
-	
+
 	NoteBookmark *currentBookmark;
 }
 
-- (id)initWithBookmarks:(NSArray*)array;
-- (NSArray*)dictionaryReps;
+- (id)initWithBookmarks:(NSArray *)array;
 
-- (NoteObject*)noteWithUUIDBytes:(CFUUIDBytes)bytes;
-- (void)removeBookmarkForNote:(NoteObject*)aNote;
+- (NSArray *)dictionaryReps;
 
-- (void)selectBookmarkInTableView:(NoteBookmark*)bookmark;
+- (NoteObject *)noteWithUUIDBytes:(CFUUIDBytes)bytes;
 
-- (BOOL)restoreNoteBookmark:(NoteBookmark*)bookmark inBackground:(BOOL)inBG;
+- (void)removeBookmarkForNote:(NoteObject *)aNote;
+
+- (void)selectBookmarkInTableView:(NoteBookmark *)bookmark;
+
+- (BOOL)restoreNoteBookmark:(NoteBookmark *)bookmark inBackground:(BOOL)inBG;
 
 - (void)restoreBookmark:(id)sender;
+
 - (void)clearAllBookmarks:(id)sender;
+
 - (void)hideBookmarks:(id)sender;
+
 - (void)showBookmarks:(id)sender;
 
 - (void)restoreWindowFromSave;
+
 - (void)loadWindowIfNecessary;
 
 - (void)addBookmark:(id)sender;
+
 - (void)removeBookmark:(id)sender;
 
 - (void)regenerateBookmarksMenu;
@@ -127,7 +138,7 @@
 
 - (void)updateBookmarksUI;
 
-@property (nonatomic, weak) id <BookmarksControllerDelegate> delegate;
-@property (nonatomic, weak) id <BookmarksControllerDataSource> dataSource;
+@property(nonatomic, weak) id <BookmarksControllerDelegate> delegate;
+@property(nonatomic, weak) id <BookmarksControllerDataSource> dataSource;
 
 @end

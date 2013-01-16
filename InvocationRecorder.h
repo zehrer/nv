@@ -16,17 +16,17 @@
      or promote products derived from this software without specific prior written permission. */
 
 
-#import <Cocoa/Cocoa.h>
-
-
 @interface InvocationRecorder : NSObject {
 	id target;
 	NSInvocation *invocation;
 }
 
 + (id)invocationRecorder;
+
 - (id)target;
+
 - (NSInvocation *)invocation;
+
 - (id)prepareWithInvocationTarget:(id)aTarget;
 
 @end
@@ -34,8 +34,10 @@
 @interface ComparableInvocation : NSObject {
 	NSInvocation *innerInvocation;
 }
-- (id)initWithInvocation:(NSInvocation*)anInvocation;
-- (NSInvocation*)invocation;
+- (id)initWithInvocation:(NSInvocation *)anInvocation;
+
+- (NSInvocation *)invocation;
+
 - (void)invoke;
 
 @end

@@ -11,19 +11,15 @@
    - Neither the name of Notational Velocity nor the names of its contributors may be used to endorse 
      or promote products derived from this software without specific prior written permission. */
 
-
-#import <Cocoa/Cocoa.h>
-
 @class NoteObject;
 
-@interface EncodingsManager : NSObject
-{
-    IBOutlet NSPopUpButton *encodingsPopUpButton;
+@interface EncodingsManager : NSObject {
+	IBOutlet NSPopUpButton *encodingsPopUpButton;
 	IBOutlet NSButton *okButton;
-    IBOutlet NSPanel *window;
+	IBOutlet NSPanel *window;
 	IBOutlet NSTextView *textView;
 	IBOutlet NSTextField *helpStringField;
-	
+
 	NSStringEncoding currentEncoding;
 	NoteObject *note;
 	NSData *noteData;
@@ -31,12 +27,20 @@
 }
 
 + (EncodingsManager *)sharedManager;
+
 - (BOOL)checkUnicode;
+
 - (BOOL)tryToUpdateTextForEncoding:(NSStringEncoding)encoding;
+
 - (BOOL)shouldUpdateNoteFromDisk;
-- (void)showPanelForNote:(NoteObject*)aNote;
-- (NSMenu*)textConversionsMenu;
+
+- (void)showPanelForNote:(NoteObject *)aNote;
+
+- (NSMenu *)textConversionsMenu;
+
 - (IBAction)cancelAction:(id)sender;
+
 - (IBAction)chooseEncoding:(id)sender;
+
 - (IBAction)okAction:(id)sender;
 @end

@@ -16,29 +16,30 @@
      or promote products derived from this software without specific prior written permission. */
 
 
-#import <Cocoa/Cocoa.h>
 @class NoteObject;
 
 @interface NSDictionary (FontTraits)
-- (BOOL)attributesHaveFontTrait:(NSFontTraitMask)desiredTrait orAttribute:(NSString*)attrName;
+- (BOOL)attributesHaveFontTrait:(NSFontTraitMask)desiredTrait orAttribute:(NSString *)attrName;
 @end
 
 @interface NSMutableDictionary (FontTraits)
-- (void)addDesiredAttributesFromDictionary:(NSDictionary*)dict;
-- (void)applyStyleInverted:(BOOL)opposite trait:(NSFontTraitMask)trait forFont:(NSFont*)font 
-  alternateAttributeName:(NSString*)attrName alternateAttributeValue:(id)value;
+- (void)addDesiredAttributesFromDictionary:(NSDictionary *)dict;
+
+- (void)applyStyleInverted:(BOOL)opposite trait:(NSFontTraitMask)trait forFont:(NSFont *)font
+	alternateAttributeName:(NSString *)attrName alternateAttributeValue:(id)value;
 @end
 
 @interface NSDictionary (HTTP)
 
-+ (NSDictionary*)optionsDictionaryWithTimeout:(float)timeout;
-- (NSString*)URLEncodedString;
++ (NSDictionary *)optionsDictionaryWithTimeout:(float)timeout;
+
+- (NSString *)URLEncodedString;
 @end
 
 
 @interface NSSet (Utilities)
 
-- (NSMutableSet*)setIntersectedWithSet:(NSSet*)set;
+- (NSMutableSet *)setIntersectedWithSet:(NSSet *)set;
 
 @end
 
@@ -50,15 +51,17 @@
 @interface NSArray (NoteUtilities)
 
 //- (NSRange)nextRangeForString:(NSString*)string activeNote:(NoteObject*)startNote options:(NSStringCompareOptions)opts range:(NSRange)inRange;
-- (void)addMenuItemsForURLsInNotes:(NSMenu*)urlsMenu;
-- (NSUInteger)indexOfNoteWithUUIDBytes:(CFUUIDBytes*)bytes;
-- (NSArray*)objectsFromDictionariesForKey:(id)aKey;
+- (void)addMenuItemsForURLsInNotes:(NSMenu *)urlsMenu;
+
+- (NSUInteger)indexOfNoteWithUUIDBytes:(CFUUIDBytes *)bytes;
+
+- (NSArray *)objectsFromDictionariesForKey:(id)aKey;
 
 @end
 
 @interface NSMutableArray (Sorting)
 
-- (void)sortUnstableUsingFunction:(NSInteger (*)(id *, id *))compare;
+- (void)sortUnstableUsingFunction:(NSInteger ( *)(id *, id *))compare;
 
 @end
 

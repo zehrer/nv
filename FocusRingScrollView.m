@@ -21,7 +21,7 @@
 - (id)init {
 	if ([super init]) {
 		hasFocus = NO;
-		
+
 	}
 	return self;
 }
@@ -55,7 +55,7 @@
 
 - (void)awakeFromNib {
 	window = [self window];
-	
+
 	//NSWindowDidBecomeKeyNotification
 	//NSWindowDidResignKeyNotification
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(windowChangedKeyNotification:)
@@ -67,11 +67,11 @@
 
 - (void)dealloc {
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
-		
+
 	[super dealloc];
 }
 
-- (void)windowChangedKeyNotification:(NSNotification*)aNote {
+- (void)windowChangedKeyNotification:(NSNotification *)aNote {
 	[self setKeyboardFocusRingNeedsDisplayInRect:[self bounds]];
 }
 
@@ -83,10 +83,10 @@
 
 - (void)drawRect:(NSRect)rect {
 	[super drawRect:rect];
-	
+
 	if (hasFocus && [window isKeyWindow]) {
 		NSSetFocusRingStyle(NSFocusRingOnly);
-		
+
 		NSRectFill(rect);
 	}
 }

@@ -15,9 +15,6 @@
    - Neither the name of Notational Velocity nor the names of its contributors may be used to endorse 
      or promote products derived from this software without specific prior written permission. */
 
-
-#import <Cocoa/Cocoa.h>
-
 #define SEPARATE_ATTRS 0
 
 extern NSString *NVHiddenDoneTagAttributeName;
@@ -26,34 +23,41 @@ extern NSString *NVHiddenBulletIndentAttributeName;
 @interface NSMutableAttributedString (AttributedPlainText)
 
 - (void)trimLeadingWhitespace;
-- (void)removeAttachments;
-- (NSString*)prefixWithSourceString:(NSString*)source;
 
-- (NSString*)trimLeadingSyntheticTitle;
+- (void)removeAttachments;
+
+- (NSString *)prefixWithSourceString:(NSString *)source;
+
+- (NSString *)trimLeadingSyntheticTitle;
 
 #if SEPARATE_ATTRS
 + (NSMutableAttributedString*)attributedStringWithString:(NSString*)text attributesByRange:(NSDictionary*)attributes font:(NSFont*)font;
 #endif
 - (void)santizeForeignStylesForImporting;
+
 - (void)addLinkAttributesForRange:(NSRange)changedRange;
+
 - (void)_addDoubleBracketedNVLinkAttributesForRange:(NSRange)changedRange;
+
 - (void)addStrikethroughNearDoneTagsForRange:(NSRange)changedRange;
-- (BOOL)restyleTextToFont:(NSFont*)currentFont usingBaseFont:(NSFont*)baseFont;
+
+- (BOOL)restyleTextToFont:(NSFont *)currentFont usingBaseFont:(NSFont *)baseFont;
 
 @end
 
 
 @interface NSAttributedString (AttributedPlainText)
 
-- (BOOL)attribute:(NSString*)anAttribute existsInRange:(NSRange)aRange;
+- (BOOL)attribute:(NSString *)anAttribute existsInRange:(NSRange)aRange;
 
-- (NSArray*)allLinks;
+- (NSArray *)allLinks;
+
 - (id)findNextLinkAtIndex:(NSUInteger)startIndex effectiveRange:(NSRange *)range;
 #if SEPARATE_ATTRS
 //extract the attributes using their ranges as keys
 - (NSDictionary*)attributesByRange;
 #endif
 
-+ (NSAttributedString*)timeDelayStringWithNumberOfSeconds:(double)seconds;
++ (NSAttributedString *)timeDelayStringWithNumberOfSeconds:(double)seconds;
 
 @end

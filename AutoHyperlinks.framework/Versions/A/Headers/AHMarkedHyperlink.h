@@ -29,23 +29,31 @@
 
 
 @interface AHMarkedHyperlink : NSObject <NSCopying> {
-    NSRange                      linkRange;
-    NSURL                       *linkURL;
-    NSString                    *pString;
-    AH_URI_VERIFICATION_STATUS      urlStatus;
+	NSRange linkRange;
+	NSURL *linkURL;
+	NSString *pString;
+	AH_URI_VERIFICATION_STATUS urlStatus;
 }
 
--(id)initWithString:(NSString *)inString withValidationStatus:(AH_URI_VERIFICATION_STATUS)status parentString:(NSString *)pInString andRange:(NSRange)inRange;
--(NSString *)parentString;
--(NSRange)range;
--(NSURL *)URL;
--(AH_URI_VERIFICATION_STATUS)validationStatus;
+- (id)initWithString:(NSString *)inString withValidationStatus:(AH_URI_VERIFICATION_STATUS)status parentString:(NSString *)pInString andRange:(NSRange)inRange;
 
--(void)setRange:(NSRange)inRange;
--(void)setURL:(NSURL *)inURL;
--(void)setURLFromString:(NSString *)inString;
--(void)setValidationStatus:(AH_URI_VERIFICATION_STATUS)status;
--(void)setParentString:(NSString *)pInString;
+- (NSString *)parentString;
+
+- (NSRange)range;
+
+- (NSURL *)URL;
+
+- (AH_URI_VERIFICATION_STATUS)validationStatus;
+
+- (void)setRange:(NSRange)inRange;
+
+- (void)setURL:(NSURL *)inURL;
+
+- (void)setURLFromString:(NSString *)inString;
+
+- (void)setValidationStatus:(AH_URI_VERIFICATION_STATUS)status;
+
+- (void)setParentString:(NSString *)pInString;
 
 
 @end

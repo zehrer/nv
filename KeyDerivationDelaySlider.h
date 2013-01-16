@@ -15,27 +15,17 @@
    - Neither the name of Notational Velocity nor the names of its contributors may be used to endorse 
      or promote products derived from this software without specific prior written permission. */
 
-#import <Cocoa/Cocoa.h>
-
-//mostly to catch mouse-up from a continuous slider
-
-@interface KeyDerivationDelaySliderCell : NSSliderCell {
-	
-}
-
-@end
-
 @class KeyDerivationDelaySlider;
 
 @protocol KeyDerivationDelaySliderDelegate <NSObject>
 
-- (void)mouseUpForKeyDerivationDelaySlider:(KeyDerivationDelaySlider*)aSlider;
+- (void)mouseUpForKeyDerivationDelaySlider:(KeyDerivationDelaySlider *)aSlider;
 
 @end
 
 @interface KeyDerivationDelaySlider : NSSlider
 
-@property (nonatomic, weak) id <KeyDerivationDelaySliderDelegate> delegate;
+@property(nonatomic, weak) id <KeyDerivationDelaySliderDelegate> delegate;
 
 - (void)mouseUp;
 

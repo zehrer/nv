@@ -16,14 +16,15 @@
      or promote products derived from this software without specific prior written permission. */
 
 
-#import <Cocoa/Cocoa.h>
 #import "AppController.h"
 #import "AlienNoteImporter.h"
 
 @interface AppController (Importing)
 
-- (BOOL)addNotesFromPasteboard:(NSPasteboard*)pasteboard;
-- (BOOL)interpretNVURL:(NSURL*)aURL;
-- (NSString*)stringWithNoteURLsOnPasteboard:(NSPasteboard*)pboard;
+- (BOOL)addNotesFromPasteboard:(NSPasteboard *)pasteboard;
+
+- (BOOL)interpretNVURL:(NSURL *)aURL;
+
+- (NSString *)stringWithNoteURLsOnPasteboard:(NSPasteboard *)pboard;
 
 @end

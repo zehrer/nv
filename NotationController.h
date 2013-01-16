@@ -16,10 +16,8 @@
      or promote products derived from this software without specific prior written permission. */
 
 
-#import <Cocoa/Cocoa.h>
 #import "WALController.h"
 #import "NotationPrefs.h"
-#import <CoreServices/CoreServices.h>
 #import "NotesTableView.h"
 #import "BookmarksController.h"
 #import "NoteObject.h"
@@ -43,148 +41,209 @@ typedef NS_OPTIONS(NSInteger, NVNoteRevealOptions) {
 
 @protocol NotationControllerDelegate <NSObject>
 
-- (BOOL)notationListShouldChange:(NotationController*)someNotation;
-- (void)notationListMightChange:(NotationController*)someNotation;
-- (void)notationListDidChange:(NotationController*)someNotation;
-- (void)notation:(NotationController*)notation revealNote:(NoteObject*)note options:(NVNoteRevealOptions)opts;
-- (void)notation:(NotationController*)notation revealNotes:(NSArray*)notes;
+- (BOOL)notationListShouldChange:(NotationController *)someNotation;
 
-- (void)contentsUpdatedForNote:(NoteObject*)aNoteObject;
-- (void)titleUpdatedForNote:(NoteObject*)aNoteObject;
+- (void)notationListMightChange:(NotationController *)someNotation;
+
+- (void)notationListDidChange:(NotationController *)someNotation;
+
+- (void)notation:(NotationController *)notation revealNote:(NoteObject *)note options:(NVNoteRevealOptions)opts;
+
+- (void)notation:(NotationController *)notation revealNotes:(NSArray *)notes;
+
+- (void)contentsUpdatedForNote:(NoteObject *)aNoteObject;
+
+- (void)titleUpdatedForNote:(NoteObject *)aNoteObject;
+
 - (void)rowShouldUpdate:(NSInteger)affectedRow;
 
 @end
 
 @interface NotationController : NSObject <NSTableViewDataSource, NVPreferencesDelegate, NVLabelsListSource, BookmarksControllerDataSource, NoteObjectDelegate> {
-    NSMutableArray *allNotes;
+	NSMutableArray *allNotes;
 	GlobalPrefs *prefsController;
 	SyncSessionController *syncSessionController;
 	DeletionManager *deletionManager;
-	
+
 	float titleColumnWidth;
-	NoteAttributeColumn* sortColumn;
-    
-    NSUInteger selectedNoteIndex;
-    char *currentFilterStr, *manglingString;
-    NSInteger lastWordInFilterStr;
-    
+	NoteAttributeColumn *sortColumn;
+
+	NSUInteger selectedNoteIndex;
+	char *currentFilterStr, *manglingString;
+	NSInteger lastWordInFilterStr;
+
 	BOOL directoryChangesFound;
-    
-    NotationPrefs *notationPrefs;
-	
+
+	NotationPrefs *notationPrefs;
+
 	NSMutableSet *deletedNotes;
-    
+
 	NSInteger volumeSupportsExchangeObjects;
-    FSCatalogInfo *fsCatInfoArray;
-    HFSUniStr255 *HFSUniNameArray;
+	FSCatalogInfo *fsCatInfoArray;
+	HFSUniStr255 *HFSUniNameArray;
 
 	FSEventStreamRef noteDirEventStreamRef;
 	BOOL eventStreamStarted;
-	    
-    size_t catEntriesCount, totalCatEntriesCount;
-    NoteCatalogEntry *catalogEntries, **sortedCatalogEntries;
-    
+
+	size_t catEntriesCount, totalCatEntriesCount;
+	NoteCatalogEntry *catalogEntries, **sortedCatalogEntries;
+
 	NSUInteger lastCheckedDateInHours;
 	int lastLayoutStyleGenerated;
-    long blockSize;
+	long blockSize;
 	struct statfs *statfsInfo;
 	NSUInteger diskUUIDIndex;
 	CFUUIDRef diskUUID;
-    FSRef noteDirectoryRef, noteDatabaseRef;
-    AliasHandle aliasHandle;
-    BOOL aliasNeedsUpdating;
-    OSStatus lastWriteError;
-    
-    WALStorageController *walWriter;
-    NSMutableSet *unwrittenNotes;
+	FSRef noteDirectoryRef, noteDatabaseRef;
+	AliasHandle aliasHandle;
+	BOOL aliasNeedsUpdating;
+	OSStatus lastWriteError;
+
+	WALStorageController *walWriter;
+	NSMutableSet *unwrittenNotes;
 	BOOL notesChanged;
 	NSTimer *changeWritingTimer;
 	NSUndoManager *undoManager;
 }
 
-@property (nonatomic, strong) NSMutableArray *filteredNotesList;
-@property (nonatomic, strong) NSCountedSet *allLabels, *filteredLabels;
+@property(nonatomic, strong) NSMutableArray *filteredNotesList;
+@property(nonatomic, strong) NSCountedSet *allLabels, *filteredLabels;
 
 - (id)init;
-- (id)initWithAliasData:(NSData*)data error:(OSStatus*)err;
-- (id)initWithDefaultDirectoryReturningError:(OSStatus*)err;
-- (id)initWithDirectoryRef:(FSRef*)directoryRef error:(OSStatus*)err;
+
+- (id)initWithAliasData:(NSData *)data error:(OSStatus *)err;
+
+- (id)initWithDefaultDirectoryReturningError:(OSStatus *)err;
+
+- (id)initWithDirectoryRef:(FSRef *)directoryRef error:(OSStatus *)err;
+
 - (void)setAliasNeedsUpdating:(BOOL)needsUpdate;
+
 - (BOOL)aliasNeedsUpdating;
-- (NSData*)aliasDataForNoteDirectory;
+
+- (NSData *)aliasDataForNoteDirectory;
+
 - (OSStatus)_readAndInitializeSerializedNotes;
-- (void)processRecoveredNotes:(NSDictionary*)dict;
+
+- (void)processRecoveredNotes:(NSDictionary *)dict;
+
 - (BOOL)initializeJournaling;
+
 - (void)handleJournalError;
+
 - (void)checkJournalExistence;
+
 - (void)closeJournal;
+
 - (BOOL)flushAllNoteChanges;
+
 - (void)flushEverything;
 
 - (void)upgradeDatabaseIfNecessary;
 
-@property (nonatomic, weak) id <NotationControllerDelegate> delegate;
+@property(nonatomic, weak) id <NotationControllerDelegate> delegate;
 
 - (void)databaseEncryptionSettingsChanged;
+
 - (void)databaseSettingsChangedFromOldFormat:(NoteStorageFormat)oldFormat;
 
 - (NoteStorageFormat)currentNoteStorageFormat;
-- (void)synchronizeNoteChanges:(NSTimer*)timer;
+
+- (void)synchronizeNoteChanges:(NSTimer *)timer;
 
 - (void)updateDateStringsIfNecessary;
-- (void)makeForegroundTextColorMatchGlobalPrefs;
-- (void)setForegroundTextColor:(NSColor*)aColor;
-- (void)restyleAllNotes;
-- (void)setUndoManager:(NSUndoManager*)anUndoManager;
-- (NSUndoManager*)undoManager;
-- (void)noteDidNotWrite:(NoteObject*)note errorCode:(OSStatus)error;
-- (void)scheduleWriteForNote:(NoteObject*)note;
-- (void)trashRemainingNoteFilesInDirectory;
-- (void)checkIfNotationIsTrashed;
-- (void)updateLinksToNote:(NoteObject*)aNoteObject fromOldName:(NSString*)oldname;
-- (void)updateTitlePrefixConnections;
-- (void)addNotes:(NSArray*)noteArray;
-- (void)addNotesFromSync:(NSArray*)noteArray;
-- (void)addNewNote:(NoteObject*)aNoteObject;
-- (void)_addNote:(NoteObject*)aNoteObject;
-- (void)removeNote:(NoteObject*)aNoteObject;
-- (void)removeNotes:(NSArray*)noteArray;
-- (void)_purgeAlreadyDistributedDeletedNotes;
-- (void)removeSyncMDFromDeletedNotesInSet:(NSSet*)notesToOrphan forService:(NSString*)serviceName;
-- (DeletedNoteObject*)_addDeletedNote:(id<SynchronizedNote>)aNote;
-- (void)_registerDeletionUndoForNote:(NoteObject*)aNote;
-- (NoteObject*)addNoteFromCatalogEntry:(NoteCatalogEntry*)catEntry;
 
-- (BOOL)openFiles:(NSArray*)filenames;
+- (void)makeForegroundTextColorMatchGlobalPrefs;
+
+- (void)setForegroundTextColor:(NSColor *)aColor;
+
+- (void)restyleAllNotes;
+
+- (void)setUndoManager:(NSUndoManager *)anUndoManager;
+
+- (NSUndoManager *)undoManager;
+
+- (void)noteDidNotWrite:(NoteObject *)note errorCode:(OSStatus)error;
+
+- (void)scheduleWriteForNote:(NoteObject *)note;
+
+- (void)trashRemainingNoteFilesInDirectory;
+
+- (void)checkIfNotationIsTrashed;
+
+- (void)updateLinksToNote:(NoteObject *)aNoteObject fromOldName:(NSString *)oldname;
+
+- (void)updateTitlePrefixConnections;
+
+- (void)addNotes:(NSArray *)noteArray;
+
+- (void)addNotesFromSync:(NSArray *)noteArray;
+
+- (void)addNewNote:(NoteObject *)aNoteObject;
+
+- (void)_addNote:(NoteObject *)aNoteObject;
+
+- (void)removeNote:(NoteObject *)aNoteObject;
+
+- (void)removeNotes:(NSArray *)noteArray;
+
+- (void)_purgeAlreadyDistributedDeletedNotes;
+
+- (void)removeSyncMDFromDeletedNotesInSet:(NSSet *)notesToOrphan forService:(NSString *)serviceName;
+
+- (DeletedNoteObject *)_addDeletedNote:(id <SynchronizedNote>)aNote;
+
+- (void)_registerDeletionUndoForNote:(NoteObject *)aNote;
+
+- (NoteObject *)addNoteFromCatalogEntry:(NoteCatalogEntry *)catEntry;
+
+- (BOOL)openFiles:(NSArray *)filenames;
 
 - (void)updateLabelConnectionsAfterDecoding;
 
 - (void)refilterNotes;
-- (BOOL)filterNotesFromString:(NSString*)string;
-- (BOOL)filterNotesFromUTF8String:(const char*)searchString forceUncached:(BOOL)forceUncached;
+
+- (BOOL)filterNotesFromString:(NSString *)string;
+
+- (BOOL)filterNotesFromUTF8String:(const char *)searchString forceUncached:(BOOL)forceUncached;
+
 - (NSUInteger)preferredSelectedNoteIndex;
-- (NSArray*)noteTitlesPrefixedByString:(NSString*)prefixString indexOfSelectedItem:(NSInteger *)anIndex;
-- (NoteObject*)noteObjectAtFilteredIndex:(NSUInteger)noteIndex;
-- (NSArray*)notesAtIndexes:(NSIndexSet*)indexSet;
-- (NSIndexSet*)indexesOfNotes:(NSArray*)noteSet;
-- (NSUInteger)indexInFilteredListForNoteIdenticalTo:(NoteObject*)note;
+
+- (NSArray *)noteTitlesPrefixedByString:(NSString *)prefixString indexOfSelectedItem:(NSInteger *)anIndex;
+
+- (NoteObject *)noteObjectAtFilteredIndex:(NSUInteger)noteIndex;
+
+- (NSArray *)notesAtIndexes:(NSIndexSet *)indexSet;
+
+- (NSIndexSet *)indexesOfNotes:(NSArray *)noteSet;
+
+- (NSUInteger)indexInFilteredListForNoteIdenticalTo:(NoteObject *)note;
+
 - (NSUInteger)totalNoteCount;
 
-- (void)scheduleUpdateListForAttribute:(NSString*)attribute;
-- (NoteAttributeColumn*)sortColumn;
-- (void)setSortColumn:(NoteAttributeColumn*)col;
+- (void)scheduleUpdateListForAttribute:(NSString *)attribute;
+
+- (NoteAttributeColumn *)sortColumn;
+
+- (void)setSortColumn:(NoteAttributeColumn *)col;
+
 - (void)resortAllNotes;
+
 - (void)sortAndRedisplayNotes;
 
 - (float)titleColumnWidth;
-- (void)regeneratePreviewsForColumn:(NSTableColumn*)col visibleFilteredRows:(NSRange)rows forceUpdate:(BOOL)force;
+
+- (void)regeneratePreviewsForColumn:(NSTableColumn *)col visibleFilteredRows:(NSRange)rows forceUpdate:(BOOL)force;
+
 - (void)regenerateAllPreviews;
 //- (void)invalidateAllLabelPreviewImages;
 
-- (NotationPrefs*)notationPrefs;
-- (SyncSessionController*)syncSessionController;
+- (NotationPrefs *)notationPrefs;
+
+- (SyncSessionController *)syncSessionController;
 
 - (void)invalidateCachedLabelImages;
-- (NSImage*)cachedLabelImageForWord:(NSString*)aWord highlighted:(BOOL)isHighlighted;
+
+- (NSImage *)cachedLabelImageForWord:(NSString *)aWord highlighted:(BOOL)isHighlighted;
 
 @end

@@ -15,8 +15,6 @@
    - Neither the name of Notational Velocity nor the names of its contributors may be used to endorse 
      or promote products derived from this software without specific prior written permission. */
 
-
-#import <Cocoa/Cocoa.h>
 #import "SynchronizedNoteProtocol.h"
 #import "NTNFileManager.h"
 #import "NoteObject.h"
@@ -29,33 +27,46 @@
 @protocol SyncServiceSessionDelegate <NSObject, NoteObjectDelegate, NTNFileManager>
 
 - (void)syncSessionProgressStarted:(id <SyncServiceSession>)syncSession;
-- (void)syncSession:(id <SyncServiceSession>)syncSession didStopWithError:(NSString*)errString;
 
-- (void)syncSession:(id <SyncServiceSession>)syncSession receivedFullNoteList:(NSArray*)allEntries;
-- (void)syncSession:(id <SyncServiceSession>)syncSession receivedAddedNotes:(NSArray*)addedNotes;
-- (void)syncSession:(id <SyncServiceSession>)syncSession didModifyNotes:(NSArray*)changedNotes;
+- (void)syncSession:(id <SyncServiceSession>)syncSession didStopWithError:(NSString *)errString;
+
+- (void)syncSession:(id <SyncServiceSession>)syncSession receivedFullNoteList:(NSArray *)allEntries;
+
+- (void)syncSession:(id <SyncServiceSession>)syncSession receivedAddedNotes:(NSArray *)addedNotes;
+
+- (void)syncSession:(id <SyncServiceSession>)syncSession didModifyNotes:(NSArray *)changedNotes;
+
 - (void)syncSessionDidFinishRemoteModifications:(id <SyncServiceSession>)syncSession;
 
 @end
 
 @protocol SyncServiceSession <NSObject>
 
-+ (NSString*)localizedServiceTitle;
-+ (NSString*)serviceName;
-+ (NSString*)nameOfKeyElement;
++ (NSString *)localizedServiceTitle;
 
-- (id)initWithNotationPrefs:(NotationPrefs*)prefs;
++ (NSString *)serviceName;
 
-- (NSComparisonResult)localEntry:(NSDictionary*)localEntry compareToRemoteEntry:(NSDictionary*)remoteEntry;
-- (void)applyMetadataUpdatesToNote:(id <SynchronizedNote>)aNote localEntry:(NSDictionary *)localEntry remoteEntry: (NSDictionary *)remoteEntry;
-- (BOOL)remoteEntryWasMarkedDeleted:(NSDictionary*)remoteEntry;
++ (NSString *)nameOfKeyElement;
+
+- (id)initWithNotationPrefs:(NotationPrefs *)prefs;
+
+- (NSComparisonResult)localEntry:(NSDictionary *)localEntry compareToRemoteEntry:(NSDictionary *)remoteEntry;
+
+- (void)applyMetadataUpdatesToNote:(id <SynchronizedNote>)aNote localEntry:(NSDictionary *)localEntry remoteEntry:(NSDictionary *)remoteEntry;
+
+- (BOOL)remoteEntryWasMarkedDeleted:(NSDictionary *)remoteEntry;
+
 + (void)registerLocalModificationForNote:(id <SynchronizedNote>)aNote;
 
-- (NSString*)statusText;
-- (NSSet*)activeTasks;
+- (NSString *)statusText;
+
+- (NSSet *)activeTasks;
+
 - (void)stop;
+
 - (BOOL)isRunning;
-- (NSString*)lastError;
+
+- (NSString *)lastError;
 
 - (BOOL)reachabilityFailed;
 
@@ -65,29 +76,36 @@
 //for added notes, this is done in the callback before actually adding them to allNotes
 //for updated notes this is done by the session itself, because it does the updating
 //for removed notes this is done right before actually removing them from allNotes (-removeNotes:)
-- (void)suppressPushingForNotes:(NSArray*)notes;
-- (void)stopSuppressingPushingForNotes:(NSArray*)notes;
+- (void)suppressPushingForNotes:(NSArray *)notes;
+
+- (void)stopSuppressingPushingForNotes:(NSArray *)notes;
 
 - (BOOL)startFetchingListForFullSyncManual;
+
 - (BOOL)startFetchingListForFullSync;
 
-- (void)startCollectingAddedNotesWithEntries:(NSArray*)entries mergingWithNotes:(NSArray*)notesToMerge;
-- (void)startCollectingChangedNotesWithEntries:(NSArray*)entries;
+- (void)startCollectingAddedNotesWithEntries:(NSArray *)entries mergingWithNotes:(NSArray *)notesToMerge;
 
-- (void)startDeletingNotes:(NSArray*)notes;
-- (void)startModifyingNotes:(NSArray*)notes;
-- (void)startCreatingNotes:(NSArray*)notes;
+- (void)startCollectingChangedNotesWithEntries:(NSArray *)entries;
 
-@property (nonatomic, weak) id <SyncServiceSessionDelegate> delegate;
+- (void)startDeletingNotes:(NSArray *)notes;
+
+- (void)startModifyingNotes:(NSArray *)notes;
+
+- (void)startCreatingNotes:(NSArray *)notes;
+
+@property(nonatomic, weak) id <SyncServiceSessionDelegate> delegate;
 
 - (BOOL)pushSyncServiceChanges;
+
 - (BOOL)hasUnsyncedChanges;
 
 @end
 
 @protocol SyncServiceTask <NSObject>
 
-- (NSString*)statusText;
-- (SyncResponseFetcher*)currentFetcher;
+- (NSString *)statusText;
+
+- (SyncResponseFetcher *)currentFetcher;
 
 @end

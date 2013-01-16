@@ -15,18 +15,15 @@
    - Neither the name of Notational Velocity nor the names of its contributors may be used to endorse 
      or promote products derived from this software without specific prior written permission. */
 
-
-#import <Cocoa/Cocoa.h>
-
 typedef struct _NoteCatalogEntry {
-    UTCDateTime lastModified;
+	UTCDateTime lastModified;
 	UTCDateTime lastAttrModified;
-    UInt32 logicalSize;
-    OSType fileType;
-    UInt32 nodeID;
-    CFMutableStringRef filename;
-    UniChar *filenameChars;
-    UniCharCount filenameCharCount;
+	UInt32 logicalSize;
+	OSType fileType;
+	UInt32 nodeID;
+	CFMutableStringRef filename;
+	UniChar *filenameChars;
+	UniCharCount filenameCharCount;
 } NoteCatalogEntry;
 
 /* this class is responsible for managing all preferences specific to a notational database,
@@ -35,7 +32,7 @@ including encryption, file formats, synchronization, passwords management, and o
 #define EPOC_ITERATION 4
 
 typedef NS_ENUM(NSInteger, NoteStorageFormat) {
-    SingleDatabaseFormat = 0, PlainTextFormat, RTFTextFormat, HTMLFormat, WordDocFormat, WordXMLFormat
+	SingleDatabaseFormat = 0, PlainTextFormat, RTFTextFormat, HTMLFormat, WordDocFormat, WordXMLFormat
 };
 
 extern NSString *NotationPrefsDidChangeNotification;
@@ -43,14 +40,19 @@ extern NSString *NotationPrefsDidChangeNotification;
 @protocol NVPreferencesDelegate <NSObject>
 
 - (void)databaseEncryptionSettingsChanged;
-- (void)syncSettingsChangedForService:(NSString*)serviceName;
+
+- (void)syncSettingsChangedForService:(NSString *)serviceName;
+
 - (void)databaseSettingsChangedFromOldFormat:(NoteStorageFormat)oldFormat;
 
 @optional
 
 - (void)flushEverything;
+
 - (void)trashRemainingNoteFilesInDirectory;
+
 - (NSUInteger)totalNoteCount;
+
 - (NSData *)aliasDataForNoteDirectory;
 
 @end
@@ -58,122 +60,183 @@ extern NSString *NotationPrefsDidChangeNotification;
 @interface NotationPrefs : NSObject {
 	BOOL doesEncryption, storesPasswordInKeychain, secureTextEntry;
 	NSString *keychainDatabaseIdentifier;
-	
+
 	//password(s) stored in keychain or otherwise encrypted using notes password
 	NSMutableDictionary *syncServiceAccounts;
-	
+
 	unsigned int hashIterationCount, keyLengthInBits;
-	
+
 	NSColor *foregroundColor;
 	NSFont *baseBodyFont;
 	NoteStorageFormat notesStorageFormat;
 	BOOL confirmFileDeletion;
-	
+
 	NSUInteger chosenExtIndices[4];
-    NSMutableArray *typeStrings[4], *pathExtensions[4];
-    OSType *allowedTypes;
-	
+	NSMutableArray *typeStrings[4], *pathExtensions[4];
+	OSType *allowedTypes;
+
 	NSData *masterSalt, *dataSessionSalt, *verifierKey;
-	
+
 	NSMutableArray *seenDiskUUIDEntries;
-	
+
 	UInt32 epochIteration;
 	BOOL firstTimeUsed;
 	BOOL preferencesChanged;
-	
-	@private 
+
+@private
 	//masterKey is not to be stored anywhere
 	NSData *masterKey;
 }
 
-NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serviceName);
+NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString *serviceName);
 
 + (int)appVersion;
-+ (NSArray*)defaultTypeStringsForFormat:(NoteStorageFormat)formatID;
-+ (NSArray*)defaultPathExtensionsForFormat:(NoteStorageFormat)formatID;
+
++ (NSArray *)defaultTypeStringsForFormat:(NoteStorageFormat)formatID;
+
++ (NSArray *)defaultPathExtensionsForFormat:(NoteStorageFormat)formatID;
+
 - (BOOL)preferencesChanged;
-- (void)setForegroundTextColor:(NSColor*)aColor;
-- (NSColor*)foregroundColor;
-- (void)setBaseBodyFont:(NSFont*)aFont;
-- (NSFont*)baseBodyFont;
+
+- (void)setForegroundTextColor:(NSColor *)aColor;
+
+- (NSColor *)foregroundColor;
+
+- (void)setBaseBodyFont:(NSFont *)aFont;
+
+- (NSFont *)baseBodyFont;
 
 - (BOOL)storesPasswordInKeychain;
+
 - (NSInteger)notesStorageFormat;
+
 - (BOOL)confirmFileDeletion;
+
 - (BOOL)doesEncryption;
-- (NSDictionary*)syncServiceAccounts;
-- (NSDictionary*)syncServiceAccountsForArchiving;
-- (NSDictionary*)syncAccountForServiceName:(NSString*)serviceName;
-- (NSString*)syncPasswordForServiceName:(NSString*)serviceName;
-- (NSUInteger)syncFrequencyInMinutesForServiceName:(NSString*)serviceName;
-- (BOOL)syncNotesShouldMergeForServiceName:(NSString*)serviceName;
-- (BOOL)syncServiceIsEnabled:(NSString*)serviceName;
+
+- (NSDictionary *)syncServiceAccounts;
+
+- (NSDictionary *)syncServiceAccountsForArchiving;
+
+- (NSDictionary *)syncAccountForServiceName:(NSString *)serviceName;
+
+- (NSString *)syncPasswordForServiceName:(NSString *)serviceName;
+
+- (NSUInteger)syncFrequencyInMinutesForServiceName:(NSString *)serviceName;
+
+- (BOOL)syncNotesShouldMergeForServiceName:(NSString *)serviceName;
+
+- (BOOL)syncServiceIsEnabled:(NSString *)serviceName;
+
 - (unsigned int)keyLengthInBits;
+
 - (unsigned int)hashIterationCount;
+
 - (UInt32)epochIteration;
+
 - (BOOL)firstTimeUsed;
+
 - (BOOL)secureTextEntry;
 
 - (void)forgetKeychainIdentifier;
+
 - (const char *)setKeychainIdentifier;
+
 - (SecKeychainItemRef)currentKeychainItem;
-- (NSData*)passwordDataFromKeychain;
+
+- (NSData *)passwordDataFromKeychain;
+
 - (void)removeKeychainData;
-- (void)setKeychainData:(NSData*)data;
+
+- (void)setKeychainData:(NSData *)data;
 
 - (void)setPreferencesAreStored;
+
 - (void)setStoresPasswordInKeychain:(BOOL)value;
-- (BOOL)canLoadPassphraseData:(NSData*)passData;
-- (BOOL)canLoadPassphrase:(NSString*)pass;
-- (void)setPassphraseData:(NSData*)passData inKeychain:(BOOL)inKeychain;
-- (void)setPassphraseData:(NSData*)passData inKeychain:(BOOL)inKeychain withIterations:(int)iterationCount;
-- (BOOL)encryptDataInNewSession:(NSMutableData*)data;
-- (BOOL)decryptDataWithCurrentSettings:(NSMutableData*)data;
-- (NSData*)WALSessionKey;
+
+- (BOOL)canLoadPassphraseData:(NSData *)passData;
+
+- (BOOL)canLoadPassphrase:(NSString *)pass;
+
+- (void)setPassphraseData:(NSData *)passData inKeychain:(BOOL)inKeychain;
+
+- (void)setPassphraseData:(NSData *)passData inKeychain:(BOOL)inKeychain withIterations:(int)iterationCount;
+
+- (BOOL)encryptDataInNewSession:(NSMutableData *)data;
+
+- (BOOL)decryptDataWithCurrentSettings:(NSMutableData *)data;
+
+- (NSData *)WALSessionKey;
 
 - (void)setNotesStorageFormat:(NSInteger)formatID;
+
 - (BOOL)shouldDisplaySheetForProposedFormat:(NSInteger)proposedFormat;
+
 - (void)noteFilesCleanupSheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo;
+
 - (void)setConfirmsFileDeletion:(BOOL)value;
+
 - (void)setDoesEncryption:(BOOL)value;
+
 - (void)setSecureTextEntry:(BOOL)value;
-- (const char*)keychainSyncAccountNameForService:(NSString*)serviceName;
-- (void)setSyncUsername:(NSString*)username forService:(NSString*)serviceName;
-- (void)setSyncPassword:(NSString*)password forService:(NSString*)serviceName;
-- (void)setSyncFrequency:(NSUInteger)frequencyInMinutes forService:(NSString*)serviceName;
-- (void)setSyncEnabled:(BOOL)isEnabled forService:(NSString*)serviceName;
-- (void)setSyncShouldMerge:(BOOL)shouldMerge inCurrentAccountForService:(NSString*)serviceName;
-- (void)removeSyncPasswordForService:(NSString*)serviceName;
+
+- (const char *)keychainSyncAccountNameForService:(NSString *)serviceName;
+
+- (void)setSyncUsername:(NSString *)username forService:(NSString *)serviceName;
+
+- (void)setSyncPassword:(NSString *)password forService:(NSString *)serviceName;
+
+- (void)setSyncFrequency:(NSUInteger)frequencyInMinutes forService:(NSString *)serviceName;
+
+- (void)setSyncEnabled:(BOOL)isEnabled forService:(NSString *)serviceName;
+
+- (void)setSyncShouldMerge:(BOOL)shouldMerge inCurrentAccountForService:(NSString *)serviceName;
+
+- (void)removeSyncPasswordForService:(NSString *)serviceName;
+
 - (void)setKeyLengthInBits:(unsigned int)newLength;
 
 - (NSUInteger)tableIndexOfDiskUUID:(CFUUIDRef)UUIDRef;
-- (void)checkForKnownRedundantSyncConduitsAtPath:(NSString*)dbPath;
 
-+ (NSString*)pathExtensionForFormat:(int)format;
+- (void)checkForKnownRedundantSyncConduitsAtPath:(NSString *)dbPath;
+
++ (NSString *)pathExtensionForFormat:(int)format;
 
 //used to view tableviews
-- (NSString*)typeStringAtIndex:(NSInteger)typeIndex;
-- (NSString*)pathExtensionAtIndex:(NSInteger)pathIndex;
+- (NSString *)typeStringAtIndex:(NSInteger)typeIndex;
+
+- (NSString *)pathExtensionAtIndex:(NSInteger)pathIndex;
+
 - (NSUInteger)indexOfChosenPathExtension;
-- (NSString*)chosenPathExtensionForFormat:(int)format;
+
+- (NSString *)chosenPathExtensionForFormat:(int)format;
+
 - (NSUInteger)typeStringsCount;
+
 - (NSUInteger)pathExtensionsCount;
 
 //used to edit tableviews
-- (void)addAllowedPathExtension:(NSString*)extension;
-- (BOOL)removeAllowedPathExtensionAtIndex:(NSUInteger)extensionIndex;
-- (BOOL)setChosenPathExtensionAtIndex:(NSUInteger)extensionIndex;
-- (BOOL)addAllowedType:(NSString*)type;
-- (void)removeAllowedTypeAtIndex:(NSUInteger)index;
-- (BOOL)setExtension:(NSString*)newExtension atIndex:(unsigned int)oldIndex;
-- (BOOL)setType:(NSString*)newType atIndex:(unsigned int)oldIndex;
+- (void)addAllowedPathExtension:(NSString *)extension;
 
-- (BOOL)pathExtensionAllowed:(NSString*)anExtension forFormat:(int)formatID;
+- (BOOL)removeAllowedPathExtensionAtIndex:(NSUInteger)extensionIndex;
+
+- (BOOL)setChosenPathExtensionAtIndex:(NSUInteger)extensionIndex;
+
+- (BOOL)addAllowedType:(NSString *)type;
+
+- (void)removeAllowedTypeAtIndex:(NSUInteger)index;
+
+- (BOOL)setExtension:(NSString *)newExtension atIndex:(unsigned int)oldIndex;
+
+- (BOOL)setType:(NSString *)newType atIndex:(unsigned int)oldIndex;
+
+- (BOOL)pathExtensionAllowed:(NSString *)anExtension forFormat:(int)formatID;
 
 //actually used while searching for files
 - (void)updateOSTypesArray;
-- (BOOL)catalogEntryAllowed:(NoteCatalogEntry*)catEntry;
 
-@property (nonatomic, unsafe_unretained) id <NVPreferencesDelegate> delegate;
+- (BOOL)catalogEntryAllowed:(NoteCatalogEntry *)catEntry;
+
+@property(nonatomic, unsafe_unretained) id <NVPreferencesDelegate> delegate;
 
 @end

@@ -21,10 +21,9 @@ static NSColor *disabledColor, *enabledColor;
 
 @implementation ETTransparentButtonCell
 
-+ (void)initialize;
-{
++ (void)initialize; {
 	NSBundle *bundle = [NSBundle bundleForClass:[ETTransparentButtonCell class]];
-	
+
 	buttonLeftN = [[NSImage alloc] initWithContentsOfFile:[bundle pathForImageResource:@"TransparentButtonLeftN.tiff"]];
 	buttonFillN = [[NSImage alloc] initWithContentsOfFile:[bundle pathForImageResource:@"TransparentButtonFillN.tiff"]];
 	buttonRightN = [[NSImage alloc] initWithContentsOfFile:[bundle pathForImageResource:@"TransparentButtonRightN.tiff"]];
@@ -36,86 +35,78 @@ static NSColor *disabledColor, *enabledColor;
 	disabledColor = [NSColor colorWithCalibratedWhite:0.6 alpha:1];
 }
 
-- (void)drawBezelWithFrame:(NSRect)cellFrame inView:(NSView *)controlView
-{
-    
+- (void)drawBezelWithFrame:(NSRect)cellFrame inView:(NSView *)controlView {
+
 	cellFrame.size.height = buttonFillN.size.height;
-	
+
 	if ([self isHighlighted])
 		NSDrawThreePartImage(cellFrame, buttonLeftP, buttonFillP, buttonRightP, NO, NSCompositeSourceOver, 1, YES);
 	else
-		NSDrawThreePartImage(cellFrame, buttonLeftN, buttonFillN, buttonRightN, NO, NSCompositeSourceOver, 1, YES);	
-     
+		NSDrawThreePartImage(cellFrame, buttonLeftN, buttonFillN, buttonRightN, NO, NSCompositeSourceOver, 1, YES);
+
 }
 
-- (void)drawImage:(NSImage *)image withFrame:(NSRect)frame inView:(NSView *)controlView
-{	
-    frame.origin.y -= 2;
-	
+- (void)drawImage:(NSImage *)image withFrame:(NSRect)frame inView:(NSView *)controlView {
+	frame.origin.y -= 2;
+
 	if ([[image name] isEqualToString:@"NSActionTemplate"])
-		[image setSize:NSMakeSize(10,10)];
-	
+		[image setSize:NSMakeSize(10, 10)];
+
 	NSImage *newImage = image;
 	if ([image isTemplate])
 		newImage = [self bwTintedImage:image WithColor:[self interiorColor]];
-	
+
 	[super drawImage:newImage withFrame:frame inView:controlView];
 }
 
-- (NSRect)drawTitle:(NSAttributedString *)title withFrame:(NSRect)frame inView:(NSView *)controlView
-{
+- (NSRect)drawTitle:(NSAttributedString *)title withFrame:(NSRect)frame inView:(NSView *)controlView {
 	frame.origin.y -= 4;
-	
+
 	return [super drawTitle:title withFrame:frame inView:controlView];
 }
 
-- (NSDictionary *)_textAttributes
-{
+- (NSDictionary *)_textAttributes {
 	NSMutableDictionary *attributes = [[NSMutableDictionary alloc] init];
 	[attributes addEntriesFromDictionary:[super _textAttributes]];
 	attributes[NSFontAttributeName] = [NSFont systemFontOfSize:11];
 	attributes[NSForegroundColorAttributeName] = [self interiorColor];
-	
+
 	return attributes;
 }
 
-- (NSColor *)interiorColor
-{
+- (NSColor *)interiorColor {
 	NSColor *interiorColor;
-	
+
 	if ([self isEnabled])
 		interiorColor = enabledColor;
 	else
 		interiorColor = disabledColor;
-	
+
 	return interiorColor;
 }
 
-- (NSControlSize)controlSize
-{
+- (NSControlSize)controlSize {
 	return NSSmallControlSize;
 }
 
-- (void)setControlSize:(NSControlSize)size
-{
-	
+- (void)setControlSize:(NSControlSize)size {
+
 }
 
-- (NSImage *)bwTintedImage:(NSImage *)anImage WithColor:(NSColor *)tint 
-{
-    
+- (NSImage *)bwTintedImage:(NSImage *)anImage WithColor:(NSColor *)tint {
+
 	NSSize size = [anImage size];
-	NSRect imageBounds = NSMakeRect(0, 0, size.width, size.height);    
-	
+	NSRect imageBounds = NSMakeRect(0, 0, size.width, size.height);
+
 	NSImage *copiedImage = [anImage copy];
-	
+
 	[copiedImage lockFocus];
-	
+
 	[tint set];
 	NSRectFillUsingOperation(imageBounds, NSCompositeSourceAtop);
-	
-	[copiedImage unlockFocus];  
-	
+
+	[copiedImage unlockFocus];
+
 	return copiedImage;
 }
 

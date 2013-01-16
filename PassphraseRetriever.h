@@ -11,26 +11,27 @@
    - Neither the name of Notational Velocity nor the names of its contributors may be used to endorse 
      or promote products derived from this software without specific prior written permission. */
 
-
-#import <Cocoa/Cocoa.h>
-
 @class NotationPrefs;
 
-@interface PassphraseRetriever : NSObject
-{
-    IBOutlet NSTextField *helpStringField;
-    IBOutlet NSButton *okButton, *differentFolderButton, *cancelButton;
-    IBOutlet NSTextField *passphraseField;
-    IBOutlet NSButton *rememberKeychainButton;
-    IBOutlet NSPanel *window;
+@interface PassphraseRetriever : NSObject {
+	IBOutlet NSTextField *helpStringField;
+	IBOutlet NSButton *okButton, *differentFolderButton, *cancelButton;
+	IBOutlet NSTextField *passphraseField;
+	IBOutlet NSButton *rememberKeychainButton;
+	IBOutlet NSPanel *window;
 	NotationPrefs *notationPrefs;
 
 }
 
-+ (PassphraseRetriever *)retrieverWithNotationPrefs:(NotationPrefs*)prefs;
-- (id)initWithNotationPrefs:(NotationPrefs*)prefs;
++ (PassphraseRetriever *)retrieverWithNotationPrefs:(NotationPrefs *)prefs;
+
+- (id)initWithNotationPrefs:(NotationPrefs *)prefs;
+
 - (NSInteger)loadedUserPassphraseData;
+
 - (IBAction)cancelAction:(id)sender;
+
 - (IBAction)differentNotes:(id)sender;
+
 - (IBAction)okAction:(id)sender;
 @end

@@ -15,9 +15,6 @@
    - Neither the name of Notational Velocity nor the names of its contributors may be used to endorse 
      or promote products derived from this software without specific prior written permission. */
 
-
-#import <Cocoa/Cocoa.h>
-
 #if __LP64__
 // Needed for compatability with data created by 32bit app
 typedef struct _NSRect32 {
@@ -35,19 +32,24 @@ typedef NSRect NSRect32;
 #endif
 
 @interface StickiesDocument : NSObject <NSCoding> {
-    int mWindowColor;
-    int mWindowFlags;
-    NSRect32 mWindowFrame;
-    NSData *mRTFDData;
-    NSDate *mCreationDate;
-    NSDate *mModificationDate;	
+	int mWindowColor;
+	int mWindowFlags;
+	NSRect32 mWindowFrame;
+	NSData *mRTFDData;
+	NSDate *mCreationDate;
+	NSDate *mModificationDate;
 }
 
 - (NSDate *)creationDate;
+
 - (NSDate *)modificationDate;
-- (NSData*)RTFDData;
+
+- (NSData *)RTFDData;
+
 - (int)windowColor;
+
 - (int)windowFlags;
+
 - (NSRect32)windowFrame;
 
 @end

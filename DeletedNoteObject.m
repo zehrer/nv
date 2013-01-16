@@ -25,21 +25,21 @@
 	return [[DeletedNoteObject alloc] initWithExistingObject:aNote];
 }
 
-- (id)initWithExistingObject:(id<SynchronizedNote>)note {
-    if ((self = [super init])) {
+- (id)initWithExistingObject:(id <SynchronizedNote>)note {
+	if ((self = [super init])) {
 		CFUUIDBytes *bytes = [note uniqueNoteIDBytes];
 		uniqueNoteIDBytes = *bytes;
 		syncServicesMD = [[note syncServicesMD] mutableCopy];
 		logSequenceNumber = [note logSequenceNumber];
 		//not serialized: for runtime lookup purposes only
 		originalNote = note;
-    }
-    return self;
+	}
+	return self;
 }
 
-- (id)initWithCoder:(NSCoder*)decoder {
-    if ((self = [super init])) {
-		
+- (id)initWithCoder:(NSCoder *)decoder {
+	if ((self = [super init])) {
+
 		if ([decoder allowsKeyedCoding]) {
 			NSUInteger decodedByteCount;
 			const uint8_t *decodedBytes = [decoder decodeBytesForKey:VAR_STR(uniqueNoteIDBytes) returnedLength:&decodedByteCount];
@@ -51,14 +51,14 @@
 			syncServicesMD = [decoder decodeObject];
 			[decoder decodeValueOfObjCType:@encode(unsigned int) at:&logSequenceNumber];
 		}
-    }
-    return self;
+	}
+	return self;
 }
 
 - (void)encodeWithCoder:(NSCoder *)coder {
-	
+
 	if ([coder allowsKeyedCoding]) {
-		[coder encodeBytes:(const uint8_t *)&uniqueNoteIDBytes length:sizeof(CFUUIDBytes) forKey:VAR_STR(uniqueNoteIDBytes)];
+		[coder encodeBytes:(const uint8_t *) &uniqueNoteIDBytes length:sizeof(CFUUIDBytes) forKey:VAR_STR(uniqueNoteIDBytes)];
 		[coder encodeObject:syncServicesMD forKey:VAR_STR(syncServicesMD)];
 		[coder encodeInt32:logSequenceNumber forKey:VAR_STR(logSequenceNumber)];
 	} else {
@@ -68,11 +68,11 @@
 	}
 }
 
-- (id<SynchronizedNote>)originalNote {
+- (id <SynchronizedNote>)originalNote {
 	return originalNote;
 }
 
-- (NSString*)description {
+- (NSString *)description {
 	return [NSString stringWithFormat:@"DeletedNoteObj(%@) %@", [NSString uuidStringWithBytes:uniqueNoteIDBytes], syncServicesMD];
 }
 

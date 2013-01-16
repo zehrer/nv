@@ -38,28 +38,39 @@
  OTHERWISE, EVEN IF APPLE HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#import <Cocoa/Cocoa.h>
-
 @class NoteObject;
 
 @interface MultiplePageView : NSView {
 	NSTextStorage *textStorage;
-    NSPrintInfo *printInfo;
-    NSUInteger numPages;
+	NSPrintInfo *printInfo;
+	NSUInteger numPages;
 }
 
 - (void)setPrintInfo:(NSPrintInfo *)anObject;
+
 - (NSPrintInfo *)printInfo;
-- (NSTextStorage*)textStorage;
+
+- (NSTextStorage *)textStorage;
+
 - (float)pageSeparatorHeight;
-- (NSSize)documentSizeInPage;	/* Returns the area where the document can draw */
-- (NSRect)documentRectForPageNumber:(NSUInteger)pageNumber;	/* First page is page 0 */
-- (NSRect)pageRectForPageNumber:(NSUInteger)pageNumber;	/* First page is page 0 */
+
+- (NSSize)documentSizeInPage;
+
+/* Returns the area where the document can draw */
+- (NSRect)documentRectForPageNumber:(NSUInteger)pageNumber;
+
+/* First page is page 0 */
+- (NSRect)pageRectForPageNumber:(NSUInteger)pageNumber;
+
+/* First page is page 0 */
 - (void)setNumberOfPages:(NSUInteger)num;
+
 - (NSUInteger)numberOfPages;
 
-- (int)printedPageCountForAttributedString:(NSAttributedString*)string;
-+ (NSView *)printableViewWithNotes:(NSArray*)notes;
-+ (void)printNotes:(NSArray*)notes forWindow:(NSWindow*)window;
+- (int)printedPageCountForAttributedString:(NSAttributedString *)string;
+
++ (NSView *)printableViewWithNotes:(NSArray *)notes;
+
++ (void)printNotes:(NSArray *)notes forWindow:(NSWindow *)window;
 
 @end

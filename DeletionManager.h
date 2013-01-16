@@ -11,36 +11,47 @@
    - Neither the name of Notational Velocity nor the names of its contributors may be used to endorse 
      or promote products derived from this software without specific prior written permission. */
 
-
-#import <Cocoa/Cocoa.h>
-
 @class NotationController;
 @class NoteObject;
 
-@interface DeletionManager : NSObject <NSWindowDelegate>
-{
-    IBOutlet NSTableView *tableView;
-    IBOutlet NSPanel *window;
+@interface DeletionManager : NSObject <NSWindowDelegate> {
+	IBOutlet NSTableView *tableView;
+	IBOutlet NSPanel *window;
 	IBOutlet NSButton *confirmDeletionButton;
 	NSMutableArray *deletedNotes;
-	NotationController* notationController;
+	NotationController *notationController;
 	BOOL hasDeletedNotes;
 }
 
-- (id)initWithNotationController:(NotationController*)aNotationController;
-- (NotationController*)notationController;
+- (id)initWithNotationController:(NotationController *)aNotationController;
+
+- (NotationController *)notationController;
+
 - (IBAction)changeConfirmDeletion:(id)sender;
-- (BOOL)noteFileIsAlreadyDeleted:(NoteObject*)aNote;
-- (void)addDeletedNotes:(NSArray*)array;
-- (void)addDeletedNote:(NoteObject*)aNote;
+
+- (BOOL)noteFileIsAlreadyDeleted:(NoteObject *)aNote;
+
+- (void)addDeletedNotes:(NSArray *)array;
+
+- (void)addDeletedNote:(NoteObject *)aNote;
+
 - (NSRect)windowSizeForNotesFromSender:(id)sender;
+
 void updateForVerifiedDeletedNote(DeletionManager *self, NoteObject *missingNote);
+
 void updateForVerifiedExistingNote(DeletionManager *self, NoteObject *goodNote);
+
 - (void)processDeletedNotes;
+
 - (void)removeDeletedNotes;
+
 - (void)_updatePanelForNotes;
+
 - (void)showPanelForDeletedNotes;
+
 - (void)cancelPanelReturningCode:(NSInteger)code;
+
 - (IBAction)deleteAction:(id)sender;
+
 - (IBAction)restoreAction:(id)sender;
 @end

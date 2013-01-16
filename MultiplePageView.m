@@ -38,7 +38,6 @@
  OTHERWISE, EVEN IF APPLE HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#import <Cocoa/Cocoa.h>
 #import "MultiplePageView.h"
 #import "GlobalPrefs.h"
 #import "NoteObject.h"
@@ -46,212 +45,212 @@
 @implementation MultiplePageView
 
 - (id)initWithFrame:(NSRect)rect {
-    if ((self = [super initWithFrame:rect])) {
-		
-		textStorage = [[NSTextStorage alloc] init]; 
-		
-        numPages = 0;
-	/* This will set the frame to be whatever's appropriate... */
-        [self setPrintInfo:[NSPrintInfo sharedPrintInfo]];
-    }
-    return self;
+	if ((self = [super initWithFrame:rect])) {
+
+		textStorage = [[NSTextStorage alloc] init];
+
+		numPages = 0;
+		/* This will set the frame to be whatever's appropriate... */
+		[self setPrintInfo:[NSPrintInfo sharedPrintInfo]];
+	}
+	return self;
 }
 
 static float defaultTextPadding(void) {
-    static float padding = -1;
-    if (padding < 0.0) {
-        NSTextContainer *container = [[NSTextContainer alloc] init];
-        padding = [container lineFragmentPadding];
-    }
-    return padding;
+	static float padding = -1;
+	if (padding < 0.0) {
+		NSTextContainer *container = [[NSTextContainer alloc] init];
+		padding = [container lineFragmentPadding];
+	}
+	return padding;
 }
 
 - (BOOL)isFlipped {
-    return YES;
+	return YES;
 }
 
 - (BOOL)isOpaque {
-    return YES;
+	return YES;
 }
 
 - (void)updateFrame {
-    if ([self superview]) {
-        NSRect rect = NSZeroRect;
-        rect.size = [printInfo paperSize];
-        rect.size.height = rect.size.height * numPages;
-        if (numPages > 1) rect.size.height += [self pageSeparatorHeight] * (numPages - 1);
-        rect.size = [self convertSize:rect.size toView:[self superview]];
-        [self setFrame:rect];
-    }
+	if ([self superview]) {
+		NSRect rect = NSZeroRect;
+		rect.size = [printInfo paperSize];
+		rect.size.height = rect.size.height * numPages;
+		if (numPages > 1) rect.size.height += [self pageSeparatorHeight] * (numPages - 1);
+		rect.size = [self convertSize:rect.size toView:[self superview]];
+		[self setFrame:rect];
+	}
 }
 
 - (void)setPrintInfo:(NSPrintInfo *)anObject {
-    if (printInfo != anObject) {
-        printInfo = [anObject copyWithZone:nil];
-        [self updateFrame];
-        [self setNeedsDisplay:YES];	/* Because the page size or margins might change (could optimize this) */
-    }
+	if (printInfo != anObject) {
+		printInfo = [anObject copyWithZone:nil];
+		[self updateFrame];
+		[self setNeedsDisplay:YES];    /* Because the page size or margins might change (could optimize this) */
+	}
 }
 
 - (NSPrintInfo *)printInfo {
-    return printInfo;
+	return printInfo;
 }
 
 - (void)setNumberOfPages:(NSUInteger)num {
-    if (numPages != num) {
+	if (numPages != num) {
 		NSRect oldFrame = [self frame];
-        NSRect newFrame;
-        numPages = num;
-        [self updateFrame];
+		NSRect newFrame;
+		numPages = num;
+		[self updateFrame];
 		newFrame = [self frame];
-        if (newFrame.size.height > oldFrame.size.height) {
+		if (newFrame.size.height > oldFrame.size.height) {
 			[self setNeedsDisplayInRect:NSMakeRect(oldFrame.origin.x, NSMaxY(oldFrame), oldFrame.size.width, NSMaxY(newFrame) - NSMaxY(oldFrame))];
-        }
-    }
+		}
+	}
 }
 
 - (NSUInteger)numberOfPages {
-    return numPages;
+	return numPages;
 }
-    
+
 - (float)pageSeparatorHeight {
-    return 5.0;
+	return 5.0;
 }
 
 
 - (NSSize)documentSizeInPage {
-    NSSize paperSize = [printInfo paperSize];
-    paperSize.width -= ([printInfo leftMargin] + [printInfo rightMargin]) - defaultTextPadding() * 2.0;
-    paperSize.height -= ([printInfo topMargin] + [printInfo bottomMargin]);
-    return paperSize;
+	NSSize paperSize = [printInfo paperSize];
+	paperSize.width -= ([printInfo leftMargin] + [printInfo rightMargin]) - defaultTextPadding() * 2.0;
+	paperSize.height -= ([printInfo topMargin] + [printInfo bottomMargin]);
+	return paperSize;
 }
 
-- (NSRect)documentRectForPageNumber:(NSUInteger)pageNumber {	/* First page is page 0, of course! */
-    NSRect rect = [self pageRectForPageNumber:pageNumber];
-    rect.origin.x += [printInfo leftMargin] - defaultTextPadding();
-    rect.origin.y += [printInfo topMargin];
-    rect.size = [self documentSizeInPage];
-    return rect;
+- (NSRect)documentRectForPageNumber:(NSUInteger)pageNumber {    /* First page is page 0, of course! */
+	NSRect rect = [self pageRectForPageNumber:pageNumber];
+	rect.origin.x += [printInfo leftMargin] - defaultTextPadding();
+	rect.origin.y += [printInfo topMargin];
+	rect.size = [self documentSizeInPage];
+	return rect;
 }
 
 - (NSRect)pageRectForPageNumber:(NSUInteger)pageNumber {
-    NSRect rect;
-    rect.size = [printInfo paperSize];
-    rect.origin = [self frame].origin;
-    rect.origin.y += ((rect.size.height + [self pageSeparatorHeight]) * pageNumber);
-    return rect;
+	NSRect rect;
+	rect.size = [printInfo paperSize];
+	rect.origin = [self frame].origin;
+	rect.origin.y += ((rect.size.height + [self pageSeparatorHeight]) * pageNumber);
+	return rect;
 }
 
 - (void)drawRect:(NSRect)rect {
-    if ([[NSGraphicsContext currentContext] isDrawingToScreen]) {
-        NSSize paperSize = [printInfo paperSize];
-        unsigned firstPage = rect.origin.y / (paperSize.height + [self pageSeparatorHeight]);
-        unsigned lastPage = NSMaxY(rect) / (paperSize.height + [self pageSeparatorHeight]);
-        unsigned cnt;
-		
+	if ([[NSGraphicsContext currentContext] isDrawingToScreen]) {
+		NSSize paperSize = [printInfo paperSize];
+		unsigned firstPage = rect.origin.y / (paperSize.height + [self pageSeparatorHeight]);
+		unsigned lastPage = NSMaxY(rect) / (paperSize.height + [self pageSeparatorHeight]);
+		unsigned cnt;
+
 		NSAssert(NO, @"MultiplePageView should not be drawing to screen");
-        
+
 //        [marginColor set];
 //        NSRectFill(rect);
 
- //       [lineColor set];
-        for (cnt = firstPage; cnt <= lastPage; cnt++) {
-	    // Draw boundary around the page, making sure it doesn't overlap the document area in terms of pixels
-	    NSRect docRect = NSInsetRect([self centerScanRect:[self documentRectForPageNumber:cnt]], -1.0, -1.0);
-	    NSFrameRectWithWidth(docRect, 1.0);
-        }
+		//       [lineColor set];
+		for (cnt = firstPage; cnt <= lastPage; cnt++) {
+			// Draw boundary around the page, making sure it doesn't overlap the document area in terms of pixels
+			NSRect docRect = NSInsetRect([self centerScanRect:[self documentRectForPageNumber:cnt]], -1.0, -1.0);
+			NSFrameRectWithWidth(docRect, 1.0);
+		}
 
-        if ([[self superview] isKindOfClass:[NSClipView class]]) {
-	    NSColor *backgroundColor = [(NSClipView *)[self superview] backgroundColor];
-            [backgroundColor set];
-            for (cnt = firstPage; cnt <= lastPage; cnt++) {
-		NSRect pageRect = [self pageRectForPageNumber:cnt];
-		NSRectFill (NSMakeRect(pageRect.origin.x, NSMaxY(pageRect), pageRect.size.width, [self pageSeparatorHeight]));
-            }
-        }
-    }
+		if ([[self superview] isKindOfClass:[NSClipView class]]) {
+			NSColor *backgroundColor = [(NSClipView *) [self superview] backgroundColor];
+			[backgroundColor set];
+			for (cnt = firstPage; cnt <= lastPage; cnt++) {
+				NSRect pageRect = [self pageRectForPageNumber:cnt];
+				NSRectFill(NSMakeRect(pageRect.origin.x, NSMaxY(pageRect), pageRect.size.width, [self pageSeparatorHeight]));
+			}
+		}
+	}
 }
 
-- (NSTextStorage*)textStorage {
+- (NSTextStorage *)textStorage {
 	return textStorage;
 }
 
-- (int)printedPageCountForAttributedString:(NSAttributedString*)string {
+- (int)printedPageCountForAttributedString:(NSAttributedString *)string {
 	//NSPrintInfo *info = printInfo;
-	
+
 	NSSize textSize = [self documentSizeInPage];
 //	NSTextContainer *textContainer = [[NSTextContainer alloc] initWithContainerSize:textSize];
 
 	NSTextView *textView = [[NSTextView alloc] initWithFrame:NSMakeRect(0, 0, textSize.width, textSize.height)];
 	[[textView textContainer] setWidthTracksTextView:YES];
-    [[textView textStorage] replaceCharactersInRange:NSMakeRange(0, 0) withAttributedString:string];
-	
-	(void)[[textView layoutManager] glyphRangeForTextContainer:[textView textContainer]];
+	[[textView textStorage] replaceCharactersInRange:NSMakeRange(0, 0) withAttributedString:string];
+
+	(void) [[textView layoutManager] glyphRangeForTextContainer:[textView textContainer]];
 	float containerHeight = [[textView layoutManager] usedRectForTextContainer:[textView textContainer]].size.height;
 	float pageHeight = textSize.height - defaultTextPadding() * 2.0; //[info paperSize].height - ([info topMargin] + [info bottomMargin]);
-	
+
 	//NSLog(@"text height: %g, page height: %g", containerHeight, pageHeight);
-	
-	return (int)ceil(containerHeight/pageHeight);	
+
+	return (int) ceil(containerHeight / pageHeight);
 }
 
-+ (NSView *)printableViewWithNotes:(NSArray*)notes {
-	
++ (NSView *)printableViewWithNotes:(NSArray *)notes {
+
 	/// Code for splitting it into pages, mostly taken from TextEdit.  Since each "page" (except the last) has an NSFormFeedCharacter appended to it in the preview field,
 	/// we make as many text containers as we have pages, and the typesetter will then force a page break at each form feed.  It's not clear from the docs that this won't
 	/// work without a scroll view, but I get an empty view without it.
-	
+
 	NSScrollView *theScrollView = [[NSScrollView alloc] init]; // this will retain the other views
 	NSClipView *clipView = [[NSClipView alloc] init];
 	MultiplePageView *pagesView = [[MultiplePageView alloc] init];
 	NSTextStorage *pageStorage = [pagesView textStorage];
-	
+
 	[clipView setDocumentView:pagesView];
-	 // retained by the clip view
-	
+	// retained by the clip view
+
 	[theScrollView setContentView:clipView];
-	 // retained by the scroll view
-	
+	// retained by the scroll view
+
 	[pagesView setPrintInfo:[NSPrintInfo sharedPrintInfo]];
-	
+
 	// set up the text object NSTextStorage->NSLayoutManager->((NSTextContainer->NSTextView) * numberOfPages)
 	//textStorage = [[NSTextStorage alloc] initWithAttributedString:[abstractView textStorage]];
 	NSLayoutManager *lm = [[NSLayoutManager alloc] init];
 	[pageStorage addLayoutManager:lm];
-	 // owned by the text storage
-	
-	NSAttributedString *formfeed = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%C", (unsigned short)NSFormFeedCharacter] attributes:nil];
+	// owned by the text storage
+
+	NSAttributedString *formfeed = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%C", (unsigned short) NSFormFeedCharacter] attributes:nil];
 	NSFont *bodyFont = [[GlobalPrefs defaultPrefs] noteBodyFont];
-	
+
 	unsigned i, totalPageCount = 0; //[tableView numberOfSelectedRows];
-	for (i=0; i<[notes count]; i++) {
+	for (i = 0; i < [notes count]; i++) {
 		NSAttributedString *contentString = [notes[i] printableStringRelativeToBodyFont:bodyFont];
-		
+
 		[pageStorage appendAttributedString:contentString];
-		
+
 		if (i < [notes count] - 1) [pageStorage appendAttributedString:formfeed];
-		
+
 		unsigned int j, pageCount = [pagesView printedPageCountForAttributedString:contentString];
 		[pagesView setNumberOfPages:pageCount + totalPageCount];
-		
-		for (j=0; j<pageCount; j++) {
+
+		for (j = 0; j < pageCount; j++) {
 			NSTextContainer *textContainer = [[NSTextContainer alloc] initWithContainerSize:[pagesView documentSizeInPage]];
-			
-			NSTextView *textView = [[NSTextView alloc] initWithFrame:[pagesView documentRectForPageNumber: j + totalPageCount] textContainer:textContainer];
+
+			NSTextView *textView = [[NSTextView alloc] initWithFrame:[pagesView documentRectForPageNumber:j + totalPageCount] textContainer:textContainer];
 			[textView setHorizontallyResizable:NO];
 			[textView setVerticallyResizable:NO];
-			
+
 			[pagesView addSubview:textView];
-			
+
 			[[pageStorage layoutManagers][0] addTextContainer:textContainer];
-			
-			
+
+
 			//add per-page header/footers here
 		}
-		
+
 		totalPageCount += pageCount;
 	}
-	
+
 	// force layout before printing
 	NSUInteger len;
 	NSUInteger loc = NSUIntegerMax;
@@ -262,28 +261,28 @@ static float defaultTextPadding(void) {
 		glyphRange = [[pageStorage layoutManagers][0] glyphRangeForCharacterRange:NSMakeRange(loc, 1) actualCharacterRange:NULL];
 		if (glyphRange.location > 0) {
 			// Now cause layout by asking a question which has to determine where the glyph is
-			(void)[[pageStorage layoutManagers][0] textContainerForGlyphAtIndex:glyphRange.location - 1 effectiveRange:NULL];
+			(void) [[pageStorage layoutManagers][0] textContainerForGlyphAtIndex:glyphRange.location - 1 effectiveRange:NULL];
 		}
 	}
 	return pagesView; // this has the content
 }
 
 
-+ (void)printNotes:(NSArray*)notes forWindow:(NSWindow*)window {
-	
++ (void)printNotes:(NSArray *)notes forWindow:(NSWindow *)window {
+
 	NSPrintOperation *printOperation = [NSPrintOperation printOperationWithView:[MultiplePageView printableViewWithNotes:notes]];
-    [printOperation runOperationModalForWindow:window delegate:nil didRunSelector:NULL contextInfo:NULL];
+	[printOperation runOperationModalForWindow:window delegate:nil didRunSelector:NULL contextInfo:NULL];
 }
 
 /**** Printing support... ****/
 
 - (BOOL)knowsPageRange:(NSRangePointer)aRange {
-    aRange->length = [self numberOfPages];
-    return YES;
+	aRange->length = [self numberOfPages];
+	return YES;
 }
 
 - (NSRect)rectForPage:(NSInteger)page {
-    return [self documentRectForPageNumber:page-1];  /* Our page numbers start from 0; the kit's from 1 */
+	return [self documentRectForPageNumber:page - 1];  /* Our page numbers start from 0; the kit's from 1 */
 }
 
 @end

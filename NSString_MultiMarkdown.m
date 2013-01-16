@@ -8,7 +8,6 @@
 #import "NSString_MultiMarkdown.h"
 #import "PreviewController.h"
 #import "AppController.h"
-#import "NoteObject.h"
 #import "NSFileManager+DirectoryLocations.h"
 
 @implementation NSString (MultiMarkdown)
@@ -22,115 +21,110 @@
  * The third option should be a safe fallback since the appropriate MMD bundle
  * is included and shipped with this application.
  */
-+(NSString*)mmdDirectory {
-    // fallback path in this program's directiory
-    NSString *bundlePath = [[[NSBundle mainBundle] resourcePath]
-                              stringByAppendingPathComponent:@"multimarkdown"];
-    return bundlePath;
++ (NSString *)mmdDirectory {
+	// fallback path in this program's directiory
+	NSString *bundlePath = [[[NSBundle mainBundle] resourcePath]
+			stringByAppendingPathComponent:@"multimarkdown"];
+	return bundlePath;
 } // mmdDirectory
 
-+(NSString*)tp2mdDirectory {
-  NSString *bundlePath = [[[NSBundle mainBundle] resourcePath]
-                          stringByAppendingPathComponent:@"tp2md.rb"];
-  return bundlePath;
++ (NSString *)tp2mdDirectory {
+	NSString *bundlePath = [[[NSBundle mainBundle] resourcePath]
+			stringByAppendingPathComponent:@"tp2md.rb"];
+	return bundlePath;
 }
 
-+(NSString*)processTaskPaper:(NSString*)inputString
-{
-	NSString* mdScriptPath = [[self class] tp2mdDirectory];
++ (NSString *)processTaskPaper:(NSString *)inputString {
+	NSString *mdScriptPath = [[self class] tp2mdDirectory];
 
-	NSTask* task = [[NSTask alloc] init];
-	NSMutableArray* args = [NSMutableArray array];
-	
+	NSTask *task = [[NSTask alloc] init];
+	NSMutableArray *args = [NSMutableArray array];
+
 	[task setArguments:args];
-	
-	NSPipe* stdinPipe = [NSPipe pipe];
-	NSPipe* stdoutPipe = [NSPipe pipe];
-	NSFileHandle* stdinFileHandle = [stdinPipe fileHandleForWriting];
-	NSFileHandle* stdoutFileHandle = [stdoutPipe fileHandleForReading];
-	
+
+	NSPipe *stdinPipe = [NSPipe pipe];
+	NSPipe *stdoutPipe = [NSPipe pipe];
+	NSFileHandle *stdinFileHandle = [stdinPipe fileHandleForWriting];
+	NSFileHandle *stdoutFileHandle = [stdoutPipe fileHandleForReading];
+
 	[task setStandardInput:stdinPipe];
 	[task setStandardOutput:stdoutPipe];
-	
-	[task setLaunchPath: [mdScriptPath stringByExpandingTildeInPath]];
+
+	[task setLaunchPath:[mdScriptPath stringByExpandingTildeInPath]];
 	[task launch];
-	
+
 	[stdinFileHandle writeData:[inputString dataUsingEncoding:NSUTF8StringEncoding]];
 	[stdinFileHandle closeFile];
-	
-	NSData* outputData = [stdoutFileHandle readDataToEndOfFile];
-	NSString* outputString = [[NSString alloc] initWithData:outputData encoding:NSUTF8StringEncoding];
+
+	NSData *outputData = [stdoutFileHandle readDataToEndOfFile];
+	NSString *outputString = [[NSString alloc] initWithData:outputData encoding:NSUTF8StringEncoding];
 	[stdoutFileHandle closeFile];
-	
+
 	[task waitUntilExit];
-	
+
 	return outputString;
-	
+
 }
 
 
-+(NSString*)processMultiMarkdown:(NSString*)inputString
-{
-  NSRange archiveFoundRange = [inputString rangeOfString:@"Archive:"];
-  NSRange tagFoundRange = [inputString rangeOfString:@"@taskpaper"];
-  if (archiveFoundRange.location != NSNotFound || tagFoundRange.location != NSNotFound) {
-    inputString = [self processTaskPaper:inputString];
-  }
-	NSString* mdScriptPath = [[self class] mmdDirectory];
++ (NSString *)processMultiMarkdown:(NSString *)inputString {
+	NSRange archiveFoundRange = [inputString rangeOfString:@"Archive:"];
+	NSRange tagFoundRange = [inputString rangeOfString:@"@taskpaper"];
+	if (archiveFoundRange.location != NSNotFound || tagFoundRange.location != NSNotFound) {
+		inputString = [self processTaskPaper:inputString];
+	}
+	NSString *mdScriptPath = [[self class] mmdDirectory];
 //    NSString* tpScriptPath = [[self class] tp2mdDirectory];
-	NSTask* task = [[NSTask alloc] init];
-	NSMutableArray* args = [NSMutableArray array];
-	
+	NSTask *task = [[NSTask alloc] init];
+	NSMutableArray *args = [NSMutableArray array];
+
 	[task setArguments:args];
-	
-	NSPipe* stdinPipe = [NSPipe pipe];
-	NSPipe* stdoutPipe = [NSPipe pipe];
-	NSFileHandle* stdinFileHandle = [stdinPipe fileHandleForWriting];
-	NSFileHandle* stdoutFileHandle = [stdoutPipe fileHandleForReading];
-	
+
+	NSPipe *stdinPipe = [NSPipe pipe];
+	NSPipe *stdoutPipe = [NSPipe pipe];
+	NSFileHandle *stdinFileHandle = [stdinPipe fileHandleForWriting];
+	NSFileHandle *stdoutFileHandle = [stdoutPipe fileHandleForReading];
+
 	[task setStandardInput:stdinPipe];
 	[task setStandardOutput:stdoutPipe];
-	
-	[task setLaunchPath: [mdScriptPath stringByExpandingTildeInPath]];
+
+	[task setLaunchPath:[mdScriptPath stringByExpandingTildeInPath]];
 	[task launch];
-	
+
 	[stdinFileHandle writeData:[inputString dataUsingEncoding:NSUTF8StringEncoding]];
 	[stdinFileHandle closeFile];
-	
-	NSData* outputData = [stdoutFileHandle readDataToEndOfFile];
-	NSString* outputString = [[NSString alloc] initWithData:outputData encoding:NSUTF8StringEncoding];
+
+	NSData *outputData = [stdoutFileHandle readDataToEndOfFile];
+	NSString *outputString = [[NSString alloc] initWithData:outputData encoding:NSUTF8StringEncoding];
 	[stdoutFileHandle closeFile];
-	
+
 	[task waitUntilExit];
-	
+
 	return outputString;
-	
+
 }
 
-+(NSString*)documentWithProcessedMultiMarkdown:(NSString*)inputString
-{
-  AppController *app = (AppController *)[[NSApplication sharedApplication] delegate];
-  NSString *processedString = [self processMultiMarkdown:inputString];
-  NSString *htmlString = [[PreviewController class] html];
-  NSString *cssString = [[PreviewController class] css];
-  NSMutableString *outputString = [NSMutableString stringWithString:(NSString *)htmlString];
-  NSString *noteTitle = app.selectedNoteObject ? [app.selectedNoteObject.title copy] : @"";
++ (NSString *)documentWithProcessedMultiMarkdown:(NSString *)inputString {
+	AppController *app = (AppController *) [[NSApplication sharedApplication] delegate];
+	NSString *processedString = [self processMultiMarkdown:inputString];
+	NSString *htmlString = [[PreviewController class] html];
+	NSString *cssString = [[PreviewController class] css];
+	NSMutableString *outputString = [NSMutableString stringWithString:(NSString *) htmlString];
+	NSString *noteTitle = app.selectedNoteObject ? [app.selectedNoteObject.title copy] : @"";
 	NSString *nvSupportPath = [[NSFileManager defaultManager] applicationSupportDirectory];
 
-  [outputString replaceOccurrencesOfString:@"{%support%}" withString:nvSupportPath options:0 range:NSMakeRange(0, [outputString length])];
-  [outputString replaceOccurrencesOfString:@"{%title%}" withString:noteTitle options:0 range:NSMakeRange(0, [outputString length])];
-  [outputString replaceOccurrencesOfString:@"{%content%}" withString:processedString options:0 range:NSMakeRange(0, [outputString length])];
-  [outputString replaceOccurrencesOfString:@"{%style%}" withString:cssString options:0 range:NSMakeRange(0, [outputString length])];
-  return outputString;
+	[outputString replaceOccurrencesOfString:@"{%support%}" withString:nvSupportPath options:0 range:NSMakeRange(0, [outputString length])];
+	[outputString replaceOccurrencesOfString:@"{%title%}" withString:noteTitle options:0 range:NSMakeRange(0, [outputString length])];
+	[outputString replaceOccurrencesOfString:@"{%content%}" withString:processedString options:0 range:NSMakeRange(0, [outputString length])];
+	[outputString replaceOccurrencesOfString:@"{%style%}" withString:cssString options:0 range:NSMakeRange(0, [outputString length])];
+	return outputString;
 }
 
-+(NSString*)xhtmlWithProcessedMultiMarkdown:(NSString*)inputString
-{
++ (NSString *)xhtmlWithProcessedMultiMarkdown:(NSString *)inputString {
 	return [self processMultiMarkdown:inputString];
 }
 
-+(NSString*)stringWithProcessedMultiMarkdown:(NSString*)inputString
-{
++ (NSString *)stringWithProcessedMultiMarkdown:(NSString *)inputString {
 	return [self processMultiMarkdown:inputString];
 } // stringWithProcessedMultiMarkdown:
 

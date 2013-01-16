@@ -1,28 +1,25 @@
-
-#import <Cocoa/Cocoa.h>
-
 // http://gusmueller.com/odb/
 
-extern NSString * const ODBEditorCustomPathKey;
+extern NSString *const ODBEditorCustomPathKey;
 
 @class TemporaryFileCachePreparer;
 @class ExternalEditor;
 @class NotationPrefs;
 @class NoteObject;
 
-@interface ODBEditor : NSObject
-{
-	UInt32					_signature;
-	NSMutableDictionary		*_filePathsBeingEdited;
-	
+@interface ODBEditor : NSObject {
+	UInt32 _signature;
+	NSMutableDictionary *_filePathsBeingEdited;
+
 	TemporaryFileCachePreparer *editingSpacePreparer;
 }
 + (id)sharedODBEditor;
 
 - (void)abortEditingFile:(NSString *)path;
+
 - (void)abortAllEditingSessionsForClient:(id)client;
 
-- (void)initializeDatabase:(NotationPrefs*)prefs;
+- (void)initializeDatabase:(NotationPrefs *)prefs;
 
 // NOTE that client is never retained - it is your reponsibility to
 // make sure the client sticks around and abort editing for that client
@@ -37,22 +34,25 @@ extern NSString * const ODBEditorCustomPathKey;
 // whereas the string returned is obviously going to change as the user
 // edits it.
 
-- (BOOL)editFile:(NSString *)path inEditor:(ExternalEditor*)ed options:(NSDictionary *)options forClient:(id)client context:(NSDictionary *)context;
-- (BOOL)editNote:(NoteObject*)aNote inEditor:(ExternalEditor*)ed context:(NSDictionary *)context;
+- (BOOL)editFile:(NSString *)path inEditor:(ExternalEditor *)ed options:(NSDictionary *)options forClient:(id)client context:(NSDictionary *)context;
 
-- (BOOL)editString:(NSString *)string inEditor:(ExternalEditor*)ed options:(NSDictionary *)options forClient:(id)client context:(NSDictionary *)context;
+- (BOOL)editNote:(NoteObject *)aNote inEditor:(ExternalEditor *)ed context:(NSDictionary *)context;
+
+- (BOOL)editString:(NSString *)string inEditor:(ExternalEditor *)ed options:(NSDictionary *)options forClient:(id)client context:(NSDictionary *)context;
 
 @end
 
-@interface NSObject(ODBEditorClient)
+@interface NSObject (ODBEditorClient)
 
 // see the ODB Editor documentation for when newFileLocation is sent
 // if the file wasn't subject to a save as newpath will be nil
 
--(void)odbEditor:(ODBEditor *)editor didModifyFile:(NSString *)path newFileLocation:(NSString *)newPath  context:(NSDictionary *)context;
--(void)odbEditor:(ODBEditor *)editor didClosefile:(NSString *)path context:(NSDictionary *)context;
+- (void)odbEditor:(ODBEditor *)editor didModifyFile:(NSString *)path newFileLocation:(NSString *)newPath  context:(NSDictionary *)context;
 
--(void)odbEditor:(ODBEditor *)editor didModifyFileForString:(NSString *)newString context:(NSDictionary *)context;
--(void)odbEditor:(ODBEditor *)editor didCloseFileForString:(NSString *)newString context:(NSDictionary *)context;
+- (void)odbEditor:(ODBEditor *)editor didClosefile:(NSString *)path context:(NSDictionary *)context;
+
+- (void)odbEditor:(ODBEditor *)editor didModifyFileForString:(NSString *)newString context:(NSDictionary *)context;
+
+- (void)odbEditor:(ODBEditor *)editor didCloseFileForString:(NSString *)newString context:(NSDictionary *)context;
 
 @end

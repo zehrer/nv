@@ -9,10 +9,9 @@
 
 @implementation SearchCommand
 
-- (id)performDefaultImplementation
-{
+- (id)performDefaultImplementation {
 	NSString *searchTerm = [self directParameter];
-	[(AppController *)[NSApp delegate] searchForString:searchTerm];	
+	[(AppController *) [NSApp delegate] searchForString:searchTerm];
 	return self;
 }
 

@@ -58,7 +58,7 @@
 	return mModificationDate;
 }
 
-- (NSData*)RTFDData {
+- (NSData *)RTFDData {
 	return mRTFDData;
 }
 

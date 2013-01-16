@@ -34,28 +34,30 @@
 
 	CFRelease(uuidRef);
 }
+
 - (void)encodeWithCoder:(NSCoder *)coder {
 	NSAssert([coder allowsKeyedCoding], @"keyed-encoding only!");
-	
+
 	[coder encodeObject:lastAccessed forKey:VAR_STR(lastAccessed)];
-	
+
 	CFUUIDBytes bytes = CFUUIDGetUUIDBytes(uuidRef);
-	[coder encodeBytes:(const uint8_t *)&bytes length:sizeof(CFUUIDBytes) forKey:VAR_STR(uuidRef)];
+	[coder encodeBytes:(const uint8_t *) &bytes length:sizeof(CFUUIDBytes) forKey:VAR_STR(uuidRef)];
 
 }
-- (id)initWithCoder:(NSCoder*)decoder {
+
+- (id)initWithCoder:(NSCoder *)decoder {
 	NSAssert([decoder allowsKeyedCoding], @"keyed-decoding only!");
-	
-    if ((self = [super init])) {
+
+	if ((self = [super init])) {
 
 		lastAccessed = [decoder decodeObjectForKey:VAR_STR(lastAccessed)];
-		
+
 		NSUInteger decodedByteCount = 0;
 		const uint8_t *bytes = [decoder decodeBytesForKey:VAR_STR(uuidRef) returnedLength:&decodedByteCount];
-		if (bytes && decodedByteCount)  {
-			uuidRef = CFUUIDCreateFromUUIDBytes(NULL, *(CFUUIDBytes*)bytes);
+		if (bytes && decodedByteCount) {
+			uuidRef = CFUUIDCreateFromUUIDBytes(NULL, *(CFUUIDBytes *) bytes);
 		}
-		
+
 		if (!uuidRef) return nil;
 	}
 	return self;
@@ -69,17 +71,18 @@
 	return uuidRef;
 }
 
-- (NSDate*)lastAccessed {
+- (NSDate *)lastAccessed {
 	return lastAccessed;
 }
 
-- (NSString*)description {
-	return [NSString stringWithFormat:@"DiskUUIDEntry(%@, %@)", lastAccessed, (id)CFBridgingRelease(CFUUIDCreateString(NULL, uuidRef))];
+- (NSString *)description {
+	return [NSString stringWithFormat:@"DiskUUIDEntry(%@, %@)", lastAccessed, (id) CFBridgingRelease(CFUUIDCreateString(NULL, uuidRef))];
 }
 
 - (NSUInteger)hash {
 	return CFHash(uuidRef);
 }
+
 - (BOOL)isEqual:(id)otherEntry {
 	return CFEqual(uuidRef, [otherEntry uuidRef]);
 }

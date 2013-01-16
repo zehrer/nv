@@ -21,23 +21,23 @@
 
 @interface SyncResponseFetcher ()
 
-@property (nonatomic, weak, readwrite) id <SyncResponseFetcherDelegate> delegate;
+@property(nonatomic, weak, readwrite) id <SyncResponseFetcherDelegate> delegate;
 
 @end
 
 @implementation SyncResponseFetcher
 
 + (void)initialize {
-	
+
 	static BOOL initialized = NO;
-    [super initialize];
-    if (!initialized) {
+	[super initialize];
+	if (!initialized) {
 		[[NSURLCache sharedURLCache] setDiskCapacity:0];
-    }
+	}
 }
 
 
-- (id)initWithURL:(NSURL*)aURL bodyStringAsUTF8B64:(NSString*)stringToEncode delegate:(id)aDelegate {
+- (id)initWithURL:(NSURL *)aURL bodyStringAsUTF8B64:(NSString *)stringToEncode delegate:(id)aDelegate {
 	NSData *B64Data = nil;
 	if (stringToEncode) {
 		NSString *B64String = [[stringToEncode dataUsingEncoding:NSUTF8StringEncoding] encodeBase64];
@@ -45,15 +45,15 @@
 			return nil;
 		}
 	}
-	
+
 	return [self initWithURL:aURL POSTData:B64Data delegate:aDelegate];
 }
 
-- (id)initWithURL:(NSURL*)aURL POSTData:(NSData*)POSTData delegate:(id)aDelegate {
+- (id)initWithURL:(NSURL *)aURL POSTData:(NSData *)POSTData delegate:(id)aDelegate {
 	return [self initWithURL:aURL POSTData:POSTData contentType:nil delegate:aDelegate];
 }
 
-- (id)initWithURL:(NSURL*)aURL POSTData:(NSData*)POSTData contentType:(NSString*)contentType delegate:(id)aDelegate {
+- (id)initWithURL:(NSURL *)aURL POSTData:(NSData *)POSTData contentType:(NSString *)contentType delegate:(id)aDelegate {
 	if ((self = [self init])) {
 		receivedData = [[NSMutableData alloc] init];
 		requestURL = aURL;
@@ -64,7 +64,7 @@
 	return self;
 }
 
-- (NSInvocation*)successInvocation {
+- (NSInvocation *)successInvocation {
 	return successInvocation;
 }
 
@@ -76,46 +76,46 @@
 	return representedObject;
 }
 
-- (BOOL)startWithSuccessInvocation:(NSInvocation*)anInvocation {
+- (BOOL)startWithSuccessInvocation:(NSInvocation *)anInvocation {
 
 	successInvocation = anInvocation;
 	return [self start];
 }
 
 - (BOOL)start {
-	
+
 	if (isRunning) return YES;
-	
+
 	NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:requestURL cachePolicy:NSURLRequestReloadIgnoringCacheData timeoutInterval:30.0];
 	if (!request) {
 		NSLog(@"%@: Couldn't create HTTP request with URL %@", NSStringFromSelector(_cmd), requestURL);
 		return NO;
 	}
-	
+
 	[request setHTTPShouldHandleCookies:NO];
 	[request addValue:@"Sinus cardinalis NV 2.0B4" forHTTPHeaderField:@"User-agent"];
-	
+
 	//if POSTData is nil, do a plain GET request
 	if (dataToSend) {
 		if (dataToSendContentType) {
 			[request addValue:dataToSendContentType forHTTPHeaderField:@"Content-Type"];
 		}
-		
+
 		[request setHTTPBody:dataToSend];
 		[request setHTTPMethod:@"POST"];
 	}
-	
-	
+
+
 	didCancel = NO;
 	isRunning = YES;
-	
+
 	//NSLog(@"starting request for URL '%@'", requestURL);
 	if (!(urlConnection = [[NSURLConnection alloc] initWithRequest:request delegate:self])) {
 		NSLog(@"%@: Couldn't create NSURLConnection with URLRequest %@", NSStringFromSelector(_cmd), request);
 		isRunning = NO;
 		return NO;
 	}
-	
+
 	return YES;
 }
 
@@ -129,19 +129,19 @@
 
 - (void)cancel {
 	if (!isRunning) return;
-	
+
 	didCancel = YES;
-	
+
 	[urlConnection cancel];
-	[self _fetchDidFinishWithError:NSLocalizedString(@"Operation cancelled", 
-													 @"Error string returned to indicate that the user cancelled a syncing service operation")];
+	[self _fetchDidFinishWithError:NSLocalizedString(@"Operation cancelled",
+	@"Error string returned to indicate that the user cancelled a syncing service operation")];
 }
 
-- (NSURL*)requestURL {
+- (NSURL *)requestURL {
 	return requestURL;
 }
 
-- (NSDictionary*)headers {
+- (NSDictionary *)headers {
 	return headers;
 }
 
@@ -149,16 +149,16 @@
 	return lastStatusCode;
 }
 
-- (NSString*)errorMessage {
+- (NSString *)errorMessage {
 	return lastErrorMessage;
 }
 
-- (NSString*)description {
+- (NSString *)description {
 	return [NSString stringWithFormat:@"Fetcher(%p, %@)", self, requestURL];
 }
 
-- (void)_fetchDidFinishWithError:(NSString*)anErrString {
-	
+- (void)_fetchDidFinishWithError:(NSString *)anErrString {
+
 	if (!isRunning) {
 		NSLog(@"not processing %@ because fetcher was already stopped; should not be called", NSStringFromSelector(_cmd));
 		return;
@@ -171,31 +171,31 @@
 	if (!isRunning) {
 		return;
 	}
-	
+
 	if (!anErrString) [successInvocation invoke];
-	
-	 successInvocation = nil;
-	
+
+	successInvocation = nil;
+
 	lastErrorMessage = anErrString;
-	
+
 	[receivedData setLength:0];
-	
-	 urlConnection = nil;
+
+	urlConnection = nil;
 	isRunning = NO;
-	
+
 }
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
 	[receivedData setLength:0];
-	
+
 	lastStatusCode = 0;
 	BOOL responseValid = [response isKindOfClass:[NSHTTPURLResponse class]];
-	if (!responseValid || (lastStatusCode = [(NSHTTPURLResponse*)response statusCode]) != 200) {
-		
+	if (!responseValid || (lastStatusCode = [(NSHTTPURLResponse *) response statusCode]) != 200) {
+
 		[urlConnection cancel];
 		[self _fetchDidFinishWithError:[NSHTTPURLResponse localizedStringForStatusCode:lastStatusCode]];
 	} else if (responseValid) {
-		headers = [[(NSHTTPURLResponse*)response allHeaderFields] copy];
+		headers = [[(NSHTTPURLResponse *) response allHeaderFields] copy];
 	}
 }
 

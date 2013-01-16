@@ -18,7 +18,7 @@
 - (id)initWithFrame:(NSRect)frameRect {
 	if ((self = [super initWithFrame:frameRect]) != nil) {
 		// Add initialization code here
-		
+
 		lastNotesNumber = -1;
 	}
 	return self;
@@ -33,31 +33,31 @@
 
 }
 
-- (void)mouseDown:(NSEvent*)anEvent {
+- (void)mouseDown:(NSEvent *)anEvent {
 	[[NSApp delegate] performSelector:@selector(bringFocusToControlField:) withObject:nil];
 }
 
 - (void)setLabelStatus:(NSInteger)notesNumber {
 	if (notesNumber != lastNotesNumber) {
-		
+
 		NSString *statusString = nil;
 		if (notesNumber > 1) {
-			statusString = [NSString stringWithFormat:NSLocalizedString(@"%d Notes Selected",nil), notesNumber];
+			statusString = [NSString stringWithFormat:NSLocalizedString(@"%d Notes Selected", nil), notesNumber];
 		} else {
-			statusString = NSLocalizedString(@"No Note Selected",nil); //\nPress return to create one.";
+			statusString = NSLocalizedString(@"No Note Selected", nil); //\nPress return to create one.";
 		}
-		
+
 		[labelText setStringValue:statusString];
-		
+
 		lastNotesNumber = notesNumber;
 	}
 }
 
 - (void)resetCursorRects {
-	[self addCursorRect:[self bounds] cursor: [NSCursor arrowCursor]];
+	[self addCursorRect:[self bounds] cursor:[NSCursor arrowCursor]];
 }
 
-- (BOOL)isOpaque {	
+- (BOOL)isOpaque {
 	return NO;
 }
 /*

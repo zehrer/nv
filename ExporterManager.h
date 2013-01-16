@@ -12,16 +12,15 @@
      or promote products derived from this software without specific prior written permission. */
 
 
-#import <Cocoa/Cocoa.h>
-
 @interface ExporterManager : NSObject {
 	IBOutlet NSView *accessoryView;
 	IBOutlet NSPopUpButton *formatSelectorPopup;
-	
 }
 
 + (ExporterManager *)sharedManager;
+
 - (IBAction)formatSelectorChanged:(id)sender;
-- (void)exportNotes:(NSArray*)notes forWindow:(NSWindow*)window;
+
+- (void)exportNotes:(NSArray *)notes forWindow:(NSWindow *)window;
 
 @end

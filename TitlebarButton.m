@@ -28,7 +28,7 @@
 	return self;
 }
 
-- (void)handleRotationTimer:(NSTimer*)aTimer {
+- (void)handleRotationTimer:(NSTimer *)aTimer {
 	rotationStep = (rotationStep + 1) % 16;
 	[[self controlView] setNeedsDisplay:YES];
 }
@@ -41,43 +41,43 @@
 	NSEventType eventType = [[[controlView window] currentEvent] type];
 	//shouldn't the cell already know when it's being pressed?
 	BOOL isHighlighted = (isHovering && (eventType == NSLeftMouseDown || eventType == NSRightMouseDown ||
-										 eventType == NSLeftMouseDragged || eventType == NSRightMouseDragged));
-	
+			eventType == NSLeftMouseDragged || eventType == NSRightMouseDragged));
+
 	if (isHighlighted) {
 		[[NSImage imageNamed:@"TBMousedownBG"] drawCenteredInRect:cellFrame];
 	} else if (isHovering) {
 		[[NSImage imageNamed:@"TBRolloverBG"] drawCenteredInRect:cellFrame];
 	}
-	
-	static NSString *normalImages[] = { nil, @"TBDownArrow", @"TBSynchronizing", @"TBAlert" };
-	static NSString *whiteImages[] = { nil, @"TBDownArrowWhite", @"TBSynchronizingWhite", @"TBAlertWhite" };
 
-	NSImage *img = [NSImage imageNamed: isHovering ? whiteImages[iconType] : normalImages[iconType] ];
+	static NSString *normalImages[] = {nil, @"TBDownArrow", @"TBSynchronizing", @"TBAlert"};
+	static NSString *whiteImages[] = {nil, @"TBDownArrowWhite", @"TBSynchronizingWhite", @"TBAlertWhite"};
+
+	NSImage *img = [NSImage imageNamed:isHovering ? whiteImages[iconType] : normalImages[iconType]];
 	[img setFlipped:YES];
-	
+
 	if (SynchronizingIcon == iconType) {
-		
+
 		//use animation steps from 1 to 8 (rotationStep)
-		
-		NSPoint center = NSMakePoint([img size].width/2.0, [img size].height/2.0);
+
+		NSPoint center = NSMakePoint([img size].width / 2.0, [img size].height / 2.0);
 		NSAffineTransform *translateTransform = [NSAffineTransform transform];
 		[translateTransform translateXBy:center.x yBy:center.y];
-		[translateTransform rotateByRadians:((float)rotationStep / 16.0) * M_PI];
+		[translateTransform rotateByRadians:((float) rotationStep / 16.0) * M_PI];
 		[translateTransform translateXBy:-(center.x) yBy:-(center.y)];
-		
+
 		[NSGraphicsContext saveGraphicsState];
 		[translateTransform concat];
 	}
-	
+
 	NSRect imgRect = NSMakeRect(0, 0, [img size].width, [img size].height);
-	[img drawInRect:imgRect fromRect:NSZeroRect operation:NSCompositeSourceOver 
+	[img drawInRect:imgRect fromRect:NSZeroRect operation:NSCompositeSourceOver
 		   fraction:isHovering ? 1.0 : ([[controlView window] isMainWindow] ? 0.83 : 0.5)];
 
-	
+
 	if (SynchronizingIcon == iconType) {
 		[NSGraphicsContext restoreGraphicsState];
 	}
-	
+
 }
 
 
@@ -90,6 +90,7 @@
 	isHovering = YES;
 	[[self controlView] setNeedsDisplay:YES];
 }
+
 - (void)mouseExited:(NSEvent *)theEvent {
 	isHovering = NO;
 	[[self controlView] setNeedsDisplay:YES];
@@ -104,9 +105,9 @@
 	iconType = anIconType;
 	if (!synchronizingTimer && SynchronizingIcon == iconType) {
 		rotationStep = 0;
-		synchronizingTimer = [NSTimer timerWithTimeInterval:0.065 target:self selector:@selector(handleRotationTimer:) 
-													userInfo:nil repeats:YES];
-		[[NSRunLoop currentRunLoop] addTimer:synchronizingTimer forMode:(NSString*)kCFRunLoopCommonModes];
+		synchronizingTimer = [NSTimer timerWithTimeInterval:0.065 target:self selector:@selector(handleRotationTimer:)
+												   userInfo:nil repeats:YES];
+		[[NSRunLoop currentRunLoop] addTimer:synchronizingTimer forMode:(NSString *) kCFRunLoopCommonModes];
 
 	} else if (SynchronizingIcon != iconType) {
 		[synchronizingTimer invalidate];
@@ -133,12 +134,12 @@
 
 - (id)initWithFrame:(NSRect)frameRect pullsDown:(BOOL)flag {
 	if ((self = [super initWithFrame:NSMakeRect(frameRect.origin.x, frameRect.origin.y, 17.0, 17.0) pullsDown:flag])) {
-		
+
 		TitlebarButtonCell *buttonCell = [[TitlebarButtonCell alloc] initTextCell:@"" pullsDown:flag];
 		[buttonCell setAction:[[self cell] action]];
 		[buttonCell setTarget:[[self cell] target]];
 		[self setCell:buttonCell];
-		
+
 		[buttonCell setControlSize:NSSmallControlSize];
 		[buttonCell setPullsDown:flag];
 		[self setFont:[NSFont systemFontOfSize:[NSFont systemFontSizeForControlSize:NSSmallControlSize]]];
@@ -148,19 +149,19 @@
 		[self setTitle:@""];
 		[self setEnabled:NO]; //consistent with NoIcon
 		[self setAutoresizingMask:NSViewMinXMargin | NSViewMinYMargin];
-		
+
 		_initialDragPoint = NSMakePoint(-1, -1);
 	}
 	return self;
 }
 
-- (void)addToWindow:(NSWindow*)aWin {
-	NSButton* closeButton = [aWin standardWindowButton:NSWindowCloseButton];
-	NSView* superview = [closeButton superview];
+- (void)addToWindow:(NSWindow *)aWin {
+	NSButton *closeButton = [aWin standardWindowButton:NSWindowCloseButton];
+	NSView *superview = [closeButton superview];
 	NSRect rc = [closeButton frame];
 	[self setFrameOrigin:NSMakePoint(NSMaxX([superview bounds]) - rc.origin.x - rc.size.width - 20, rc.origin.y - 2.0)];
 	[superview addSubview:self];
-	
+
 	//work around a problem with mouseentered/exited events on tiger:
 	//http://lists.apple.com/archives/cocoa-dev/2007/Jul/msg00142.html
 	[self setShowsBorderOnlyWhileMouseInside:NO];
@@ -168,14 +169,14 @@
 }
 
 
-- (void)mouseUp:(NSEvent*)event {
+- (void)mouseUp:(NSEvent *)event {
 	_initialDragPoint = NSMakePoint(-1, -1);
 	[super mouseUp:event];
 }
 
-- (void)mouseDragged:(NSEvent*)event {
+- (void)mouseDragged:(NSEvent *)event {
 	if (![self isEnabled]) {
-		//allow dragging when button is "hidden"; if we actually removed the button from its superview--even at any time, 
+		//allow dragging when button is "hidden"; if we actually removed the button from its superview--even at any time,
 		//titlebar-dragging behavior would dominate even when it returned; so use surrogate dragging behavior instead
 
 		if (0 <= _initialDragPoint.x && 0 <= _initialDragPoint.y) {
@@ -183,7 +184,7 @@
 			NSPoint p = [win convertBaseToScreen:[event locationInWindow]];
 			NSRect sr = [[win screen] frame];
 			NSRect wr = [win frame];
-			
+
 			NSPoint origin = NSMakePoint(p.x - _initialDragPoint.x, p.y - _initialDragPoint.y);
 			if (NSMaxY(sr) < origin.y + wr.size.height) {
 				origin.y = sr.origin.y + (sr.size.height - wr.size.height);
@@ -196,13 +197,12 @@
 }
 
 
-
 - (void)mouseDown:(NSEvent *)theEvent {
 	NSRect frame = [[self window] frame];
-    _initialDragPoint = [[self window] convertBaseToScreen:[theEvent locationInWindow]];
-    _initialDragPoint.x -= frame.origin.x;
-    _initialDragPoint.y -= frame.origin.y;
-	
+	_initialDragPoint = [[self window] convertBaseToScreen:[theEvent locationInWindow]];
+	_initialDragPoint.x -= frame.origin.x;
+	_initialDragPoint.y -= frame.origin.y;
+
 	[super mouseDown:theEvent];
 }
 

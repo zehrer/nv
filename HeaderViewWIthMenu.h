@@ -12,14 +12,11 @@
      or promote products derived from this software without specific prior written permission. */
 
 
-#import <Cocoa/Cocoa.h>
-
 @interface NSTableHeaderView (Private)
 - (void)_resizeColumn:(NSInteger)resizedColIdx withEvent:(id)event;
 @end
 
-@interface HeaderViewWithMenu : NSTableHeaderView
-{
+@interface HeaderViewWithMenu : NSTableHeaderView {
 	BOOL isReloading;
 }
 

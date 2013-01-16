@@ -5,6 +5,6 @@
 
 @interface NSString (Markdown)
 
-+ (NSString*)stringWithProcessedMarkdown:(NSString*)inputString;
++ (NSString *)stringWithProcessedMarkdown:(NSString *)inputString;
 
 @end

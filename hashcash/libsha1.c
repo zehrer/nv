@@ -15,10 +15,11 @@
 #if defined( VERBOSE )
     #include <stdio.h>
 #endif
+
 #include <string.h>
 #include "sha1.h"
 
-static int swap_endian32( void*, size_t );
+static int swap_endian32(void *, size_t);
 
 /* A run time endian test.  
 
@@ -120,7 +121,7 @@ void SHA1_Xform( word32* iv, const byte* data ) {
 #define H3 0x10325476
 #define H4 0xC3D2E1F0
 
-word32 SHA1_IV[ 5 ] = { H0, H1, H2, H3, H4 };
+word32 SHA1_IV[ 5 ] = {H0, H1, H2, H3, H4};
 
 /* rotate X n bits left   ( X <<< n ) */
 
@@ -130,46 +131,43 @@ word32 SHA1_IV[ 5 ] = { H0, H1, H2, H3, H4 };
     #define SHA1_zero_bitcount( ctx )		\
         (ctx)->bits = 0;
 #else
-    #define SHA1_zero_bitcount( ctx )		\
-    (ctx)->lbits = 0;				\
+#define SHA1_zero_bitcount( ctx )        \
+    (ctx)->lbits = 0;                \
     (ctx)->hbits = 0;
 #endif
 
-void SHA1_Init_HC( SHA1_ctx* ctx )
-{
-    SHA1_zero_bitcount( ctx );
-    memcpy( ctx->H, SHA1_IV, SHA1_DIGEST_BYTES );
+void SHA1_Init_HC(SHA1_ctx *ctx) {
+	SHA1_zero_bitcount( ctx );
+	memcpy( ctx->H, SHA1_IV, SHA1_DIGEST_BYTES );
 }
 
 /* this is only used if you want to modify the IV */
 /* ignore this function for purposes of the standard */
 
-void SHA1_Init_With_IV( SHA1_ctx* ctx, 
-			const byte user_IV[ SHA1_DIGEST_BYTES ] )
-{
-    SHA1_zero_bitcount( ctx );
-    memcpy( ctx->H, user_IV, SHA1_DIGEST_BYTES );
-    make_local_endian32( ctx->H, SHA1_DIGEST_WORDS );
+void SHA1_Init_With_IV(SHA1_ctx *ctx,
+		const byte user_IV[ SHA1_DIGEST_BYTES ]) {
+	SHA1_zero_bitcount( ctx );
+	memcpy( ctx->H, user_IV, SHA1_DIGEST_BYTES );
+	make_local_endian32( ctx->H, SHA1_DIGEST_WORDS );
 }
 
-void SHA1_Transform_HC(  word32 H[ SHA1_DIGEST_WORDS ], 
-		      const byte M[ SHA1_INPUT_BYTES ] )
-{
-#ifdef	COMPACT
+void SHA1_Transform_HC(word32 H[ SHA1_DIGEST_WORDS ],
+		const byte M[ SHA1_INPUT_BYTES ]) {
+#ifdef    COMPACT
     int t = 0 ;
 #endif
-    word32 A = H[ 0 ];
-    word32 B = H[ 1 ];
-    word32 C = H[ 2 ];
-    word32 D = H[ 3 ];
-    word32 E = H[ 4 ];
+	word32 A = H[0];
+	word32 B = H[1];
+	word32 C = H[2];
+	word32 D = H[3];
+	word32 E = H[4];
 #if !defined( COMPACT )
-    word32 W[ 16 ] = {0};
+	word32 W[ 16 ] = {0};
 #else
     word32 W[ 80 ] = {0};
 #endif
 
-    memcpy( W, M, SHA1_INPUT_BYTES );
+	memcpy( W, M, SHA1_INPUT_BYTES );
 
 /* Use method B from FIPS-180 (see fip-180.txt) where the use of
    temporary array W of 80 word32s is avoided by working in a circular
@@ -256,34 +254,33 @@ void SHA1_Transform_HC(  word32 H[ SHA1_DIGEST_WORDS ],
 
 /* rounds  0..19 */
 
-    ROUND20(  0, F1, K1 );
+	ROUND20(  0, F1, K1 );
 
 /* rounds 21..39 */
 
-    ROUND20( 20, F2, K2 );
+	ROUND20( 20, F2, K2 );
 
 /* rounds 40..59 */
 
-    ROUND20( 40, F3, K3 );
+	ROUND20( 40, F3, K3 );
 
 /* rounds 60..79 */
 
-    ROUND20( 60, F4, K4 );
-    
-    H[ 0 ] += A;
-    H[ 1 ] += B;
-    H[ 2 ] += C;
-    H[ 3 ] += D;
-    H[ 4 ] += E;
+	ROUND20( 60, F4, K4 );
+
+	H[0] += A;
+	H[1] += B;
+	H[2] += C;
+	H[3] += D;
+	H[4] += E;
 }
 
-void SHA1_Update_HC( SHA1_ctx* ctx, const void* pdata, size_t data_len )
-{
-    const byte* data = (const byte*)pdata;
-    unsigned use = 0 ;
-    unsigned mlen = 0 ;
+void SHA1_Update_HC(SHA1_ctx *ctx, const void *pdata, size_t data_len) {
+	const byte *data = (const byte *) pdata;
+	unsigned use = 0;
+	unsigned mlen = 0;
 #if !defined( word64 )
-    word32 low_bits = 0 ;
+	word32 low_bits = 0;
 #endif
 
 /* convert data_len to bits and add to the 64-bit bit count */
@@ -292,36 +289,35 @@ void SHA1_Update_HC( SHA1_ctx* ctx, const void* pdata, size_t data_len )
     mlen = (unsigned)( ( ctx->bits >> 3 ) % SHA1_INPUT_BYTES );
     ctx->bits += ( (word64) data_len ) << 3;
 #else
-    mlen = (unsigned)( ( ctx->lbits >> 3 ) % SHA1_INPUT_BYTES );
-    ctx->hbits += data_len >> 29; /* simulate 64 bit addition */
-    low_bits = data_len << 3;
-    ctx->lbits += low_bits;
-    if ( ctx->lbits < low_bits ) { ctx->hbits++; }
+	mlen = (unsigned) ((ctx->lbits >> 3) % SHA1_INPUT_BYTES);
+	ctx->hbits += data_len >> 29; /* simulate 64 bit addition */
+	low_bits = data_len << 3;
+	ctx->lbits += low_bits;
+	if (ctx->lbits < low_bits) {ctx->hbits++;}
 #endif
 
 /* deal with first block */
 
-    use = (unsigned)min( (size_t)(SHA1_INPUT_BYTES - mlen), data_len );
-    memcpy( ctx->M + mlen, data, use );
-    mlen += use;
-    data_len -= use;
-    data += use;
-
-    while ( mlen == SHA1_INPUT_BYTES ) {
-	make_big_endian32( (word32*)ctx->M, SHA1_INPUT_WORDS );
-	SHA1_Transform_HC( ctx->H, ctx->M );
-	use = (unsigned)min( SHA1_INPUT_BYTES, data_len );
-	memcpy( ctx->M, data, use );
-	mlen = use;
+	use = (unsigned) min( (size_t) (SHA1_INPUT_BYTES - mlen), data_len );
+	memcpy( ctx->M + mlen, data, use );
+	mlen += use;
 	data_len -= use;
-        data += use;
-    }
+	data += use;
+
+	while (mlen == SHA1_INPUT_BYTES) {
+		make_big_endian32( (word32 *) ctx->M, SHA1_INPUT_WORDS );
+		SHA1_Transform_HC(ctx->H, ctx->M);
+		use = (unsigned) min( SHA1_INPUT_BYTES, data_len );
+		memcpy( ctx->M, data, use );
+		mlen = use;
+		data_len -= use;
+		data += use;
+	}
 }
 
-void SHA1_Final_HC( SHA1_ctx* ctx, byte digest[ SHA1_DIGEST_BYTES ] )
-{
-    unsigned mlen = 0 ;
-    unsigned padding = 0 ;
+void SHA1_Final_HC(SHA1_ctx *ctx, byte digest[ SHA1_DIGEST_BYTES ]) {
+	unsigned mlen = 0;
+	unsigned padding = 0;
 #if defined( word64 )
     word64 temp = 0 ;
 #endif
@@ -329,25 +325,26 @@ void SHA1_Final_HC( SHA1_ctx* ctx, byte digest[ SHA1_DIGEST_BYTES ] )
 #if defined( word64 )
     mlen = (unsigned)(( ctx->bits >> 3 ) % SHA1_INPUT_BYTES);
 #else
-    mlen = (unsigned)(( ctx->lbits >> 3 ) % SHA1_INPUT_BYTES);
+	mlen = (unsigned) ((ctx->lbits >> 3) % SHA1_INPUT_BYTES);
 #endif
 
-    ctx->M[ mlen ] = 0x80; mlen++; /* append a 1 bit */
-    padding = SHA1_INPUT_BYTES - mlen;
+	ctx->M[mlen] = 0x80;
+	mlen++; /* append a 1 bit */
+	padding = SHA1_INPUT_BYTES - mlen;
 
 #define BIT_COUNT_WORDS 2
 #define BIT_COUNT_BYTES ( BIT_COUNT_WORDS * sizeof( word32 ) )
 
-    if ( (unsigned)padding >= BIT_COUNT_BYTES ) {
-	memset( ctx->M + mlen, 0x00, padding - BIT_COUNT_BYTES );
-	make_big_endian32( ctx->M, SHA1_INPUT_WORDS - BIT_COUNT_WORDS );
-    } else {
-	memset( ctx->M + mlen, 0x00, SHA1_INPUT_BYTES - mlen );
-	make_big_endian32( ctx->M, SHA1_INPUT_WORDS );
-	SHA1_Transform_HC( ctx->H, ctx->M );
-	memset( ctx->M, 0x00, SHA1_INPUT_BYTES - BIT_COUNT_BYTES );
-    }
-    
+	if ((unsigned) padding >= BIT_COUNT_BYTES) {
+		memset( ctx->M + mlen, 0x00, padding - BIT_COUNT_BYTES );
+		make_big_endian32( ctx->M, SHA1_INPUT_WORDS - BIT_COUNT_WORDS );
+	} else {
+		memset( ctx->M + mlen, 0x00, SHA1_INPUT_BYTES - mlen );
+		make_big_endian32( ctx->M, SHA1_INPUT_WORDS );
+		SHA1_Transform_HC(ctx->H, ctx->M);
+		memset( ctx->M, 0x00, SHA1_INPUT_BYTES - BIT_COUNT_BYTES );
+	}
+
 #if defined( word64 )
     if ( little_endian ) {
 	temp = ( ctx->bits << 32 | ctx->bits >> 32 );
@@ -357,35 +354,34 @@ void SHA1_Final_HC( SHA1_ctx* ctx, byte digest[ SHA1_DIGEST_BYTES ] )
     memcpy( ctx->M + SHA1_INPUT_BYTES - BIT_COUNT_BYTES, &temp, 
 	    BIT_COUNT_BYTES );
 #else
-    memcpy( ctx->M + SHA1_INPUT_BYTES - BIT_COUNT_BYTES, &(ctx->hbits), 
-	    BIT_COUNT_BYTES );
+	memcpy( ctx->M + SHA1_INPUT_BYTES - BIT_COUNT_BYTES, &(ctx->hbits),
+	BIT_COUNT_BYTES );
 #endif
-    SHA1_Transform_HC( ctx->H, ctx->M );
+	SHA1_Transform_HC(ctx->H, ctx->M);
 
-    memcpy( digest, ctx->H, SHA1_DIGEST_BYTES );
-    make_big_endian32( digest, SHA1_DIGEST_WORDS );
+	memcpy( digest, ctx->H, SHA1_DIGEST_BYTES );
+	make_big_endian32( digest, SHA1_DIGEST_WORDS );
 }
 
 #endif
 
-static int swap_endian32( void* data, size_t len )
-{
-    word32 tmp32 = 0 ;
-    byte* tmp32_as_bytes = (byte*) &tmp32;
-    word32* data_as_word32s = (word32*) data;
-    byte* data_as_bytes = NULL ;
-    size_t i = 0 ;
-    
-    for ( i = 0; i < len; i++ ) {
-	tmp32 = data_as_word32s[ i ];
-	data_as_bytes = (byte*) &( data_as_word32s[ i ] );
-	
-	data_as_bytes[ 0 ] = tmp32_as_bytes[ 3 ];
-	data_as_bytes[ 1 ] = tmp32_as_bytes[ 2 ];
-	data_as_bytes[ 2 ] = tmp32_as_bytes[ 1 ];
-	data_as_bytes[ 3 ] = tmp32_as_bytes[ 0 ];
-    }
-    return 1;
+static int swap_endian32(void *data, size_t len) {
+	word32 tmp32 = 0;
+	byte*tmp32_as_bytes = (byte *) &tmp32;
+	word32*data_as_word32s = (word32 *) data;
+	byte*data_as_bytes = NULL ;
+	size_t i = 0;
+
+	for (i = 0; i < len; i++) {
+		tmp32 = data_as_word32s[i];
+		data_as_bytes = (byte *) &(data_as_word32s[i]);
+
+		data_as_bytes[0] = tmp32_as_bytes[3];
+		data_as_bytes[1] = tmp32_as_bytes[2];
+		data_as_bytes[2] = tmp32_as_bytes[1];
+		data_as_bytes[3] = tmp32_as_bytes[0];
+	}
+	return 1;
 }
 
 
@@ -398,12 +394,12 @@ void SHA1_HMAC(const void *key, size_t key_len, const void *text, size_t text_le
 // digest; /* caller digest to be filled in */
 {
 	SHA1_ctx ctx;
-	unsigned char k_ipad[PAD+1]; /* inner padding - key XORd with ipad */
-	unsigned char k_opad[PAD+1]; /* outer padding - key XORd with opad */
+	unsigned char k_ipad[PAD+ 1]; /* inner padding - key XORd with ipad */
+	unsigned char k_opad[PAD+ 1]; /* outer padding - key XORd with opad */
 	unsigned char tk[TK];
-	
+
 	int i;
-	
+
 	if (key_len > PAD) {
 		SHA1_ctx tctx;
 		SHA1_Init_HC(&tctx);
@@ -412,25 +408,25 @@ void SHA1_HMAC(const void *key, size_t key_len, const void *text, size_t text_le
 		key = tk;
 		key_len = TK;
 	}
-	
+
 	/* start out by storing key in pads */
 	bzero(k_ipad, PAD);
 	memcpy(k_ipad, key, key_len);
 	bzero(k_opad, PAD);
 	memcpy(k_opad, key, key_len);
-	
+
 	/* XOR key with ipad and opad values */
-	for (i=0; i<PAD; i++) {
+	for (i = 0; i < PAD; i++) {
 		k_ipad[i] ^= 0x36;
 		k_opad[i] ^= 0x5c;
 	}
-	
+
 	/* perform inner SHA1 */
 	SHA1_Init_HC(&ctx);                   /* init ctx for 1st pass */
 	SHA1_Update_HC(&ctx, k_ipad, PAD);    /* start with inner pad */
 	SHA1_Update_HC(&ctx, text, text_len); /* then text of datagram */
 	SHA1_Final_HC(&ctx, digest);          /* finish up 1st pass */
-	
+
 	/* perform outer SHA1 */
 	SHA1_Init_HC(&ctx);                   /* init ctx for 2nd pass */
 	SHA1_Update_HC(&ctx, k_opad, PAD);    /* start with outer pad */

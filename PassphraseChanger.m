@@ -23,48 +23,49 @@
 }
 
 - (IBAction)okNewPassword:(id)sender {
-	
-	
+
+
 	if ([notationPrefs canLoadPassphrase:[currentPasswordField stringValue]]) {
-		
+
 		NSString *pass = [newPasswordField stringValue];
-		
+
 		if ([pass isEqualToString:[verifyChangedPasswordField stringValue]]) {
-			
-			[notationPrefs setPassphraseData:[pass dataUsingEncoding:NSUTF8StringEncoding] 
-								  inKeychain:[rememberChangeButton state] 
+
+			[notationPrefs setPassphraseData:[pass dataUsingEncoding:NSUTF8StringEncoding]
+								  inKeychain:[rememberChangeButton state]
 							  withIterations:[keyDerivation hashIterationCount]];
-						
+
 			[NSApp endSheet:changePassphraseWindow returnCode:1];
 			[changePassphraseWindow close];
-			
+
 		} else {
-			NSRunAlertPanel(NSLocalizedString(@"Your entered new passphrase does not match your verification passphrase.",nil),
-							NSLocalizedString(@"Please try again.",nil), NSLocalizedString(@"OK",nil), nil, nil);
+			NSRunAlertPanel(NSLocalizedString(@"Your entered new passphrase does not match your verification passphrase.", nil),
+					NSLocalizedString(@"Please try again.", nil), NSLocalizedString(@"OK", nil), nil, nil);
 			[verifyChangedPasswordField setStringValue:@""];
 			[verifyChangedPasswordField performSelector:@selector(selectText:) withObject:nil afterDelay:0.0];
 			[self textDidChange:nil];
 		}
 	} else {
-		
-		NSRunAlertPanel(NSLocalizedString(@"Your entered current passphrase is incorrect.",nil), 
-						NSLocalizedString(@"Please try again.",nil), NSLocalizedString(@"OK",nil), nil, nil);
+
+		NSRunAlertPanel(NSLocalizedString(@"Your entered current passphrase is incorrect.", nil),
+				NSLocalizedString(@"Please try again.", nil), NSLocalizedString(@"OK", nil), nil, nil);
 		[currentPasswordField setStringValue:@""];
 		[currentPasswordField performSelector:@selector(selectText:) withObject:nil afterDelay:0.0];
 	}
 }
 
-- (id)initWithNotationPrefs:(NotationPrefs*)prefs {
+- (id)initWithNotationPrefs:(NotationPrefs *)prefs {
 	if ((self = [super init])) {
 		notationPrefs = prefs;
-		
+
 	}
 	return self;
 }
+
 - (void)dealloc {
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
-	
-	
+
+
 }
 
 - (void)awakeFromNib {
@@ -74,54 +75,54 @@
 	[center addObserver:self selector:@selector(textDidChange:)
 				   name:NSControlTextDidChangeNotification object:currentPasswordField];
 	[center addObserver:self selector:@selector(textDidChange:)
-				   name:NSControlTextDidChangeNotification object:verifyChangedPasswordField];	
+				   name:NSControlTextDidChangeNotification object:verifyChangedPasswordField];
 }
 
 - (IBAction)discloseAdvancedSettings:(id)sender {
 	BOOL disclosed = [disclosureButton state];
 	int heightDifference = disclosed ? 118 : -118;
-	
+
 	if (disclosed) {
-		[self performSelector:@selector(setAdvancedViewHidden:) 
+		[self performSelector:@selector(setAdvancedViewHidden:)
 				   withObject:@NO afterDelay:0.0];
 	} else {
 		[advancedView setHidden:YES];
 	}
-	
+
 	NSPoint origin = [changePassphraseWindow frame].origin;
-	NSRect newFrame = NSMakeRect(origin.x, origin.y - heightDifference, [changePassphraseWindow frame].size.width, 
-								 [changePassphraseWindow frame].size.height + heightDifference);
+	NSRect newFrame = NSMakeRect(origin.x, origin.y - heightDifference, [changePassphraseWindow frame].size.width,
+			[changePassphraseWindow frame].size.height + heightDifference);
 	[changePassphraseWindow setFrame:newFrame display:YES animate:YES];
 }
 
-- (void)setAdvancedViewHidden:(NSNumber*)value {
+- (void)setAdvancedViewHidden:(NSNumber *)value {
 	[advancedView setHidden:[value boolValue]];
 }
 
-- (void)showAroundWindow:(NSWindow*)window {
+- (void)showAroundWindow:(NSWindow *)window {
 	if (!changePassphraseWindow) {
-		if (![NSBundle loadNibNamed:@"PassphraseChanger" owner:self])  {
+		if (![NSBundle loadNibNamed:@"PassphraseChanger" owner:self]) {
 			NSLog(@"Failed to load PassphraseChanger.nib");
 			NSBeep();
 			return;
 		}
 	}
-	
+
 	if (!keyDerivation) {
 		keyDerivation = [[KeyDerivationManager alloc] initWithNotationPrefs:notationPrefs];
 		[advancedView addSubview:[keyDerivation view]];
-	}	
-		
+	}
+
 	[newPasswordField setStringValue:@""];
 	[verifyChangedPasswordField setStringValue:@""];
 	[currentPasswordField setStringValue:@""];
-	
+
 	[rememberChangeButton setState:[notationPrefs storesPasswordInKeychain]];
 	[currentPasswordField selectText:nil];
-	
+
 	[okChangeButton setEnabled:NO];
 
-	[NSApp rbl_beginSheet: changePassphraseWindow modalForWindow: window completionHandler: ^(NSInteger returnCode) {
+	[NSApp rbl_beginSheet:changePassphraseWindow modalForWindow:window completionHandler:^(NSInteger returnCode) {
 		[newPasswordField setStringValue:@""];
 		[verifyChangedPasswordField setStringValue:@""];
 		[currentPasswordField setStringValue:@""];
@@ -129,9 +130,9 @@
 }
 
 - (void)textDidChange:(NSNotification *)aNotification {
-	[okChangeButton setEnabled:(([[newPasswordField stringValue] length] > 0) && 
-								([[verifyChangedPasswordField stringValue] length] > 0) &&
-								([[currentPasswordField stringValue] length] > 0))];
+	[okChangeButton setEnabled:(([[newPasswordField stringValue] length] > 0) &&
+			([[verifyChangedPasswordField stringValue] length] > 0) &&
+			([[currentPasswordField stringValue] length] > 0))];
 }
 
 

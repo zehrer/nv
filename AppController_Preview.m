@@ -10,14 +10,12 @@
 
 @implementation AppController (Preview)
 
--(NSString *)noteContent
-{
-    return [[textView textStorage] string];
+- (NSString *)noteContent {
+	return [[textView textStorage] string];
 }
 
--(NSInteger)currentPreviewMode
-{	
-    return currentPreviewMode;
+- (NSInteger)currentPreviewMode {
+	return currentPreviewMode;
 }
 
 @end

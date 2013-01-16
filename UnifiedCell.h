@@ -14,8 +14,6 @@
     You should have received a copy of the GNU General Public License
     along with Notational Velocity.  If not, see <http://www.gnu.org/licenses/>. */
 
-#import <Cocoa/Cocoa.h>
-
 @class NoteObject;
 @class NotesTableView;
 
@@ -26,15 +24,21 @@
 
 
 NSAttributedString *AttributedStringForSelection(NSAttributedString *str, BOOL withShadow);
+
 - (NSRect)nv_titleRectForFrame:(NSRect)aFrame;
+
 - (NSRect)nv_tagsRectForFrame:(NSRect)frame;
 
 - (float)tableFontFrameHeight;
 
 - (void)setPreviewIsHidden:(BOOL)value;
-+ (NSColor*)dateColorForTint;
-- (NSMutableDictionary*)baseTextAttributes;
-- (NoteObject*)noteObject;
-- (void)setNoteObject:(NoteObject*)obj;
+
++ (NSColor *)dateColorForTint;
+
+- (NSMutableDictionary *)baseTextAttributes;
+
+- (NoteObject *)noteObject;
+
+- (void)setNoteObject:(NoteObject *)obj;
 
 @end

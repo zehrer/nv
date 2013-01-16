@@ -12,34 +12,43 @@
 #import <Sparkle/SUVersionComparisonProtocol.h>
 
 @class SUUpdateDriver, SUAppcastItem, SUHost, SUAppcast;
+
 @interface SUUpdater : NSObject {
 	NSTimer *checkTimer;
 	SUUpdateDriver *driver;
-	
+
 	SUHost *host;
 	IBOutlet id delegate;
 }
 
 + (SUUpdater *)sharedUpdater;
+
 + (SUUpdater *)updaterForBundle:(NSBundle *)bundle;
+
 - (NSBundle *)hostBundle;
 
 - (void)setDelegate:(id)delegate;
+
 - delegate;
 
 - (void)setAutomaticallyChecksForUpdates:(BOOL)automaticallyChecks;
+
 - (BOOL)automaticallyChecksForUpdates;
 
 - (void)setUpdateCheckInterval:(NSTimeInterval)interval;
+
 - (NSTimeInterval)updateCheckInterval;
 
 - (void)setFeedURL:(NSURL *)feedURL;
+
 - (NSURL *)feedURL;
 
 - (void)setSendsSystemProfile:(BOOL)sendsSystemProfile;
+
 - (BOOL)sendsSystemProfile;
 
 - (void)setAutomaticallyDownloadsUpdates:(BOOL)automaticallyDownloadsUpdates;
+
 - (BOOL)automaticallyDownloadsUpdates;
 
 // This IBAction is meant for a main menu item. Hook up any menu item to this action,
@@ -52,7 +61,7 @@
 - (void)checkForUpdatesInBackground;
 
 // Date of last update check. Returns null if no check has been performed.
-- (NSDate*)lastUpdateCheckDate;
+- (NSDate *)lastUpdateCheckDate;
 
 // This begins a "probing" check for updates which will not actually offer to update to that version. The delegate methods, though,
 // (up to updater:didFindValidUpdate: and updaterDidNotFindUpdate:), are called, so you can use that information in your UI.

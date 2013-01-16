@@ -23,65 +23,66 @@
 
 @implementation LabelObject
 
-- (id)initWithTitle:(NSString*)name {
-    if ((self = [super init])) {
+- (id)initWithTitle:(NSString *)name {
+	if ((self = [super init])) {
 		labelName = name;
 		lowercaseName = [name lowercaseString];
-	
+
 		lowercaseHash = [lowercaseName hash];
-		
+
 		notes = [[NSMutableSet alloc] init];
-    }
-    return self;
+	}
+	return self;
 }
 
 force_inline NSString* titleOfLabel(LabelObject *label) {
-    return label->labelName;
+	return label->labelName;
 }
 
 int compareLabel(const void *one, const void *two) {
-	
-    return (int)CFStringCompare((CFStringRef)titleOfLabel(*(__unsafe_unretained LabelObject**)one), 
-								(CFStringRef)titleOfLabel(*(__unsafe_unretained LabelObject**)two), kCFCompareCaseInsensitive);
+
+	return (int) CFStringCompare((CFStringRef) titleOfLabel(*(__unsafe_unretained LabelObject **) one),
+			(CFStringRef) titleOfLabel(*(__unsafe_unretained LabelObject **) two), kCFCompareCaseInsensitive);
 }
 
-- (NSString*)title {
-    return labelName;
+- (NSString *)title {
+	return labelName;
 }
 
-- (NSString*)associativeIdentifier {
-    return lowercaseName;
+- (NSString *)associativeIdentifier {
+	return lowercaseName;
 }
 
 
-- (void)setTitle:(NSString*)title {
-    labelName = title;
-    
-    lowercaseName = [title lowercaseString];
-    
-    lowercaseHash = [lowercaseName hash];
+- (void)setTitle:(NSString *)title {
+	labelName = title;
+
+	lowercaseName = [title lowercaseString];
+
+	lowercaseHash = [lowercaseName hash];
 }
 
-- (void)addNote:(NoteObject*)note {
-    [notes addObject:note];
-}
-- (void)removeNote:(NoteObject*)note {
-    [notes removeObject:note];
+- (void)addNote:(NoteObject *)note {
+	[notes addObject:note];
 }
 
-- (void)addNoteSet:(NSSet*)noteSet {
+- (void)removeNote:(NoteObject *)note {
+	[notes removeObject:note];
+}
+
+- (void)addNoteSet:(NSSet *)noteSet {
 	[notes unionSet:noteSet];
 }
 
-- (void)removeNoteSet:(NSSet*)noteSet {
+- (void)removeNoteSet:(NSSet *)noteSet {
 	[notes minusSet:noteSet];
 }
 
-- (NSSet*)noteSet {
-    return notes;
+- (NSSet *)noteSet {
+	return notes;
 }
 
-- (NSString*)description {
+- (NSString *)description {
 	return [labelName stringByAppendingFormat:@" (used by %@)", notes];
 }
 
@@ -94,10 +95,11 @@ int compareLabel(const void *one, const void *two) {
 }*/
 
 - (BOOL)isEqual:(id)anObject {
-    return [lowercaseName isEqualToString:[anObject associativeIdentifier]];
+	return [lowercaseName isEqualToString:[anObject associativeIdentifier]];
 }
+
 - (NSUInteger)hash {
-    return lowercaseHash;
+	return lowercaseHash;
 }
 
 

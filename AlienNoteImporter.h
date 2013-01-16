@@ -15,8 +15,6 @@
    - Neither the name of Notational Velocity nor the names of its contributors may be used to endorse 
      or promote products derived from this software without specific prior written permission. */
 
-#import <Cocoa/Cocoa.h>
-
 extern NSString *PasswordWasRetrievedFromKeychainKey;
 extern NSString *RetrievedPasswordKey;
 
@@ -28,53 +26,68 @@ extern NSString *RetrievedPasswordKey;
 
 @protocol AlienNoteImporterReceptionDelegate <NSObject>
 
-- (void)noteImporter:(AlienNoteImporter*)importer importedNotes:(NSArray*)notes;
+- (void)noteImporter:(AlienNoteImporter *)importer importedNotes:(NSArray *)notes;
 
 @end
 
 @interface AlienNoteImporter : NSObject {
 	IBOutlet NSButton *grabCreationDatesButton;
 	IBOutlet NSView *importAccessoryView;
-	
+
 	SEL importerSelector;
-	
+
 	id source;
 	NSMutableDictionary *documentSettings;
 	BOOL shouldGrabCreationDates;
-    
-    BOOL shouldUseReadability;
+
+	BOOL shouldUseReadability;
 }
 
 //a directory containing notes, a custom bundle, or custom file format in which more than one note could be expected
-- (id)initWithStoragePaths:(NSArray*)filenames;
-- (id)initWithStoragePath:(NSString*)filename;
-+ (void)importBlorOrHelpFilesIfNecessaryIntoNotation:(NotationController*)notation;
-+ (AlienNoteImporter *)importerWithPath:(NSString*)path;
-- (void)importNotesFromDialogAroundWindow:(NSWindow*)mainWindow receptionDelegate:(id <AlienNoteImporterReceptionDelegate>)receiver;
-- (void)importURLInBackground:(NSURL*)aURL linkTitle:(NSString*)linkTitle receptionDelegate:(id <AlienNoteImporterReceptionDelegate>)receiver;
-+ (NSString*)blorPath;
+- (id)initWithStoragePaths:(NSArray *)filenames;
+
+- (id)initWithStoragePath:(NSString *)filename;
+
++ (void)importBlorOrHelpFilesIfNecessaryIntoNotation:(NotationController *)notation;
+
++ (AlienNoteImporter *)importerWithPath:(NSString *)path;
+
+- (void)importNotesFromDialogAroundWindow:(NSWindow *)mainWindow receptionDelegate:(id <AlienNoteImporterReceptionDelegate>)receiver;
+
+- (void)importURLInBackground:(NSURL *)aURL linkTitle:(NSString *)linkTitle receptionDelegate:(id <AlienNoteImporterReceptionDelegate>)receiver;
+
++ (NSString *)blorPath;
 
 + (NSBundle *)PDFKitBundle;
+
 + (Class)PDFDocClass;
 
-- (NSView*)accessoryView;
-- (NSDictionary*)documentSettings;
-- (NSArray*)importedNotes;
+- (NSView *)accessoryView;
 
-- (NSArray*)notesWithPaths:(NSArray*)paths;
-- (NSArray*)notesWithURLs:(NSArray*)paths;
+- (NSDictionary *)documentSettings;
+
+- (NSArray *)importedNotes;
+
+- (NSArray *)notesWithPaths:(NSArray *)paths;
+
+- (NSArray *)notesWithURLs:(NSArray *)paths;
+
 //where filename is a file expected to contain a single note (e.g., text, RTF, word)
-- (NoteObject*)noteWithFile:(NSString*)filename;
+- (NoteObject *)noteWithFile:(NSString *)filename;
 
-- (NSArray*)notesInDirectory:(NSString*)filename;
-- (NSArray*)notesInFile:(NSString*)filename;
+- (NSArray *)notesInDirectory:(NSString *)filename;
+
+- (NSArray *)notesInFile:(NSString *)filename;
 
 - (BOOL)shouldUseReadability;
+
 - (void)setShouldUseReadability:(BOOL)value;
 
-- (NSString*) contentUsingReadability: (NSString *)htmlFile;
-- (NSString*) markdownFromSource: (NSString *)htmlString;
-- (NSString*) markdownFromHTMLFile: (NSString *)htmlFile;
+- (NSString *)contentUsingReadability:(NSString *)htmlFile;
 
-@property (nonatomic, weak, readonly) id <AlienNoteImporterReceptionDelegate> receptionDelegate;
+- (NSString *)markdownFromSource:(NSString *)htmlString;
+
+- (NSString *)markdownFromHTMLFile:(NSString *)htmlFile;
+
+@property(nonatomic, weak, readonly) id <AlienNoteImporterReceptionDelegate> receptionDelegate;
 @end

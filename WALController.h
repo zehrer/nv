@@ -16,7 +16,6 @@
      or promote products derived from this software without specific prior written permission. */
 
 
-#import <Cocoa/Cocoa.h>
 #import "SynchronizedNoteProtocol.h"
 #include <sys/types.h>
 #include <zlib.h>
@@ -25,7 +24,7 @@
 
 //each note will have its own key--the "LogSessionKey" salt of master key + per-record salt
 typedef union {
-    struct {
+	struct {
 		u_int32_t originalDataLength;
 		u_int32_t dataLength;
 		u_int32_t checksum;
@@ -38,40 +37,50 @@ typedef union {
 	int logFD;
 	char *journalFile;
 	NSData *logSessionKey;
-	
+
 	z_stream compressionStream;
 }
 
-- (id)initWithParentFSRep:(const char*)path encryptionKey:(NSData*)key;
+- (id)initWithParentFSRep:(const char *)path encryptionKey:(NSData *)key;
+
 - (BOOL)logFileStillExists;
+
 - (BOOL)destroyLogFile;
 
 @end
 
 @interface WALStorageController : WALController {
-    NSMutableData *unwrittenData;
+	NSMutableData *unwrittenData;
 }
-- (id)initWithParentFSRep:(const char*)path encryptionKey:(NSData*)key;
-- (BOOL)writeEstablishedNote:(id<SynchronizedNote>)aNoteObject;
-- (BOOL)writeRemovalForNote:(id<SynchronizedNote>)aNoteObject;
-- (BOOL)writeNoteObject:(id<SynchronizedNote>)aNoteObject;
-- (void)writeNoteObjects:(NSArray*)notes;
+- (id)initWithParentFSRep:(const char *)path encryptionKey:(NSData *)key;
+
+- (BOOL)writeEstablishedNote:(id <SynchronizedNote>)aNoteObject;
+
+- (BOOL)writeRemovalForNote:(id <SynchronizedNote>)aNoteObject;
+
+- (BOOL)writeNoteObject:(id <SynchronizedNote>)aNoteObject;
+
+- (void)writeNoteObjects:(NSArray *)notes;
+
 - (BOOL)_attemptToWriteUnwrittenData;
-- (BOOL)_encryptAndWriteData:(NSMutableData*)data;
+
+- (BOOL)_encryptAndWriteData:(NSMutableData *)data;
+
 - (BOOL)synchronize;
 
 @end
 
 
-
 @interface WALRecoveryController : WALController {
-    off_t fileLength, totalBytesRead;
-    //to ensure we don't mistakenly allocate more memory
-    //than there exists data in what we have yet to read
+	off_t fileLength, totalBytesRead;
+	//to ensure we don't mistakenly allocate more memory
+	//than there exists data in what we have yet to read
 }
 
-- (id)initWithParentFSRep:(const char*)path encryptionKey:(NSData*)key;
+- (id)initWithParentFSRep:(const char *)path encryptionKey:(NSData *)key;
+
 - (id <SynchronizedNote>)recoverNextObject;
-- (NSDictionary*)recoveredNotes;
+
+- (NSDictionary *)recoveredNotes;
 
 @end

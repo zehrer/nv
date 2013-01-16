@@ -14,22 +14,22 @@
    - Neither the name of Notational Velocity nor the names of its contributors may be used to endorse 
      or promote products derived from this software without specific prior written permission. */
 
-
-#import <Cocoa/Cocoa.h>
-
-typedef enum { NoIcon, DownArrowIcon, SynchronizingIcon, AlertIcon } TitleBarButtonIcon;
+typedef enum {
+	NoIcon, DownArrowIcon, SynchronizingIcon, AlertIcon
+} TitleBarButtonIcon;
 
 @interface TitlebarButtonCell : NSPopUpButtonCell {
 	TitleBarButtonIcon iconType;
 	BOOL isHovering;
 	NSUInteger rotationStep;
-	
+
 	NSTimer *synchronizingTimer;
 }
 
 - (TitleBarButtonIcon)iconType;
 
 - (void)setIsHovering:(BOOL)hovering;
+
 - (void)setStatusIconType:(TitleBarButtonIcon)anIconType;
 
 @end
@@ -40,5 +40,5 @@ typedef enum { NoIcon, DownArrowIcon, SynchronizingIcon, AlertIcon } TitleBarBut
 
 - (void)setStatusIconType:(TitleBarButtonIcon)anIconType;
 
-- (void)addToWindow:(NSWindow*)aWin;
+- (void)addToWindow:(NSWindow *)aWin;
 @end

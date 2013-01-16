@@ -14,8 +14,7 @@
 
 #import <Cocoa/Cocoa.h>
 
-@interface FullscreenWindow : NSWindow
-{	
+@interface FullscreenWindow : NSWindow {
 }
 
 @end

@@ -15,8 +15,6 @@
      or promote products derived from this software without specific prior written permission. */
 
 
-#import <Cocoa/Cocoa.h>
-#include <SystemConfiguration/SystemConfiguration.h>
 #import <IOKit/IOMessage.h>
 #import "SyncServiceSessionProtocol.h"
 
@@ -24,58 +22,70 @@
 
 extern NSString *SyncSessionsChangedVisibleStatusNotification;
 
-@interface SyncSessionController : NSObject  <NSMenuDelegate>
-{
+@interface SyncSessionController : NSObject <NSMenuDelegate> {
 
 	NSMutableDictionary *syncServiceTimers;
 	NSMutableDictionary *syncServiceSessions;
 	id syncDelegate;
 	NSMenu *statusMenu;
-	
+
 	NotationPrefs *notationPrefs;
-	
+
 	io_object_t deregisteringNotifier;
 	io_connect_t fRootPort;
 	IONotificationPortRef notifyPortRef;
-	
+
 	NSString *lastUncomittedChangeResultMessage;
 	NSMutableSet *uncommittedWaitInvocations;
 }
 
-+ (NSArray*)allServiceNames;
-+ (NSArray*)allServiceClasses;	
++ (NSArray *)allServiceNames;
+
++ (NSArray *)allServiceClasses;
 
 - (void)setSyncDelegate:(id)aDelegate;
+
 - (id)syncDelegate;
 
-- (id)initWithSyncDelegate:(id)aSyncDelegate notationPrefs:(NotationPrefs*)prefs;
+- (id)initWithSyncDelegate:(id)aSyncDelegate notationPrefs:(NotationPrefs *)prefs;
 
-- (id<SyncServiceSession>)_sessionForSyncService:(NSString*)serviceName;
-- (void)invalidateSyncService:(NSString*)serviceName;
+- (id <SyncServiceSession>)_sessionForSyncService:(NSString *)serviceName;
+
+- (void)invalidateSyncService:(NSString *)serviceName;
+
 - (void)invalidateAllServices;
 
-- (void)endDelayingSleepWithMessage:(void*)messageArgument;
+- (void)endDelayingSleepWithMessage:(void *)messageArgument;
 
-- (void)disableService:(NSString*)serviceName;
-- (void)initializeService:(NSString*)serviceName;
+- (void)disableService:(NSString *)serviceName;
+
+- (void)initializeService:(NSString *)serviceName;
+
 - (void)initializeAllServices;
 
 - (void)schedulePushToAllInitializedSessionsForNote:(id <SynchronizedNote>)aNote;
-- (NSArray*)activeSessions;
+
+- (NSArray *)activeSessions;
 
 - (void)_registerPowerChangeCallbackIfNecessary;
+
 - (void)unregisterPowerChangeCallback;
 
-- (void)_updateMenuWithCurrentStatus:(NSMenu*)aMenu;
-- (NSMenu*)syncStatusMenu;
+- (void)_updateMenuWithCurrentStatus:(NSMenu *)aMenu;
+
+- (NSMenu *)syncStatusMenu;
 
 - (BOOL)hasRunningSessions;
+
 - (BOOL)hasErrors;
+
 - (void)queueStatusNotification;
 
-- (NSString*)changeCommittingErrorMessage;
-- (void)invokeUncommmitedWaitCallbackIfNecessaryReturningError:(NSString*)errString;
-- (BOOL)waitForUncommitedChangesWithInvocation:(NSInvocation*)anInvocation;
+- (NSString *)changeCommittingErrorMessage;
+
+- (void)invokeUncommmitedWaitCallbackIfNecessaryReturningError:(NSString *)errString;
+
+- (BOOL)waitForUncommitedChangesWithInvocation:(NSInvocation *)anInvocation;
 
 
 @end

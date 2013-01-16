@@ -16,27 +16,36 @@
      or promote products derived from this software without specific prior written permission. */
 
 
-#import <Cocoa/Cocoa.h>
-
 #import "NotationController.h"
 
 @interface NotationController (NotationDirectoryManager)
 
 NSInteger compareCatalogEntryName(const void *one, const void *two);
+
 NSInteger compareCatalogValueNodeID(id *a, id *b);
+
 NSInteger compareCatalogValueFileSize(id *a, id *b);
 
-- (NSSet*)notesWithFilenames:(NSArray*)filenames unknownFiles:(NSArray**)unknownFiles;
+- (NSSet *)notesWithFilenames:(NSArray *)filenames unknownFiles:(NSArray **)unknownFiles;
 
 - (BOOL)_readFilesInDirectory;
-- (BOOL)modifyNoteIfNecessary:(NoteObject*)aNoteObject usingCatalogEntry:(NoteCatalogEntry*)catEntry;
-- (void)makeNotesMatchCatalogEntries:(NoteCatalogEntry**)catEntriesPtrs ofSize:(size_t)catCount;
-- (void)processNotesAddedByCNID:(NSMutableArray*)addedEntries removed:(NSMutableArray*)removedEntries;
-- (void)processNotesAddedByContent:(NSMutableArray*)addedEntries removed:(NSMutableArray*)removedEntries;
+
+- (BOOL)modifyNoteIfNecessary:(NoteObject *)aNoteObject usingCatalogEntry:(NoteCatalogEntry *)catEntry;
+
+- (void)makeNotesMatchCatalogEntries:(NoteCatalogEntry **)catEntriesPtrs ofSize:(size_t)catCount;
+
+- (void)processNotesAddedByCNID:(NSMutableArray *)addedEntries removed:(NSMutableArray *)removedEntries;
+
+- (void)processNotesAddedByContent:(NSMutableArray *)addedEntries removed:(NSMutableArray *)removedEntries;
+
 - (BOOL)synchronizeNotesFromDirectory;
+
 - (void)_destroyDirEventStream;
+
 - (void)_configureDirEventStream;
+
 - (void)startFileNotifications;
+
 - (void)stopFileNotifications;
 
 @end

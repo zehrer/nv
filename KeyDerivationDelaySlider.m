@@ -17,7 +17,15 @@
 
 #import "KeyDerivationDelaySlider.h"
 
-@implementation KeyDerivationDelaySliderCell 
+//mostly to catch mouse-up from a continuous slider
+
+@interface KeyDerivationDelaySliderCell : NSSliderCell {
+
+}
+
+@end
+
+@implementation KeyDerivationDelaySliderCell
 
 
 - (id)init {
@@ -33,9 +41,10 @@
 	}
 	return self;
 }
+
 - (void)stopTracking:(NSPoint)lastPoint at:(NSPoint)stopPoint inView:(NSView *)controlView mouseIsUp:(BOOL)flag {
 	if (flag == YES)
-		[(KeyDerivationDelaySlider*)[self controlView] mouseUp];
+		[(KeyDerivationDelaySlider *) [self controlView] mouseUp];
 }
 
 @end
@@ -45,18 +54,23 @@
 - (double)maxValue {
 	return exp([super maxValue]);
 }
+
 - (double)minValue {
 	return exp([super minValue]);
 }
+
 - (void)setMinValue:(double)minValue {
 	[super setMinValue:log(minValue)];
 }
+
 - (void)setMaxValue:(double)maxValue {
 	[super setMaxValue:log(maxValue)];
 }
+
 - (double)doubleValue {
 	return exp([super doubleValue]);
 }
+
 - (void)setDoubleValue:(double)aDouble {
 	[super setDoubleValue:log(aDouble)];
 }
@@ -68,7 +82,7 @@
 		[myCell setAction:[[self cell] action]];
 		[myCell setTarget:[[self cell] target]];
 		[self setCell:myCell];
-		
+
 		if ([self cell] != myCell)
 			NSLog(@"cellular disintegration!");
 	}
@@ -76,7 +90,7 @@
 }
 
 + (Class)cellClass {
-	
+
 	return [KeyDerivationDelaySliderCell class];
 }
 

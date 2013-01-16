@@ -11,33 +11,37 @@
    - Neither the name of Notational Velocity nor the names of its contributors may be used to endorse 
      or promote products derived from this software without specific prior written permission. */
 
-
-#import <Cocoa/Cocoa.h>
 #import "KeyDerivationDelaySlider.h"
 
 @class NotationPrefs;
 
-@interface KeyDerivationManager : NSObject <KeyDerivationDelaySliderDelegate>
-{
-    IBOutlet NSTextField *hashDurationField;
-    IBOutlet KeyDerivationDelaySlider *slider;
-    IBOutlet NSView* view;
+@interface KeyDerivationManager : NSObject <KeyDerivationDelaySliderDelegate> {
+	IBOutlet NSTextField *hashDurationField;
+	IBOutlet KeyDerivationDelaySlider *slider;
+	IBOutlet NSView *view;
 	IBOutlet NSProgressIndicator *iterationEstimatorProgress;
-	
+
 	int lastHashIterationCount;
 	double lastHashDuration;
-	
+
 	NSData *crapData, *crapSalt;
-	
+
 	NotationPrefs *notationPrefs;
 }
 
-- (id)initWithNotationPrefs:(NotationPrefs*)prefs;
-- (NSView*)view;
+- (id)initWithNotationPrefs:(NotationPrefs *)prefs;
+
+- (NSView *)view;
+
 - (IBAction)sliderChanged:(id)sender;
+
 - (int)hashIterationCount;
+
 - (double)delayForHashIterations:(int)count;
+
 - (int)estimatedIterationsForDuration:(double)duration;
-- (void)mouseUpForKeyDerivationDelaySlider:(KeyDerivationDelaySlider*)aSlider;
+
+- (void)mouseUpForKeyDerivationDelaySlider:(KeyDerivationDelaySlider *)aSlider;
+
 - (void)updateToolTip;
 @end

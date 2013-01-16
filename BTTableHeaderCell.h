@@ -9,8 +9,8 @@
 
 
 @interface BTTableHeaderCell : NSTableHeaderCell {
-    NSImage *metalBg;
-    NSMutableDictionary *attrs;
+	NSImage *metalBg;
+	NSMutableDictionary *attrs;
 }
 
 @end

@@ -15,24 +15,23 @@
    - Neither the name of Notational Velocity nor the names of its contributors may be used to endorse 
      or promote products derived from this software without specific prior written permission. */
 
-
-#import <Cocoa/Cocoa.h>
-
 #import "NotationController.h"
 #import "SyncServiceSessionProtocol.h"
 
 @interface NotationController (NotationSyncServiceManager) <SynchronizedNoteObjectDelegate>
 
-- (NSDictionary*)invertedDictionaryOfEntries:(NSArray*)entries keyedBy:(NSString*)keyName;
-- (NSDictionary*)invertedDictionaryOfNotes:(NSArray*)someNotes forSession:(id<SyncServiceSession>)aSession;
+- (NSDictionary *)invertedDictionaryOfEntries:(NSArray *)entries keyedBy:(NSString *)keyName;
 
-- (NoteObject*)noteForKey:(NSString*)key ofServiceClass:(Class<SyncServiceSession>)serviceClass;
+- (NSDictionary *)invertedDictionaryOfNotes:(NSArray *)someNotes forSession:(id <SyncServiceSession>)aSession;
 
-- (void)makeNotesMatchList:(NSArray*)MDEntries fromSyncSession:(id <SyncServiceSession>)syncSession;
+- (NoteObject *)noteForKey:(NSString *)key ofServiceClass:(Class <SyncServiceSession>)serviceClass;
+
+- (void)makeNotesMatchList:(NSArray *)MDEntries fromSyncSession:(id <SyncServiceSession>)syncSession;
 
 - (void)schedulePushToAllSyncServicesForNote:(id <SynchronizedNote>)aNote;
 
 - (void)startSyncServices;
+
 - (void)stopSyncServices;
 
 - (BOOL)handleSyncingWithAllMissingAndRemoteNoteCount:(NSUInteger)foundNotes fromSession:(id <SyncServiceSession>)aSession;

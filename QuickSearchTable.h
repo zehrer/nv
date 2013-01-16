@@ -2,7 +2,6 @@
 
 #import <Cocoa/Cocoa.h>
 
-@interface QuickSearchTable : NSTableView
-{
+@interface QuickSearchTable : NSTableView {
 }
 @end

@@ -20,30 +20,30 @@
 
 @implementation NSBezierPath (NV)
 
-+ (NSBezierPath *)bezierPathWithRoundRectInRect:(NSRect)aRect radius:(float)radius  {
-	NSBezierPath* path = [NSBezierPath bezierPath];
++ (NSBezierPath *)bezierPathWithRoundRectInRect:(NSRect)aRect radius:(float)radius {
+	NSBezierPath *path = [NSBezierPath bezierPath];
 	float smallestEdge = MIN(NSWidth(aRect), NSHeight(aRect));
 	radius = MIN(radius, 0.5f * smallestEdge);
 	NSRect rect = NSInsetRect(aRect, radius, radius);
 	[path appendBezierPathWithArcWithCenter:NSMakePoint(NSMinX(rect), NSMinY(rect)) radius:radius startAngle:180.0 endAngle:270.0];
 	[path appendBezierPathWithArcWithCenter:NSMakePoint(NSMaxX(rect), NSMinY(rect)) radius:radius startAngle:270.0 endAngle:360.0];
-	[path appendBezierPathWithArcWithCenter:NSMakePoint(NSMaxX(rect), NSMaxY(rect)) radius:radius startAngle:  0.0 endAngle: 90.0];
-	[path appendBezierPathWithArcWithCenter:NSMakePoint(NSMinX(rect), NSMaxY(rect)) radius:radius startAngle: 90.0 endAngle:180.0];
+	[path appendBezierPathWithArcWithCenter:NSMakePoint(NSMaxX(rect), NSMaxY(rect)) radius:radius startAngle:0.0 endAngle:90.0];
+	[path appendBezierPathWithArcWithCenter:NSMakePoint(NSMinX(rect), NSMaxY(rect)) radius:radius startAngle:90.0 endAngle:180.0];
 	[path closePath];
 	return path;
 }
 
-+ (NSBezierPath *)bezierPathWithLayoutManager:(NSLayoutManager*)layoutManager characterRange:(NSRange)charRange atPoint:(NSPoint)point {
++ (NSBezierPath *)bezierPathWithLayoutManager:(NSLayoutManager *)layoutManager characterRange:(NSRange)charRange atPoint:(NSPoint)point {
 	NSRange range = [layoutManager glyphRangeForCharacterRange:charRange actualCharacterRange:NULL];
-	NSGlyph *glyphs = (NSGlyph *)malloc(sizeof(NSGlyph) * range.length * 2);
+	NSGlyph *glyphs = (NSGlyph *) malloc(sizeof(NSGlyph) * range.length * 2);
 	[layoutManager getGlyphs:glyphs range:range];
-		
+
 	NSBezierPath *path = [NSBezierPath bezierPath];
 	[path moveToPoint:point];
 	[path appendBezierPathWithGlyphs:glyphs count:range.length inFont:[[layoutManager textStorage] font]];
-	
+
 	free(glyphs);
-	
+
 	return path;
 }
 
@@ -53,29 +53,29 @@
 
 @implementation NSImage (NV)
 
-+ (NSImage*)smallIconForFSRef:(FSRef*)fsRef {
-    OSStatus err = noErr;
-    
-    if (!fsRef)
++ (NSImage *)smallIconForFSRef:(FSRef *)fsRef {
+	OSStatus err = noErr;
+
+	if (!fsRef)
 		return nil;
-    
-    IconRef iconRef;
-    if ((err = GetIconRefFromFileInfo(fsRef, 0, NULL, 0, NULL, kIconServicesNormalUsageFlag, &iconRef, NULL)) == noErr) {
-		
+
+	IconRef iconRef;
+	if ((err = GetIconRefFromFileInfo(fsRef, 0, NULL, 0, NULL, kIconServicesNormalUsageFlag, &iconRef, NULL)) == noErr) {
+
 		NSImage *image = [[NSImage alloc] initWithSize:NSMakeSize(16.0f, 16.0f)];
-		NSRect frame = NSMakeRect(0.0f,0.0f,16.0f,16.0f);
-		
+		NSRect frame = NSMakeRect(0.0f, 0.0f, 16.0f, 16.0f);
+
 		[image lockFocus];
-		err = PlotIconRefInContext([[NSGraphicsContext currentContext] graphicsPort], (CGRect *)&frame, 0, 0, nil, 0, iconRef);
+		err = PlotIconRefInContext([[NSGraphicsContext currentContext] graphicsPort], (CGRect *) &frame, 0, 0, nil, 0, iconRef);
 		[image unlockFocus];
-		
+
 		if (err == noErr)
 			return image;
-    }
-    
-    NSLog(@"smallIconForFSRef error: %d", err);
-    
-    return nil;
+	}
+
+	NSLog(@"smallIconForFSRef error: %d", err);
+
+	return nil;
 }
 
 

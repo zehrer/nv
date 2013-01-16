@@ -15,29 +15,28 @@
    - Neither the name of Notational Velocity nor the names of its contributors may be used to endorse 
      or promote products derived from this software without specific prior written permission. */
 
-
-#import <Cocoa/Cocoa.h>
-
-
 @interface BlorPasswordRetriever : NSObject {
 	IBOutlet NSTextField *helpStringField, *passphraseField;
 	IBOutlet NSButton *importButton, *cancelButton;
 	IBOutlet NSWindow *window;
-	
+
 	BOOL couldRetrieveFromKeychain;
 	NSString *path, *originalPasswordString;
 	NSData *hashData;
 }
 
-- (id)initWithBlor:(NSString*)blorPath;
+- (id)initWithBlor:(NSString *)blorPath;
 
 - (IBAction)cancelAction:(id)sender;
+
 - (IBAction)importAction:(id)sender;
 
 //get from the keychain or from the user, verifying with the SHA-1 hash in the .blor file
-- (NSData*)keychainPasswordData;
-- (NSData*)validPasswordHashData;
-- (NSString*)originalPasswordString;
+- (NSData *)keychainPasswordData;
+
+- (NSData *)validPasswordHashData;
+
+- (NSString *)originalPasswordString;
 
 - (BOOL)canRetrieveFromKeychain;
 
@@ -50,9 +49,12 @@
 	unsigned int currentByteOffset, suspectedNoteCount, successfullyReadNoteCount;
 }
 
-- (id)initWithBlor:(NSString*)blorPath passwordHashData:(NSData*)passwordHashData;
+- (id)initWithBlor:(NSString *)blorPath passwordHashData:(NSData *)passwordHashData;
+
 - (unsigned int)suspectedNoteCount;
+
 - (void)decryptNextBytesOfLength:(long)length;
+
 - (id)nextNote;
 
 @end

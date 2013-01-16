@@ -16,8 +16,6 @@
      or promote products derived from this software without specific prior written permission. */
 
 
-#import <Cocoa/Cocoa.h>
-
 #import "SyncServiceSessionProtocol.h"
 
 @class NoteObject;
@@ -33,30 +31,34 @@
 	id collectionDelegate;
 	BOOL stopped;
 	SyncResponseFetcher *currentFetcher;
-	
+
 	id representedObject;
 }
 
-- (id)initWithEntriesToCollect:(NSArray*)wantedEntries authToken:(NSString*)anAuthToken email:(NSString*)anEmail;
+- (id)initWithEntriesToCollect:(NSArray *)wantedEntries authToken:(NSString *)anAuthToken email:(NSString *)anEmail;
 
-- (NSArray*)entriesToCollect;
-- (NSArray*)entriesCollected;
-- (NSArray*)entriesInError;
+- (NSArray *)entriesToCollect;
+
+- (NSArray *)entriesCollected;
+
+- (NSArray *)entriesInError;
 
 - (void)stop;
+
 - (BOOL)collectionStarted;
 
 - (BOOL)collectionStoppedPrematurely;
 
-- (NSString*)localizedActionDescription;
+- (NSString *)localizedActionDescription;
 
 - (void)startCollectingWithCallback:(SEL)aSEL collectionDelegate:(id)aDelegate;
 
-- (SyncResponseFetcher*)fetcherForEntry:(id)anEntry;
+- (SyncResponseFetcher *)fetcherForEntry:(id)anEntry;
 
-- (NSDictionary*)preparedDictionaryWithFetcher:(SyncResponseFetcher*)fetcher receivedData:(NSData*)data;
+- (NSDictionary *)preparedDictionaryWithFetcher:(SyncResponseFetcher *)fetcher receivedData:(NSData *)data;
 
 - (void)setRepresentedObject:(id)anObject;
+
 - (id)representedObject;
 
 @end
@@ -66,11 +68,14 @@
 }
 
 
-- (id)initWithEntries:(NSArray*)wantedEntries operation:(SEL)opSEL authToken:(NSString*)anAuthToken email:(NSString*)anEmail;
+- (id)initWithEntries:(NSArray *)wantedEntries operation:(SEL)opSEL authToken:(NSString *)anAuthToken email:(NSString *)anEmail;
 
-- (SyncResponseFetcher*)_fetcherForNote:(NoteObject*)aNote creator:(BOOL)doesCreate;
-- (SyncResponseFetcher*)fetcherForCreatingNote:(NoteObject*)aNote;
-- (SyncResponseFetcher*)fetcherForUpdatingNote:(NoteObject*)aNote;
-- (SyncResponseFetcher*)fetcherForDeletingNote:(DeletedNoteObject*)aDeletedNote;
+- (SyncResponseFetcher *)_fetcherForNote:(NoteObject *)aNote creator:(BOOL)doesCreate;
+
+- (SyncResponseFetcher *)fetcherForCreatingNote:(NoteObject *)aNote;
+
+- (SyncResponseFetcher *)fetcherForUpdatingNote:(NoteObject *)aNote;
+
+- (SyncResponseFetcher *)fetcherForDeletingNote:(DeletedNoteObject *)aDeletedNote;
 
 @end

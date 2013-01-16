@@ -16,23 +16,21 @@
     along with Notational Velocity.  If not, see <http://www.gnu.org/licenses/>. */
 
 
-#import <Cocoa/Cocoa.h>
-
 @class HeaderViewWithMenu;
 @class NoteAttributeColumn;
 @class GlobalPrefs;
 
 @interface NVViewLocationContext : NSObject
 
-@property (nonatomic) BOOL pivotRowWasEdge;
-@property (nonatomic, unsafe_unretained) id pivotObject;
-@property (nonatomic) float verticalDistanceToPivotRow;
+@property(nonatomic) BOOL pivotRowWasEdge;
+@property(nonatomic, unsafe_unretained) id pivotObject;
+@property(nonatomic) float verticalDistanceToPivotRow;
 
 @end
 
 @protocol NVLabelsListSource <NSObject>
 
-- (NSArray*)labelTitlesPrefixedByString:(NSString*)prefixString indexOfSelectedItem:(NSInteger *)anIndex minusWordSet:(NSSet*)antiSet;
+- (NSArray *)labelTitlesPrefixedByString:(NSString *)prefixString indexOfSelectedItem:(NSInteger *)anIndex minusWordSet:(NSSet *)antiSet;
 
 @end
 
@@ -41,79 +39,101 @@
 	IBOutlet NSTextField *controlField;
 	NSMutableArray *allColumns;
 	NSMutableDictionary *allColsDict;
-	
+
 	NSInteger firstRowIndexBeforeSplitResize;
-	
+
 	BOOL viewMenusValid;
 	BOOL hadHighlightInForeground, hadHighlightInBackground;
 	BOOL shouldUseSecondaryHighlightColor, isActiveStyle;
 	BOOL lastEventActivatedTagEdit, wasDeleting, isAutocompleting;
-	
+
 	GlobalPrefs *globalPrefs;
 	NSMenuItem *dummyItem;
 	HeaderViewWithMenu *headerView;
 	NSView *cornerView;
 	NSTextFieldCell *cachedCell;
-	
+
 	NSDictionary *loadStatusAttributes;
 	float loadStatusStringWidth;
 	NSString *loadStatusString;
-	
+
 	float tableFontHeight;
 
-	int affinity;	
+	int affinity;
 
 	NSUserDefaults *userDefaults;
 }
 
 - (void)noteFirstVisibleRow;
+
 - (void)makeFirstPreviouslyVisibleRowVisibleIfNecessary;
 
-@property (nonatomic, strong) NVViewLocationContext *viewingLocation;
+@property(nonatomic, strong) NVViewLocationContext *viewingLocation;
 
 - (double)distanceFromRow:(NSUInteger)aRow forVisibleArea:(NSRect)visibleRect;
+
 - (void)scrollRowToVisible:(NSInteger)rowIndex withVerticalOffset:(float)offset;
+
 - (void)selectRowAndScroll:(NSInteger)row;
 
 - (float)tableFontHeight;
 
 - (BOOL)isActiveStyle;
+
 - (void)setShouldUseSecondaryHighlightColor:(BOOL)value;
+
 - (void)_setActiveStyleState:(BOOL)activeStyle;
+
 - (void)updateTitleDereferencorState;
 
 - (void)reloadDataIfNotEditing;
 
 - (void)restoreColumns;
+
 - (void)_configureAttributesForCurrentLayout;
+
 - (void)updateHeaderViewForColumns;
-- (BOOL)eventIsTagEdit:(NSEvent*)event forColumn:(NSInteger)columnIndex row:(NSInteger)rowIndex;
+
+- (BOOL)eventIsTagEdit:(NSEvent *)event forColumn:(NSInteger)columnIndex row:(NSInteger)rowIndex;
+
 - (BOOL)lastEventActivatedTagEdit;
+
 - (void)editRowAtColumnWithIdentifier:(id)identifier;
-- (BOOL)addPermanentTableColumn:(NSTableColumn*)column;
+
+- (BOOL)addPermanentTableColumn:(NSTableColumn *)column;
+
 - (IBAction)actionHideShowColumn:(id)sender;
+
 - (IBAction)toggleNoteBodyPreviews:(id)sender;
+
 - (void)setStatusForSortedColumn:(id)item;
-- (void)setSortDirection:(BOOL)direction inTableColumn:(NSTableColumn*)tableColumn;
+
+- (void)setSortDirection:(BOOL)direction inTableColumn:(NSTableColumn *)tableColumn;
+
 - (NSMenu *)defaultNoteCommandsMenuWithTarget:(id)target;
+
 - (NSMenu *)menuForColumnSorting;
+
 - (NSMenu *)menuForColumnConfiguration:(NSTableColumn *)inSelectedColumn;
-- (NoteAttributeColumn*)noteAttributeColumnForIdentifier:(NSString*)identifier;
+
+- (NoteAttributeColumn *)noteAttributeColumnForIdentifier:(NSString *)identifier;
 
 - (void)incrementNoteSelection:(id)sender;
+
 - (void)_incrementNoteSelectionByTag:(NSInteger)tag;
 
-@property (nonatomic, unsafe_unretained) id <NVLabelsListSource> labelsListSource;
+@property(nonatomic, unsafe_unretained) id <NVLabelsListSource> labelsListSource;
 
 - (NSArray *)labelCompletionsForString:(NSString *)fieldString index:(NSInteger)index;
 
-- (SEL)attributeSetterForColumn:(NoteAttributeColumn*)col;
+- (SEL)attributeSetterForColumn:(NoteAttributeColumn *)col;
 
 
 @end
 
 @interface NSTableView (Private)
 - (BOOL)_shouldUseSecondaryHighlightColor;
+
 - (void)_sizeRowHeaderToFitIfNecessary;
 
 //10.3 only

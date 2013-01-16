@@ -34,11 +34,11 @@ static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange)
 	NSMutableCharacterSet *whiteSet = [[NSMutableCharacterSet alloc] init];
 	[whiteSet formUnionWithCharacterSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
 	//include attachment characters and non-breaking spaces. anything else?
-	unichar badChars[2] = { NSAttachmentCharacter, 0x00A0 };
+	unichar badChars[2] = {NSAttachmentCharacter, 0x00A0};
 	[whiteSet addCharactersInString:[NSString stringWithCharacters:badChars length:2]];
-	
+
 	NSScanner *scanner = [NSScanner scannerWithString:[self string]];
-	
+
 	if ([scanner scanCharactersFromSet:whiteSet intoString:NULL]) {
 		if ([scanner scanLocation] > 0) {
 			[self deleteCharactersInRange:NSMakeRange(0, [scanner scanLocation])];
@@ -52,15 +52,15 @@ static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange)
 	NSUInteger end = [self length];
 	while (loc < end) {
 		/* Run through the string in terms of attachment runs */
-		NSRange attachmentRange;	/* Attachment attribute run */
-		NSTextAttachment *attachment = [self attribute:NSAttachmentAttributeName atIndex:loc longestEffectiveRange:&attachmentRange inRange:NSMakeRange(loc, end-loc)];
-		if (attachment != nil) {	/* If there is an attachment, make sure it is valid */
+		NSRange attachmentRange;    /* Attachment attribute run */
+		NSTextAttachment *attachment = [self attribute:NSAttachmentAttributeName atIndex:loc longestEffectiveRange:&attachmentRange inRange:NSMakeRange(loc, end - loc)];
+		if (attachment != nil) {    /* If there is an attachment, make sure it is valid */
 			unichar ch = [[self string] characterAtIndex:loc];
 			if (ch == NSAttachmentCharacter) {
 				[self replaceCharactersInRange:NSMakeRange(loc, 1) withString:@""];
-				end = [self length];	/* New length */
+				end = [self length];    /* New length */
 			} else {
-				loc++;	/* Just skip over the current character... */
+				loc++;    /* Just skip over the current character... */
 			}
 		} else {
 			loc = NSMaxRange(attachmentRange);
@@ -68,9 +68,9 @@ static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange)
 	}
 }
 
-- (NSString*)trimLeadingSyntheticTitle {
+- (NSString *)trimLeadingSyntheticTitle {
 	NSUInteger bodyLoc = 0;
-	
+
 	NSString *title = [[self string] syntheticTitleAndSeparatorWithContext:NULL bodyLoc:&bodyLoc maxTitleLen:60];
 
 	if (bodyLoc > 0 && [self length] >= bodyLoc) [self deleteCharactersInRange:NSMakeRange(0, bodyLoc)];
@@ -78,7 +78,7 @@ static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange)
 	return title;
 }
 
-- (NSString*)prefixWithSourceString:(NSString*)source {
+- (NSString *)prefixWithSourceString:(NSString *)source {
 	NSString *sourceWContext = [NSString stringWithFormat:@"%@ <%@>:\n\n", NSLocalizedString(@"From", @"prefix for source-URLs inserted into imported notes; e.g., 'From <http://www.apple.com>: ...'"), source];
 	[self insertAttributedString:[[NSAttributedString alloc] initWithString:sourceWContext] atIndex:0];
 	return sourceWContext;
@@ -92,35 +92,35 @@ static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange)
 	[self addStrikethroughNearDoneTagsForRange:range];
 }
 
-- (BOOL)restyleTextToFont:(NSFont*)currentFont usingBaseFont:(NSFont*)baseFont {
-	NSRange effectiveRange = NSMakeRange(0,0);
+- (BOOL)restyleTextToFont:(NSFont *)currentFont usingBaseFont:(NSFont *)baseFont {
+	NSRange effectiveRange = NSMakeRange(0, 0);
 	NSUInteger stringLength = [self length];
 	NSInteger rangesChanged = 0;
 	NSFontManager *fontMan = [NSFontManager sharedFontManager];
 	NSDictionary *defaultBodyAttributes = [[GlobalPrefs defaultPrefs] noteBodyAttributes];
-	
+
 	NSAssert(currentFont != nil, @"restyleTextToFont needs a current font!");
-	
+
 	@try {
-			
+
 		while (NSMaxRange(effectiveRange) < stringLength) {
 			// Get the attributes for the current range
 			NSDictionary *attributes = [self attributesAtIndex:NSMaxRange(effectiveRange) effectiveRange:&effectiveRange];
-			
+
 			NSMutableDictionary *newAttributes = [defaultBodyAttributes mutableCopyWithZone:nil];
 			[newAttributes addDesiredAttributesFromDictionary:attributes];
-			
+
 			NSFont *aFont = attributes[NSFontAttributeName];
 			NSFont *newFont = currentFont;
 			BOOL needToMatchAttributes = NO;
 			NSFontTraitMask traits = 0;
-			
+
 			if (!baseFont) {
 				if (aFont) {
 					//we have a font--try to match its traits, if there are any
 					traits = [fontMan traitsOfFont:aFont];
 					if (traits & NSBoldFontMask || traits & NSItalicFontMask)
-						//do we need to check stroke width & obliqueness? the base font should only be nonexistent when we have new foreign text
+							//do we need to check stroke width & obliqueness? the base font should only be nonexistent when we have new foreign text
 						needToMatchAttributes = YES;
 				}
 			} else if (!aFont || [[aFont fontName] isEqualToString:[baseFont fontName]]) {
@@ -130,18 +130,18 @@ static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange)
 				traits = [fontMan traitsOfFont:aFont];
 				needToMatchAttributes = YES;
 			}
-			
+
 			BOOL hasFakeItalic = attributes[NSObliquenessAttributeName] != nil;
 			BOOL hasFakeBold = attributes[NSStrokeWidthAttributeName] != nil;
-			
+
 			if (needToMatchAttributes || hasFakeItalic || hasFakeBold) {
 				newFont = [fontMan convertFont:aFont toFamily:[currentFont familyName]];
-				
-				if (hasFakeItalic) newFont = [fontMan convertFont:newFont toHaveTrait:NSItalicFontMask];	
+
+				if (hasFakeItalic) newFont = [fontMan convertFont:newFont toHaveTrait:NSItalicFontMask];
 				if (hasFakeBold) newFont = [fontMan convertFont:newFont toHaveTrait:NSBoldFontMask];
-				
+
 				NSFontTraitMask newTraits = [fontMan traitsOfFont:newFont];
-				
+
 				if (!(newTraits & NSItalicFontMask) && (traits & NSItalicFontMask)) {
 					newAttributes[NSObliquenessAttributeName] = @0.20f;
 				} else if (newTraits & NSItalicFontMask) {
@@ -157,28 +157,28 @@ static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange)
 				//also make the font have the same size
 				newFont = [fontMan convertFont:newFont toSize:[currentFont pointSize]];
 			}
-			
+
 			newAttributes[NSFontAttributeName] = newFont ? newFont : currentFont;
 			[self setAttributes:newAttributes range:effectiveRange];
-			
+
 			rangesChanged++;
 		}
-	}	
+	}
 	@catch (NSException *e) {
 		NSLog(@"Error trying to re-style text (%@, %@)", [e name], [e reason]);
 	}
-		
+
 	return rangesChanged > 0;
 }
 
 - (void)addLinkAttributesForRange:(NSRange)changedRange {
-	
+
 	if (!changedRange.length)
 		return;
-	
+
 	//lazily loads Adium's BSD-licensed Auto-Hyperlinks:
 	//http://trac.adium.im/wiki/AutoHyperlinksFramework
-	
+
 	static Class AHHyperlinkScanner = Nil;
 	static Class AHMarkedHyperlink = Nil;
 	if (!AHHyperlinkScanner || !AHMarkedHyperlink) {
@@ -189,14 +189,14 @@ static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange)
 		AHHyperlinkScanner = NSClassFromString(@"AHHyperlinkScanner");
 		AHMarkedHyperlink = NSClassFromString(@"AHMarkedHyperlink");
 	}
-	
+
 	id scanner = [AHHyperlinkScanner hyperlinkScannerWithString:[[self string] substringWithRange:changedRange]];
 	id markedLink = nil;
 	while ((markedLink = [scanner nextURI])) {
 		NSURL *markedLinkURL = nil;
-		if ((markedLinkURL = [markedLink URL]) && !([markedLinkURL isFileURL] && [[markedLinkURL absoluteString] 
-																				  rangeOfString:@"/.file/" options:NSLiteralSearch].location != NSNotFound)) {
-			[self addAttribute:NSLinkAttributeName value:markedLinkURL 
+		if ((markedLinkURL = [markedLink URL]) && !([markedLinkURL isFileURL] && [[markedLinkURL absoluteString]
+				rangeOfString:@"/.file/" options:NSLiteralSearch].location != NSNotFound)) {
+			[self addAttribute:NSLinkAttributeName value:markedLinkURL
 						 range:NSMakeRange([markedLink range].location + changedRange.location, [markedLink range].length)];
 		}
 	}
@@ -206,8 +206,8 @@ static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange)
 }
 
 - (void)_addDoubleBracketedNVLinkAttributesForRange:(NSRange)changedRange {
-	//add link attributes for [[wiki-style links to other notes or search terms]] 
-	
+	//add link attributes for [[wiki-style links to other notes or search terms]]
+
 	static NSMutableCharacterSet *antiInteriorSet = nil;
 	if (!antiInteriorSet) {
 		antiInteriorSet = [NSMutableCharacterSet characterSetWithCharactersInString:@"[]"];
@@ -215,17 +215,17 @@ static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange)
 		[antiInteriorSet formUnionWithCharacterSet:[NSCharacterSet illegalCharacterSet]];
 		[antiInteriorSet formUnionWithCharacterSet:[NSCharacterSet controlCharacterSet]];
 	}
-	
+
 	NSString *string = [self string];
 	NSUInteger nextScanLoc = 0;
 	NSRange scanRange = changedRange;
-	
+
 	while (NSMaxRange(scanRange) <= NSMaxRange(changedRange)) {
-		
+
 		NSUInteger begin = [string rangeOfString:@"[[" options:NSLiteralSearch range:scanRange].location;
 		if (begin == NSNotFound) break;
 		begin += 2;
-		NSUInteger end = [string rangeOfString:@"]]" options:NSLiteralSearch 
+		NSUInteger end = [string rangeOfString:@"]]" options:NSLiteralSearch
 										 range:NSMakeRange(begin, changedRange.length - (begin - changedRange.location))].location;
 		if (end == NSNotFound) break;
 
@@ -238,7 +238,7 @@ static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange)
 			nextScanLoc = begin;
 			goto nextBlock;
 		}
-		//when encountering a newline in the midst of opposing double-brackets, 
+		//when encountering a newline in the midst of opposing double-brackets,
 		//continue scanning after the newline instead of after the end-brackets; avoid certain traps that change the behavior of multi- vs single-line scans
 		NSRange newlineRange = [string rangeOfCharacterFromSet:[NSCharacterSet newlineCharacterSet] options:NSLiteralSearch range:blockRange];
 		if (newlineRange.location != NSNotFound) {
@@ -247,34 +247,34 @@ static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange)
 		}
 
 		if (![antiInteriorSet characterIsMember:[string characterAtIndex:NSMaxRange(blockRange) - 1]] && !_StringWithRangeIsProbablyObjC(string, blockRange)) {
-			
-			[self addAttribute:NSLinkAttributeName value:
-			 [NSURL URLWithString:[@"nv://find/" stringByAppendingString:[[string substringWithRange:blockRange] stringWithPercentEscapes]]] range:blockRange];
+
+			[self                                                                                                                            addAttribute:NSLinkAttributeName value:
+					[NSURL URLWithString:[@"nv://find/" stringByAppendingString:[[string substringWithRange:blockRange] stringWithPercentEscapes]]] range:blockRange];
 		}
 		//continue the scan starting at the end of the current block
 		nextScanLoc = NSMaxRange(blockRange) + 2;
 
-	nextBlock:
-		scanRange = NSMakeRange(nextScanLoc, changedRange.length - (nextScanLoc - changedRange.location));
+		nextBlock:
+				scanRange = NSMakeRange(nextScanLoc, changedRange.length - (nextScanLoc - changedRange.location));
 	}
 }
 
 static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange) {
 	//assuming this range is bookended with matching double-brackets,
 	//does the block contain unbalanced inner square brackets?
-	
+
 	NSUInteger rightBracketLoc = [string rangeOfString:@"]" options:NSLiteralSearch range:blockRange].location;
-	NSUInteger leftBracketLoc = [string rangeOfString:@"[" options:NSLiteralSearch range:blockRange].location; 
-	
+	NSUInteger leftBracketLoc = [string rangeOfString:@"[" options:NSLiteralSearch range:blockRange].location;
+
 	//no brackets of either variety
 	if (rightBracketLoc == NSNotFound && leftBracketLoc == NSNotFound) return NO;
-	
+
 	//has balanced inner brackets; right bracket exists and is actually to the right of the left bracket
 	if (rightBracketLoc != NSNotFound && rightBracketLoc > leftBracketLoc) return NO;
-	
+
 	//no right bracket or no left bracket
 	return YES;
-	
+
 	//this still doesn't catch something like "[[content prefixWithSourceString:[[getter url] absoluteString]] length];"
 	//an improvement would be to use rangeOfCharacterFromSet:@"[]" to count all the left and right brackets from left to right;
 	//a leftbracket would increment a count, a right bracket would decrement it; at the end of blockRange, the count should be 0
@@ -287,37 +287,37 @@ static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange)
 	//if the line doesn't end in " @done", and it has NVHiddenDoneTagAttributeName + NSStrikethroughStyleAttributeName,
 	//  then remove both attributes
 	//all other NSStrikethroughStyleAttributeName by itself will be ignored
-	
+
 	if (![[GlobalPrefs defaultPrefs] autoFormatsDoneTag])
 		return;
-		
+
 	NSString *doneTag = @" @done";
 	NSCharacterSet *newlineSet = [NSCharacterSet newlineCharacterSet];
-	
+
 	NSRange lineEndRange, scanRange = changedRange;
-	
+
 	@try {
 		do {
 			if ((lineEndRange = [[self string] rangeOfCharacterFromSet:newlineSet options:NSLiteralSearch range:scanRange]).location == NSNotFound) {
 				//no newline; this is the end of the range, so set line-end to an imaginary position there
 				lineEndRange = NSMakeRange(NSMaxRange(scanRange), 1);
 			}
-			
+
 			NSRange thisLineRange = NSMakeRange(scanRange.location, lineEndRange.location - scanRange.location);
-			
+
 			//this detection is improved. Handles @done mid line, allowing @done(date) or @done - date
-            NSRange doneTagFound = [[[self string] substringWithRange:thisLineRange] rangeOfString:doneTag];
+			NSRange doneTagFound = [[[self string] substringWithRange:thisLineRange] rangeOfString:doneTag];
 			if (doneTagFound.location != NSNotFound) {
-                
+
 				//add strikethrough and NVHiddenDoneTagAttributeName attributes, because this line contains @done
-				[self addAttributes:@{NSStrikethroughStyleAttributeName: @(NSUnderlineStyleSingle), NVHiddenDoneTagAttributeName: [NSNull null]}
+				[self addAttributes:@{NSStrikethroughStyleAttributeName : @(NSUnderlineStyleSingle), NVHiddenDoneTagAttributeName : [NSNull null]}
 							  range:NSMakeRange(thisLineRange.location, doneTagFound.location)];
-                
+
 				//and the done tag itself should never be struck-through; remove that just in case typing attributes had carried over from elsewhere
-				[self removeAttribute:NSStrikethroughStyleAttributeName range:NSMakeRange(thisLineRange.location + doneTagFound.location, NSMaxRange(thisLineRange) - (thisLineRange.location + doneTagFound.location)) ];
-				
+				[self removeAttribute:NSStrikethroughStyleAttributeName range:NSMakeRange(thisLineRange.location + doneTagFound.location, NSMaxRange(thisLineRange) - (thisLineRange.location + doneTagFound.location))];
+
 			} else if ([self attribute:NVHiddenDoneTagAttributeName existsInRange:thisLineRange]) {
-				
+
 				//assume that this line was previously struck-through by NV due to the presence of a @done tag; remove those attrs now
 				[self removeAttribute:NVHiddenDoneTagAttributeName range:thisLineRange];
 				[self removeAttribute:NSStrikethroughStyleAttributeName range:thisLineRange];
@@ -384,9 +384,9 @@ static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange)
 @implementation NSAttributedString (AttributedPlainText)
 
 
-- (BOOL)attribute:(NSString*)anAttribute existsInRange:(NSRange)aRange {
+- (BOOL)attribute:(NSString *)anAttribute existsInRange:(NSRange)aRange {
 	NSRange effectiveRange = NSMakeRange(aRange.location, 0);
-	
+
 	while (NSMaxRange(effectiveRange) < NSMaxRange(aRange)) {
 		if ([self attribute:anAttribute atIndex:NSMaxRange(effectiveRange) effectiveRange:&effectiveRange]) {
 			return YES;
@@ -396,7 +396,7 @@ static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange)
 	return NO;
 }
 
-- (NSArray*)allLinks {
+- (NSArray *)allLinks {
 	NSRange range;
 	NSUInteger startIndex = 0;
 	NSMutableArray *array = [NSMutableArray arrayWithCapacity:1];
@@ -405,9 +405,9 @@ static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange)
 		if ([alink isKindOfClass:[NSURL class]]) {
 			[array addObject:alink];
 		}
-		startIndex = range.location+range.length;
+		startIndex = range.location + range.length;
 	}
-	
+
 	return array;
 }
 
@@ -452,7 +452,7 @@ static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange)
 }
 #endif
 
-+ (NSAttributedString*)timeDelayStringWithNumberOfSeconds:(double)seconds {
++ (NSAttributedString *)timeDelayStringWithNumberOfSeconds:(double)seconds {
 	unichar ch = 0x2245;
 	static NSAttributedString *approxCharStr = nil;
 	if (!approxCharStr) {
@@ -460,17 +460,16 @@ static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange)
 		[centerStyle setAlignment:NSCenterTextAlignment];
 
 		approxCharStr = [[NSAttributedString alloc] initWithString:[NSString stringWithCharacters:&ch length:1] attributes:
-						 @{NSFontAttributeName: [NSFont fontWithName:@"Symbol" size:16.0f], NSParagraphStyleAttributeName: centerStyle}];
+				@{NSFontAttributeName : [NSFont fontWithName:@"Symbol" size:16.0f], NSParagraphStyleAttributeName : centerStyle}];
 	}
 	NSMutableAttributedString *mutableStr = [approxCharStr mutableCopy];
-	
-	NSString *timeStr = seconds < 1.0 ? [NSString stringWithFormat:@" %0.0f ms", seconds*1000] : [NSString stringWithFormat:@" %0.2f secs", seconds];
-	
+
+	NSString *timeStr = seconds < 1.0 ? [NSString stringWithFormat:@" %0.0f ms", seconds * 1000] : [NSString stringWithFormat:@" %0.2f secs", seconds];
+
 	[mutableStr appendAttributedString:[[NSAttributedString alloc] initWithString:timeStr attributes:
-										 @{NSFontAttributeName: [NSFont systemFontOfSize:13.0f]}]];
+			@{NSFontAttributeName : [NSFont systemFontOfSize:13.0f]}]];
 	return mutableStr;
 }
-
 
 
 @end

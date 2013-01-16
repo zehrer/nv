@@ -11,10 +11,9 @@
 @implementation TagEditingManager
 
 
-- (id)init
-{
+- (id)init {
 	if ((self = [super init])) {
-		if (![NSBundle loadNibNamed:@"TagEditingManager" owner:self])  {
+		if (![NSBundle loadNibNamed:@"TagEditingManager" owner:self]) {
 			NSLog(@"Failed to load TagEditer.nib");
 		}
 	}
@@ -27,7 +26,7 @@
 //	[tagField setDelegate:self];
 }
 
-- (BOOL)control:(NSControl *)control textView:(NSTextView *)textView doCommandBySelector:(SEL)command{
+- (BOOL)control:(NSControl *)control textView:(NSTextView *)textView doCommandBySelector:(SEL)command {
 	if (command == @selector(cancelOperation:)) {
 		[tagPanel orderOut:self];
 		NSLog(@"tagman cancaelr");
@@ -36,32 +35,32 @@
 	return NO;
 }
 
-- (NSString *)newMultinoteLabels{
+- (NSString *)newMultinoteLabels {
 	return [NSString stringWithString:[tagField stringValue]];
 }
 
-- (void)setTF:(NSString *)inString{
-	[tagField setStringValue:inString];	
+- (void)setTF:(NSString *)inString {
+	[tagField setStringValue:inString];
 }
 
-- (void)popTP:(id)sender{
+- (void)popTP:(id)sender {
 	[tagPanel center];
 	[tagPanel makeKeyAndOrderFront:sender];
-    isHappening = YES;
+	isHappening = YES;
 
 }
 
-- (void)setDel:(id)sender{
+- (void)setDel:(id)sender {
 	[tagPanel setDelegate:sender];
 	[tagField setDelegate:sender];
-   // [[tagPanel fieldEditor:YES forObject:tagField]setDelegate:sender];
+	// [[tagPanel fieldEditor:YES forObject:tagField]setDelegate:sender];
 }
 
-- (void)closeTP:(id)sender{
-    if (isHappening &&([tagPanel isVisible])) {
-        [tagPanel orderOut:sender];
-    }    
-    isHappening = NO;
+- (void)closeTP:(id)sender {
+	if (isHappening && ([tagPanel isVisible])) {
+		[tagPanel orderOut:sender];
+	}
+	isHappening = NO;
 	[tagField setStringValue:@""];
 }
 
@@ -69,12 +68,12 @@
 	return tagPanel;
 }
 
-- (NSTextField *)tagField{
-    return tagField;
+- (NSTextField *)tagField {
+	return tagField;
 }
 
-- (BOOL)isMultitagging{
-    return isHappening;
+- (BOOL)isMultitagging {
+	return isHappening;
 }
 
 

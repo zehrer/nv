@@ -18,15 +18,13 @@
 @implementation FullscreenWindow
 
 
-- (BOOL)makeFirstResponder:(NSResponder *)aResponder
-{
+- (BOOL)makeFirstResponder:(NSResponder *)aResponder {
 	BOOL result = [super makeFirstResponder:aResponder];
 	return result;
 }
 
 
-- (BOOL)canBecomeKeyWindow
-{
+- (BOOL)canBecomeKeyWindow {
 	return YES;
 }
 

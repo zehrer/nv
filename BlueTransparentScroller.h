@@ -11,5 +11,5 @@
 @interface BlueTransparentScroller : BTTransparentScroller {
 
 }
--(void)setBackgroundColor:(NSColor*)bgcolor;
+- (void)setBackgroundColor:(NSColor *)bgcolor;
 @end

@@ -11,7 +11,6 @@
 
 
 #import "NoteAttributeColumn.h"
-#import "NotesTableView.h"
 
 /*
 @implementation NoteTableHeaderCell
@@ -29,29 +28,29 @@
 		absoluteMinimumWidth = [anObject sizeWithAttributes:[NoteAttributeColumn standardDictionary]].width + 5;
 		[self setMinWidth:absoluteMinimumWidth];
 	}
-	
+
 	return self;
 }
 
-+ (NSDictionary*)standardDictionary {
++ (NSDictionary *)standardDictionary {
 	static NSDictionary *standardDictionary = nil;
 	if (!standardDictionary)
-		standardDictionary = @{NSFontAttributeName: [NSFont systemFontOfSize:[NSFont smallSystemFontSize]]};	
+		standardDictionary = @{NSFontAttributeName : [NSFont systemFontOfSize:[NSFont smallSystemFontSize]]};
 
 	return standardDictionary;
 }
 
-- (void)sizeToFit{
-    NSLog(@"tablecolumn size to fit");
-    [super sizeToFit];
+- (void)sizeToFit {
+	NSLog(@"tablecolumn size to fit");
+	[super sizeToFit];
 }
 
 - (void)updateWidthForHighlight {
 	[self setMinWidth:absoluteMinimumWidth + ([[self tableView] highlightedTableColumn] == self ? 10 : 0)];
-  
+
 }
 
-- (void)setResizingMaskNumber:(NSNumber*)resizingMaskNumber {
+- (void)setResizingMaskNumber:(NSNumber *)resizingMaskNumber {
 	[self setResizingMask:[resizingMaskNumber unsignedIntValue]];
 }
 

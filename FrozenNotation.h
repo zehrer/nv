@@ -15,8 +15,6 @@
    - Neither the name of Notational Velocity nor the names of its contributors may be used to endorse 
      or promote products derived from this software without specific prior written permission. */
 
-#import <Cocoa/Cocoa.h>
-
 @class NotationPrefs;
 
 @interface FrozenNotation : NSObject <NSCoding> {
@@ -25,12 +23,15 @@
 	NSMutableData *notesData;
 	NotationPrefs *prefs;
 }
-- (id)initWithNotes:(NSMutableArray*)notes deletedNotes:(NSMutableSet*)antiNotes prefs:(NotationPrefs*)prefs;
+- (id)initWithNotes:(NSMutableArray *)notes deletedNotes:(NSMutableSet *)antiNotes prefs:(NotationPrefs *)prefs;
 
-+ (NSData*)frozenDataWithExistingNotes:(NSMutableArray*)notes deletedNotes:(NSMutableSet*)antiNotes prefs:(NotationPrefs*)prefs;
-- (NSMutableArray*)unpackedNotesWithPrefs:(NotationPrefs*)somePrefs returningError:(OSStatus*)err;
-- (NSMutableArray*)unpackedNotesReturningError:(OSStatus*)err;
-- (NSMutableSet*)deletedNotes; //these won't need to be encrypted
-- (NotationPrefs*)notationPrefs;
++ (NSData *)frozenDataWithExistingNotes:(NSMutableArray *)notes deletedNotes:(NSMutableSet *)antiNotes prefs:(NotationPrefs *)prefs;
+
+- (NSMutableArray *)unpackedNotesWithPrefs:(NotationPrefs *)somePrefs returningError:(OSStatus *)err;
+
+- (NSMutableArray *)unpackedNotesReturningError:(OSStatus *)err;
+
+- (NSMutableSet *)deletedNotes; //these won't need to be encrypted
+- (NotationPrefs *)notationPrefs;
 
 @end

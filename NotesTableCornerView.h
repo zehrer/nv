@@ -14,6 +14,7 @@
 }
 
 + (void)setBackColor:(NSColor *)inColor;
+
 + (void)setBordColor:(NSColor *)inColor;
 
 @end

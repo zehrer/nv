@@ -23,8 +23,11 @@ typedef int CGSWindow;
 typedef int32_t CGError;
 
 extern CGSConnection _CGSDefaultConnection(void);
+
 extern CGError CGSGetWorkspace(const CGSConnection cid, CGSWorkspace *workspace);
+
 extern CGError CGSGetWindowWorkspace(const CGSConnection cid, const CGSWindow wid, CGSWorkspace *workspace);
+
 extern CGError CGSSetWorkspace(const CGSConnection cid, CGSWorkspace workspace);
 
 typedef struct _SpaceSwitchingContext {
@@ -34,5 +37,6 @@ typedef struct _SpaceSwitchingContext {
 } SpaceSwitchingContext;
 
 Boolean CurrentContextForWindowNumber(NSInteger windowNum, SpaceSwitchingContext *ctx);
+
 Boolean CompareContextsAndSwitch(SpaceSwitchingContext *ctxBefore, SpaceSwitchingContext *ctxAfter);
 

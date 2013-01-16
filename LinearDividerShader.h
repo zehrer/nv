@@ -10,8 +10,6 @@
      or promote products derived from this software without specific prior written permission. */
 
 
-#import <Cocoa/Cocoa.h>
-
 typedef struct {
 
 	union {
@@ -23,13 +21,13 @@ typedef struct {
 		};
 		CGFloat channels[4];
 	} firstColor, secondColor;
-	
+
 } ColorSet;
 
 NSRect centeredRectInRect(NSRect rect, NSSize size);
 
-@interface LinearDividerShader : NSObject  {
-	CGColorSpaceRef	colorSpaceRef;
+@interface LinearDividerShader : NSObject {
+	CGColorSpaceRef colorSpaceRef;
 	CGFunctionRef axialShadingFunction;
 	NSColor *borderCol;
 	NSColor *backCol;
@@ -37,10 +35,14 @@ NSRect centeredRectInRect(NSRect rect, NSSize size);
 	NSImage *dimpleImage;
 }
 
-- (id)initWithStartColor:(NSColor*)start endColor:(NSColor*)end;
+- (id)initWithStartColor:(NSColor *)start endColor:(NSColor *)end;
+
 - (id)initWithBaseColors:(id)sender;
+
 - (void)updateColors:(NSColor *)startColor;
+
 - (void)drawDividerInRect:(NSRect)aRect withDimpleRect:(NSRect)dimpleRect blendVertically:(BOOL)v;
+
 - (void)setBackColor:(NSColor *)inColor;
 
 @end
@@ -48,6 +50,7 @@ NSRect centeredRectInRect(NSRect rect, NSSize size);
 @interface NSImage (CenteredDrawing)
 
 - (void)drawCenteredInRect:(NSRect)aRect;
+
 - (void)drawCenteredInRect:(NSRect)aRect fraction:(float)aFraction;
 
 @end

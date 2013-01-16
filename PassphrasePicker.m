@@ -17,76 +17,77 @@
 @implementation PassphrasePicker
 
 
-- (id)initWithNotationPrefs:(NotationPrefs*)prefs {
-	
+- (id)initWithNotationPrefs:(NotationPrefs *)prefs {
+
 	if ((self = [super init])) {
 		notationPrefs = prefs;
-		
-		
+
+
 	}
 	return self;
 }
+
 - (void)dealloc {
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
-	
+
 }
 
 - (void)awakeFromNib {
-	
+
 	NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
 	[center addObserver:self selector:@selector(textDidChange:)
 				   name:NSControlTextDidChangeNotification object:newPasswordField];
 	[center addObserver:self selector:@selector(textDidChange:)
 				   name:NSControlTextDidChangeNotification object:verifyNewPasswordField];
-	
+
 }
 
 - (IBAction)discloseAdvancedSettings:(id)sender {
 	BOOL disclosed = [disclosureButton state];
 	int heightDifference = disclosed ? 118 : -118;
-	
+
 	if (disclosed) {
-		[self performSelector:@selector(setAdvancedViewHidden:) 
+		[self performSelector:@selector(setAdvancedViewHidden:)
 				   withObject:@NO afterDelay:0.0];
 	} else {
 		[advancedView setHidden:YES];
 	}
-	
+
 	NSPoint origin = [window frame].origin;
-	NSRect newFrame = NSMakeRect(origin.x, origin.y - heightDifference, [window frame].size.width, 
-								 [window frame].size.height + heightDifference);
+	NSRect newFrame = NSMakeRect(origin.x, origin.y - heightDifference, [window frame].size.width,
+			[window frame].size.height + heightDifference);
 	[window setFrame:newFrame display:YES animate:YES];
 }
 
-- (void)setAdvancedViewHidden:(NSNumber*)value {
+- (void)setAdvancedViewHidden:(NSNumber *)value {
 	[advancedView setHidden:[value boolValue]];
 }
 
-- (void)showAroundWindow:(NSWindow*)mainWindow resultDelegate:(id <PassphrasePickerDelegate>)aDelegate {
+- (void)showAroundWindow:(NSWindow *)mainWindow resultDelegate:(id <PassphrasePickerDelegate>)aDelegate {
 	if (!newPassphraseWindow) {
-		if (![NSBundle loadNibNamed:@"PassphrasePicker" owner:self])  {
+		if (![NSBundle loadNibNamed:@"PassphrasePicker" owner:self]) {
 			NSLog(@"Failed to load PassphrasePicker.nib");
 			NSBeep();
 			return;
 		}
 	}
-	
+
 	self.delegate = aDelegate;
-	
+
 	if (!keyDerivation) {
 		keyDerivation = [[KeyDerivationManager alloc] initWithNotationPrefs:notationPrefs];
 		[advancedView addSubview:[keyDerivation view]];
 	}
-	
+
 	[newPasswordField setStringValue:@""];
 	[verifyNewPasswordField setStringValue:@""];
-	
+
 	[rememberNewButton setState:[notationPrefs storesPasswordInKeychain]];
 	[newPasswordField selectText:nil];
-	
+
 	[okNewButton setEnabled:NO];
 
-	[NSApp rbl_beginSheet: newPassphraseWindow modalForWindow: mainWindow completionHandler: ^(NSInteger returnCode) {
+	[NSApp rbl_beginSheet:newPassphraseWindow modalForWindow:mainWindow completionHandler:^(NSInteger returnCode) {
 		[newPasswordField setStringValue:@""];
 		[verifyNewPasswordField setStringValue:@""];
 
@@ -103,19 +104,19 @@
 
 - (IBAction)okNewPassword:(id)sender {
 	NSString *pass = [newPasswordField stringValue];
-	
+
 	if ([pass isEqualToString:[verifyNewPasswordField stringValue]]) {
-		
-		[notationPrefs setPassphraseData:[pass dataUsingEncoding:NSUTF8StringEncoding] 
-							  inKeychain:[rememberNewButton state] 
+
+		[notationPrefs setPassphraseData:[pass dataUsingEncoding:NSUTF8StringEncoding]
+							  inKeychain:[rememberNewButton state]
 						  withIterations:[keyDerivation hashIterationCount]];
-		
+
 		[NSApp endSheet:newPassphraseWindow returnCode:1];
 		[newPassphraseWindow close];
-		
+
 	} else {
-		NSRunAlertPanel(NSLocalizedString(@"Your entered passphrase does not match your verify passphrase.",nil), 
-						NSLocalizedString(@"Please try again.",nil), NSLocalizedString(@"OK",nil), nil, nil);
+		NSRunAlertPanel(NSLocalizedString(@"Your entered passphrase does not match your verify passphrase.", nil),
+				NSLocalizedString(@"Please try again.", nil), NSLocalizedString(@"OK", nil), nil, nil);
 		[verifyNewPasswordField setStringValue:@""];
 		[verifyNewPasswordField performSelector:@selector(selectText:) withObject:nil afterDelay:0.0];
 	}

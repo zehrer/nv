@@ -10,6 +10,7 @@
 #define SUAPPCAST_H
 
 @class SUAppcastItem;
+
 @interface SUAppcast : NSObject {
 	NSArray *items;
 	NSString *userAgentString;
@@ -18,7 +19,9 @@
 }
 
 - (void)fetchAppcastFromURL:(NSURL *)url;
+
 - (void)setDelegate:delegate;
+
 - (void)setUserAgentString:(NSString *)userAgentString;
 
 - (NSArray *)items;
@@ -27,6 +30,7 @@
 
 @interface NSObject (SUAppcastDelegate)
 - (void)appcastDidFinishLoading:(SUAppcast *)appcast;
+
 - (void)appcast:(SUAppcast *)appcast failedToLoadWithError:(NSError *)error;
 @end
 

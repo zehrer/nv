@@ -19,7 +19,7 @@
 
 @protocol SyncResponseFetcherDelegate <NSObject>
 
-- (void)syncResponseFetcher:(SyncResponseFetcher*)fetcher receivedData:(NSData*)data returningError:(NSString*)errString;
+- (void)syncResponseFetcher:(SyncResponseFetcher *)fetcher receivedData:(NSData *)data returningError:(NSString *)errString;
 
 @end
 
@@ -33,31 +33,46 @@
 	NSURL *requestURL;
 	NSDictionary *headers;
 	id representedObject;
-	
+
 	NSString *lastErrorMessage;
 	NSInteger lastStatusCode;
-	
+
 	NSInvocation *successInvocation;
 	BOOL isRunning, didCancel;
 }
 
-- (id)initWithURL:(NSURL*)aURL bodyStringAsUTF8B64:(NSString*)stringToEncode delegate:(id <SyncResponseFetcherDelegate>)aDelegate;
-- (id)initWithURL:(NSURL*)aURL POSTData:(NSData*)POSTData delegate:(id <SyncResponseFetcherDelegate>)aDelegate;
-- (id)initWithURL:(NSURL*)aURL POSTData:(NSData*)POSTData contentType:(NSString*)contentType delegate:(id <SyncResponseFetcherDelegate>)aDelegate;
+- (id)initWithURL:(NSURL *)aURL bodyStringAsUTF8B64:(NSString *)stringToEncode delegate:(id <SyncResponseFetcherDelegate>)aDelegate;
+
+- (id)initWithURL:(NSURL *)aURL POSTData:(NSData *)POSTData delegate:(id <SyncResponseFetcherDelegate>)aDelegate;
+
+- (id)initWithURL:(NSURL *)aURL POSTData:(NSData *)POSTData contentType:(NSString *)contentType delegate:(id <SyncResponseFetcherDelegate>)aDelegate;
+
 - (void)setRepresentedObject:(id)anObject;
+
 - (id)representedObject;
-- (NSInvocation*)successInvocation;
-- (NSURL*)requestURL;
-- (NSDictionary*)headers;
+
+- (NSInvocation *)successInvocation;
+
+- (NSURL *)requestURL;
+
+- (NSDictionary *)headers;
+
 - (NSInteger)statusCode;
-- (NSString*)errorMessage;
-- (void)_fetchDidFinishWithError:(NSString*)anErrString;
+
+- (NSString *)errorMessage;
+
+- (void)_fetchDidFinishWithError:(NSString *)anErrString;
+
 - (BOOL)start;
-- (BOOL)startWithSuccessInvocation:(NSInvocation*)anInvocation;
+
+- (BOOL)startWithSuccessInvocation:(NSInvocation *)anInvocation;
+
 - (BOOL)isRunning;
+
 - (BOOL)didCancel;
+
 - (void)cancel;
 
-@property (nonatomic, weak, readonly) id <SyncResponseFetcherDelegate> delegate;
+@property(nonatomic, weak, readonly) id <SyncResponseFetcherDelegate> delegate;
 
 @end

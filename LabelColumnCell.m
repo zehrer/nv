@@ -26,7 +26,7 @@
 	if ((self = [super init])) {
 		[self setEditable:YES];
 
-		[self setFocusRingType:	NSFocusRingTypeExterior];
+		[self setFocusRingType:NSFocusRingTypeExterior];
 	}
 	return self;
 }
@@ -36,37 +36,37 @@
 }
 
 
-- (NoteObject*)noteObject {
+- (NoteObject *)noteObject {
 	return noteObject;
 }
 
-- (void)setNoteObject:(NoteObject*)obj {
+- (void)setNoteObject:(NoteObject *)obj {
 	noteObject = obj;
 }
 
-- (void)drawWithFrame:(NSRect)cellFrame inView:(NSView *)controlView {	
-	NotesTableView *tv = (NotesTableView *)controlView;
-	
+- (void)drawWithFrame:(NSRect)cellFrame inView:(NSView *)controlView {
+	NotesTableView *tv = (NotesTableView *) controlView;
+
 	NSInteger col = [tv editedColumn];
 	BOOL isEditing = [self isHighlighted] && [tv currentEditor] &&
-	(col > -1 && [[[tv tableColumns][col] identifier] isEqualToString:NoteLabelsColumnString]);
-	
+			(col > -1 && [[[tv tableColumns][col] identifier] isEqualToString:NoteLabelsColumnString]);
+
 	if (isEditing) {
-		[super drawWithFrame:cellFrame inView:controlView];	
+		[super drawWithFrame:cellFrame inView:controlView];
 	}
-	
+
 	if (!isEditing && noteObject.labels.length) {
 
 		[[NSGraphicsContext currentContext] saveGraphicsState];
 		NSRectClip(cellFrame);
 		NSRect blocksRect = cellFrame;
-		blocksRect.origin = NSMakePoint(NSMinX(cellFrame), NSMaxY(cellFrame) - ceilf(((cellFrame.size.height + 1.0) - 
-																					  ([[GlobalPrefs defaultPrefs] tableFontSize] * 1.3 + 1.5))/2.0));
+		blocksRect.origin = NSMakePoint(NSMinX(cellFrame), NSMaxY(cellFrame) - ceilf(((cellFrame.size.height + 1.0) -
+				([[GlobalPrefs defaultPrefs] tableFontSize] * 1.3 + 1.5)) / 2.0));
 		[noteObject drawLabelBlocksInRect:blocksRect rightAlign:NO highlighted:([self isHighlighted] && [tv isActiveStyle])];
-		
+
 		[[NSGraphicsContext currentContext] restoreGraphicsState];
 	}
-	
+
 }
 
 @end

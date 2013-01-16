@@ -11,12 +11,8 @@
    - Neither the name of Notational Velocity nor the names of its contributors may be used to endorse 
      or promote products derived from this software without specific prior written permission. */
 
-
-#import <Cocoa/Cocoa.h>
-
-@interface EmptyView : NSView
-{
-    IBOutlet NSTextField *labelText;
+@interface EmptyView : NSView {
+	IBOutlet NSTextField *labelText;
 	NSInteger lastNotesNumber;
 	NSColor *bgCol;
 }

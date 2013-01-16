@@ -23,7 +23,7 @@
 
 @implementation FrozenNotation
 
-- (id)initWithCoder:(NSCoder*)decoder {
+- (id)initWithCoder:(NSCoder *)decoder {
 	if ([decoder containsValueForKey:VAR_STR(prefs)]) {
 		prefs = [decoder decodeObjectForKey:VAR_STR(prefs)];
 		notesData = [decoder decodeObjectForKey:VAR_STR(notesData)];
@@ -32,8 +32,8 @@
 		NSLog(@"FrozenNotation: decoding legacy %@", decoder);
 		prefs = [decoder decodeObject];
 		notesData = [decoder decodeObject];
-		(void)[decoder decodeObject];
-	}	
+		(void) [decoder decodeObject];
+	}
 	return self;
 }
 
@@ -49,61 +49,61 @@
 	}
 }
 
-- (id)initWithNotes:(NSMutableArray*)notes deletedNotes:(NSMutableSet*)antiNotes prefs:(NotationPrefs*)somePrefs {
-	
+- (id)initWithNotes:(NSMutableArray *)notes deletedNotes:(NSMutableSet *)antiNotes prefs:(NotationPrefs *)somePrefs {
+
 	if ((self = [super init])) {
 
 		notesData = [[NSMutableData alloc] init];
 		NSKeyedArchiver *archiver = [[NSKeyedArchiver alloc] initForWritingWithMutableData:notesData];
 		[archiver encodeObject:notes forKey:@"notes"];
-        [archiver finishEncoding];
-		
+		[archiver finishEncoding];
+
 		prefs = somePrefs;
-		deletedNoteSet = antiNotes;		
-		
+		deletedNoteSet = antiNotes;
+
 		NSMutableData *oldNotesData = notesData;
 		notesData = [oldNotesData compressedData];
-		
+
 		//ostensibly to create more entropy in the first blocks, relying on CBC dependency to crack
 		//[notesData reverseBytes];
-		
+
 		if ([somePrefs doesEncryption]) {
 			//compress?, reverse?, encrypt notesData based on notationprefs
 			//we also want to have the salt reset here, but that requires knowing the original password
-			
+
 			if (![prefs encryptDataInNewSession:notesData]) {
 				NSLog(@"Couldn't encrypt data!");
 				return nil;
 			}
 		}
-		
+
 		if (![notesData length]) {
 			NSLog(@"%@: empty notesData; returning nil", NSStringFromSelector(_cmd));
 			return nil;
 		}
 	}
-	
+
 	return self;
 }
 
 
-+ (NSData*)frozenDataWithExistingNotes:(NSMutableArray*)notes 
-						  deletedNotes:(NSMutableSet*)antiNotes 
-								 prefs:(NotationPrefs*)prefs {
++ (NSData *)frozenDataWithExistingNotes:(NSMutableArray *)notes
+						   deletedNotes:(NSMutableSet *)antiNotes
+								  prefs:(NotationPrefs *)prefs {
 	FrozenNotation *frozenNotation = [[FrozenNotation alloc] initWithNotes:notes deletedNotes:antiNotes prefs:prefs];
 
 	if (!frozenNotation)
 		return nil;
-	
+
 	return [NSKeyedArchiver archivedDataWithRootObject:frozenNotation];
 }
 
-- (NSMutableArray*)unpackedNotesWithPrefs:(NotationPrefs*)somePrefs returningError:(OSStatus*)err {
-	
+- (NSMutableArray *)unpackedNotesWithPrefs:(NotationPrefs *)somePrefs returningError:(OSStatus *)err {
+
 	//decrypt notesData if necessary, then unarchive
-	
+
 	*err = noErr;
-	
+
 	@try {
 		if ([somePrefs doesEncryption]) {
 			if (![somePrefs decryptDataWithCurrentSettings:notesData]) {
@@ -112,10 +112,10 @@
 				return nil;
 			}
 		}
-		
+
 		NSMutableData *oldNotesData = notesData;
 		notesData = [oldNotesData uncompressedData];
-		
+
 		if (!notesData) {
 			*err = kCompressionErr;
 			NSLog(@"Error decompressing data");
@@ -123,36 +123,36 @@
 		}
 		NSKeyedUnarchiver *unarchiver = [[NSKeyedUnarchiver alloc] initForReadingWithData:notesData];
 		allNotes = [unarchiver decodeObjectForKey:@"notes"];
-		
+
 	} @catch (NSException *e) {
 		*err = kCoderErr;
 		NSLog(@"(VERIFY) Error unarchiving notes from data (%@, %@)", [e name], [e reason]);
 		return nil;
 	}
-	
+
 	return allNotes;
 }
 
 
-- (NSMutableArray*)unpackedNotesReturningError:(OSStatus*)err {
-	
+- (NSMutableArray *)unpackedNotesReturningError:(OSStatus *)err {
+
 	//decrypt notesData, grabbing password from from keychain or user as necessary, then unarchive
-	
+
 	*err = noErr;
-	
+
 	if (!allNotes) {
-		
+
 		@try {
 			if ([prefs doesEncryption]) {
 				BOOL keychainGood = YES;
 				if (![prefs storesPasswordInKeychain] || !(keychainGood = [prefs canLoadPassphraseData:[prefs passwordDataFromKeychain]])) {
-					
+
 					if (!keychainGood) {
 						//reset keychain identifier in case database file was duplicated and password was changed, and this is the old DB
 						[prefs forgetKeychainIdentifier];
 					}
 					NSInteger result = [[PassphraseRetriever retrieverWithNotationPrefs:prefs] loadedUserPassphraseData];
-					
+
 					if (!result) {
 						//must have clicked cancel or equivalent
 						*err = kPassCanceledErr;
@@ -163,42 +163,42 @@
 				if (![prefs decryptDataWithCurrentSettings:notesData]) {
 					NSLog(@"Error decrypting data!");
 					*err = kNoAuthErr;
-					return(nil);
+					return (nil);
 				}
 			}
-			
+
 			NSMutableData *oldNotesData = notesData;
 			notesData = [oldNotesData uncompressedData];
-			
+
 			if (!notesData) {
 				*err = kCompressionErr;
 				NSLog(@"Error decompressing data");
-				return(nil);
+				return (nil);
 			}
-            BOOL keyedArchiveFailed = NO;
-            @try {
-                allNotes = [[[NSKeyedUnarchiver alloc] initForReadingWithData:notesData] decodeObjectForKey:@"notes"];
-            } @catch (NSException *e) {
-                keyedArchiveFailed = YES;
-            }
-            
-            if (keyedArchiveFailed)
-                allNotes = [NSUnarchiver unarchiveObjectWithData:notesData];
+			BOOL keyedArchiveFailed = NO;
+			@try {
+				allNotes = [[[NSKeyedUnarchiver alloc] initForReadingWithData:notesData] decodeObjectForKey:@"notes"];
+			} @catch (NSException *e) {
+				keyedArchiveFailed = YES;
+			}
+
+			if (keyedArchiveFailed)
+				allNotes = [NSUnarchiver unarchiveObjectWithData:notesData];
 		} @catch (NSException *e) {
 			*err = kCoderErr;
 			NSLog(@"Error unarchiving notes from data (%@, %@)", [e name], [e reason]);
-			return(nil);
+			return (nil);
 		}
 	}
-	
+
 	return allNotes;
 }
 
-- (NSMutableSet*)deletedNotes {
+- (NSMutableSet *)deletedNotes {
 	return deletedNoteSet;
 }
 
-- (NotationPrefs*)notationPrefs {
+- (NotationPrefs *)notationPrefs {
 	return prefs;
 }
 

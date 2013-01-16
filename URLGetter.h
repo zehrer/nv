@@ -19,38 +19,42 @@
 
 @end
 
-@interface URLGetter : NSObject <NSURLDownloadDelegate>
-{
-    IBOutlet NSButton *cancelButton;
-    IBOutlet NSTextField *objectURLStatus;
-    IBOutlet NSProgressIndicator *progress;
-    IBOutlet NSTextField *progressStatus;
-    IBOutlet NSPanel *window;
-	
+@interface URLGetter : NSObject <NSURLDownloadDelegate> {
+	IBOutlet NSButton *cancelButton;
+	IBOutlet NSTextField *objectURLStatus;
+	IBOutlet NSProgressIndicator *progress;
+	IBOutlet NSTextField *progressStatus;
+	IBOutlet NSPanel *window;
+
 	NSURL *url;
 	NSURLDownload *downloader;
 	NSString *downloadPath, *tempDirectory;
-	
+
 	id userData;
-	
+
 	BOOL isIndicating, isImporting;
-	
+
 	long long totalReceivedByteCount, maxExpectedByteCount;
 }
 
 - (IBAction)cancelDownload:(id)sender;
-- (id)initWithURL:(NSURL*)aUrl delegate:(id)aDelegate userData:(id)someObj;
 
-- (NSURL*)url;
+- (id)initWithURL:(NSURL *)aUrl delegate:(id)aDelegate userData:(id)someObj;
+
+- (NSURL *)url;
+
 - (id)userData;
 
-@property (nonatomic, weak) id <URLGetterDelegate> delegate;
+@property(nonatomic, weak) id <URLGetterDelegate> delegate;
 
 - (void)stopProgressIndication;
-- (void)startProgressIndication:(id)sender;
-- (void)updateProgress;
-- (NSString*)downloadPath;
 
-- (void)endDownloadWithPath:(NSString*)path;
+- (void)startProgressIndication:(id)sender;
+
+- (void)updateProgress;
+
+- (NSString *)downloadPath;
+
+- (void)endDownloadWithPath:(NSString *)path;
 
 @end

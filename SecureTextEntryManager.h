@@ -15,10 +15,6 @@
    - Neither the name of Notational Velocity nor the names of its contributors may be used to endorse 
      or promote products derived from this software without specific prior written permission. */
 
-
-#import <Cocoa/Cocoa.h>
-
-
 extern NSString *ShouldHideSecureTextEntryWarningKey;
 
 @interface SecureTextEntryManager : NSObject {
@@ -26,16 +22,18 @@ extern NSString *ShouldHideSecureTextEntryWarningKey;
 	BOOL _calledSecureEventInput, secureTextEntry;
 }
 
-+ (SecureTextEntryManager*)sharedInstance;
++ (SecureTextEntryManager *)sharedInstance;
 
 - (void)disableSecureTextEntry;
 
 - (void)enableSecureTextEntry;
 
 - (void)_enableSecureEventInput;
+
 - (void)_disableSecureEventInput;
 
-- (NSSet*)_bundleIdentifiersOfIncompatibleApps;
+- (NSSet *)_bundleIdentifiersOfIncompatibleApps;
+
 - (void)checkForIncompatibleApps;
 
 @end

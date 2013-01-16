@@ -27,29 +27,35 @@
 
 #import "AHLinkLexer.h"
 
-typedef void* yyscan_t;
+typedef void *yyscan_t;
 
-extern long AHlex( yyscan_t yyscanner );
-extern long AHlex_init( yyscan_t * ptr_yy_globals );
-extern long AHlex_destroy ( yyscan_t yyscanner );
-extern long AHget_leng ( yyscan_t scanner );
-extern void AHset_in ( FILE * in_str , yyscan_t scanner );
+extern long AHlex(yyscan_t yyscanner);
+
+extern long AHlex_init(yyscan_t *ptr_yy_globals);
+
+extern long AHlex_destroy(yyscan_t yyscanner);
+
+extern long AHget_leng(yyscan_t scanner);
+
+extern void AHset_in(FILE *in_str, yyscan_t scanner);
 
 typedef struct AH_buffer_state *AH_BUFFER_STATE;
+
 extern void AH_switch_to_buffer(AH_BUFFER_STATE, yyscan_t scanner);
-extern AH_BUFFER_STATE AH_scan_string (const char *, yyscan_t scanner);
+
+extern AH_BUFFER_STATE AH_scan_string(const char *, yyscan_t scanner);
+
 extern void AH_delete_buffer(AH_BUFFER_STATE, yyscan_t scanner);
 
 @class AHMarkedHyperlink;
 
-@interface AHHyperlinkScanner : NSObject
-{
-	NSDictionary				*m_urlSchemes;
-	NSString					*m_scanString;
-	NSAttributedString			*m_scanAttrString;
-	BOOL						 m_strictChecking;
-	NSUInteger				 m_scanLocation;
-	NSUInteger				 m_scanStringLength;
+@interface AHHyperlinkScanner : NSObject {
+	NSDictionary *m_urlSchemes;
+	NSString *m_scanString;
+	NSAttributedString *m_scanAttrString;
+	BOOL m_strictChecking;
+	NSUInteger m_scanLocation;
+	NSUInteger m_scanStringLength;
 }
 
 
@@ -115,7 +121,7 @@ extern void AH_delete_buffer(AH_BUFFER_STATE, yyscan_t scanner);
  * @param flag Sets strict checking preference.
  * @return A new AHHyperlinkScanner.
  */
- - (id)initWithAttributedString:(NSAttributedString *)inString usingStrictChecking:(BOOL)flag;
+- (id)initWithAttributedString:(NSAttributedString *)inString usingStrictChecking:(BOOL)flag;
 
 
 /*!
@@ -147,6 +153,7 @@ extern void AH_delete_buffer(AH_BUFFER_STATE, yyscan_t scanner);
 - (NSAttributedString *)linkifiedString;
 
 - (NSUInteger)scanLocation;
+
 - (void)setScanLocation:(NSUInteger)location;
 
 @end

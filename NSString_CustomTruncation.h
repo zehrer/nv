@@ -15,17 +15,18 @@
    - Neither the name of Notational Velocity nor the names of its contributors may be used to endorse 
      or promote products derived from this software without specific prior written permission. */
 
-
-#import <Cocoa/Cocoa.h>
-
 @interface NSString (CustomTruncation)
 
 extern void ResetFontRelatedTableAttributes();
+
 NSDictionary *LineTruncAttributesForTitle();
 
-- (NSString*)truncatedPreviewStringOfLength:(NSUInteger)bodyCharCount;
-- (NSAttributedString*)attributedSingleLinePreviewFromBodyText:(NSAttributedString*)bodyText upToWidth:(float)width;
-- (NSAttributedString*)attributedSingleLineTitle;
-- (NSAttributedString*)attributedMultiLinePreviewFromBodyText:(NSAttributedString*)bodyText upToWidth:(float)upToWidth intrusionWidth:(float)intWidth;
+- (NSString *)truncatedPreviewStringOfLength:(NSUInteger)bodyCharCount;
+
+- (NSAttributedString *)attributedSingleLinePreviewFromBodyText:(NSAttributedString *)bodyText upToWidth:(float)width;
+
+- (NSAttributedString *)attributedSingleLineTitle;
+
+- (NSAttributedString *)attributedMultiLinePreviewFromBodyText:(NSAttributedString *)bodyText upToWidth:(float)upToWidth intrusionWidth:(float)intWidth;
 
 @end
