@@ -8,6 +8,8 @@
 #if __OBJC__
 #import <Foundation/Foundation.h>
 #import <Cocoa/Cocoa.h>
+#import <Rebel/Rebel.h>
+#import <libextobjc/EXTScope.h>
 #endif
 
 #define DebugPath(__p) (__p = ((!(__p)) ? __FILE__ : (__p)))

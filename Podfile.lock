@@ -4,10 +4,13 @@ PODS:
 - Rebel (0.2):
   - libextobjc/EXTKeyPathCoding
 - libextobjc/EXTKeyPathCoding (0.2.3)
+- libextobjc/EXTScope (0.2.3)
 
 DEPENDENCIES:
 - MASShortcut
 - Rebel (from `https://gist.github.com/raw/4273454/8bab63a8ef2d8b4db51006c3ee454d057afe7534/Rebel.podspec')
+- libextobjc/EXTKeyPathCoding
+- libextobjc/EXTScope
 
 EXTERNAL SOURCES:
   Rebel:
@@ -17,5 +20,6 @@ SPEC CHECKSUMS:
   MASShortcut: e9da47253933a4784813d5feb5f5bc5f7da721ca
   Rebel: 7dd395631ad52e763fc84d3a34647330e7bf15a6
   libextobjc/EXTKeyPathCoding: 7dcd66faf065d3b7fcb5f85a1646efaed28bcadf
+  libextobjc/EXTScope: 7dcd66faf065d3b7fcb5f85a1646efaed28bcadf
 
 COCOAPODS: 0.16.0
