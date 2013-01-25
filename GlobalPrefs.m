@@ -879,42 +879,6 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
 	return nil;
 }
 
-- (NSString *)humanViewablePathForDefaultDirectory {
-	//resolve alias to fsref
-	FSRef targetRef;
-	if ([[self aliasDataForDefaultDirectory] fsRefAsAlias:&targetRef]) {
-		//follow the parent fsrefs up the tree, calling LSCopyDisplayNameForRef, hoping that the root is a drive name
-
-		NSMutableArray *directoryNames = [NSMutableArray arrayWithCapacity:4];
-		FSRef parentRef, *currentRef = &targetRef;
-
-		OSStatus err = noErr;
-
-		do {
-
-			if ((err = FSGetCatalogInfo(currentRef, kFSCatInfoNone, NULL, NULL, NULL, &parentRef)) == noErr) {
-
-				CFStringRef displayName = NULL;
-				if ((err = LSCopyDisplayNameForRef(currentRef, &displayName)) == noErr) {
-
-					if (displayName) {
-						[directoryNames insertObject:(__bridge id) displayName atIndex:0];
-						CFRelease(displayName);
-					}
-				}
-
-				currentRef = &parentRef;
-			}
-		} while (err == noErr);
-
-		//build new string delimited by triangles like pages in its recent items menu
-		return [directoryNames componentsJoinedByString:@" : "];
-
-	}
-
-	return nil;
-}
-
 - (void)setBlorImportAttempted:(BOOL)value {
 	[defaults setBool:value forKey:TriedToImportBlorKey];
 }
