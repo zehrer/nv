@@ -82,6 +82,9 @@ typedef NS_OPTIONS(NSInteger, NVNoteRevealOptions) {
 	FSCatalogInfo *fsCatInfoArray;
 	HFSUniStr255 *HFSUniNameArray;
 
+	FSEventStreamRef noteDirEventStreamRef;
+	BOOL eventStreamStarted;
+
 	size_t catEntriesCount, totalCatEntriesCount;
 	NoteCatalogEntry *catalogEntries, **sortedCatalogEntries;
 

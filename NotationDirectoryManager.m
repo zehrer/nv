@@ -25,13 +25,6 @@
 
 #define kMaxFileIteratorCount 100
 
-@interface NotationController ()
-
-@property (nonatomic) FSEventStreamRef noteDirEventStream;
-@property (nonatomic) BOOL eventStreamStarted;
-
-@end
-
 @implementation NotationController (NotationDirectoryManager)
 
 NSInteger compareCatalogEntryName(const void *one, const void *two) {
@@ -120,9 +113,9 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void *info, size_t nu
 	//"updates" the event stream to point to the current notation directory path
 	//or if the stream doesn't exist, creates it
 
-	if (!self.eventStreamStarted) return;
+	if (!eventStreamStarted) return;
 
-	if (self.noteDirEventStream) {
+	if (noteDirEventStreamRef) {
 		//remove the event stream if it already exists, so that a new one can be created
 		[self _destroyDirEventStream];
 	}
@@ -131,38 +124,38 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void *info, size_t nu
 
 	FSEventStreamContext context = {0, (__bridge void *) (self), CFRetain, CFRelease, CFCopyDescription};
 
-	self.noteDirEventStream = FSEventStreamCreate(NULL, &FSEventsCallback, &context, (__bridge CFArrayRef) @[path], kFSEventStreamEventIdSinceNow,
+	noteDirEventStreamRef = FSEventStreamCreate(NULL, &FSEventsCallback, &context, (__bridge CFArrayRef) @[path], kFSEventStreamEventIdSinceNow,
 			1.0, kFSEventStreamCreateFlagWatchRoot | 0x00000008 /*kFSEventStreamCreateFlagIgnoreSelf*/);
 
-	FSEventStreamScheduleWithRunLoop(self.noteDirEventStream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
-	if (!FSEventStreamStart(self.noteDirEventStream)) {
+	FSEventStreamScheduleWithRunLoop(noteDirEventStreamRef, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
+	if (!FSEventStreamStart(noteDirEventStreamRef)) {
 		NSLog(@"could not start the FSEvents stream!");
 	}
 
 }
 
 - (void)_destroyDirEventStream {
-	if (self.eventStreamStarted) {
-		NSAssert(self.noteDirEventStream, @"can't destroy a NULL event stream");
+	if (eventStreamStarted) {
+		NSAssert(noteDirEventStreamRef != NULL, @"can't destroy a NULL event stream");
 
-		FSEventStreamStop(self.noteDirEventStream);
-		FSEventStreamInvalidate(self.noteDirEventStream);
-		FSEventStreamRelease(self.noteDirEventStream);
-		self.noteDirEventStream = NULL;
+		FSEventStreamStop(noteDirEventStreamRef);
+		FSEventStreamInvalidate(noteDirEventStreamRef);
+		FSEventStreamRelease(noteDirEventStreamRef);
+		noteDirEventStreamRef = NULL;
 	}
 }
 
 - (void)startFileNotifications {
-	self.eventStreamStarted = YES;
+	eventStreamStarted = YES;
 	[self _configureDirEventStream];
 }
 
 - (void)stopFileNotifications {
-	if (!self.eventStreamStarted) return;
+	if (!eventStreamStarted) return;
 
 	[self _destroyDirEventStream];
 
-	self.eventStreamStarted = NO;
+	eventStreamStarted = NO;
 }
 
 - (BOOL)synchronizeNotesFromDirectory {
