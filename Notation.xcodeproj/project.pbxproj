@@ -209,6 +209,7 @@
 		5CF96E0B132EA29D0079B3FD /* Preferences.xib in Resources */ = {isa = PBXBuildFile; fileRef = 219195E409D3A20F00586B15 /* Preferences.xib */; };
 		5CF96E0C132EA29D0079B3FD /* NotationPrefsView.nib in Resources */ = {isa = PBXBuildFile; fileRef = 21A2FA7A09DF64E9001AF0B5 /* NotationPrefsView.nib */; };
 		65B51C71EE5044B8871EBAED /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F92A68021D124CE3B4EEC88F /* libPods.a */; };
+		6C916D1D16B2645800416AB5 /* NSDate+Notation.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C916D1C16B2645700416AB5 /* NSDate+Notation.m */; };
 		6CCC107E16A47D9800A4E469 /* BufferUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 6CCC107D16A47D9800A4E469 /* BufferUtils.m */; };
 		6CCC108116A4801F00A4E469 /* Contact Information.nvhelp in Resources */ = {isa = PBXBuildFile; fileRef = 6CCC107F16A4801F00A4E469 /* Contact Information.nvhelp */; };
 		6CCC108616A480E800A4E469 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6CCC108516A480E800A4E469 /* QuartzCore.framework */; };
@@ -650,6 +651,8 @@
 		5CFF810713A52EE2008A93A3 /* it */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = it; path = it.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		5CFF810813A53625008A93A3 /* it */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = it; path = it.lproj/TagEditingManager.xib; sourceTree = "<group>"; };
 		5CFF810913A536F7008A93A3 /* it */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = it; path = it.lproj/Preferences.xib; sourceTree = "<group>"; };
+		6C916D1B16B2645700416AB5 /* NSDate+Notation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSDate+Notation.h"; sourceTree = "<group>"; };
+		6C916D1C16B2645700416AB5 /* NSDate+Notation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSDate+Notation.m"; sourceTree = "<group>"; };
 		6CCC107D16A47D9800A4E469 /* BufferUtils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BufferUtils.m; sourceTree = "<group>"; };
 		6CCC108016A4801F00A4E469 /* English */ = {isa = PBXFileReference; explicitFileType = text.rtf; name = English; path = "English.lproj/Contact Information.nvhelp"; sourceTree = "<group>"; };
 		6CCC108516A480E800A4E469 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
@@ -757,6 +760,8 @@
 				217D4281096545A000E84749 /* LabelObject.m */,
 				21DC788D097894B600E59B09 /* NSCollection_utils.h */,
 				21DC788E097894B600E59B09 /* NSCollection_utils.m */,
+				6C916D1B16B2645700416AB5 /* NSDate+Notation.h */,
+				6C916D1C16B2645700416AB5 /* NSDate+Notation.m */,
 				212B84600978422300F3597F /* NSString_NV.h */,
 				212B84610978422300F3597F /* NSString_NV.m */,
 				21DB4BE412DE4E3D0057F52B /* NSString_CustomTruncation.h */,
@@ -1484,6 +1489,7 @@
 				5C177AE7141EF95200BC0C0A /* ETClipView.m in Sources */,
 				934C3FB914FDA74F000D14BA /* NSFileManager+DirectoryLocations.m in Sources */,
 				6CCC107E16A47D9800A4E469 /* BufferUtils.m in Sources */,
+				6C916D1D16B2645800416AB5 /* NSDate+Notation.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
