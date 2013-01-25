@@ -209,6 +209,7 @@
 		5CF96E0B132EA29D0079B3FD /* Preferences.xib in Resources */ = {isa = PBXBuildFile; fileRef = 219195E409D3A20F00586B15 /* Preferences.xib */; };
 		5CF96E0C132EA29D0079B3FD /* NotationPrefsView.nib in Resources */ = {isa = PBXBuildFile; fileRef = 21A2FA7A09DF64E9001AF0B5 /* NotationPrefsView.nib */; };
 		65B51C71EE5044B8871EBAED /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F92A68021D124CE3B4EEC88F /* libPods.a */; };
+		6C25173416B2E8DA0088B37E /* NSError+Notation.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C25173316B2E8DA0088B37E /* NSError+Notation.m */; };
 		6C916D1D16B2645800416AB5 /* NSDate+Notation.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C916D1C16B2645700416AB5 /* NSDate+Notation.m */; };
 		6C916D2016B2681B00416AB5 /* NSURL+Notation.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C916D1F16B2681B00416AB5 /* NSURL+Notation.m */; };
 		6CCC107E16A47D9800A4E469 /* BufferUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 6CCC107D16A47D9800A4E469 /* BufferUtils.m */; };
@@ -650,6 +651,8 @@
 		5CFF810713A52EE2008A93A3 /* it */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = it; path = it.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		5CFF810813A53625008A93A3 /* it */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = it; path = it.lproj/TagEditingManager.xib; sourceTree = "<group>"; };
 		5CFF810913A536F7008A93A3 /* it */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = it; path = it.lproj/Preferences.xib; sourceTree = "<group>"; };
+		6C25173216B2E8DA0088B37E /* NSError+Notation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSError+Notation.h"; sourceTree = "<group>"; };
+		6C25173316B2E8DA0088B37E /* NSError+Notation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSError+Notation.m"; sourceTree = "<group>"; };
 		6C916D1B16B2645700416AB5 /* NSDate+Notation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSDate+Notation.h"; sourceTree = "<group>"; };
 		6C916D1C16B2645700416AB5 /* NSDate+Notation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSDate+Notation.m"; sourceTree = "<group>"; };
 		6C916D1E16B2681A00416AB5 /* NSURL+Notation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSURL+Notation.h"; sourceTree = "<group>"; };
@@ -795,6 +798,8 @@
 				21D6FB4812E104D6005C2DA5 /* NSBezierPath_NV.m */,
 				215309F212E4E92300AF2739 /* DiskUUIDEntry.h */,
 				215309F312E4E92300AF2739 /* DiskUUIDEntry.m */,
+				6C25173216B2E8DA0088B37E /* NSError+Notation.h */,
+				6C25173316B2E8DA0088B37E /* NSError+Notation.m */,
 				21F0793710EC5E21004FE56F /* Sync Services */,
 				212089CF0B0C2BCF00A15A69 /* Note Importing */,
 				57F27FB71197407400C63ACF /* SearchCommand.h */,
@@ -1484,6 +1489,7 @@
 				6CCC107E16A47D9800A4E469 /* BufferUtils.m in Sources */,
 				6C916D1D16B2645800416AB5 /* NSDate+Notation.m in Sources */,
 				6C916D2016B2681B00416AB5 /* NSURL+Notation.m in Sources */,
+				6C25173416B2E8DA0088B37E /* NSError+Notation.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
