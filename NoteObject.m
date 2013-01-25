@@ -1246,14 +1246,12 @@ row) {
 	NSAssert(fsRef, @"cannot write file encoding to a NULL FSRef");
 	//this is not the note's own fsRef; it could be anywhere
 
-	NSMutableData *pathData = [NSMutableData dataWithLength:4 * 1024];
-	OSStatus err = noErr;
-	if ((err = FSRefMakePath(fsRef, [pathData mutableBytes], (unsigned int) [pathData length])) == noErr) {
-		[[NSFileManager defaultManager] setTextEncodingAttribute:fileEncoding atFSPath:[pathData bytes]];
-	} else {
-		NSLog(@"%@: error getting path from FSRef: %d (IsZeros: %d)", NSStringFromSelector(_cmd), err, IsZeros(fsRef, sizeof(fsRef)));
+	NSURL *URL = [NSURL URLWithFSRef: fsRef];
+	if ([NSFileManager setTextEncoding: fileEncoding ofItemAtURL: URL]) {
+		return noErr;
 	}
-	return err;
+
+	return ioErr;
 }
 
 - (BOOL)upgradeToUTF8IfUsingSystemEncoding {

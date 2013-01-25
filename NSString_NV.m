@@ -20,6 +20,7 @@
 #import "NSFileManager_NV.h"
 #import "NoteObject.h"
 #import "GlobalPrefs.h"
+#import "NSURL+Notation.h"
 
 @implementation NSString (NV)
 
@@ -614,11 +615,11 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, NSUInteger charIndex) 
 		//check the file on disk for extended attributes only if absolutely necessary
 		NSStringEncoding extendedAttrsEncoding = 0;
 		if (!aPath && fsRef && !IsZeros(fsRef, sizeof(FSRef))) {
-			NSMutableData *pathData = [NSMutableData dataWithLength:4 * 1024];
-			if (FSRefMakePath(fsRef, [pathData mutableBytes], (UInt32) [pathData length]) == noErr)
-				extendedAttrsEncoding = [[NSFileManager defaultManager] textEncodingAttributeOfFSPath:[pathData bytes]];
+			NSURL *URL = [NSURL URLWithFSRef: fsRef];
+			if (URL) extendedAttrsEncoding = [NSFileManager textEncodingOfItemAtURL: URL];
 		} else if (aPath) {
-			extendedAttrsEncoding = [[NSFileManager defaultManager] textEncodingAttributeOfFSPath:aPath];
+			NSURL *URL = [NSURL fileURLWithPath: [NSString stringWithUTF8String: aPath]];
+			if (URL) extendedAttrsEncoding = [NSFileManager textEncodingOfItemAtURL: URL];
 		}
 		if (extendedAttrsEncoding) AddIfUnique(extendedAttrsEncoding);
 	}

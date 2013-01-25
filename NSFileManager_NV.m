@@ -124,59 +124,54 @@ static NSError *NVTErrorForPOSIXError(int err, NSURL *URL) {
 
 }
 
-//TODO: use volumeCapabilities in FSExchangeObjectsCompat.c to skip some work on volumes for which we know we would receive ENOTSUP
-//for +setTextEncodingAttribute:atFSPath: and +textEncodingAttributeOfFSPath: (test against VOL_CAP_INT_EXTENDED_ATTR)
++ (NSStringEncoding)textEncodingOfItemAtURL:(NSURL *)URL {
+	if (!URL || !URL.isFileURL) return NO;
 
-- (BOOL)setTextEncodingAttribute:(NSStringEncoding)encoding atFSPath:(const char *)path {
-	if (!path) return NO;
+	static const char *inKeyNameC = "com.apple.TextEncoding";
+	const char *itemPath = URL.path.fileSystemRepresentation;
 
+	NSMutableData *data = nil;
+
+	size_t dataSize = getxattr (itemPath, inKeyNameC, NULL, SIZE_MAX, 0, 0);
+	if (dataSize > 0)
+	{
+		data = [NSMutableData dataWithLength: dataSize];
+		getxattr (itemPath, inKeyNameC, [data mutableBytes], dataSize, 0, 0);
+		NSString *encodingStr = [[NSString alloc] initWithData: data encoding: NSUTF8StringEncoding];
+
+		if (!encodingStr.length) {
+			NSLog(@"couldn't make attribute data from %@ into a string", URL);
+			return NO;
+		}
+		NSArray *segs = [encodingStr componentsSeparatedByString:@";"];
+		if ([segs count] >= 2 && [(NSString *) segs[1] length] > 1) {
+			return CFStringConvertEncodingToNSStringEncoding([segs[1] intValue]);
+		} else if ([(NSString *) segs[0] length] > 1) {
+			CFStringEncoding theCFEncoding = CFStringConvertIANACharSetNameToEncoding((CFStringRef) segs[0]);
+			if (theCFEncoding == kCFStringEncodingInvalidId) {
+				NSLog(@"couldn't convert IANA charset");
+				return NO;
+			}
+			return CFStringConvertEncodingToNSStringEncoding(theCFEncoding);
+		}
+	}
+	return NO;
+}
+
++ (BOOL)setTextEncoding:(NSStringEncoding)encoding ofItemAtURL:(NSURL *)URL {
 	CFStringEncoding cfStringEncoding = CFStringConvertNSStringEncodingToEncoding(encoding);
 	if (cfStringEncoding == kCFStringEncodingInvalidId) {
 		NSLog(@"%@: encoding %lu is invalid!", NSStringFromSelector(_cmd), encoding);
 		return NO;
 	}
-	NSString *textEncStr = [(NSString *) CFStringConvertEncodingToIANACharSetName(cfStringEncoding) stringByAppendingFormat:@";%@",
-																															[@(cfStringEncoding) stringValue]];
-	const char *textEncUTF8Str = [textEncStr UTF8String];
 
-	if (setxattr(path, "com.apple.TextEncoding", textEncUTF8Str, strlen(textEncUTF8Str), 0, 0) < 0) {
-		NSLog(@"couldn't set text encoding attribute of %s to '%s': %d", path, textEncUTF8Str, errno);
+	NSString *textEncStr = [(NSString *) CFStringConvertEncodingToIANACharSetName(cfStringEncoding) stringByAppendingFormat:@";%@", [@(cfStringEncoding) stringValue]];
+
+	if (setxattr(URL.path.fileSystemRepresentation, "com.apple.TextEncoding", textEncStr.UTF8String, textEncStr.length, 0, 0) < 0) {
+		NSLog(@"couldn't set text encoding attribute of %@ to '%s': %d", URL, textEncStr.UTF8String, errno);
 		return NO;
 	}
 	return YES;
-}
-
-- (NSStringEncoding)textEncodingAttributeOfFSPath:(const char *)path {
-	if (!path) return 0;
-
-	//We could query the size of the attribute, but that would require a second system call
-	//and the value for this key shouldn't need to be anywhere near this large, anyway.
-	//It could be, but it probably won't. If it is, then we won't get the encoding. Too bad.
-	char xattrValueBytes[128] = {0};
-	if (getxattr(path, "com.apple.TextEncoding", xattrValueBytes, sizeof(xattrValueBytes), 0, 0) < 0) {
-		if (ENOATTR != errno) NSLog(@"couldn't get text encoding attribute of %s: %d", path, errno);
-		return 0;
-	}
-
-	NSString *encodingStr = @(xattrValueBytes);
-	if (!encodingStr) {
-		NSLog(@"couldn't make attribute data from %s into a string", path);
-		return 0;
-	}
-
-	NSArray *segs = [encodingStr componentsSeparatedByString:@";"];
-	if ([segs count] >= 2 && [(NSString *) segs[1] length] > 1) {
-		return CFStringConvertEncodingToNSStringEncoding([segs[1] intValue]);
-	} else if ([(NSString *) segs[0] length] > 1) {
-		CFStringEncoding theCFEncoding = CFStringConvertIANACharSetNameToEncoding((CFStringRef) segs[0]);
-		if (theCFEncoding == kCFStringEncodingInvalidId) {
-			NSLog(@"couldn't convert IANA charset");
-			return 0;
-		}
-		return CFStringConvertEncodingToNSStringEncoding(theCFEncoding);
-	}
-
-	return 0;
 }
 
 - (NSString *)pathCopiedFromAliasData:(NSData *)aliasData {

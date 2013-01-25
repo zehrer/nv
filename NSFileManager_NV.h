@@ -20,10 +20,9 @@
 + (id)getOpenMetaTagsForItemAtURL:(NSURL *)URL error:(out NSError **)outError;
 + (BOOL)setOpenMetaTags:(id <NSCoding, NSCopying>)object forItemAtURL:(NSURL *)URL error:(out NSError **)outError;
 
++ (NSStringEncoding)textEncodingOfItemAtURL:(NSURL *)URL;
++ (BOOL)setTextEncoding:(NSStringEncoding)encoding ofItemAtURL:(NSURL *)URL;
+
 - (NSString *)pathCopiedFromAliasData:(NSData *)aliasData;
-
-- (BOOL)setTextEncodingAttribute:(NSStringEncoding)encoding atFSPath:(const char *)path;
-
-- (NSStringEncoding)textEncodingAttributeOfFSPath:(const char *)path;
 
 @end
