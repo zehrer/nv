@@ -616,21 +616,9 @@ long BlockSizeForNotation(NotationController *controller) {
 }
 
 - (void)notifyOfChangedTrash {
-	FSRef folder;
-
-	OSStatus err = [NotationController trashFolderRef:&folder forChild:&noteDirectoryRef];
-
-	if (err == noErr)
-		FNNotify(&folder, kFNDirectoryModifiedMessage, kNilOptions);
-	else
-		NSLog(@"notifyOfChangedTrash: error getting trash: %d", err);
-
-	NSString *sillyDirectory = [NSTemporaryDirectory() stringByAppendingPathComponent:(NSString *) CFBridgingRelease(CreateRandomizedFileName())];
-	[[NSFileManager defaultManager] createDirectoryAtPath:sillyDirectory withIntermediateDirectories:YES attributes:nil error:NULL];
-
-	NSInteger tag = 0;
-	[[NSWorkspace sharedWorkspace] performFileOperation:NSWorkspaceRecycleOperation source:NSTemporaryDirectory() destination:@""
-												  files:@[sillyDirectory.lastPathComponent] tag:&tag];
+	NSURL *sillyURL = [NSURL fileURLWithPath: [NSTemporaryDirectory() stringByAppendingPathComponent:(__bridge_transfer NSString *)CreateRandomizedFileName()]];
+	[self.fileManager createDirectoryAtURL: sillyURL withIntermediateDirectories: YES attributes: nil error: NULL];
+	[self.fileManager trashItemAtURL: sillyURL resultingItemURL: NULL error: NULL];
 }
 
 + (OSStatus)trashFolderRef:(FSRef *)trashRef forChild:(FSRef *)childRef {
