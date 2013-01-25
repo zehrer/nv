@@ -275,10 +275,10 @@ long BlockSizeForNotation(NotationController *controller) {
 
 
 - (BOOL)notesDirectoryIsTrashed {
-	Boolean isInTrash = false;
-	if (FSDetermineIfRefIsEnclosedByFolder(0, kTrashFolderType, &noteDirectoryRef, &isInTrash) != noErr)
-		isInTrash = false;
-	return (BOOL) isInTrash;
+	NSURL *trashURL = [[self trashFolderForURL: self.noteDirectoryURL error: NULL] URLByStandardizingPath];
+	if (!trashURL) return NO;
+	NSURL *stdNoteDirectory = self.noteDirectoryURL.URLByStandardizingPath;
+	return [stdNoteDirectory.path hasPrefix: trashURL.path];
 }
 
 - (BOOL)notesDirectoryContainsFile:(NSString *)filename returningFSRef:(FSRef *)childRef {
@@ -716,6 +716,10 @@ long BlockSizeForNotation(NotationController *controller) {
 	}
 
 	return blockSize;
+}
+
+- (NSURL *)trashFolderForURL:(NSURL *)URL error:(out NSError *__autoreleasing *)outError {
+	return [self.fileManager URLForDirectory: NSTrashDirectory inDomain:NSUserDomainMask appropriateForURL: URL create:YES error: outError];
 }
 
 @end
