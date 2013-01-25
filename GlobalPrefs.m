@@ -32,6 +32,7 @@
 #import "NotationController.h"
 #import <MASShortcut/MASShortcut.h>
 #import <MASShortcut/MASShortcut+UserDefaults.h>
+#import <objc/message.h>
 
 #define SEND_CALLBACKS() sendCallbacksForGlobalPrefs(self, _cmd, sender)
 
@@ -102,17 +103,14 @@ NSString *HotKeyAppToFrontName = @"bring Notational Velocity to the foreground";
 @implementation GlobalPrefs
 
 static void sendCallbacksForGlobalPrefs(GlobalPrefs *self, SEL selector, id originalSender) {
-
 	if (originalSender != self) {
-		self->runCallbacksIMP(self, @selector(notifyCallbacksForSelector:excludingSender:),
-				selector, originalSender);
+		objc_msgSend(self, @selector(notifyCallbacksForSelector:excludingSender:), selector, originalSender);
 	}
 }
 
 - (id)init {
 	if ((self = [super init])) {
 
-		runCallbacksIMP = [self methodForSelector:@selector(notifyCallbacksForSelector:excludingSender:)];
 		selectorObservers = [[NSMutableDictionary alloc] init];
 
 		defaults = [NSUserDefaults standardUserDefaults];

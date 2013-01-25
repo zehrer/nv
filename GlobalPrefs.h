@@ -53,7 +53,6 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2);
 @interface GlobalPrefs : NSObject {
 	NSUserDefaults *defaults;
 
-	IMP runCallbacksIMP;
 	NSMutableDictionary *selectorObservers;
 
 	BookmarksController *bookmarksController;
