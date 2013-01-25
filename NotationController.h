@@ -109,6 +109,8 @@ typedef NS_OPTIONS(NSInteger, NVNoteRevealOptions) {
 @property(nonatomic, strong) NSMutableArray *filteredNotesList;
 @property(nonatomic, strong) NSCountedSet *allLabels, *filteredLabels;
 
+@property (nonatomic, strong, readonly) NSFileManager *fileManager;
+
 - (id)init;
 
 - (id)initWithAliasData:(NSData *)data error:(OSStatus *)err;

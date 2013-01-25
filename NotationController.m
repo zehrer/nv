@@ -43,6 +43,7 @@
 @interface NotationController ()
 
 @property(nonatomic, strong) NSMutableDictionary *labelImages;
+@property (nonatomic, strong, readwrite) NSFileManager *fileManager;
 
 @end
 
@@ -50,6 +51,8 @@
 
 - (id)init {
 	if ((self = [super init])) {
+		self.fileManager = [NSFileManager new];
+
 		directoryChangesFound = notesChanged = aliasNeedsUpdating = NO;
 
 		allNotes = [[NSMutableArray alloc] init]; //<--the authoritative list of all memory-accessible notes
