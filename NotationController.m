@@ -77,7 +77,6 @@
 		catEntriesCount = totalCatEntriesCount = 0;
 
 		bzero(&noteDatabaseRef, sizeof(FSRef));
-		volumeSupportsExchangeObjects = -1;
 
 		lastLayoutStyleGenerated = -1;
 		lastCheckedDateInHours = hoursFromAbsoluteTime(CFAbsoluteTimeGetCurrent());
@@ -1645,6 +1644,5 @@
 	}
 	return _noteDatabaseURL;
 }
-
 
 @end

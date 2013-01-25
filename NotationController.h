@@ -78,7 +78,6 @@ typedef NS_OPTIONS(NSInteger, NVNoteRevealOptions) {
 
 	NSMutableSet *deletedNotes;
 
-	NSInteger volumeSupportsExchangeObjects;
 	FSCatalogInfo *fsCatInfoArray;
 	HFSUniStr255 *HFSUniNameArray;
 

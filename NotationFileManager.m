@@ -30,8 +30,6 @@ NSString *NotesDatabaseFileName = @"Notes & Settings";
 
 @implementation NotationController (NotationFileManager)
 
-static BOOL VolumeSupportsExchangeObjects(NotationController *controller);
-
 static struct statfs *StatFSVolumeInfo(NotationController *controller);
 
 OSStatus CreateDirectoryIfNotPresent(FSRef *parentRef, CFStringRef subDirectoryName, FSRef *childRef) {
@@ -167,19 +165,6 @@ CFUUIDRef CopySyntheticUUIDForVolumeCreationDate(FSRef *fsRef) {
 		}
 	}
 	return NULL;
-}
-
-static BOOL VolumeSupportsExchangeObjects(NotationController *controller) {
-
-	if (controller->volumeSupportsExchangeObjects == -1) {
-		/* get source volume's path */
-		struct statfs *sfsb = StatFSVolumeInfo(controller);
-		if (sfsb) {
-			/* query getattrlist to see if that volume supports FSExchangeObjects */
-			controller->volumeSupportsExchangeObjects = (0 != (volumeCapabilities(sfsb->f_mntonname) & VOL_CAP_INT_EXCHANGEDATA));
-		}
-	}
-	return controller->volumeSupportsExchangeObjects;
 }
 
 - (void)purgeOldPerDiskInfoFromNotes {
