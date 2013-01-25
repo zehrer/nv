@@ -72,9 +72,6 @@
 
 		fsCatInfoArray = NULL;
 		HFSUniNameArray = NULL;
-		catalogEntries = NULL;
-		sortedCatalogEntries = NULL;
-		catEntriesCount = totalCatEntriesCount = 0;
 
 		bzero(&noteDatabaseRef, sizeof(FSRef));
 
@@ -1549,10 +1546,6 @@
 		free(fsCatInfoArray);
 	if (HFSUniNameArray)
 		free(HFSUniNameArray);
-	if (catalogEntries)
-		free(catalogEntries);
-	if (sortedCatalogEntries)
-		free(sortedCatalogEntries);
 }
 
 #pragma mark - 

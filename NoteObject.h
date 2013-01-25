@@ -29,6 +29,7 @@
 @class WALStorageController;
 @class NotesTableView;
 @class ExternalEditor;
+@class NoteCatalogEntry;
 
 typedef struct _NoteFilterContext {
 	char *needle;

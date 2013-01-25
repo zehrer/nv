@@ -29,8 +29,8 @@
 @class NoteBookmark;
 @class DeletionManager;
 @class GlobalPrefs;
-
 @class NotationController;
+@class NoteCatalogEntry;
 
 typedef NS_OPTIONS(NSInteger, NVNoteRevealOptions) {
 	NVDefaultReveal = 0,
@@ -83,9 +83,6 @@ typedef NS_OPTIONS(NSInteger, NVNoteRevealOptions) {
 
 	FSEventStreamRef noteDirEventStreamRef;
 	BOOL eventStreamStarted;
-
-	size_t catEntriesCount, totalCatEntriesCount;
-	NoteCatalogEntry *catalogEntries, **sortedCatalogEntries;
 
 	NSUInteger lastCheckedDateInHours;
 	int lastLayoutStyleGenerated;

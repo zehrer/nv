@@ -22,6 +22,7 @@
 #import "GlobalPrefs.h"
 #import "NSData_transformations.h"
 #import "NSURL+Notation.h"
+#import "NoteCatalogEntry.h"
 #include <sys/mount.h>
 
 #import <CommonCrypto/CommonCrypto.h>
@@ -504,7 +505,7 @@ long BlockSizeForNotation(NotationController *controller) {
 }
 
 - (NSMutableData *)dataFromFileInNotesDirectory:(FSRef *)childRef forCatalogEntry:(NoteCatalogEntry *)catEntry {
-	return [self dataFromFileInNotesDirectory:childRef forFilename:(__bridge NSString *) catEntry->filename fileSize:catEntry->logicalSize];
+	return [self dataFromFileInNotesDirectory:childRef forFilename: (__bridge NSString *)catEntry.filename fileSize: catEntry.logicalSize];
 }
 
 - (NSMutableData *)dataFromFileInNotesDirectory:(FSRef *)childRef forFilename:(NSString *)filename fileSize:(UInt64)givenFileSize {

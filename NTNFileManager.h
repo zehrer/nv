@@ -9,6 +9,7 @@
 #import "NotationPrefs.h"
 
 @class NoteObject;
+@class NoteCatalogEntry;
 
 @protocol NTNFileManager <NSObject>
 

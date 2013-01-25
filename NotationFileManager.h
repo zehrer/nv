@@ -60,12 +60,6 @@ NSUInteger diskUUIDIndexForNotation(NotationController *controller);
 
 + (OSStatus)getDefaultNotesDirectoryRef:(FSRef *)notesDir;
 
-- (NSMutableData *)dataFromFileInNotesDirectory:(FSRef *)childRef forFilename:(NSString *)filename;
-
-- (NSMutableData *)dataFromFileInNotesDirectory:(FSRef *)childRef forCatalogEntry:(NoteCatalogEntry *)catEntry;
-
-- (NSMutableData *)dataFromFileInNotesDirectory:(FSRef *)childRef forFilename:(NSString *)filename fileSize:(UInt64)givenFileSize;
-
 - (OSStatus)noteFileRenamed:(FSRef *)childRef fromName:(NSString *)oldName toName:(NSString *)newName;
 
 - (NSString *)uniqueFilenameForTitle:(NSString *)title fromNote:(NoteObject *)note;

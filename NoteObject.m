@@ -38,6 +38,7 @@
 #import "ODBEditor.h"
 #import "NSString_NV.h"
 #import "NSURL+Notation.h"
+#import "NoteCatalogEntry.h"
 
 #if __LP64__
 // Needed for compatability with data created by 32bit app
@@ -542,18 +543,19 @@ row) {
 }
 
 //only get the fsrefs until we absolutely need them
-
-- (id)initWithCatalogEntry:(NoteCatalogEntry *)entry delegate:(id)aDelegate {
-	NSAssert(aDelegate != nil, @"must supply a delegate");
+- (id)initWithCatalogEntry:(NoteCatalogEntry *)entry delegate:(id<NoteObjectDelegate,NTNFileManager>)aDelegate {
+	NSParameterAssert(aDelegate);
+	
 	if ((self = [self init])) {
 		self.delegate = aDelegate;
 		id <NoteObjectDelegate, NTNFileManager> localDelegate = aDelegate;
-		self.filename = (__bridge NSString *) entry->filename;
+		self.filename = (__bridge NSMutableString *)entry.filename;
 		self.storageFormat = [localDelegate currentNoteStorageFormat];
-		self.fileModifiedDate = entry->lastModified;
-		self.attrsModifiedDate = &(entry->lastAttrModified);
-		self.fileNodeID = entry->nodeID;
-		self.fileSize = entry->logicalSize;
+		self.fileModifiedDate = entry.lastModified;
+		UTCDateTime lastAttrModified = entry.lastAttrModified;
+		self.attrsModifiedDate = &(lastAttrModified);
+		self.fileNodeID = entry.nodeID;
+		self.fileSize = entry.logicalSize;
 
 		CFUUIDRef uuidRef = CFUUIDCreate(kCFAllocatorDefault);
 		uniqueNoteIDBytes = CFUUIDGetUUIDBytes(uuidRef);
@@ -585,6 +587,7 @@ row) {
 	[self updateTablePreviewString];
 
 	return self;
+
 }
 
 //assume any changes have been synchronized with undomanager
@@ -1366,12 +1369,13 @@ row) {
 	if (![self updateFromData:data inFormat:currentFormatID])
 		return NO;
 
-	[self setFilename:(__bridge NSString *) catEntry->filename withExternalTrigger:YES];
+	[self setFilename:(__bridge NSString *) catEntry.filename withExternalTrigger:YES];
 
-	self.fileModifiedDate = catEntry->lastModified;
-	self.attrsModifiedDate = &(catEntry->lastAttrModified);
-	self.fileNodeID = catEntry->nodeID;
-	self.fileSize = catEntry->logicalSize;
+	self.fileModifiedDate = catEntry.lastModified;
+	UTCDateTime lastAttrModified = catEntry.lastAttrModified;
+	self.attrsModifiedDate = &(lastAttrModified);
+	self.fileNodeID = catEntry.nodeID;
+	self.fileSize = catEntry.logicalSize;
 
 	NSArray *openMetaTags = [NSFileManager getOpenMetaTagsForItemAtURL: self.noteFileURL error: NULL];
 	if (openMetaTags) {

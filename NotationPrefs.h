@@ -15,16 +15,7 @@
    - Neither the name of Notational Velocity nor the names of its contributors may be used to endorse 
      or promote products derived from this software without specific prior written permission. */
 
-typedef struct _NoteCatalogEntry {
-	UTCDateTime lastModified;
-	UTCDateTime lastAttrModified;
-	UInt32 logicalSize;
-	OSType fileType;
-	UInt32 nodeID;
-	CFMutableStringRef filename;
-	UniChar *filenameChars;
-	UniCharCount filenameCharCount;
-} NoteCatalogEntry;
+@class NoteCatalogEntry;
 
 /* this class is responsible for managing all preferences specific to a notational database,
 including encryption, file formats, synchronization, passwords management, and others */

@@ -25,6 +25,7 @@
 #import "NotationFileManager.h"
 #import "SecureTextEntryManager.h"
 #import "DiskUUIDEntry.h"
+#import "NoteCatalogEntry.h"
 
 #define DEFAULT_HASH_ITERATIONS 8000
 #define DEFAULT_KEY_LENGTH 256
@@ -196,12 +197,8 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString *serv
 
 - (void)dealloc {
 
-	unsigned int i;
-	for (i = 0; i < 4; i++) {
-	}
 	if (allowedTypes)
 		free(allowedTypes);
-
 
 }
 
@@ -1028,7 +1025,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString *serv
 }
 
 - (BOOL)catalogEntryAllowed:(NoteCatalogEntry *)catEntry {
-	NSString *filename = (__bridge NSString *) catEntry->filename;
+	NSString *filename = (__bridge NSString *)catEntry.filename;
 
 	if (![filename length])
 		return NO;
@@ -1049,7 +1046,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString *serv
 
 	NSUInteger i;
 	for (i = 0; i < [typeStrings[notesStorageFormat] count]; i++) {
-		if (catEntry->fileType == allowedTypes[i]) {
+		if (catEntry.fileType == allowedTypes[i]) {
 			return YES;
 		}
 	}
