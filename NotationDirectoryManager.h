@@ -18,7 +18,7 @@
 
 #import "NotationController.h"
 
-@interface NotationController (NotationDirectoryManager)
+@interface NotationController ()
 
 NSInteger compareCatalogEntryName(const void *one, const void *two);
 
@@ -27,8 +27,6 @@ NSInteger compareCatalogValueNodeID(id *a, id *b);
 NSInteger compareCatalogValueFileSize(id *a, id *b);
 
 - (NSSet *)notesWithFilenames:(NSArray *)filenames unknownFiles:(NSArray **)unknownFiles;
-
-- (BOOL)_readFilesInDirectory;
 
 - (BOOL)modifyNoteIfNecessary:(NoteObject *)aNoteObject usingCatalogEntry:(NoteCatalogEntry *)catEntry;
 
@@ -39,10 +37,6 @@ NSInteger compareCatalogValueFileSize(id *a, id *b);
 - (void)processNotesAddedByContent:(NSMutableArray *)addedEntries removed:(NSMutableArray *)removedEntries;
 
 - (BOOL)synchronizeNotesFromDirectory;
-
-- (void)_destroyDirEventStream;
-
-- (void)_configureDirEventStream;
 
 - (void)startFileNotifications;
 
