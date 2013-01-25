@@ -1175,8 +1175,8 @@ row) {
 		if (PlainTextFormat == formatID) {
 			(void) [self writeCurrentFileEncodingToFSRef: self.noteFileRef];
 		}
-		NSFileManager *fileMan = [NSFileManager defaultManager];
-		[fileMan setOpenMetaTags:[self orderedLabelTitles] atFSPath: self.noteFileURL.path.fileSystemRepresentation];
+
+		[NSFileManager setOpenMetaTags: self.orderedLabelTitles forItemAtURL: self.noteFileURL error: NULL];
 
 		//always hide the file extension for all types
 		LSSetExtensionHiddenForRef(self.noteFileRef, TRUE);
@@ -1373,22 +1373,18 @@ row) {
 	self.fileNodeID = catEntry->nodeID;
 	self.fileSize = catEntry->logicalSize;
 
-	NSMutableData *pathData = [NSMutableData dataWithLength:4 * 1024];
-	if (FSRefMakePath(self.noteFileRef, [pathData mutableBytes], (unsigned int) [pathData length]) == noErr) {
+	NSArray *openMetaTags = [NSFileManager getOpenMetaTagsForItemAtURL: self.noteFileURL error: NULL];
+	if (openMetaTags) {
+		//overwrite this note's labels with those from the file; merging may be the wrong thing to do here
+		if ([self _setLabelString:[openMetaTags componentsJoinedByString:@" "]])
+			[self updateTablePreviewString];
+	} else if ([labelString length]) {
+		//this file has either never had tags or has had them cleared by accident (e.g., non-user intervention)
+		//so if this note still has tags, then restore them now.
 
-		NSArray *openMetaTags = [[NSFileManager defaultManager] getOpenMetaTagsAtFSPath:[pathData bytes]];
-		if (openMetaTags) {
-			//overwrite this note's labels with those from the file; merging may be the wrong thing to do here
-			if ([self _setLabelString:[openMetaTags componentsJoinedByString:@" "]])
-				[self updateTablePreviewString];
-		} else if ([labelString length]) {
-			//this file has either never had tags or has had them cleared by accident (e.g., non-user intervention)
-			//so if this note still has tags, then restore them now.
-
-			NSLog(@"restoring lost tags for %@", titleString);
-			[[NSFileManager defaultManager] setOpenMetaTags:[self orderedLabelTitles] atFSPath:[pathData bytes]];
-			didRestoreLabels = YES;
-		}
+		NSLog(@"restoring lost tags for %@", titleString);
+		[NSFileManager setOpenMetaTags: self.orderedLabelTitles forItemAtURL: self.noteFileURL error: NULL];
+		didRestoreLabels = YES;
 	}
 
 	OSStatus err = noErr;
@@ -1646,8 +1642,8 @@ row) {
 	if (PlainTextFormat == storageFormat) {
 		(void) [self writeCurrentFileEncodingToFSRef:&fileRef];
 	}
-	NSFileManager *fileMan = [NSFileManager defaultManager];
-	[fileMan setOpenMetaTags:[self orderedLabelTitles] atFSPath: fileURL.path.fileSystemRepresentation];
+
+	[NSFileManager setOpenMetaTags: self.orderedLabelTitles forItemAtURL: fileURL error: NULL];
 
 	//also export the note's modification and creation dates
 	FSCatalogInfo catInfo;

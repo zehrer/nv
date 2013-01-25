@@ -19,81 +19,109 @@
 #import "NSFileManager_NV.h"
 #include <sys/xattr.h>
 
+static NSError *NVTErrorForPOSIXError(int err, NSURL *URL) {
+
+	NSInteger code = -1;
+	switch (err) {
+		case EPERM: code = NSFileWriteNoPermissionError; break;
+		case EROFS: code = NSFileWriteVolumeReadOnlyError; break;
+		case EINVAL:
+		case ENOTDIR:
+		case ENAMETOOLONG:
+		case ELOOP:
+		case EFAULT: code = NSFileWriteInvalidFileNameError; break;
+		case ENOSPC: code = NSFileWriteOutOfSpaceError; break;
+		case ENOENT: code = NSFileNoSuchFileError; break;
+		case ETXTBSY: code = NSFileLockingError; break;
+		case EACCES:
+		case ENOTSUP: code = NSFileWriteNoPermissionError; break;
+		case EEXIST: code = NSFileWriteFileExistsError; break;
+		case EIO: code =  NSFileWriteUnknownError; break;
+		case ENOATTR:
+		case ERANGE:
+		case E2BIG: code = NSFileWriteUnknownError; break;
+		default: break;
+	}
+
+	if (code == -1) {
+		return [NSError errorWithDomain: NSPOSIXErrorDomain code: err userInfo: @{NSURLErrorKey: URL}];
+	} else {
+		return [NSError errorWithDomain: NSCocoaErrorDomain code: code userInfo: @{
+				   NSUnderlyingErrorKey: [NSError errorWithDomain: NSPOSIXErrorDomain code: err userInfo: nil],
+						  NSURLErrorKey: URL}];
+	}
+}
+
 @implementation NSFileManager (NV)
 
-#define kMaxDataSize 4096
-
-- (id)getOpenMetaTagsAtFSPath:(const char *)path {
++ (id <NSCoding, NSCopying>)getOpenMetaTagsForItemAtURL:(NSURL *)URL error:(out NSError **)outError {
 	//return convention: empty tags should be an empty array;
 	//for files that have never been tagged, or that have had their tags removed, return
 	//files might lose their metadata if edited externally or synced without being first encoded
 
-	if (!path) return nil;
+	if (!URL || !URL.isFileURL) return nil;
 
-	const char *inKeyNameC = "com.apple.metadata:kMDItemOMUserTags";
-	// retrieve data from store.
-	char *data[kMaxDataSize];
-	ssize_t dataSize = kMaxDataSize; // ssize_t means SIGNED size_t as getXattr returns - 1 for no attribute found
-	NSData *nsData = nil;
-	if ((dataSize = getxattr(path, inKeyNameC, data, dataSize, 0, 0)) > 0) {
-		nsData = [NSData dataWithBytes:data length:dataSize];
+	// If the object passed in has no data - is a string of length 0 or an array or dict with 0 objects, then we remove the data at the key.
+	static const char *inKeyNameC = "com.apple.metadata:kMDItemOMUserTags";
+
+	const char *itemPath = URL.path.fileSystemRepresentation;
+
+	NSMutableData *data = nil;
+
+	size_t dataSize = getxattr (itemPath, inKeyNameC, NULL, SIZE_MAX, 0, 0);
+	if (dataSize > 0)
+	{
+		data = [NSMutableData dataWithLength: dataSize];
+		getxattr (itemPath, inKeyNameC, [data mutableBytes], dataSize, 0, 0);
 	} else {
 		// I get EINVAL sometimes when setting/getting xattrs on afp servers running 10.5. When I get this error, I find that everything is working correctly... so it seems to make sense to ignore them
 		// EINVAL means invalid argument. I know that the args are fine.
-		//if ((errno != ENOATTR) && (errno != EINVAL) && error) // it is not an error to have no attribute set
-		//	*error = [NSError errorWithDomain:NSPOSIXErrorDomain code:errno userInfo:@{@"info": [self errnoString:errno]}];
-		return nil;
+		if ((errno != ENOATTR) && (errno != EINVAL) && outError) // it is not an error to have no attribute set
+			*outError = NVTErrorForPOSIXError(errno, URL);
 	}
 
 	// ok, we have some data
 	NSPropertyListFormat formatFound;
-	NSString *errorString = nil;
-	id outObject = [NSPropertyListSerialization propertyListFromData:nsData mutabilityOption:kCFPropertyListImmutable format:&formatFound errorDescription:&errorString];
-	if (errorString) {
-		NSLog(@"%@: error deserializing labels: %@", NSStringFromSelector(_cmd), errorString);
+	NSError *error = nil;
+	id outObject = [NSPropertyListSerialization propertyListWithData: data options: NSPropertyListImmutable format: &formatFound error: &error];
+	if (!outObject) {
+		if (outError) *outError = error;
 		return nil;
 	}
-
 	return outObject;
-
 }
 
-
-- (BOOL)setOpenMetaTags:(id)plistObject atFSPath:(const char *)path {
-	if (!path) return NO;
++ (BOOL)setOpenMetaTags:(id <NSCoding, NSCopying>)object forItemAtURL:(NSURL *)URL error:(out NSError **)outError {
+	if (!URL || !URL.isFileURL) return NO;
 
 	// If the object passed in has no data - is a string of length 0 or an array or dict with 0 objects, then we remove the data at the key.
-
-	const char *inKeyNameC = "com.apple.metadata:kMDItemOMUserTags";
-
-	long returnVal = 0;
+	static const char *key = "com.apple.metadata:kMDItemOMUserTags";
 
 	// always set data as binary plist.
-	NSData *dataToSendNS = nil;
-	if (plistObject) {
-		NSString *errorString = nil;
-		dataToSendNS = [NSPropertyListSerialization dataFromPropertyList:plistObject format:kCFPropertyListBinaryFormat_v1_0 errorDescription:&errorString];
-		if (errorString) {
-			NSLog(@"%@: error serializing labels: %@", NSStringFromSelector(_cmd), errorString);
+	NSData *dataToSend = nil;
+	if (object) {
+		NSError *err = nil;
+		dataToSend = [NSPropertyListSerialization dataWithPropertyList: object format: NSPropertyListBinaryFormat_v1_0 options: 0 error: &err];
+		if (!dataToSend) {
+			if (outError) *outError = err;
 			return NO;
 		}
 	}
 
-	if (dataToSendNS) {
-		// also reject for tags over the maximum size:
-		if ([dataToSendNS length] > kMaxDataSize)
-			return NO;
-		returnVal = setxattr(path, inKeyNameC, [dataToSendNS bytes], [dataToSendNS length], 0, 0);
+	int returnVal = 0;
+	if (dataToSend) {
+		returnVal = setxattr(URL.path.fileSystemRepresentation, key, dataToSend.bytes, dataToSend.length, 0, 0);
 	} else {
-		returnVal = removexattr(path, inKeyNameC, 0);
+		returnVal = removexattr(URL.path.fileSystemRepresentation, key, 0);
 	}
 
 	if (returnVal < 0) {
-		if (errno != ENOATTR) NSLog(@"%@: couldn't set/remove attribute: %d (value '%@')", NSStringFromSelector(_cmd), errno, dataToSendNS);
+		if (outError) *outError = NVTErrorForPOSIXError(errno, URL);
 		return NO;
 	}
 
 	return YES;
+
 }
 
 //TODO: use volumeCapabilities in FSExchangeObjectsCompat.c to skip some work on volumes for which we know we would receive ENOTSUP

@@ -331,6 +331,7 @@ static NSString *const NTVNoteImporterLinkTitleKey = @"NTVNoteImporterLinkTitle"
 //if unable to find, revert to spotlight importer
 - (NoteObject *)noteWithFile:(NSString *)filename {
 	//RTF, Text, Word, HTML, and anything else we can do without too much effort
+	NSURL *fileURL = [NSURL fileURLWithPath: filename];
 	NSString *extension = [[filename pathExtension] lowercaseString];
 	NSDictionary *attributes = [[NSFileManager defaultManager] attributesOfItemAtPath:filename error:NULL];
 	unsigned long fileType = [attributes[NSFileHFSTypeCode] unsignedLongValue];
@@ -428,7 +429,7 @@ static NSString *const NTVNoteImporterLinkTitleKey = @"NTVNoteImporterLinkTitle"
 		[attributedStringFromData santizeForeignStylesForImporting];
 
 		//transfer any openmeta tags associated with this file as tags for the new note
-		NSArray *openMetaTags = [[NSFileManager defaultManager] getOpenMetaTagsAtFSPath:[filename fileSystemRepresentation]];
+		NSArray *openMetaTags = [NSFileManager getOpenMetaTagsForItemAtURL: fileURL error: NULL];
 
 		//we do not also use filename as uniqueFilename, as we are only importing--not taking ownership
 		NoteObject *noteObject = [[NoteObject alloc] initWithNoteBody:attributedStringFromData title:title delegate:nil format:SingleDatabaseFormat labels:[openMetaTags componentsJoinedByString:@" "]];

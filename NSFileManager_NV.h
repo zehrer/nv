@@ -17,9 +17,8 @@
 
 @interface NSFileManager (NV)
 
-- (id)getOpenMetaTagsAtFSPath:(const char *)path;
-
-- (BOOL)setOpenMetaTags:(id)plistObject atFSPath:(const char *)path;
++ (id)getOpenMetaTagsForItemAtURL:(NSURL *)URL error:(out NSError **)outError;
++ (BOOL)setOpenMetaTags:(id <NSCoding, NSCopying>)object forItemAtURL:(NSURL *)URL error:(out NSError **)outError;
 
 - (NSString *)pathCopiedFromAliasData:(NSData *)aliasData;
 
