@@ -39,6 +39,7 @@
 #import "NSBezierPath_NV.h"
 #import "LabelObject.h"
 #import "NSURL+Notation.h"
+#import "NSError+Notation.h"
 #import <objc/message.h>
 
 @interface NotationController ()
@@ -471,58 +472,57 @@
 		//we should have all journal records on disk by now
 		//ensure a newly-written Notes & Settings file is valid before finalizing the save
 		//read the file back from disk, deserialize it, decrypt and decompress it, and compare the notes roughly to our current notes
-		if ([self storeDataAtomicallyInNotesDirectory:serializedData withName:NotesDatabaseFileName destinationRef:&noteDatabaseRef verifyWithBlock:^OSStatus(FSRef *notesFileRef, NSString *filename) {
+		if ((_noteDatabaseURL = [self writeDataToNotesDirectory: serializedData withName: NotesDatabaseFileName verifyUsingBlock:^BOOL(NSURL *temporaryFileURL, NSError **outError) {
 			NSDate *date = [NSDate date];
+			NSError *error = nil;
 
-			NSAssert([filename isEqualToString:NotesDatabaseFileName], @"attempting to verify something other than the database");
-
-			UInt64 fileSize = 0;
-			char *notesData = NULL;
-			OSStatus err = noErr, result = noErr;
-			if ((err = FSRefReadData(notesFileRef, BlockSizeForNotation(self), &fileSize, (void **) &notesData, forceReadMask)) != noErr)
-				return @(err);
-
-			FrozenNotation *frozenNotation = nil;
-			if (!fileSize) {
-				result = eofErr;
-				return @(result);
+			NSData *archivedNotation = [NSData dataWithContentsOfURL: temporaryFileURL options:NSDataReadingMappedIfSafe|NSDataReadingUncached error: &error];
+			if (!archivedNotation) {
+				if (outError) *outError = error;
+				return NO;
 			}
 
-			NSData *archivedNotation = [[NSData alloc] initWithBytesNoCopy:notesData length:fileSize freeWhenDone:YES];
+			FrozenNotation *frozenNotation = nil;
 			@try {
 				frozenNotation = [NSKeyedUnarchiver unarchiveObjectWithData:archivedNotation];
-			} @catch (NSException *e) {
+			}
+			@catch (NSException *e) {
 				NSLog(@"(VERIFY) Error unarchiving notes and preferences from data (%@, %@)", [e name], [e reason]);
-				result = kCoderErr;
-				return @(result);
+				if (outError) *outError = [NSError ntn_errorWithCode: NTNDeserializationError carbon: NO];
+				return NO;
 			}
 
 			//unpack notes using the current NotationPrefs instance (not the just-unarchived one), with which we presumably just used to encrypt it
+			OSStatus err;
 			NSMutableArray *notesToVerify = [frozenNotation unpackedNotesWithPrefs:notationPrefs returningError:&err];
 			if (noErr != err) {
-				result = err;
-				return @(result);
+				if (outError) *outError = [NSError ntn_errorWithCode: err carbon: YES];
+				return NO;
 			}
 
 			//notes were unpacked--now roughly compare notesToVerify with allNotes, plus deletedNotes and notationPrefs
 			if (!notesToVerify || [notesToVerify count] != [allNotes count] || [[frozenNotation deletedNotes] count] != [deletedNotes count] ||
-					[[frozenNotation notationPrefs] notesStorageFormat] != [notationPrefs notesStorageFormat] ||
-					[[frozenNotation notationPrefs] hashIterationCount] != [notationPrefs hashIterationCount]) {
-				result = kItemVerifyErr;
-				return @(result);
+				[[frozenNotation notationPrefs] notesStorageFormat] != [notationPrefs notesStorageFormat] ||
+				[[frozenNotation notationPrefs] hashIterationCount] != [notationPrefs hashIterationCount]) {
+				if (outError) *outError = [NSError ntn_errorWithCode: NTNItemVerificationError carbon: NO];
+				return NO;
 			}
 
-			for (NSUInteger i = 0; i < [notesToVerify count]; i++) {
-				if ([[notesToVerify[i] contentString] length] != [[allNotes[i] contentString] length]) {
-					result = kItemVerifyErr;
-					return @(result);
+			__block BOOL result = YES;
+			[notesToVerify enumerateObjectsUsingBlock:^(NoteObject *note, NSUInteger idx, BOOL *stop) {
+				if (note.contentString.length != [[allNotes[idx] contentString] length]) {
+					if (outError) *outError = [NSError ntn_errorWithCode: NTNItemVerificationError carbon: NO];
+					result = NO;
+					*stop = YES;
 				}
-			}
-
-			NSLog(@"verified %lu notes in %g s", [notesToVerify count], (float) [[NSDate date] timeIntervalSinceDate:date]);
-			return @(result);
-		}] != noErr)
+			}];
+			if (result) NSLog(@"verified %lu notes in %g s", [notesToVerify count], (float) [[NSDate date] timeIntervalSinceDate:date]);
+			return result;
+		} error: NULL])) {
+			[_noteDatabaseURL getFSRef: &noteDatabaseRef];
+		} else {
 			return NO;
+		}
 
 		[notationPrefs setPreferencesAreStored];
 		notesChanged = NO;

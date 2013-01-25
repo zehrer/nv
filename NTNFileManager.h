@@ -29,7 +29,7 @@
 
 - (OSStatus)createFileIfNotPresentInNotesDirectory:(FSRef *)childRef forFilename:(NSString *)filename fileWasCreated:(BOOL *)created;
 
-- (OSStatus)storeDataAtomicallyInNotesDirectory:(NSData *)data withName:(NSString *)filename destinationRef:(FSRef *)destRef;
+- (NSURL *)writeDataToNotesDirectory:(NSData *)data withName:(NSString *)filename verifyUsingBlock:(BOOL(^)(NSURL *, NSError **))block error:(NSError **)outError;
 
 - (NSMutableData *)dataFromFileInNotesDirectory:(FSRef *)childRef forCatalogEntry:(NoteCatalogEntry *)catEntry;
 

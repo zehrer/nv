@@ -1164,13 +1164,15 @@ row) {
 		//see if the file's fileModDate (if it exists) is newer than this note's current fileModificationDate
 		//could offer to merge or revert changes
 
-		OSStatus err = noErr;
-		if ((err = [localDelegate storeDataAtomicallyInNotesDirectory:formattedData withName:filename destinationRef: self.noteFileRef]) != noErr) {
+		NSURL *newNoteFileURL = nil; // change this to the noteFileURL ivar one day
+		if ((newNoteFileURL = [localDelegate writeDataToNotesDirectory: formattedData withName: filename verifyUsingBlock: NULL error: &error])) {
+			[newNoteFileURL getFSRef: self.noteFileRef];
+		} else {
 			NSLog(@"Unable to save note file %@", filename);
-
-			[localDelegate noteDidNotWrite:self errorCode:err];
+			[localDelegate noteDidNotWrite:self error: error];
 			return NO;
 		}
+		
 		//if writing plaintext set the file encoding with setxattr
 		if (PlainTextFormat == formatID) {
 			(void) [self writeCurrentFileEncodingToFSRef: self.noteFileRef];

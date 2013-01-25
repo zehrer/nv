@@ -546,73 +546,54 @@ long BlockSizeForNotation(NotationController *controller) {
 	return FSCreateFileIfNotPresentInDirectory(&noteDirectoryRef, childRef, (__bridge CFStringRef) filename, (Boolean *) created);
 }
 
-- (OSStatus)storeDataAtomicallyInNotesDirectory:(NSData *)data withName:(NSString *)filename destinationRef:(FSRef *)destRef {
-	return [self storeDataAtomicallyInNotesDirectory:data withName:filename destinationRef:destRef verifyWithBlock:NULL];
-}
-
 //either name or destRef must be valid; destRef is declared invalid by filling the struct with 0
 
-- (OSStatus)storeDataAtomicallyInNotesDirectory:(NSData *)data withName:(NSString *)filename destinationRef:(FSRef *)destRef
-								verifyWithBlock:(OSStatus(^)(FSRef *notesFileRef, NSString *filename))block {
-	OSStatus err = noErr;
+- (NSURL *)writeDataToNotesDirectory:(NSData *)data withName:(NSString *)filename verifyUsingBlock:(BOOL(^)(NSURL *, NSError **))block error:(NSError **)outError {
+	NSURL *notesDatabaseURL = [self.noteDirectoryURL URLByAppendingPathComponent: filename isDirectory: NO];
 
-	FSRef tempFileRef;
-	if ((err = CreateTemporaryFile(&noteDirectoryRef, &tempFileRef)) != noErr) {
-		NSLog(@"error creating temporary file: %d", err);
-		return err;
+	NSError *error = nil;
+
+	NSURL *temporaryDatabaseURL = [self.fileManager URLForDirectory: NSItemReplacementDirectory inDomain: NSUserDomainMask appropriateForURL: notesDatabaseURL create: YES error:&error];
+	if (!temporaryDatabaseURL) {
+		NSLog(@"Error securing temporary file: %@", error);
+		if (outError) *outError = error;
+		return nil;
+	}
+	
+	// write data to temporary file
+	if (![data writeToURL: temporaryDatabaseURL options:0 error: &error]) {
+		NSLog(@"Error writing to temporary file: %@", error);
+		if (outError) *outError = error;
+		return nil;
 	}
 
-	//now write to temporary file and swap
-	if ((err = FSRefWriteData(&tempFileRef, BlockSizeForNotation(self), [data length], [data bytes], pleaseCacheMask, false)) != noErr) {
-		NSLog(@"error writing to temporary file: %d", err);
-
-		return err;
-	}
-
-	//before we try to swap the data contents of this temp file with the (possibly even soon-to-be-created) Notes & Settings file,
-	//try to read it back and see if it can be decrypted and decoded:
+	// before we try to swap the data contents of this temp file with the (possibly even soon-to-be-created) Notes & Settings file,
+	// try to read it back and see if it can be decrypted and decoded:
 	if (block) {
-		if (noErr != block(&tempFileRef, filename)) {
+		if (!block(temporaryDatabaseURL, &error)) {
 			NSLog(@"couldn't verify written notes, so not continuing to save");
-			(void) FSDeleteObject(&tempFileRef);
-			return err;
+			[self.fileManager removeItemAtURL: temporaryDatabaseURL error: NULL];
+			if (outError) *outError = error;
+			return nil;
 		}
 	}
 
-	//don't try to make a new fsref if the file is still inside notes folder, but perhaps under a different name
-	BOOL isOwned = NO;
-	if (IsZeros(destRef, sizeof(FSRef)) || [self fileInNotesDirectory:destRef isOwnedByUs:&isOwned hasCatalogInfo:NULL] != noErr || !isOwned) {
-
-		if ((err = [self createFileIfNotPresentInNotesDirectory:destRef forFilename:filename fileWasCreated:nil]) != noErr) {
-			NSLog(@"error creating or getting fsref for file %@: %d", filename, err);
-			return err;
-		}
-	}
-	//if destRef is not zeros, just assume that it exists and retry if it doesn't
-	FSRef newSourceRef, newDestRef;
-
-	if (VolumeSupportsExchangeObjects(self) != 1) {
-		//NSLog(@"emulating fsexchange objects");
-		if ((err = FSExchangeObjectsEmulate(&tempFileRef, destRef, &newSourceRef, &newDestRef)) == noErr) {
-			memcpy(&tempFileRef, &newSourceRef, sizeof(FSRef));
-			memcpy(destRef, &newDestRef, sizeof(FSRef));
+	// if it exists, swap; otherwise, just move
+	if ([notesDatabaseURL checkResourceIsReachableAndReturnError: NULL]) {
+		if (![self.fileManager replaceItemAtURL: notesDatabaseURL withItemAtURL: temporaryDatabaseURL backupItemName: nil options: 0 resultingItemURL: &notesDatabaseURL error: &error]) {
+			NSLog(@"error exchanging contents of temporary file with destination file %@: %@", filename, error);
+			if (outError) *outError = error;
+			return nil;
 		}
 	} else {
-		err = FSExchangeObjects(&tempFileRef, destRef);
+		if (![self.fileManager moveItemAtURL: temporaryDatabaseURL toURL: notesDatabaseURL error: &error]) {
+			NSLog(@"error moving temporary file to destination file %@: %@", filename, error);
+			if (outError) *outError = error;
+			return nil;
+		}
 	}
-
-	if (err != noErr) {
-		NSLog(@"error exchanging contents of temporary file with destination file %@: %d", filename, err);
-		return err;
-	}
-
-	if ((err = FSDeleteObject(&tempFileRef)) != noErr) {
-		NSLog(@"Error deleting temporary file: %d; moving to trash", err);
-		if ((err = [self moveFileToTrash:&tempFileRef forFilename:nil]) != noErr)
-			NSLog(@"Error moving file to trash: %d\n", err);
-	}
-
-	return noErr;
+	
+	return notesDatabaseURL;
 }
 
 - (void)notifyOfChangedTrash {

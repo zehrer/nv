@@ -77,11 +77,6 @@ NSUInteger diskUUIDIndexForNotation(NotationController *controller);
 
 - (OSStatus)createFileIfNotPresentInNotesDirectory:(FSRef *)childRef forFilename:(NSString *)filename fileWasCreated:(BOOL *)created;
 
-- (OSStatus)storeDataAtomicallyInNotesDirectory:(NSData *)data withName:(NSString *)filename destinationRef:(FSRef *)destRef;
-
-- (OSStatus)storeDataAtomicallyInNotesDirectory:(NSData *)data withName:(NSString *)filename destinationRef:(FSRef *)destRef
-								verifyWithBlock:(OSStatus(^)(FSRef *notesFileRef, NSString *filename))block;
-
 + (OSStatus)trashFolderRef:(FSRef *)trashRef forChild:(FSRef *)childRef;
 
 - (OSStatus)moveFileToTrash:(FSRef *)childRef forFilename:(NSString *)filename;
