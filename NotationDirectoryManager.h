@@ -18,7 +18,7 @@
 
 #import "NotationController.h"
 
-@interface NotationController ()
+@interface NotationController (NotationDirectoryManager)
 
 NSInteger compareCatalogEntryName(const void *one, const void *two);
 

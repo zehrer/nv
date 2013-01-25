@@ -8,6 +8,8 @@
 
 #import "NSError+Notation.h"
 
+NSString *const NTNErrorDomain = @"NTNErrorDomain";
+
 @implementation NSError (Notation)
 
 + (NSError *)ntn_errorWithCode:(NSInteger)code carbon:(BOOL)carbonOrNTN {
