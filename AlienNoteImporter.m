@@ -28,6 +28,7 @@
 #import "NSFileManager_NV.h"
 #import "NotationPrefs.h"
 #import "NotationController.h"
+#import "NSString+UTType.h"
 #import <objc/message.h>
 #import <Quartz/Quartz.h>
 
@@ -330,16 +331,20 @@ static NSString *const NTVNoteImporterLinkTitleKey = @"NTVNoteImporterLinkTitle"
 //auto-detect based on file type/extension/header
 //if unable to find, revert to spotlight importer
 - (NoteObject *)noteWithFile:(NSString *)filename {
-	//RTF, Text, Word, HTML, and anything else we can do without too much effort
+	// RTF, Text, Word, HTML, and anything else we can do without too much effort
 	NSURL *fileURL = [NSURL fileURLWithPath: filename];
-	NSString *extension = [[filename pathExtension] lowercaseString];
-	NSDictionary *attributes = [[NSFileManager defaultManager] attributesOfItemAtPath:filename error:NULL];
-	unsigned long fileType = [attributes[NSFileHFSTypeCode] unsignedLongValue];
+	NSString *extension = fileURL.pathExtension.lowercaseString;
+
+	// pull attributes for URL
+	NSDictionary *attrib = [fileURL resourceValuesForKeys: @[NSURLIsDirectoryKey, NSURLTypeIdentifierKey, NSURLCreationDateKey, NSURLContentModificationDateKey] error: NULL];
+	BOOL isDirectory = [attrib[NSURLIsDirectoryKey] boolValue];
+	NSString *UTI = attrib[NSURLTypeIdentifierKey];
+	NSDate *creationDate = attrib[NSURLCreationDateKey];
+	NSDate *modificationDate = attrib[NSURLContentModificationDateKey];
+
 	NSString *sourceIdentifierString = nil;
-
 	NSMutableAttributedString *attributedStringFromData = nil;
-
-	if (fileType == HTML_TYPE_ID || [extension isEqualToString:@"htm"] || [extension isEqualToString:@"html"] || [extension isEqualToString:@"shtml"]) {
+	if ([UTI ut_conformsToType: @"public.html"] || [extension isEqualToString:@"htm"] || [extension isEqualToString:@"html"] || [extension isEqualToString:@"shtml"]) {
 		//should convert to text with markdown here
 		if ([[GlobalPrefs defaultPrefs] useMarkdownImport]) {
 			if ([[GlobalPrefs defaultPrefs] useReadability] || [self shouldUseReadability]) {
@@ -353,20 +358,20 @@ static NSString *const NTVNoteImporterLinkTitleKey = @"NTVNoteImporterLinkTitle"
 			attributedStringFromData = [[NSMutableAttributedString alloc] initWithHTML:[NSData uncachedDataFromFile:filename]
 																			   options:[NSDictionary optionsDictionaryWithTimeout:10.0] documentAttributes:NULL];
 		}
-	} else if (fileType == RTF_TYPE_ID || [extension isEqualToString:@"rtf"] || [extension isEqualToString:@"nvhelp"] || [extension isEqualToString:@"rtx"]) {
+	} else if ([UTI ut_conformsToType: @"public.rtf"] || [extension isEqualToString:@"rtf"] || [extension isEqualToString:@"nvhelp"] || [extension isEqualToString:@"rtx"]) {
 		attributedStringFromData = [[NSMutableAttributedString alloc] initWithRTF:[NSData uncachedDataFromFile:filename] documentAttributes:NULL];
 
-	} else if (fileType == RTFD_TYPE_ID || [extension isEqualToString:@"rtfd"]) {
+	} else if ([UTI ut_conformsToType: @"com.apple.rtfd"] || [extension isEqualToString:@"rtfd"]) {
 		NSFileWrapper *wrapper = [[NSFileWrapper alloc] initWithPath:filename];
-		if ([attributes[NSFileType] isEqualToString:NSFileTypeDirectory])
+		if (isDirectory)
 			attributedStringFromData = [[NSMutableAttributedString alloc] initWithRTFDFileWrapper:wrapper documentAttributes:NULL];
 		else
 			attributedStringFromData = [[NSMutableAttributedString alloc] initWithRTFD:[NSData uncachedDataFromFile:filename] documentAttributes:NULL];
 
-	} else if (fileType == WORD_DOC_TYPE_ID || [extension isEqualToString:@"doc"]) {
+	} else if ([UTI ut_conformsToType: @"com.microsoft.word.doc"] || [extension isEqualToString:@"doc"]) {
 		attributedStringFromData = [[NSMutableAttributedString alloc] initWithDocFormat:[NSData uncachedDataFromFile:filename] documentAttributes:NULL];
 
-	} else if ([extension isEqualToString:@"docx"] || [extension isEqualToString:@"webarchive"]) {
+	} else if ([UTI ut_conformsToType: @"org.openxmlformats.wordprocessingml.document"] || [extension isEqualToString:@"docx"] || [extension isEqualToString:@"webarchive"]) {
 		//make it guess for us, but if it's a webarchive we'll get the URL
 		NSData *data = [NSData uncachedDataFromFile:filename];
 		NSString *path = [data pathURLFromWebArchive];
@@ -374,7 +379,7 @@ static NSString *const NTVNoteImporterLinkTitleKey = @"NTVNoteImporterLinkTitle"
 
 		if ([path length] > 0 && [attributedStringFromData length] > 0)
 			sourceIdentifierString = path;
-	} else if (fileType == PDF_TYPE_ID || [extension isEqualToString:@"pdf"]) {
+	} else if ([UTI ut_conformsToType: @"com.adobe.pdf"] || [extension isEqualToString:@"pdf"]) {
 		//try PDFKit loading lazily
 		@try {
 			PDFDocument *doc = [[PDFDocument alloc] initWithURL:[NSURL fileURLWithPath:filename]];
@@ -392,8 +397,7 @@ static NSString *const NTVNoteImporterLinkTitleKey = @"NTVNoteImporterLinkTitle"
 		} @catch (NSException *e) {
 			NSLog(@"Error importing PDF %@ (%@, %@)", filename, [e name], [e reason]);
 		}
-	} else if (fileType == TEXT_TYPE_ID || [extension isEqualToString:@"txt"] || [extension isEqualToString:@"text"] ||
-			[filename UTIOfFileConformsToType:@"public.plain-text"]) {
+	} else if ([UTI ut_conformsToType: @"public.plain-text"] || [extension isEqualToString:@"txt"] || [extension isEqualToString:@"text"]) {
 
 		NSMutableString *stringFromData = [NSMutableString newShortLivedStringFromFile:filename];
 		if (stringFromData) {
@@ -405,7 +409,6 @@ static NSString *const NTVNoteImporterLinkTitleKey = @"NTVNoteImporterLinkTitle"
 	// else {
 	//try spotlight importer if on 10.4
 	//}
-
 
 	if (attributedStringFromData) {
 		[attributedStringFromData trimLeadingWhitespace];
@@ -436,9 +439,9 @@ static NSString *const NTVNoteImporterLinkTitleKey = @"NTVNoteImporterLinkTitle"
 		if (noteObject) {
 			if (bodyLoc > 0 && [attributedStringFromData length] >= bodyLoc + prefixedSourceLength) [noteObject setSelectedRange:NSMakeRange(prefixedSourceLength, bodyLoc)];
 			if (shouldGrabCreationDates) {
-				[noteObject setDateAdded:CFDateGetAbsoluteTime((CFDateRef) attributes[NSFileCreationDate])];
+				[noteObject setDateAdded: [creationDate timeIntervalSinceReferenceDate]];
 			}
-			[noteObject setDateModified:CFDateGetAbsoluteTime((CFDateRef) attributes[NSFileModificationDate])];
+			[noteObject setDateModified: [modificationDate timeIntervalSinceReferenceDate]];
 		} else {
 			NSLog(@"couldn't generate note object from imported attributed string??");
 		}
