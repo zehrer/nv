@@ -76,7 +76,6 @@
 		catEntriesCount = totalCatEntriesCount = 0;
 
 		bzero(&noteDatabaseRef, sizeof(FSRef));
-		bzero(&noteDirectoryRef, sizeof(FSRef));
 		volumeSupportsExchangeObjects = -1;
 
 		lastLayoutStyleGenerated = -1;
@@ -278,72 +277,64 @@
 }
 
 - (BOOL)initializeJournaling {
-
-	const UInt32 maxPathSize = 8 * 1024;
-	UInt8 *convertedPath = (UInt8 *) malloc(maxPathSize * sizeof(UInt8));
-	OSStatus err = noErr;
+	const char *path = self.noteDirectoryURL.path.fileSystemRepresentation;
 	NSData *walSessionKey = [notationPrefs WALSessionKey];
 	BOOL success = NO;
 
-	if ((err = FSRefMakePath(&noteDirectoryRef, convertedPath, maxPathSize)) == noErr) {
-		//initialize the journal if necessary
-		if ((walWriter = [[WALStorageController alloc] initWithParentFSRep:(char *) convertedPath encryptionKey:walSessionKey])) {
-			success = YES;
-		} else {
-			//journal file probably already exists, so try to recover it
+	//initialize the journal if necessary
+	if ((walWriter = [[WALStorageController alloc] initWithParentFSRep: path encryptionKey: walSessionKey])) {
+		success = YES;
+	} else {
+		//journal file probably already exists, so try to recover it
 
-			WALRecoveryController *walReader = [[WALRecoveryController alloc] initWithParentFSRep:(char *) convertedPath encryptionKey:walSessionKey];
+		WALRecoveryController *walReader = [[WALRecoveryController alloc] initWithParentFSRep: path encryptionKey:walSessionKey];
 
-			if (walReader) {
-				BOOL databaseCouldNotBeFlushed = NO;
-				NSDictionary *recoveredNotes = [walReader recoveredNotes];
-				if ([recoveredNotes count] > 0) {
-					[self processRecoveredNotes:recoveredNotes];
+		if (walReader) {
+			BOOL databaseCouldNotBeFlushed = NO;
+			NSDictionary *recoveredNotes = [walReader recoveredNotes];
+			if ([recoveredNotes count] > 0) {
+				[self processRecoveredNotes:recoveredNotes];
 
-					if (![self flushAllNoteChanges]) {
-						//we shouldn't continue because the journal is still the sole record of the unsaved notes, so we can't delete it
-						//BUT: what if the database can't be verified? We should be able to continue, and just keep adding to the WAL
-						//in this case the WAL should be destroyed, re-initialized, and the recovered (and de-duped) notes added back
-						NSLog(@"Unable to flush recovered notes back to database");
-						databaseCouldNotBeFlushed = YES;
-					}
+				if (![self flushAllNoteChanges]) {
+					//we shouldn't continue because the journal is still the sole record of the unsaved notes, so we can't delete it
+					//BUT: what if the database can't be verified? We should be able to continue, and just keep adding to the WAL
+					//in this case the WAL should be destroyed, re-initialized, and the recovered (and de-duped) notes added back
+					NSLog(@"Unable to flush recovered notes back to database");
+					databaseCouldNotBeFlushed = YES;
 				}
-				//is there a way that recoverNextObject could fail that would indicate a failure with the file as opposed to simple non-recovery?
-				//if so, it perhaps the recoveredNotes method should also return an error condition, to be checked here
+			}
+			//is there a way that recoverNextObject could fail that would indicate a failure with the file as opposed to simple non-recovery?
+			//if so, it perhaps the recoveredNotes method should also return an error condition, to be checked here
 
-				//there could be other issues, too (1)
+			//there could be other issues, too (1)
 
-				if ([walReader destroyLogFile]) {
-					if ((walWriter = [[WALStorageController alloc] initWithParentFSRep:(char *) convertedPath encryptionKey:walSessionKey])) {
-						if ([recoveredNotes count] > 0) {
-							if (databaseCouldNotBeFlushed) {
-								//re-add the contents of recoveredNotes to walWriter; LSNs should take care of the order; no need to sort
-								//this allows for an ever-growing journal in the case of broken database serialization
-								//it should not be an acceptable condition for permanent use; hopefully an update would come soon
-								//warn the user, perhaps
-								[walWriter writeNoteObjects:[recoveredNotes allValues]];
-							}
-							[self refilterNotes];
+			if ([walReader destroyLogFile]) {
+				if ((walWriter = [[WALStorageController alloc] initWithParentFSRep: path encryptionKey:walSessionKey])) {
+					if ([recoveredNotes count] > 0) {
+						if (databaseCouldNotBeFlushed) {
+							//re-add the contents of recoveredNotes to walWriter; LSNs should take care of the order; no need to sort
+							//this allows for an ever-growing journal in the case of broken database serialization
+							//it should not be an acceptable condition for permanent use; hopefully an update would come soon
+							//warn the user, perhaps
+							[walWriter writeNoteObjects:[recoveredNotes allValues]];
 						}
-					} else {
-						//couldn't create a journal after recovering the old one
-						//if databaseCouldNotBeFlushed is true here, then we've potentially lost notes; perhaps exchangeobjects would be better here?
-						NSLog(@"Unable to create a new write-ahead-log after deleting the old one");
+						[self refilterNotes];
 					}
 				} else {
-					//couldn't delete the log file, so we can't create a new one
-					NSLog(@"Unable to delete the old write-ahead-log file");
+					//couldn't create a journal after recovering the old one
+					//if databaseCouldNotBeFlushed is true here, then we've potentially lost notes; perhaps exchangeobjects would be better here?
+					NSLog(@"Unable to create a new write-ahead-log after deleting the old one");
 				}
 			} else {
-				NSLog(@"Unable to recover unsaved notes from write-ahead-log");
-				//1) should we let the user attempt to remove it without recovery?
+				//couldn't delete the log file, so we can't create a new one
+				NSLog(@"Unable to delete the old write-ahead-log file");
 			}
+		} else {
+			NSLog(@"Unable to recover unsaved notes from write-ahead-log");
+			//1) should we let the user attempt to remove it without recovery?
 		}
-	} else {
-		NSLog(@"FSRefMakePath error: %d", err);
 	}
 
-	free(convertedPath);
 	return success;
 }
 
@@ -636,7 +627,7 @@
 			[[unwrittenNotes copy] makeObjectsPerformSelector:@selector(writeUsingCurrentFileFormatIfNecessary)];
 
 			//this always seems to call ourselves
-			FNNotify(&noteDirectoryRef, kFNDirectoryModifiedMessage, kFNNoImplicitAllSubscription);
+			[[NSWorkspace sharedWorkspace] noteFileSystemChanged: self.noteDirectoryURL.path];
 		}
 		if (walWriter) {
 			//append unwrittenNotes to journal, if one exists
