@@ -158,6 +158,10 @@ NSInteger compareFileSize(id *a, id *b);
 @property(nonatomic, readonly) NSStringEncoding fileEncoding;
 @property(nonatomic, strong, readonly) NSMutableArray *prefixParents;
 
+
+@property (nonatomic, readonly) FSRef *noteFileRef;
+@property (nonatomic, readonly) NSURL *noteFileURL;
+
 #define DefColAttrAccessor(__FName, __IVar) force_inline id __FName(NotesTableView *tv, NoteObject *note, NSInteger row) { return note->__IVar; }
 
 //return types are NSString or NSAttributedString, satisifying NSTableDataSource protocol otherwise

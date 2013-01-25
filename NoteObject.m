@@ -37,6 +37,7 @@
 #import "LabelColumnCell.h"
 #import "ODBEditor.h"
 #import "NSString_NV.h"
+#import "NSURL+Notation.h"
 
 #if __LP64__
 // Needed for compatability with data created by 32bit app
@@ -82,8 +83,6 @@ typedef NSRange NSRange32;
 @synthesize fileEncoding = fileEncoding;
 @synthesize prefixParents = prefixParentNotes;
 
-static FSRef *noteFileRefInit(NoteObject *obj);
-
 - (id)init {
 	if ((self = [super init])) {
 
@@ -120,13 +119,6 @@ static FSRef *noteFileRefInit(NoteObject *obj);
 		if (!tableTitleString && !didUnarchive) [self updateTablePreviewString];
 		if (!labelSet && !didUnarchive) [self updateLabelConnectionsAfterDecoding];
 	}
-}
-
-static FSRef *noteFileRefInit(NoteObject *obj) {
-	if (!(obj->noteFileRef)) {
-		obj->noteFileRef = (FSRef *) calloc(1, sizeof(FSRef));
-	}
-	return obj->noteFileRef;
 }
 
 - (void)setAttrsModifiedDate:(UTCDateTime *)dateTime {
@@ -726,7 +718,7 @@ row) {
 		//woe to the exporter who also left the note files in the notes directory after switching to a singledb format
 		//his note names might not be up-to-date
 		if ([localDelegate currentNoteStorageFormat] != SingleDatabaseFormat ||
-				![localDelegate notesDirectoryContainsFile:filename returningFSRef:noteFileRefInit(self)]) {
+				![localDelegate notesDirectoryContainsFile:filename returningFSRef: self.noteFileRef]) {
 
 			[self setFilenameFromTitle];
 		}
@@ -770,7 +762,7 @@ row) {
 		filename = [aString copy];
 
 		if (!externalTrigger) {
-			if ([localDelegate noteFileRenamed:noteFileRefInit(self) fromName:oldName toName:filename] != noErr) {
+			if ([localDelegate noteFileRenamed:self.noteFileRef fromName:oldName toName:filename] != noErr) {
 				NSLog(@"Couldn't rename note %@", titleString);
 
 				//revert name
@@ -1044,8 +1036,8 @@ row) {
 - (NSString *)noteFilePath {
 	UniChar chars[256];
 	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
-	if (localDelegate && [localDelegate refreshFileRefIfNecessary:noteFileRefInit(self) withName:filename charsBuffer:chars] == noErr)
-		return [[NSFileManager defaultManager] pathWithFSRef:noteFileRefInit(self)];
+	if (localDelegate && [localDelegate refreshFileRefIfNecessary: self.noteFileRef withName:filename charsBuffer:chars] == noErr)
+		return [[NSFileManager defaultManager] pathWithFSRef: self.noteFileRef];
 	return nil;
 }
 
@@ -1069,7 +1061,7 @@ row) {
 	BOOL fileIsOwned = NO;
 	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
 
-	if (localDelegate && [localDelegate createFileIfNotPresentInNotesDirectory:noteFileRefInit(self) forFilename:filename fileWasCreated:&fileWasCreated] != noErr)
+	if (localDelegate && [localDelegate createFileIfNotPresentInNotesDirectory: self.noteFileRef forFilename:filename fileWasCreated:&fileWasCreated] != noErr)
 		return NO;
 
 	if (fileWasCreated) {
@@ -1079,7 +1071,7 @@ row) {
 
 	//createFileIfNotPresentInNotesDirectory: works by name, so if this file is not owned by us at this point, it was a race with moving it
 	FSCatalogInfo info;
-	if (localDelegate && [localDelegate fileInNotesDirectory:noteFileRefInit(self) isOwnedByUs:&fileIsOwned hasCatalogInfo:&info] != noErr)
+	if (localDelegate && [localDelegate fileInNotesDirectory: self.noteFileRef isOwnedByUs:&fileIsOwned hasCatalogInfo:&info] != noErr)
 		return NO;
 
 	CFAbsoluteTime timeOnDisk, lastTime;
@@ -1173,7 +1165,7 @@ row) {
 		//could offer to merge or revert changes
 
 		OSStatus err = noErr;
-		if ((err = [localDelegate storeDataAtomicallyInNotesDirectory:formattedData withName:filename destinationRef:noteFileRefInit(self)]) != noErr) {
+		if ((err = [localDelegate storeDataAtomicallyInNotesDirectory:formattedData withName:filename destinationRef: self.noteFileRef]) != noErr) {
 			NSLog(@"Unable to save note file %@", filename);
 
 			[localDelegate noteDidNotWrite:self errorCode:err];
@@ -1181,13 +1173,13 @@ row) {
 		}
 		//if writing plaintext set the file encoding with setxattr
 		if (PlainTextFormat == formatID) {
-			(void) [self writeCurrentFileEncodingToFSRef:noteFileRefInit(self)];
+			(void) [self writeCurrentFileEncodingToFSRef: self.noteFileRef];
 		}
 		NSFileManager *fileMan = [NSFileManager defaultManager];
-		[fileMan setOpenMetaTags:[self orderedLabelTitles] atFSPath:[[fileMan pathWithFSRef:noteFileRefInit(self)] fileSystemRepresentation]];
+		[fileMan setOpenMetaTags:[self orderedLabelTitles] atFSPath:[[fileMan pathWithFSRef: self.noteFileRef] fileSystemRepresentation]];
 
 		//always hide the file extension for all types
-		LSSetExtensionHiddenForRef(noteFileRefInit(self), TRUE);
+		LSSetExtensionHiddenForRef(self.noteFileRef, TRUE);
 
 		if (!resetFilename) {
 			//NSLog(@"resetting the file name just because.");
@@ -1221,14 +1213,14 @@ row) {
 	UCConvertCFAbsoluteTimeToUTCDateTime(createdDate, &catInfo.createDate);
 	UCConvertCFAbsoluteTimeToUTCDateTime(modifiedDate, &catInfo.contentModDate);
 
-	// if this method is called anywhere else, then use [delegate refreshFileRefIfNecessary:noteFileRefInit(self) withName:filename charsBuffer:chars]; instead
+	// if this method is called anywhere else, then use [delegate refreshFileRefIfNecessary: self.noteFileRef withName:filename charsBuffer:chars]; instead
 	// for now, it is not called in any situations where the fsref might accidentally point to a moved file
 	OSStatus err = noErr;
 	do {
-		if (noErr != err || IsZeros(noteFileRefInit(self), sizeof(FSRef))) {
-			if (![localDelegate notesDirectoryContainsFile:filename returningFSRef:noteFileRefInit(self)]) return fnfErr;
+		if (noErr != err || IsZeros(self.noteFileRef, sizeof(FSRef))) {
+			if (![localDelegate notesDirectoryContainsFile:filename returningFSRef: self.noteFileRef]) return fnfErr;
 		}
-		err = FSSetCatalogInfo(noteFileRefInit(self), kFSCatInfoCreateDate | kFSCatInfoContentMod, &catInfo);
+		err = FSSetCatalogInfo(self.noteFileRef, kFSCatInfoCreateDate | kFSCatInfoContentMod, &catInfo);
 	} while (fnfErr == err);
 
 	if (noErr != err) {
@@ -1238,7 +1230,7 @@ row) {
 
 	//regardless of whether FSSetCatalogInfo was successful, the file mod date could still have changed
 
-	if ((err = [localDelegate fileInNotesDirectory:noteFileRefInit(self) isOwnedByUs:NULL hasCatalogInfo:&catInfo]) != noErr) {
+	if ((err = [localDelegate fileInNotesDirectory: self.noteFileRef isOwnedByUs:NULL hasCatalogInfo:&catInfo]) != noErr) {
 		NSLog(@"Unable to get new modification date of file %@: %d", filename, err);
 		return err;
 	}
@@ -1320,10 +1312,10 @@ row) {
 		id <NTNFileManager, SynchronizedNoteObjectDelegate> localDelegate = (id) self.delegate;
 
 		UniChar chars[256];
-		if ([localDelegate refreshFileRefIfNecessary:noteFileRefInit(self) withName:filename charsBuffer:chars] != noErr)
+		if ([localDelegate refreshFileRefIfNecessary: self.noteFileRef withName:filename charsBuffer:chars] != noErr)
 			return NO;
 
-		if ([self writeCurrentFileEncodingToFSRef:noteFileRefInit(self)] != noErr)
+		if ([self writeCurrentFileEncodingToFSRef: self.noteFileRef] != noErr)
 			return NO;
 
 		if ((updated = [self updateFromFile])) {
@@ -1340,7 +1332,7 @@ row) {
 
 - (BOOL)updateFromFile {
 	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
-	NSMutableData *data = [localDelegate dataFromFileInNotesDirectory:noteFileRefInit(self) forFilename:filename];
+	NSMutableData *data = [localDelegate dataFromFileInNotesDirectory: self.noteFileRef forFilename:filename];
 	if (!data) {
 		NSLog(@"Couldn't update note from file on disk");
 		return NO;
@@ -1348,7 +1340,7 @@ row) {
 
 	if ([self updateFromData:data inFormat:currentFormatID]) {
 		FSCatalogInfo info;
-		if ([localDelegate fileInNotesDirectory:noteFileRefInit(self) isOwnedByUs:NULL hasCatalogInfo:&info] == noErr) {
+		if ([localDelegate fileInNotesDirectory: self.noteFileRef isOwnedByUs:NULL hasCatalogInfo:&info] == noErr) {
 			self.fileModifiedDate = info.contentModDate;
 			self.attrsModifiedDate = &info.attributeModDate;
 			self.fileNodeID = info.nodeID;
@@ -1365,7 +1357,7 @@ row) {
 
 	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
 
-	NSMutableData *data = [localDelegate dataFromFileInNotesDirectory:noteFileRefInit(self) forCatalogEntry:catEntry];
+	NSMutableData *data = [localDelegate dataFromFileInNotesDirectory: self.noteFileRef forCatalogEntry:catEntry];
 	if (!data) {
 		NSLog(@"Couldn't update note from file on disk given catalog entry");
 		return NO;
@@ -1382,7 +1374,7 @@ row) {
 	self.fileSize = catEntry->logicalSize;
 
 	NSMutableData *pathData = [NSMutableData dataWithLength:4 * 1024];
-	if (FSRefMakePath(noteFileRefInit(self), [pathData mutableBytes], (unsigned int) [pathData length]) == noErr) {
+	if (FSRefMakePath(self.noteFileRef, [pathData mutableBytes], (unsigned int) [pathData length]) == noErr) {
 
 		NSArray *openMetaTags = [[NSFileManager defaultManager] getOpenMetaTagsAtFSPath:[pathData bytes]];
 		if (openMetaTags) {
@@ -1410,7 +1402,7 @@ row) {
 		//or if this file has just been altered, grab its newly-changed modification dates
 
 		FSCatalogInfo info;
-		if ([localDelegate fileInNotesDirectory:noteFileRefInit(self) isOwnedByUs:NULL hasCatalogInfo:&info] == noErr) {
+		if ([localDelegate fileInNotesDirectory: self.noteFileRef isOwnedByUs:NULL hasCatalogInfo:&info] == noErr) {
 			if (createdDate == 0.0 && UCConvertUTCDateTimeToCFAbsoluteTime(&info.createDate, &aCreateDate) == noErr) {
 				[self setDateAdded:aCreateDate];
 			}
@@ -1442,7 +1434,7 @@ row) {
 			break;
 		case PlainTextFormat:
 			//try to merge/re-match attributes?
-			if ((stringFromData = [NSMutableString newShortLivedStringFromData:data ofGuessedEncoding:&fileEncoding withPath:NULL orWithFSRef:noteFileRefInit(self)])) {
+			if ((stringFromData = [NSMutableString newShortLivedStringFromData:data ofGuessedEncoding:&fileEncoding withPath:NULL orWithFSRef: self.noteFileRef])) {
 				attributedStringFromData = [[NSMutableAttributedString alloc] initWithString:stringFromData
 																				  attributes:[[GlobalPrefs defaultPrefs] noteBodyAttributes]];
 			} else {
@@ -1505,7 +1497,7 @@ row) {
 - (void)moveFileToTrash {
 	OSStatus err = noErr;
 	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
-	if ((err = [localDelegate moveFileToTrash:noteFileRefInit(self) forFilename:filename]) != noErr) {
+	if ((err = [localDelegate moveFileToTrash: self.noteFileRef forFilename:filename]) != noErr) {
 		NSLog(@"Couldn't move file to trash: %d", err);
 	} else {
 		//file's gone! don't assume it's not coming back. if the storage format was not single-db, this note better be removed
@@ -1516,7 +1508,7 @@ row) {
 - (void)removeFileFromDirectory {
 #if PERMADELETE
 	OSStatus err = noErr;
-	if ((err = [delegate deleteFileInNotesDirectory:noteFileRefInit(self) forFilename:filename]) != noErr) {
+	if ((err = [delegate deleteFileInNotesDirectory: self.noteFileRef forFilename:filename]) != noErr) {
 		
 		if (err != fnfErr) {
 			//what happens if we wanted to undo the deletion? moveFileToTrash will now tell the note that it shouldn't look for the file
@@ -1767,6 +1759,18 @@ BOOL noteTitleIsAPrefixOfOtherNoteTitle(NoteObject *longerNote, NoteObject *shor
 - (void)_undoManagerDidChange:(NSNotification *)notification {
 	[self makeNoteDirtyUpdateTime:YES updateFile:YES];
 	//queue note to be synchronized to disk (and network if necessary)
+}
+
+- (FSRef *)noteFileRef {
+	if (!noteFileRef) {
+		noteFileRef = calloc(1, sizeof(FSRef));
+	}
+	return noteFileRef;
+}
+
+- (NSURL *)noteFileURL {
+	// I know this is slow. Temporary.
+	return [NSURL URLWithFSRef: self.noteFileRef];
 }
 
 
