@@ -99,8 +99,7 @@
 				}
 			}
 
-			FNNotify(&directoryRef, kFNDirectoryModifiedMessage, kFNNoImplicitAllSubscription);
-
+			[[NSWorkspace sharedWorkspace] noteFileSystemChanged: URL.path];
 		}
 	};
 
