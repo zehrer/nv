@@ -473,6 +473,7 @@
 		//ensure a newly-written Notes & Settings file is valid before finalizing the save
 		//read the file back from disk, deserialize it, decrypt and decompress it, and compare the notes roughly to our current notes
 		if ((_noteDatabaseURL = [self writeDataToNotesDirectory: serializedData withName: NotesDatabaseFileName verifyUsingBlock:^BOOL(NSURL *temporaryFileURL, NSError **outError) {
+			NSAssert([temporaryFileURL.lastPathComponent isEqualToString:NotesDatabaseFileName], @"attempting to verify something other than the database");
 			NSDate *date = [NSDate date];
 			NSError *error = nil;
 

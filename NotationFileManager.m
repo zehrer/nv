@@ -549,16 +549,18 @@ long BlockSizeForNotation(NotationController *controller) {
 //either name or destRef must be valid; destRef is declared invalid by filling the struct with 0
 
 - (NSURL *)writeDataToNotesDirectory:(NSData *)data withName:(NSString *)filename verifyUsingBlock:(BOOL(^)(NSURL *, NSError **))block error:(NSError **)outError {
-	NSURL *notesDatabaseURL = [self.noteDirectoryURL URLByAppendingPathComponent: filename isDirectory: NO];
+	NSURL *notesDatabaseURL = [self.noteDirectoryURL URLByAppendingPathComponent: filename];
 
 	NSError *error = nil;
 
-	NSURL *temporaryDatabaseURL = [self.fileManager URLForDirectory: NSItemReplacementDirectory inDomain: NSUserDomainMask appropriateForURL: notesDatabaseURL create: YES error:&error];
-	if (!temporaryDatabaseURL) {
+	NSURL *temporaryDatabaseFolder = [self.fileManager URLForDirectory: NSItemReplacementDirectory inDomain: NSUserDomainMask appropriateForURL: notesDatabaseURL create: YES error:&error];
+	if (!temporaryDatabaseFolder) {
 		NSLog(@"Error securing temporary file: %@", error);
 		if (outError) *outError = error;
 		return nil;
 	}
+
+	NSURL *temporaryDatabaseURL = [temporaryDatabaseFolder URLByAppendingPathComponent: filename];
 	
 	// write data to temporary file
 	if (![data writeToURL: temporaryDatabaseURL options:0 error: &error]) {
