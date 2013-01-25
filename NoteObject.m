@@ -1037,7 +1037,7 @@ row) {
 	UniChar chars[256];
 	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
 	if (localDelegate && [localDelegate refreshFileRefIfNecessary: self.noteFileRef withName:filename charsBuffer:chars] == noErr)
-		return [[NSFileManager defaultManager] pathWithFSRef: self.noteFileRef];
+		return self.noteFileURL.path;
 	return nil;
 }
 
@@ -1176,7 +1176,7 @@ row) {
 			(void) [self writeCurrentFileEncodingToFSRef: self.noteFileRef];
 		}
 		NSFileManager *fileMan = [NSFileManager defaultManager];
-		[fileMan setOpenMetaTags:[self orderedLabelTitles] atFSPath:[[fileMan pathWithFSRef: self.noteFileRef] fileSystemRepresentation]];
+		[fileMan setOpenMetaTags:[self orderedLabelTitles] atFSPath: self.noteFileURL.path.fileSystemRepresentation];
 
 		//always hide the file extension for all types
 		LSSetExtensionHiddenForRef(self.noteFileRef, TRUE);
@@ -1628,11 +1628,15 @@ row) {
 		NSLog(@"FSCreateFileIfNotPresentInDirectory: %d", err);
 		return err;
 	}
+	
 	if (!fileWasCreated && !overwrite) {
 		NSLog(@"File already existed!");
 		return dupFNErr;
 	}
 	//yes, the file is probably not on the same volume as our notes directory
+
+
+	NSURL *fileURL = [NSURL URLWithFSRef: &fileRef];
 
 	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
 	if ((err = FSRefWriteData(&fileRef, localDelegate.blockSize, [formattedData length], [formattedData bytes], 0, true)) != noErr) {
@@ -1643,7 +1647,7 @@ row) {
 		(void) [self writeCurrentFileEncodingToFSRef:&fileRef];
 	}
 	NSFileManager *fileMan = [NSFileManager defaultManager];
-	[fileMan setOpenMetaTags:[self orderedLabelTitles] atFSPath:[[fileMan pathWithFSRef:&fileRef] fileSystemRepresentation]];
+	[fileMan setOpenMetaTags:[self orderedLabelTitles] atFSPath: fileURL.path.fileSystemRepresentation];
 
 	//also export the note's modification and creation dates
 	FSCatalogInfo catInfo;

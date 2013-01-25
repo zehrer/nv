@@ -16,6 +16,7 @@
 #import "NSData_transformations.h"
 #import "NSFileManager_NV.h"
 #import "GlobalPrefs.h"
+#import "NSURL+Notation.h"
 #import <MASShortcut/MASShortcutView.h>
 #import <MASShortcut/MASShortcutView+UserDefaults.h>
 
@@ -305,9 +306,11 @@
 	}
 
 	FSRef currentNotesDirectoryRef;
+	NSURL *currentNotesDirectoryURL = nil;
 	//resolve alias to fsref; get path from fsref
 	if ([[prefsController aliasDataForDefaultDirectory] fsRefAsAlias:&currentNotesDirectoryRef]) {
-		NSString *resolvedPath = [[NSFileManager defaultManager] pathWithFSRef:&currentNotesDirectoryRef];
+		currentNotesDirectoryURL = [NSURL URLWithFSRef: &currentNotesDirectoryRef];
+		NSString *resolvedPath = currentNotesDirectoryURL.path;
 		if (resolvedPath) startingDirectory = resolvedPath;
 	}
 
