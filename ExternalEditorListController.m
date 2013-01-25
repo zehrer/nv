@@ -109,9 +109,9 @@ NSString *ExternalEditorsChangedNotification = @"ExternalEditorsChanged";
 
 - (NSImage *)iconImage {
 	if (!iconImg) {
-		FSRef appRef;
-		if (CFURLGetFSRef((CFURLRef) [self resolvedURL], &appRef))
-			iconImg = [NSImage smallIconForFSRef:&appRef];
+		NSImage *newIconImg = nil;
+		[self.resolvedURL getResourceValue: &newIconImg forKey: NSURLEffectiveIconKey error: NULL];
+		iconImg = newIconImg;
 	}
 	return iconImg;
 }
