@@ -165,11 +165,6 @@
 	return nil;
 }
 
-- (NSString *)pathFromFSPath:(char *)path {
-	DebugPath(path);
-	return [self stringWithFileSystemRepresentation:path length:strlen(path)];
-}
-
 - (NSString *)pathWithFSRef:(FSRef *)fsRef {
 	NSString *path = nil;
 

@@ -27,8 +27,6 @@
 
 - (NSStringEncoding)textEncodingAttributeOfFSPath:(const char *)path;
 
-- (NSString *)pathFromFSPath:(char *)path;
-
 - (NSString *)pathWithFSRef:(FSRef *)fsRef;
 
 @end

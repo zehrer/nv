@@ -699,8 +699,7 @@
 
 - (void)checkIfNotationIsTrashed {
 	if ([self notesDirectoryIsTrashed]) {
-
-		NSString *trashLocation = [[[NSFileManager defaultManager] pathWithFSRef:&noteDirectoryRef] stringByAbbreviatingWithTildeInPath];
+		NSString *trashLocation = self.noteDirectoryURL.path.stringByAbbreviatingWithTildeInPath;
 		if (!trashLocation) trashLocation = @"unknown";
 		NSInteger result = NSRunCriticalAlertPanel([NSString stringWithFormat:NSLocalizedString(@"Your notes directory (%@) appears to be in the Trash.", nil), trashLocation],
 				NSLocalizedString(@"If you empty the Trash now, you could lose your notes. Relocate the notes to a less volatile folder?", nil),

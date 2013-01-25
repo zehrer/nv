@@ -21,6 +21,7 @@
 #import "NSFileManager_NV.h"
 #import "GlobalPrefs.h"
 #import "NSData_transformations.h"
+#import "NSURL+Notation.h"
 #include <sys/mount.h>
 
 #import <CommonCrypto/CommonCrypto.h>
@@ -349,7 +350,9 @@ long BlockSizeForNotation(NotationController *controller) {
 		[openPanel setMessage:NSLocalizedString(@"Select a new location for your Notational Velocity notes.", nil)];
 
 		if ([openPanel runModal] == NSOKButton) {
-			NSString *filename = openPanel.URL.path;
+			NSURL *newURL = openPanel.URL;
+			
+			NSString *filename = newURL.path;
 			if (filename) {
 
 				FSRef newParentRef;
@@ -362,13 +365,16 @@ long BlockSizeForNotation(NotationController *controller) {
 				}
 				CFRelease(url);
 
-				FSRef newNotesDirectory;
-				OSErr err = FSMoveObject(&noteDirectoryRef, &newParentRef, &newNotesDirectory);
-				if (err != noErr) {
-					NSRunAlertPanel([NSString stringWithFormat:NSLocalizedString(@"Couldn't move notes into the chosen folder because %@", nil),
-															   [NSString reasonStringFromCarbonFSError:err]], NSLocalizedString(@"Your notes were not moved.", nil), NSLocalizedString(@"OK", nil), NULL, NULL);
+				NSError *err = nil;
+				if ([self.fileManager moveItemAtURL: self.noteDirectoryURL toURL: newURL error: &err]) {
+					_noteDirectoryURL = newURL;
+				} else {
+					NSRunAlertPanel([NSString stringWithFormat:NSLocalizedString(@"Couldn't move notes into the chosen folder because %@", nil), [err localizedDescription]], NSLocalizedString(@"Your notes were not moved.", nil), NSLocalizedString(@"OK", nil), NULL, NULL);
 					continue;
 				}
+
+				FSRef newNotesDirectory;
+				[_noteDirectoryURL getFSRef: &newNotesDirectory];
 
 				if (FSCompareFSRefs(&noteDirectoryRef, &newNotesDirectory) != noErr) {
 					NSData *aliasData = [NSData aliasDataForFSRef:&newNotesDirectory];
@@ -378,8 +384,7 @@ long BlockSizeForNotation(NotationController *controller) {
 				}
 
 				//directory move successful! //show the user where new notes are
-				NSString *newNotesPath = [[NSFileManager defaultManager] pathWithFSRef:&newNotesDirectory];
-				if (newNotesPath) [[NSWorkspace sharedWorkspace] selectFile:newNotesPath inFileViewerRootedAtPath:nil];
+				[[NSWorkspace sharedWorkspace] activateFileViewerSelectingURLs: @[ _noteDirectoryURL ]];
 
 				break;
 			} else {
