@@ -68,7 +68,7 @@ static NSError *NVTErrorForPOSIXError(int err, NSURL *URL) {
 
 	NSMutableData *data = nil;
 
-	size_t dataSize = getxattr (itemPath, inKeyNameC, NULL, SIZE_MAX, 0, 0);
+	ssize_t dataSize = getxattr (itemPath, inKeyNameC, NULL, SIZE_MAX, 0, 0);
 	if (dataSize > 0)
 	{
 		data = [NSMutableData dataWithLength: dataSize];
@@ -78,6 +78,8 @@ static NSError *NVTErrorForPOSIXError(int err, NSURL *URL) {
 		// EINVAL means invalid argument. I know that the args are fine.
 		if ((errno != ENOATTR) && (errno != EINVAL) && outError) // it is not an error to have no attribute set
 			*outError = NVTErrorForPOSIXError(errno, URL);
+
+		return nil;
 	}
 
 	// ok, we have some data
@@ -132,7 +134,7 @@ static NSError *NVTErrorForPOSIXError(int err, NSURL *URL) {
 
 	NSMutableData *data = nil;
 
-	size_t dataSize = getxattr (itemPath, inKeyNameC, NULL, SIZE_MAX, 0, 0);
+	ssize_t dataSize = getxattr (itemPath, inKeyNameC, NULL, SIZE_MAX, 0, 0);
 	if (dataSize > 0)
 	{
 		data = [NSMutableData dataWithLength: dataSize];
