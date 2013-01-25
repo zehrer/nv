@@ -299,6 +299,8 @@ long BlockSizeForNotation(NotationController *controller) {
 	if ((err = FSRenameUnicode(&noteDatabaseRef, range.length, chars, kTextEncodingDefaultFormat, NULL)) != noErr) {
 		NSLog(@"Error renaming notes database file to %@: %d", newfilename, err);
 		return err;
+	} else {
+		_noteDatabaseURL = nil;
 	}
 	//reset the FSRef to ensure it doesn't point to the renamed file
 	bzero(&noteDatabaseRef, sizeof(FSRef));

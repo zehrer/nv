@@ -38,11 +38,12 @@
 #import "DeletionManager.h"
 #import "NSBezierPath_NV.h"
 #import "LabelObject.h"
+#import "NSURL+Notation.h"
 #import <objc/message.h>
 
 @interface NotationController ()
 
-@property(nonatomic, strong) NSMutableDictionary *labelImages;
+@property (nonatomic, strong) NSMutableDictionary *labelImages;
 @property (nonatomic, strong, readwrite) NSFileManager *fileManager;
 
 @end
@@ -52,7 +53,7 @@
 - (id)init {
 	if ((self = [super init])) {
 		self.fileManager = [NSFileManager new];
-
+		
 		directoryChangesFound = notesChanged = aliasNeedsUpdating = NO;
 
 		allNotes = [[NSMutableArray alloc] init]; //<--the authoritative list of all memory-accessible notes
@@ -137,6 +138,7 @@
 		aliasNeedsUpdating = YES; //we don't know if we have an alias yet
 
 		noteDirectoryRef = *directoryRef;
+		_noteDirectoryURL = [NSURL URLWithFSRef: directoryRef];
 
 		//check writable and readable perms, warning user if necessary
 
@@ -1635,6 +1637,12 @@
 	[delegate contentsUpdatedForNote:note];
 }
 
+- (NSURL *)noteDatabaseURL {
+	if (!_noteDatabaseURL && !IsZeros(&noteDatabaseRef, sizeof(FSRef))) {
+		_noteDatabaseURL = [NSURL URLWithFSRef: &noteDatabaseRef];
+	}
+	return _noteDatabaseURL;
+}
+
+
 @end
-
-

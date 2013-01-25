@@ -104,12 +104,17 @@ typedef NS_OPTIONS(NSInteger, NVNoteRevealOptions) {
 	BOOL notesChanged;
 	NSTimer *changeWritingTimer;
 	NSUndoManager *undoManager;
+
+	NSURL *_noteDirectoryURL, *_noteDatabaseURL;
 }
 
 @property(nonatomic, strong) NSMutableArray *filteredNotesList;
 @property(nonatomic, strong) NSCountedSet *allLabels, *filteredLabels;
 
 @property (nonatomic, strong, readonly) NSFileManager *fileManager;
+
+@property (nonatomic, readonly) NSURL *noteDirectoryURL;
+@property (nonatomic, readonly) NSURL *noteDatabaseURL;
 
 - (id)init;
 
