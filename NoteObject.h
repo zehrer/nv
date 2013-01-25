@@ -48,6 +48,7 @@ typedef struct _NoteFilterContext {
 - (void)updateLinksToNote:(NoteObject *)aNoteObject fromOldName:(NSString *)oldname;
 
 - (void)noteDidNotWrite:(NoteObject *)note errorCode:(OSStatus)error;
+- (void)noteDidNotWrite:(NoteObject *)note error:(NSError *)error;
 
 - (float)titleColumnWidth;
 

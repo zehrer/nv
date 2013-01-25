@@ -95,6 +95,7 @@ typedef NS_OPTIONS(NSInteger, NVNoteRevealOptions) {
 	AliasHandle aliasHandle;
 	BOOL aliasNeedsUpdating;
 	OSStatus lastWriteError;
+	NSError *_lastWriteNSError;
 
 	WALStorageController *walWriter;
 	NSMutableSet *unwrittenNotes;
@@ -166,8 +167,6 @@ typedef NS_OPTIONS(NSInteger, NVNoteRevealOptions) {
 - (void)setUndoManager:(NSUndoManager *)anUndoManager;
 
 - (NSUndoManager *)undoManager;
-
-- (void)noteDidNotWrite:(NoteObject *)note errorCode:(OSStatus)error;
 
 - (void)scheduleWriteForNote:(NoteObject *)note;
 

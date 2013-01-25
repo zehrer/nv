@@ -82,7 +82,6 @@
 		lastCheckedDateInHours = hoursFromAbsoluteTime(CFAbsoluteTimeGetCurrent());
 		blockSize = 0;
 
-		lastWriteError = noErr;
 		unwrittenNotes = [[NSMutableSet alloc] init];
 	}
 	return self;
@@ -617,10 +616,22 @@
 	}
 }
 
+- (void)noteDidNotWrite:(NoteObject *)note error:(NSError *)error {
+	[unwrittenNotes addObject: note];
+
+	if (![error isEqual: _lastWriteNSError]) {
+		NSRunAlertPanel([NSString stringWithFormat:NSLocalizedString(@"Changed notes could not be saved because %@.",
+																	 @"alert title appearing when notes couldn't be written"),
+						 [error localizedFailureReason]], @"", NSLocalizedString(@"OK", nil), NULL, NULL);
+		_lastWriteNSError = error;
+	}
+}
+
 - (void)synchronizeNoteChanges:(NSTimer *)timer {
 
 	if ([unwrittenNotes count] > 0) {
 		lastWriteError = noErr;
+		_lastWriteNSError = nil;
 		if ([notationPrefs notesStorageFormat] != SingleDatabaseFormat) {
 			//to avoid mutation enumeration if writing this file triggers a filename change which then triggers another makeNoteDirty which then triggers another scheduleWriteForNote:
 			//loose-coupling? what?
