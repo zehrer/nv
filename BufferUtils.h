@@ -52,12 +52,6 @@ int ContainsHighAscii(const void *s1, size_t n);
 
 unsigned DumbWordCount(const void *s1, size_t len);
 
-NSInteger genericSortContextFirst(int (*context)(void *, void *), void *one, void *two);
-
-NSInteger genericSortContextLast(void *one, void *two, int (*context)(void *, void *));
-
-void QuickSortBuffer(void **buffer, unsigned int objCount, int (*compar)(const void *, const void *));
-
 void RemovePerDiskInfoWithTableIndex(UInt32 diskIndex, PerDiskInfo **perDiskGroups, NSUInteger *groupCount);
 
 NSUInteger SetPerDiskInfoWithTableIndex(UTCDateTime *dateTime, UInt32 *nodeID, UInt32 diskIndex, PerDiskInfo **perDiskGroups, NSUInteger *groupCount);

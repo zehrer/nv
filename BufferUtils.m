@@ -256,20 +256,6 @@ unsigned DumbWordCount(const void *s1, size_t len) {
 	return count;
 }
 
-NSInteger genericSortContextFirst(int (*context)(void *, void *), void *one, void *two) {
-
-	return context(one, two);
-}
-
-NSInteger genericSortContextLast(void *one, void *two, int (*context)(void *, void *)) {
-
-	return context(&one, &two);
-}
-
-void QuickSortBuffer(void **buffer, unsigned int objCount, int (*compar)(const void *, const void *)) {
-	qsort_r((void *) buffer, (size_t) objCount, sizeof(void *), compar, (int ( *)(void *, const void *, const void *)) genericSortContextFirst);
-}
-
 #if 0
 //this does not use the user's defined date styles
 const double dayInSeconds = 86400.0;
