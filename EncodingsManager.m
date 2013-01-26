@@ -14,6 +14,7 @@
 #import "NoteObject.h"
 #import "NotationFileManager.h"
 #import "NSString_NV.h"
+#import "NSDate+Notation.h"
 
 @implementation EncodingsManager
 
@@ -247,28 +248,20 @@ static const NSStringEncoding AllowedEncodings[] = {
 		return NO;
 	}
 
-	UTCDateTime fileModifiedDate = note.fileModifiedDate;
-	CFAbsoluteTime timeOnDisk, lastTime;
-	if ((err = (UCConvertUTCDateTimeToCFAbsoluteTime(&fileModifiedDate, &lastTime) == noErr)) &&
-			(err = (UCConvertUTCDateTimeToCFAbsoluteTime(&info.contentModDate, &timeOnDisk) == noErr))) {
+	NSDate *noteModification = note.contentModificationDate;
+	NSDate *diskModification = [NSDate datewithUTCDateTime: &info.contentModDate];
 
-		if (lastTime > timeOnDisk) {
-			NSInteger result = NSRunCriticalAlertPanel([NSString stringWithFormat:NSLocalizedString(@"The note quotemark%@quotemark is newer than its file on disk.", nil), note.title],
-					NSLocalizedString(@"If you update this note with re-interpreted data from the file, you may overwrite your changes.", nil),
-					NSLocalizedString(@"Don't Update", @"don't update the note from its file on disk"),
-					NSLocalizedString(@"Overwrite Note", @"...from file on disk"), NULL);
-			if (result == NSAlertDefaultReturn) {
-				NSLog(@"not updating");
-				return NO;
-			} else {
-				NSLog(@"user wants to update");
-			}
+	if ([noteModification isGreaterThan: diskModification]) {
+		NSInteger result = NSRunCriticalAlertPanel([NSString stringWithFormat:NSLocalizedString(@"The note quotemark%@quotemark is newer than its file on disk.", nil), note.title],
+												   NSLocalizedString(@"If you update this note with re-interpreted data from the file, you may overwrite your changes.", nil),
+												   NSLocalizedString(@"Don't Update", @"don't update the note from its file on disk"),
+												   NSLocalizedString(@"Overwrite Note", @"...from file on disk"), NULL);
+		if (result == NSAlertDefaultReturn) {
+			NSLog(@"not updating");
+			return NO;
+		} else {
+			NSLog(@"user wants to update");
 		}
-	} else {
-		NSRunAlertPanel([NSString stringWithFormat:NSLocalizedString(@"Error: the modification date of the file quotemark%@quotemark could not be compared because %@", nil),
-												   note.filename, [NSString reasonStringFromCarbonFSError:err]], NSLocalizedString(@"This may be due to an error in the program or operating system.", nil),
-				NSLocalizedString(@"OK", nil), NULL, NULL);
-		return NO;
 	}
 
 	return YES;

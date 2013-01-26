@@ -263,9 +263,8 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void *info, size_t nu
 	//check dates
 	updateForVerifiedExistingNote(deletionManager, aNoteObject);
 
-	UTCDateTime noteLastModTime = aNoteObject.fileModifiedDate;
-	NSDate *noteLastAttrMod = [NSDate datewithUTCDateTime: aNoteObject.attrsModifiedDate];
-	NSDate *noteLastMod = [NSDate datewithUTCDateTime: &noteLastModTime];
+	NSDate *noteLastAttrMod = aNoteObject.attributesModificationDate;
+	NSDate *noteLastMod = aNoteObject.contentModificationDate;
 
 	UTCDateTime catLastAttrModTime = catEntry.lastAttrModified;
 	UTCDateTime catLastModTime = catEntry.lastModified;

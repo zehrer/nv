@@ -86,7 +86,6 @@ typedef struct _NoteFilterContext {
 	NSString *filename;
 	UInt32 nodeID;
 	UInt32 logicalSize;
-	UTCDateTime fileModifiedDate, *attrsModifiedDate;
 	PerDiskInfo *perDiskInfoGroups;
 	NSUInteger perDiskInfoGroupCount;
 	NoteStorageFormat currentFormatID;
@@ -105,7 +104,6 @@ typedef struct _NoteFilterContext {
 	NSMutableDictionary *syncServicesMD;
 
 	//more metadata
-	CFAbsoluteTime modifiedDate, createdDate;
 	NSRange selectedRange;
 
 	//each note has its own undo manager--isn't that nice?
@@ -151,15 +149,15 @@ NSInteger compareFileSize(id *a, id *b);
 @property(nonatomic, readonly) NoteStorageFormat storageFormat;
 @property(nonatomic, readonly) UInt32 fileNodeID;
 @property(nonatomic, readonly) UInt32 fileSize;
-@property(nonatomic, readonly) UTCDateTime fileModifiedDate;
-@property(nonatomic, readonly) UTCDateTime *attrsModifiedDate;
 @property(nonatomic, copy, readonly) NSString *title;
 @property(nonatomic, copy, readonly) NSString *labels;
-@property(nonatomic, readonly) CFAbsoluteTime modifiedDate;
-@property(nonatomic, readonly) CFAbsoluteTime createdDate;
 @property(nonatomic, readonly) NSStringEncoding fileEncoding;
 @property(nonatomic, strong, readonly) NSMutableArray *prefixParents;
 
+@property (nonatomic, strong) NSDate *creationDate;
+@property (nonatomic, strong) NSDate *modificationDate;
+@property (nonatomic, strong, readonly) NSDate *contentModificationDate;
+@property (nonatomic, strong, readonly) NSDate *attributesModificationDate;
 
 @property (nonatomic, readonly) FSRef *noteFileRef;
 @property (nonatomic, readonly) NSURL *noteFileURL;
@@ -308,10 +306,6 @@ BOOL noteTitleIsAPrefixOfOtherNoteTitle(NoteObject *longerNote, NoteObject *shor
 - (void)updateUnstyledTextWithBaseFont:(NSFont *)baseFont;
 
 - (void)updateDateStrings;
-
-- (void)setDateModified:(CFAbsoluteTime)newTime;
-
-- (void)setDateAdded:(CFAbsoluteTime)newTime;
 
 - (void)setSelectedRange:(NSRange)newRange;
 

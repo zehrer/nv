@@ -341,7 +341,7 @@ NSUInteger SetPerDiskInfoWithTableIndex(UTCDateTime *dateTime, UInt32 *nodeID, U
 
 	PerDiskInfo *groups = *perDiskGroups;
 	for (i = 0; i < count; i++) {
-		//use this slot if the diskIndex matches OR it's the first one listed and its attrTime and nodeID haven't been touched
+		//use this slot if the diskIndex matches OR it's the first one listed and its attrModTime and nodeID haven't been touched
 		if (groups[i].diskIDIndex == diskIndex || (!i && groups[i].nodeID == 0U && UTCDateTimeIsEmpty(groups[i].attrTime))) {
 			if (dateTime) groups[i].attrTime = *dateTime;
 			if (nodeID) groups[i].nodeID = *nodeID;
@@ -354,8 +354,10 @@ NSUInteger SetPerDiskInfoWithTableIndex(UTCDateTime *dateTime, UInt32 *nodeID, U
 	//diskID not found in existing buffer; add a new entry one or both attributes
 	ResizeArray(perDiskGroups, count + 1, groupCount);
 
-	//items not currently being set are initialized to a known value, so that they can be initialized later by NoteObject's attrsModifiedDate and fileNodeID properties
-	//although those functions do not initialize these to anything particularly useful, anyway
+	// items not currently being set are initialized to a known value, so that
+	// they can be initialized later by NoteObject's attributesModificationDate and
+	// fileNodeID properties although those functions do not initialize these to
+	// anything particularly useful, anyway
 	groups = *perDiskGroups;
 	groups[count].attrTime = dateTime ? *dateTime : (UTCDateTime) {0, 0, 0};
 	groups[count].nodeID = nodeID ? *nodeID : 0;

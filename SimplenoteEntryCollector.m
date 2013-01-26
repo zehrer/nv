@@ -231,7 +231,7 @@
 	NSDictionary *info = [aNote syncServicesMD][SimplenoteServiceName];
 	//following assertion tests the efficacy our queued invocations system
 	NSAssert(doesCreate == (nil == info), @"noteobject has MD for this service when it was attempting to be created or vise versa!");
-	CFAbsoluteTime modNum = doesCreate ? aNote.modifiedDate : [info[@"modify"] doubleValue];
+	NSTimeInterval modDate = doesCreate ? [aNote.modificationDate timeIntervalSince1970] : [[NSDate dateWithTimeIntervalSinceReferenceDate: [info[@"modify"] doubleValue]] timeIntervalSince1970];
 
 	//always set the mod date, set created date if we are creating, set the key if we are updating
 	NSDictionary *params = @{@"email" : email, @"auth" : authToken};
@@ -242,8 +242,8 @@
 	[noteBody replaceTabsWithSpacesOfWidth:[[GlobalPrefs defaultPrefs] numberOfSpacesInTab]];
 
 	NSMutableDictionary *rawObject = [NSMutableDictionary dictionaryWithCapacity:12];
-	if (modNum > 0.0) rawObject[@"modifydate"] = @([[NSDate dateWithTimeIntervalSinceReferenceDate:modNum] timeIntervalSince1970]);
-	if (doesCreate) rawObject[@"createdate"] = @([[NSDate dateWithTimeIntervalSinceReferenceDate:aNote.createdDate] timeIntervalSince1970]);
+	if (modDate) rawObject[@"modifydate"] = @(modDate);
+	if (doesCreate) rawObject[@"createdate"] = @([aNote.creationDate timeIntervalSince1970]);
 
 	NSArray *tags = [aNote orderedLabelTitles];
 	// Don't send an empty tagset if this note has never been synced via sn-api2

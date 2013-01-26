@@ -439,9 +439,9 @@ static NSString *const NTVNoteImporterLinkTitleKey = @"NTVNoteImporterLinkTitle"
 		if (noteObject) {
 			if (bodyLoc > 0 && [attributedStringFromData length] >= bodyLoc + prefixedSourceLength) [noteObject setSelectedRange:NSMakeRange(prefixedSourceLength, bodyLoc)];
 			if (shouldGrabCreationDates) {
-				[noteObject setDateAdded: [creationDate timeIntervalSinceReferenceDate]];
+				noteObject.creationDate = creationDate;
 			}
-			[noteObject setDateModified: [modificationDate timeIntervalSinceReferenceDate]];
+			noteObject.modificationDate = modificationDate;
 		} else {
 			NSLog(@"couldn't generate note object from imported attributed string??");
 		}
@@ -630,9 +630,8 @@ static NSString *const NTVNoteImporterLinkTitleKey = @"NTVNoteImporterLinkTitle"
 				NoteObject *noteObject = [[NoteObject alloc] initWithNoteBody:attributedString title:syntheticTitle
 																	 delegate:nil format:SingleDatabaseFormat labels:nil];
 				if (noteObject) {
-					[noteObject setDateAdded:CFDateGetAbsoluteTime((CFDateRef) [doc creationDate])];
-					[noteObject setDateModified:CFDateGetAbsoluteTime((CFDateRef) [doc modificationDate])];
-
+					noteObject.creationDate = doc.creationDate;
+					noteObject.modificationDate = doc.modificationDate;
 					[notes addObject:noteObject];
 				} else {
 					NSLog(@"couldn't generate note object from sticky note??");
@@ -686,8 +685,8 @@ static NSString *const NTVNoteImporterLinkTitleKey = @"NTVNoteImporterLinkTitle"
 
 		[array addObject:note];
 
-		[note setDateAdded:(creationTime += 1.0)];
-		[note setDateModified:(modificationTime += 1.0)];
+		note.creationDate = [NSDate dateWithTimeIntervalSinceReferenceDate: creationTime + 1];
+		note.modificationDate = [NSDate dateWithTimeIntervalSinceReferenceDate: modificationTime + 1];
 	}
 
 	if (count != [enumerator suspectedNoteCount]) {
@@ -720,8 +719,6 @@ static NSString *const NTVNoteImporterLinkTitleKey = @"NTVNoteImporterLinkTitle"
 	NSEnumerator *en = [lines objectEnumerator];
 	NSString *curLine;
 
-	CFAbsoluteTime now = CFAbsoluteTimeGetCurrent();
-
 	// Assume first entry in line is note title and any other entries go in the note body
 	while ((curLine = [en nextObject])) {
 		NSArray *fields = [curLine componentsSeparatedByString:delimiter];
@@ -745,9 +742,7 @@ static NSString *const NTVNoteImporterLinkTitleKey = @"NTVNoteImporterLinkTitle"
 
 			NoteObject *note = [[NoteObject alloc] initWithNoteBody:attributedBody title:title delegate:nil format:SingleDatabaseFormat labels:nil];
 			if (note) {
-				now += 1.0; //to ensure a consistent sort order
-				[note setDateAdded:now];
-				[note setDateModified:now];
+				note.creationDate = note.modificationDate = [NSDate dateWithTimeIntervalSinceNow: 1.0];
 				[notes addObject:note];
 			}
 		}

@@ -38,6 +38,7 @@
 #import "ODBEditor.h"
 #import "NSString_NV.h"
 #import "NSURL+Notation.h"
+#import "NSDate+Notation.h"
 #import "NoteCatalogEntry.h"
 
 #if __LP64__
@@ -52,20 +53,21 @@ typedef NSRange NSRange32;
 
 @interface NoteObject () {
 	NSMutableAttributedString *_contentString;
+	NSDate *_attributesModificationDate;
 }
 
 @property(nonatomic, copy, readwrite) NSString *filename;
 @property(nonatomic, readwrite) NoteStorageFormat storageFormat;
 @property(nonatomic, readwrite) UInt32 fileNodeID;
 @property(nonatomic, readwrite) UInt32 fileSize;
-@property(nonatomic, readwrite) UTCDateTime fileModifiedDate;
-@property(nonatomic, readwrite) UTCDateTime *attrsModifiedDate;
 @property(nonatomic, copy, readwrite) NSString *title;
 @property(nonatomic, copy, readwrite) NSString *labels;
-@property(nonatomic, readwrite) CFAbsoluteTime modifiedDate;
-@property(nonatomic, readwrite) CFAbsoluteTime createdDate;
 @property(nonatomic, readwrite) NSStringEncoding fileEncoding;
 @property(nonatomic, strong, readwrite) NSMutableArray *prefixParents;
+
+@property(nonatomic, strong, readwrite) NSDate *contentModificationDate;
+@property(nonatomic, strong, readwrite) NSDate *attributesModificationDate;
+
 
 @end
 
@@ -76,11 +78,8 @@ typedef NSRange NSRange32;
 @synthesize filename = filename;
 @synthesize storageFormat = currentFormatID;
 @synthesize fileSize = logicalSize;
-@synthesize fileModifiedDate = fileModifiedDate;
 @synthesize title = titleString;
 @synthesize labels = labelString;
-@synthesize modifiedDate = modifiedDate;
-@synthesize createdDate = createdDate;
 @synthesize fileEncoding = fileEncoding;
 @synthesize prefixParents = prefixParentNotes;
 
@@ -122,17 +121,22 @@ typedef NSRange NSRange32;
 	}
 }
 
-- (void)setAttrsModifiedDate:(UTCDateTime *)dateTime {
+- (void)setAttributesModificationDate:(NSDate *)attributesModificationDate {
 	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
-	if (!localDelegate) return;
-	NSUInteger idx = SetPerDiskInfoWithTableIndex(dateTime, NULL, (UInt32) [localDelegate diskUUIDIndex], &perDiskInfoGroups, &perDiskInfoGroupCount);
-	attrsModifiedDate = &(perDiskInfoGroups[idx].attrTime);
+	if (!localDelegate) {
+		_attributesModificationDate = attributesModificationDate;
+		return;
+	}
+	UTCDateTime dateTime;
+	[_attributesModificationDate getUTCDateTime: &dateTime];
+	SetPerDiskInfoWithTableIndex(&dateTime, NULL, (UInt32) [localDelegate diskUUIDIndex], &perDiskInfoGroups, &perDiskInfoGroupCount);
+	_attributesModificationDate = [NSDate datewithUTCDateTime: &dateTime] ?: attributesModificationDate;
 }
 
-- (UTCDateTime *)attrsModifiedDate {
-	if (!attrsModifiedDate) {
+- (NSDate *)attributesModificationDate {
+	if (!_attributesModificationDate) {
 		id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
-		if (!localDelegate) return NULL;
+		if (!localDelegate) return nil;
 
 		//init from delegate based on disk table index
 		NSUInteger i, tableIndex = [localDelegate diskUUIDIndex];
@@ -140,13 +144,18 @@ typedef NSRange NSRange32;
 		for (i = 0; i < perDiskInfoGroupCount; i++) {
 			//check if this date has actually been initialized; this entry could be here only because -setFileNoteID: was called
 			if (perDiskInfoGroups[i].diskIDIndex == tableIndex && !UTCDateTimeIsEmpty(perDiskInfoGroups[i].attrTime)) {
-				return (attrsModifiedDate = &(perDiskInfoGroups[i].attrTime));
+				UTCDateTime time = perDiskInfoGroups[i].attrTime;
+				_attributesModificationDate = [NSDate datewithUTCDateTime: &time];
+				break;
 			}
 		}
+
 		//this note doesn't have a file-modified date, so initialize a fairly reasonable one here
-		self.attrsModifiedDate = &fileModifiedDate;
+		if (!_attributesModificationDate) {
+			self.attributesModificationDate = self.contentModificationDate;
+		}
 	}
-	return attrsModifiedDate;
+	return _attributesModificationDate;
 }
 
 - (UInt32)fileNodeID {
@@ -157,7 +166,7 @@ typedef NSRange NSRange32;
 		NSUInteger i, tableIndex = [localDelegate diskUUIDIndex];
 
 		for (i = 0; i < perDiskInfoGroupCount; i++) {
-			//check if this nodeID has actually been initialized; this entry could be here only because -setAttrsModifiedDate: was called
+			//check if this nodeID has actually been initialized; this entry could be here only because -setAttributesModificationDate: was called
 			if (perDiskInfoGroups[i].diskIDIndex == tableIndex && perDiskInfoGroups[i].nodeID != 0U) {
 				return (nodeID = perDiskInfoGroups[i].nodeID);
 			}
@@ -177,11 +186,15 @@ typedef NSRange NSRange32;
 }
 
 NSInteger compareDateModified(id *a, id *b) {
-	return (*(NoteObject **) a)->modifiedDate - (*(NoteObject **) b)->modifiedDate;
+	NoteObject *aObj = *(NoteObject **)a;
+	NoteObject *bObj = *(NoteObject **)b;
+	return [aObj.modificationDate compare: bObj.modificationDate];
 }
 
 NSInteger compareDateCreated(id *a, id *b) {
-	return (*(NoteObject **) a)->createdDate - (*(NoteObject **) b)->createdDate;
+	NoteObject *aObj = *(NoteObject **)a;
+	NoteObject *bObj = *(NoteObject **)b;
+	return [aObj.creationDate compare: bObj.creationDate];
 }
 
 NSInteger compareLabelString(id *a, id *b) {
@@ -212,11 +225,15 @@ NSInteger compareUniqueNoteIDBytes(id *a, id *b) {
 
 
 NSInteger compareDateModifiedReverse(id *a, id *b) {
-	return (*(NoteObject **) b)->modifiedDate - (*(NoteObject **) a)->modifiedDate;
+	NoteObject *aObj = *(NoteObject **)a;
+	NoteObject *bObj = *(NoteObject **)b;
+	return [bObj.modificationDate compare: aObj.modificationDate];
 }
 
 NSInteger compareDateCreatedReverse(id *a, id *b) {
-	return (*(NoteObject **) b)->createdDate - (*(NoteObject **) a)->createdDate;
+	NoteObject *aObj = *(NoteObject **)a;
+	NoteObject *bObj = *(NoteObject **)b;
+	return [bObj.creationDate compare: aObj.creationDate];
 }
 
 NSInteger compareLabelStringReverse(id *a, id *b) {
@@ -331,8 +348,20 @@ row) {
 			//for knowing when to delay certain initializations during launch (e.g., preview generation)
 			didUnarchive = YES;
 
-			modifiedDate = [decoder decodeDoubleForKey:VAR_STR(modifiedDate)];
-			createdDate = [decoder decodeDoubleForKey:VAR_STR(createdDate)];
+			if ([decoder containsValueForKey: VAR_STR(creationDate)]) {
+				self.creationDate = [decoder decodeObjectForKey: VAR_STR(creationDate)];
+			} else if ([decoder containsValueForKey: VAR_STR(createdDate)]) {
+				CFAbsoluteTime time = [decoder decodeDoubleForKey:VAR_STR(createdDate)];
+				self.creationDate = [NSDate dateWithTimeIntervalSinceReferenceDate: time];
+			}
+
+			if ([decoder containsValueForKey: VAR_STR(modificationDate)]) {
+				self.modificationDate = [decoder decodeObjectForKey: VAR_STR(modificationDate)];
+			} else if ([decoder containsValueForKey: VAR_STR(modifiedDate)]) {
+				CFAbsoluteTime time = [decoder decodeDoubleForKey:VAR_STR(modifiedDate)];
+				self.modificationDate = [NSDate dateWithTimeIntervalSinceReferenceDate: time];
+			}
+
 			selectedRange.location = [decoder decodeIntegerForKey:@"selectionRangeLocation"];
 			selectedRange.length = [decoder decodeIntegerForKey:@"selectionRangeLength"];
 			contentsWere7Bit = [decoder decodeBoolForKey:VAR_STR(contentsWere7Bit)];
@@ -342,8 +371,14 @@ row) {
 			currentFormatID = [decoder decodeInt32ForKey:VAR_STR(currentFormatID)];
 			logicalSize = [decoder decodeInt32ForKey:VAR_STR(logicalSize)];
 
-			int64_t fileModifiedDate64 = [decoder decodeInt64ForKey:VAR_STR(fileModifiedDate)];
-			memcpy(&fileModifiedDate, &fileModifiedDate64, sizeof(int64_t));
+			if ([decoder containsValueForKey: VAR_STR(contentModificationDate)]) {
+				_contentModificationDate = [decoder decodeObjectForKey: VAR_STR(contentModificationDate)];
+			} else if ([decoder containsValueForKey: VAR_STR(fileModifiedDate)]) {
+				UTCDateTime time;
+				int64_t oldDate = [decoder decodeInt64ForKey:VAR_STR(fileModifiedDate)];
+				memcpy(&time, &oldDate, sizeof(int64_t));
+				_contentModificationDate = [NSDate datewithUTCDateTime: &time];
+			}
 
 			NSUInteger decodedPerDiskByteCount = 0;
 			const uint8_t *decodedPerDiskBytes = [decoder decodeBytesForKey:VAR_STR(perDiskInfoGroups) returnedLength:&decodedPerDiskByteCount];
@@ -364,69 +399,10 @@ row) {
 			self.contentString = [decoder decodeObjectForKey:VAR_STR(contentString)];
 			filename = [decoder decodeObjectForKey:VAR_STR(filename)];
 
-		} else {
-			NSRange32 range32;
-			unsigned int serverModifiedTime = 0;
-			float scrolledProportion = 0.0;
-#if __LP64__
-			unsigned long longTemp;
-#endif
-#if DECODE_INDIVIDUALLY
-			[decoder decodeValueOfObjCType:@encode(CFAbsoluteTime) at:&modifiedDate];
-			[decoder decodeValueOfObjCType:@encode(CFAbsoluteTime) at:&createdDate];
-#if __LP64__
-			[decoder decodeValueOfObjCType:"{_NSRange=II}" at:&range32];
-#else
-            [decoder decodeValueOfObjCType:@encode(NSRange) at:&range32];
-            #endif
-			[decoder decodeValueOfObjCType:@encode(float) at:&scrolledProportion];
-
-			[decoder decodeValueOfObjCType:@encode(unsigned int) at:&logSequenceNumber];
-
-			[decoder decodeValueOfObjCType:@encode(int) at:&currentFormatID];
-#if __LP64__
-			[decoder decodeValueOfObjCType:"L" at:&longTemp];
-			nodeID = (UInt32) longTemp;
-#else
-			[decoder decodeValueOfObjCType:@encode(UInt32) at:&nodeID];
-            #endif
-			[decoder decodeValueOfObjCType:@encode(UInt16) at:&fileModifiedDate.highSeconds];
-#if __LP64__
-			[decoder decodeValueOfObjCType:"L" at:&longTemp];
-			fileModifiedDate.lowSeconds = (UInt32) longTemp;
-#else
-            [decoder decodeValueOfObjCType:@encode(UInt32) at:&fileModifiedDate.lowSeconds];
-            #endif
-			[decoder decodeValueOfObjCType:@encode(UInt16) at:&fileModifiedDate.fraction];
-
-#if __LP64__
-			[decoder decodeValueOfObjCType:"I" at:&fileEncoding];
-#else
-            [decoder decodeValueOfObjCType:@encode(NSStringEncoding) at:&fileEncoding];
-            #endif
-
-			[decoder decodeValueOfObjCType:@encode(CFUUIDBytes) at:&uniqueNoteIDBytes];
-			[decoder decodeValueOfObjCType:@encode(unsigned int) at:&serverModifiedTime];
-
-			titleString = [decoder decodeObject];
-			labelString = [decoder decodeObject];
-			self.contentString = [decoder decodeObject];
-			filename = [decoder decodeObject];
-#else 
-			[decoder decodeValuesOfObjCTypes: "dd{NSRange=ii}fIiI{UTCDateTime=SIS}I[16C]I@@@@", &modifiedDate, &createdDate, &range32, 
-				&scrolledProportion, &logSequenceNumber, &currentFormatID, &nodeID, &fileModifiedDate, &fileEncoding, &uniqueNoteIDBytes, 
-				&serverModifiedTime, &titleString, &labelString, &contentString, &filename];
-#endif
-			selectedRange.location = range32.location;
-			selectedRange.length = range32.length;
-			contentsWere7Bit = (*(unsigned int *) &scrolledProportion) != 0; //hacko wacko
 		}
 
 		//re-created at runtime to save space
 		[self initContentCacheCString];
-
-		dateCreatedString = [NSString relativeDateStringWithAbsoluteTime:createdDate];
-		dateModifiedString = [NSString relativeDateStringWithAbsoluteTime:modifiedDate];
 
 		if (!titleString && !self.contentString && !labelString) return nil;
 	}
@@ -437,8 +413,8 @@ row) {
 
 	if ([coder allowsKeyedCoding]) {
 
-		[coder encodeDouble:modifiedDate forKey:VAR_STR(modifiedDate)];
-		[coder encodeDouble:createdDate forKey:VAR_STR(createdDate)];
+		[coder encodeObject: self.modificationDate forKey: VAR_STR(modificationDate)];
+		[coder encodeObject: self.creationDate forKey: VAR_STR(creationDate)];
 		[coder encodeInteger:selectedRange.location forKey:@"selectionRangeLocation"];
 		[coder encodeInteger:selectedRange.length forKey:@"selectionRangeLength"];
 		[coder encodeBool:contentsWere7Bit forKey:VAR_STR(contentsWere7Bit)];
@@ -454,7 +430,7 @@ row) {
 		[coder encodeBytes:flippedPerDiskInfoGroups length:perDiskInfoGroupCount * sizeof(PerDiskInfo) forKey:VAR_STR(perDiskInfoGroups)];
 		free(flippedPerDiskInfoGroups);
 
-		[coder encodeInt64:*(int64_t *) &fileModifiedDate forKey:VAR_STR(fileModifiedDate)];
+		[coder encodeObject: self.contentModificationDate forKey: VAR_STR(contentModificationDate)];
 		[coder encodeInteger:fileEncoding forKey:VAR_STR(fileEncoding)];
 
 		[coder encodeBytes:(const uint8_t *) &uniqueNoteIDBytes length:sizeof(CFUUIDBytes) forKey:VAR_STR(uniqueNoteIDBytes)];
@@ -465,41 +441,6 @@ row) {
 		[coder encodeObject:self.contentString forKey:VAR_STR(contentString)];
 		[coder encodeObject:filename forKey:VAR_STR(filename)];
 
-	} else {
-// 64bit encoding would break 32bit reading - keyed archives should be used
-#if !__LP64__
-		unsigned int serverModifiedTime = 0;
-		float scrolledProportion = 0.0;
-		*(unsigned int*)&scrolledProportion = (unsigned int)contentsWere7Bit;
-#if DECODE_INDIVIDUALLY
-		[coder encodeValueOfObjCType:@encode(CFAbsoluteTime) at:&modifiedDate];
-		[coder encodeValueOfObjCType:@encode(CFAbsoluteTime) at:&createdDate];
-        [coder encodeValueOfObjCType:@encode(NSRange) at:&selectedRange];
-		[coder encodeValueOfObjCType:@encode(float) at:&scrolledProportion];
-		
-		[coder encodeValueOfObjCType:@encode(unsigned int) at:&logSequenceNumber];
-		
-		[coder encodeValueOfObjCType:@encode(int) at:&currentFormatID];
-		[coder encodeValueOfObjCType:@encode(UInt32) at:&nodeID];
-		[coder encodeValueOfObjCType:@encode(UInt16) at:&fileModifiedDate.highSeconds];
-		[coder encodeValueOfObjCType:@encode(UInt32) at:&fileModifiedDate.lowSeconds];
-		[coder encodeValueOfObjCType:@encode(UInt16) at:&fileModifiedDate.fraction];
-		[coder encodeValueOfObjCType:@encode(NSStringEncoding) at:&fileEncoding];
-		
-		[coder encodeValueOfObjCType:@encode(CFUUIDBytes) at:&uniqueNoteIDBytes];
-		[coder encodeValueOfObjCType:@encode(unsigned int) at:&serverModifiedTime];
-		
-		[coder encodeObject:titleString];
-		[coder encodeObject:labelString];
-		[coder encodeObject:contentString];
-		[coder encodeObject:filename];
-		
-#else
-		[coder encodeValuesOfObjCTypes: "dd{NSRange=ii}fIiI{UTCDateTime=SIS}I[16C]I@@@@", &modifiedDate, &createdDate, &range32, 
-			&scrolledProportion, &logSequenceNumber, &currentFormatID, &nodeID, &fileModifiedDate, &fileEncoding, &uniqueNoteIDBytes, 
-			&serverModifiedTime, &titleString, &labelString, &contentString, &filename];
-#endif
-#endif // !__LP64__
 	}
 }
 
@@ -531,10 +472,9 @@ row) {
 		uniqueNoteIDBytes = CFUUIDGetUUIDBytes(uuidRef);
 		CFRelease(uuidRef);
 
-		createdDate = modifiedDate = CFAbsoluteTimeGetCurrent();
-		dateCreatedString = [NSString relativeDateStringWithAbsoluteTime:createdDate];
-		dateModifiedString = [NSString relativeDateStringWithAbsoluteTime:modifiedDate];
-		UCConvertCFAbsoluteTimeToUTCDateTime(modifiedDate, &fileModifiedDate);
+		self.creationDate = self.modificationDate = [NSDate date];
+		dateModifiedString = [NSString relativeDateStringWithAbsoluteTime: self.modificationDate.timeIntervalSinceReferenceDate];
+		_contentModificationDate = self.modificationDate;
 
 		if (localDelegate) [self updateTablePreviewString];
 	}
@@ -545,15 +485,16 @@ row) {
 //only get the fsrefs until we absolutely need them
 - (id)initWithCatalogEntry:(NoteCatalogEntry *)entry delegate:(id<NoteObjectDelegate,NTNFileManager>)aDelegate {
 	NSParameterAssert(aDelegate);
-	
+
 	if ((self = [self init])) {
 		self.delegate = aDelegate;
 		id <NoteObjectDelegate, NTNFileManager> localDelegate = aDelegate;
 		self.filename = (__bridge NSMutableString *)entry.filename;
 		self.storageFormat = [localDelegate currentNoteStorageFormat];
-		self.fileModifiedDate = entry.lastModified;
+		UTCDateTime lastModified = entry.lastModified;
+		self.contentModificationDate = [NSDate datewithUTCDateTime: &lastModified];
 		UTCDateTime lastAttrModified = entry.lastAttrModified;
-		self.attrsModifiedDate = &(lastAttrModified);
+		self.attributesModificationDate = [NSDate datewithUTCDateTime: &lastAttrModified];
 		self.fileNodeID = entry.nodeID;
 		self.fileSize = entry.logicalSize;
 
@@ -577,10 +518,9 @@ row) {
 
 			//additionally, it is possible that the file was deleted before we could read it
 		}
-		if (!modifiedDate || !createdDate) {
-			modifiedDate = createdDate = CFAbsoluteTimeGetCurrent();
-			dateModifiedString = [NSString relativeDateStringWithAbsoluteTime:modifiedDate];
-			dateCreatedString = [NSString relativeDateStringWithAbsoluteTime:createdDate];
+		if (!self.modificationDate || !self.creationDate) {
+			self.modificationDate = self.creationDate = [NSDate date];
+			dateModifiedString = [NSString relativeDateStringWithAbsoluteTime: self.modificationDate.timeIntervalSinceReferenceDate];
 		}
 	}
 
@@ -824,23 +764,18 @@ row) {
 }
 
 - (void)updateDateStrings {
-
-	dateCreatedString = [NSString relativeDateStringWithAbsoluteTime:createdDate];
-	dateModifiedString = [NSString relativeDateStringWithAbsoluteTime:modifiedDate];
+	dateCreatedString = [NSString relativeDateStringWithAbsoluteTime: self.creationDate.timeIntervalSinceReferenceDate];
+	dateModifiedString = [NSString relativeDateStringWithAbsoluteTime: self.modificationDate.timeIntervalSinceReferenceDate];
 }
 
-- (void)setDateModified:(CFAbsoluteTime)newTime {
-	modifiedDate = newTime;
-
-
-	dateModifiedString = [NSString relativeDateStringWithAbsoluteTime:modifiedDate];
+- (void)setCreationDate:(NSDate *)creationDate {
+	_creationDate = creationDate;
+	dateCreatedString = [NSString relativeDateStringWithAbsoluteTime: self.creationDate.timeIntervalSinceReferenceDate];
 }
 
-- (void)setDateAdded:(CFAbsoluteTime)newTime {
-	createdDate = newTime;
-
-
-	dateCreatedString = [NSString relativeDateStringWithAbsoluteTime:createdDate];
+- (void)setModificationDate:(NSDate *)modificationDate {
+	_modificationDate = modificationDate;
+	dateModifiedString = [NSString relativeDateStringWithAbsoluteTime: self.modificationDate.timeIntervalSinceReferenceDate];
 }
 
 
@@ -1077,18 +1012,12 @@ row) {
 	if (localDelegate && [localDelegate fileInNotesDirectory: self.noteFileRef isOwnedByUs:&fileIsOwned hasCatalogInfo:&info] != noErr)
 		return NO;
 
-	CFAbsoluteTime timeOnDisk, lastTime;
-	OSStatus err = noErr;
-	if ((err = (UCConvertUTCDateTimeToCFAbsoluteTime(&fileModifiedDate, &lastTime) == noErr)) &&
-			(err = (UCConvertUTCDateTimeToCFAbsoluteTime(&info.contentModDate, &timeOnDisk) == noErr))) {
+	NSDate *lastTime = self.contentModificationDate;
+	NSDate *timeOnDisk = [NSDate datewithUTCDateTime: &info.contentModDate];
 
-		if (lastTime > timeOnDisk) {
-			NSLog(@"writing note %@, because it was modified", titleString);
-			return [self writeUsingCurrentFileFormat];
-		}
-	} else {
-		NSLog(@"Could not convert dates: %d", err);
-		return NO;
+	if ([lastTime isGreaterThan: timeOnDisk]) {
+		NSLog(@"writing note %@, because it was modified", titleString);
+		return [self writeUsingCurrentFileFormat];
 	}
 
 	return YES;
@@ -1215,8 +1144,8 @@ row) {
 
 	//sync the file's creation and modification date:
 	FSCatalogInfo catInfo;
-	UCConvertCFAbsoluteTimeToUTCDateTime(createdDate, &catInfo.createDate);
-	UCConvertCFAbsoluteTimeToUTCDateTime(modifiedDate, &catInfo.contentModDate);
+	[self.creationDate getUTCDateTime: &catInfo.createDate];
+	[self.modificationDate getUTCDateTime: &catInfo.contentModDate];
 
 	// if this method is called anywhere else, then use [delegate refreshFileRefIfNecessary: self.noteFileRef withName:filename charsBuffer:chars]; instead
 	// for now, it is not called in any situations where the fsref might accidentally point to a moved file
@@ -1239,8 +1168,9 @@ row) {
 		NSLog(@"Unable to get new modification date of file %@: %d", filename, err);
 		return err;
 	}
-	self.fileModifiedDate = catInfo.contentModDate;
-	self.attrsModifiedDate = &catInfo.attributeModDate;
+	
+	self.contentModificationDate = [NSDate datewithUTCDateTime: &catInfo.contentModDate];
+	self.attributesModificationDate = [NSDate datewithUTCDateTime: &catInfo.attributeModDate];
 	self.fileNodeID = catInfo.nodeID;
 	self.fileSize = (UInt32) (catInfo.dataLogicalSize & 0xFFFFFFFF);
 
@@ -1287,8 +1217,7 @@ row) {
 				//in case this note isn't otherwise modified before that happens.
 				//a side effect is that if the user switches to an RTF or HTML format,
 				//this note will be written immediately instead of lazily upon the next modification
-				if (UCConvertCFAbsoluteTimeToUTCDateTime(CFAbsoluteTimeGetCurrent(), &fileModifiedDate) != noErr)
-					NSLog(@"%@: can't set file modification date from current date", NSStringFromSelector(_cmd));
+				_contentModificationDate = [NSDate date];
 			}
 		}
 		//make note dirty to ensure these changes are saved
@@ -1344,8 +1273,8 @@ row) {
 	if ([self updateFromData:data inFormat:currentFormatID]) {
 		FSCatalogInfo info;
 		if ([localDelegate fileInNotesDirectory: self.noteFileRef isOwnedByUs:NULL hasCatalogInfo:&info] == noErr) {
-			self.fileModifiedDate = info.contentModDate;
-			self.attrsModifiedDate = &info.attributeModDate;
+			self.contentModificationDate = [NSDate datewithUTCDateTime: &info.contentModDate];
+			self.attributesModificationDate = [NSDate datewithUTCDateTime: &info.attributeModDate];
 			self.fileNodeID = info.nodeID;
 			self.fileSize = (UInt32) (info.dataLogicalSize & 0xFFFFFFFF);
 
@@ -1371,9 +1300,11 @@ row) {
 
 	[self setFilename:(__bridge NSString *) catEntry.filename withExternalTrigger:YES];
 
-	self.fileModifiedDate = catEntry.lastModified;
+	UTCDateTime lastModified = catEntry.lastModified;
 	UTCDateTime lastAttrModified = catEntry.lastAttrModified;
-	self.attrsModifiedDate = &(lastAttrModified);
+	self.contentModificationDate = [NSDate datewithUTCDateTime: &lastModified];
+	self.attributesModificationDate = [NSDate datewithUTCDateTime: &lastAttrModified];
+	
 	self.fileNodeID = catEntry.nodeID;
 	self.fileSize = catEntry.logicalSize;
 
@@ -1391,24 +1322,19 @@ row) {
 		didRestoreLabels = YES;
 	}
 
-	OSStatus err = noErr;
-	CFAbsoluteTime aModDate, aCreateDate;
-	if (noErr == (err = UCConvertUTCDateTimeToCFAbsoluteTime(&fileModifiedDate, &aModDate))) {
-		[self setDateModified:aModDate];
-	}
+	self.modificationDate = self.contentModificationDate;
 
-	if (createdDate == 0.0 || didRestoreLabels) {
+	if (!self.creationDate || didRestoreLabels) {
 		//when reading files from disk for the first time, grab their creation date
 		//or if this file has just been altered, grab its newly-changed modification dates
 
 		FSCatalogInfo info;
 		if ([localDelegate fileInNotesDirectory: self.noteFileRef isOwnedByUs:NULL hasCatalogInfo:&info] == noErr) {
-			if (createdDate == 0.0 && UCConvertUTCDateTimeToCFAbsoluteTime(&info.createDate, &aCreateDate) == noErr) {
-				[self setDateAdded:aCreateDate];
-			}
+			if (!self.creationDate) self.creationDate = [NSDate datewithUTCDateTime: &info.createDate];
+			
 			if (didRestoreLabels) {
-				self.fileModifiedDate = info.contentModDate;
-				self.attrsModifiedDate = &info.attributeModDate;
+				self.contentModificationDate = [NSDate datewithUTCDateTime: &info.contentModDate];
+				self.attributesModificationDate = [NSDate datewithUTCDateTime: &info.attributeModDate];
 			}
 		}
 	}
@@ -1547,14 +1473,13 @@ row) {
 	id <NoteObjectDelegate, SynchronizedNoteObjectDelegate> localDelegate = (id) self.delegate;
 
 	if (updateTime) {
-		[self setDateModified:CFAbsoluteTimeGetCurrent()];
+		self.modificationDate = [NSDate date];
 
 		if ([localDelegate currentNoteStorageFormat] == SingleDatabaseFormat) {
 			//only set if we're not currently synchronizing to avoid re-reading old data
 			//this will be updated again when writing to a file, but for now we have the newest version
 			//we must do this to allow new notes to be written when switching formats, and for encodingmanager checks
-			if (UCConvertCFAbsoluteTimeToUTCDateTime(modifiedDate, &fileModifiedDate) != noErr)
-				NSLog(@"Unable to set file modification date from current date");
+			self.contentModificationDate = self.modificationDate;
 		}
 	}
 	if (updateFile && updateTime) {
@@ -1651,8 +1576,8 @@ row) {
 
 	//also export the note's modification and creation dates
 	FSCatalogInfo catInfo;
-	UCConvertCFAbsoluteTimeToUTCDateTime(createdDate, &catInfo.createDate);
-	UCConvertCFAbsoluteTimeToUTCDateTime(modifiedDate, &catInfo.contentModDate);
+	[self.creationDate getUTCDateTime: &catInfo.createDate];
+	[self.modificationDate getUTCDateTime: &catInfo.contentModDate];
 	FSSetCatalogInfo(&fileRef, kFSCatInfoCreateDate | kFSCatInfoContentMod, &catInfo);
 
 	return noErr;

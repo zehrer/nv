@@ -214,7 +214,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkCon
 	if (aDict) {
 		NSAssert([aNote isKindOfClass:[NoteObject class]], @"can't modify a non-note!");
 		[aNote setSyncObjectAndKeyMD:@{
-				@"modify" : @([(NoteObject *) aNote modifiedDate]),
+				@"modify" : @([[(NoteObject *)aNote modificationDate] timeIntervalSinceReferenceDate]),
 				@"dirty" : @YES
 		}                 forService:SimplenoteServiceName];
 	} //if note has no metadata for this service, mod times don't matter because it will be added, anyway
@@ -636,7 +636,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkCon
 
 			NSNumber *modNum = info[@"modify"];
 			//NSLog(@"updating mod time for note %@ to %@", aNote, modNum);
-			[aNote setDateModified:[modNum doubleValue]];
+			aNote.modificationDate = [NSDate dateWithTimeIntervalSince1970: [modNum doubleValue]];
 			[aNote setSyncObjectAndKeyMD:@{@"syncnum" : info[@"syncnum"], @"modify" : modNum, SimplenoteSeparatorKey : separator, @"dirty" : @NO} forService:SimplenoteServiceName];
 			[changedNotes addObject:aNote];
 		}
@@ -771,8 +771,8 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkCon
 		NoteObject *note = [[NoteObject alloc] initWithNoteBody:attributedBody title:title delegate:delegate format:SingleDatabaseFormat labels:labelString];
 		if (note) {
 			NSNumber *modNum = info[@"modify"];
-			[note setDateAdded:[info[@"create"] doubleValue]];
-			[note setDateModified:[modNum doubleValue]];
+			note.creationDate = [NSDate dateWithTimeIntervalSince1970: [info[@"create"] doubleValue]];
+			note.modificationDate = [NSDate dateWithTimeIntervalSince1970: [info[@"modify"] doubleValue]];
 			//also set syncnum, version, mod time, key, and sepWCtx for this note's syncServicesMD
 			[note setSyncObjectAndKeyMD:@{@"syncnum" : info[@"syncnum"], @"version" : info[@"version"], @"modify" : modNum, @"key" : info[@"key"], SimplenoteSeparatorKey : separator} forService:SimplenoteServiceName];
 
