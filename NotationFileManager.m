@@ -247,11 +247,15 @@ long BlockSizeForNotation(NotationController *controller) {
 	return [stdNoteDirectory.path hasPrefix: trashURL.path];
 }
 
-- (BOOL)notesDirectoryContainsFile:(NSString *)filename returningFSRef:(FSRef *)childRef {
-	UniChar chars[256];
+- (NSURL *)notesDirectoryContainsFile:(NSString *)filename {
 	if (!filename) return NO;
+	return [[self.noteDirectoryURL URLByAppendingPathComponent: filename] fileReferenceURL];
+}
 
-	return FSRefMakeInDirectoryWithString(&noteDirectoryRef, childRef, (__bridge CFStringRef) filename, chars) == noErr;
+- (NSURL *)notesDirectoryContainsFile:(NSString *)filename returningFSRef:(FSRef *)childRef {
+	NSURL *ret = [self notesDirectoryContainsFile: filename];
+	if (childRef) [ret getFSRef: childRef];
+	return ret;
 }
 
 - (OSStatus)renameAndForgetNoteDatabaseFile:(NSString *)newfilename {

@@ -54,6 +54,7 @@ typedef NSRange NSRange32;
 @interface NoteObject () {
 	NSMutableAttributedString *_contentString;
 	NSDate *_attributesModificationDate;
+	NSURL *_noteFileURL; // temporary while we migrate away from FSRef
 }
 
 @property(nonatomic, copy, readwrite) NSString *filename;
@@ -683,8 +684,8 @@ row) {
 		//woe to the exporter who also left the note files in the notes directory after switching to a singledb format
 		//his note names might not be up-to-date
 		if ([localDelegate currentNoteStorageFormat] != SingleDatabaseFormat ||
-				![localDelegate notesDirectoryContainsFile:filename returningFSRef: self.noteFileRef]) {
-
+				!(_noteFileURL = [localDelegate notesDirectoryContainsFile: filename returningFSRef: self.noteFileRef])) {
+			
 			[self setFilenameFromTitle];
 		}
 
@@ -1174,7 +1175,7 @@ row) {
 	OSStatus err = noErr;
 	do {
 		if (noErr != err || IsZeros(self.noteFileRef, sizeof(FSRef))) {
-			if (![localDelegate notesDirectoryContainsFile:filename returningFSRef: self.noteFileRef]) return fnfErr;
+			if (!(_noteFileURL = [localDelegate notesDirectoryContainsFile: filename returningFSRef: self.noteFileRef])) return fnfErr;
 		}
 		err = FSSetCatalogInfo(self.noteFileRef, kFSCatInfoCreateDate | kFSCatInfoContentMod, &catInfo);
 	} while (fnfErr == err);

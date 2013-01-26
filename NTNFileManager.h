@@ -24,7 +24,8 @@
 
 - (OSStatus)noteFileRenamed:(FSRef *)childRef fromName:(NSString *)oldName toName:(NSString *)newName;
 
-- (BOOL)notesDirectoryContainsFile:(NSString *)filename returningFSRef:(FSRef *)childRef;
+- (NSURL *)notesDirectoryContainsFile:(NSString *)filename returningFSRef:(FSRef *)childRef;
+- (NSURL *)notesDirectoryContainsFile:(NSString *)filename;
 
 - (OSStatus)refreshFileRefIfNecessary:(FSRef *)childRef withName:(NSString *)filename charsBuffer:(UniChar *)charsBuffer;
 
