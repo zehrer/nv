@@ -72,8 +72,6 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, NSUInteger charIndex);
 
 - (NSArray *)labelCompatibleWords;
 
-- (BOOL)UTIOfFileConformsToType:(NSString *)type;
-
 - (CFUUIDBytes)uuidBytes;
 
 + (NSString *)uuidStringWithBytes:(CFUUIDBytes)bytes;

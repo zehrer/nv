@@ -500,22 +500,6 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, NSUInteger charIndex) 
 	return reason;
 }
 
-- (BOOL)UTIOfFileConformsToType:(NSString *)type {
-
-	CFStringRef fileUTI = NULL;
-	FSRef fileRef;
-	if (FSPathMakeRef((const UInt8 *) [self fileSystemRepresentation], &fileRef, NULL) == noErr) {
-		if (LSCopyItemAttribute(&fileRef, kLSRolesAll, kLSItemContentType, (CFTypeRef *) &fileUTI) == noErr) {
-			if (fileUTI) {
-				BOOL conforms = UTTypeConformsTo(fileUTI, (__bridge CFStringRef) type);
-				CFRelease(fileUTI);
-				return conforms;
-			}
-		}
-	}
-	return NO;
-}
-
 - (CFUUIDBytes)uuidBytes {
 	CFUUIDRef uuidRef = CFUUIDCreateFromString(NULL, (CFStringRef) self);
 	CFUUIDBytes bytes = CFUUIDGetUUIDBytes(uuidRef);
