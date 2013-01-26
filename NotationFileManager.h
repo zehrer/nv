@@ -32,8 +32,6 @@ typedef union VolumeUUID {
 
 @interface NotationController (NotationFileManager) <NTNFileManager>
 
-OSStatus CreateTemporaryFile(FSRef *parentRef, FSRef *childTempRef);
-
 OSStatus CreateDirectoryIfNotPresent(FSRef *parentRef, CFStringRef subDirectoryName, FSRef *childRef);
 
 CFUUIDRef CopyHFSVolumeUUIDForMount(const char *mntonname);

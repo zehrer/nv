@@ -48,27 +48,6 @@ OSStatus CreateDirectoryIfNotPresent(FSRef *parentRef, CFStringRef subDirectoryN
 	return noErr;
 }
 
-OSStatus CreateTemporaryFile(FSRef *parentRef, FSRef *childTempRef) {
-	UniChar chars[256];
-	NSUInteger nameLength = 0;
-	OSStatus result = noErr;
-
-	do {
-		CFStringRef filename = CreateRandomizedFileName();
-		nameLength = [(__bridge NSString *) filename length];
-		result = FSRefMakeInDirectoryWithString(parentRef, childTempRef, filename, chars);
-		CFRelease(filename);
-
-	} while (result == noErr);
-
-	if (result == fnfErr) {
-		result = FSCreateFileUnicode(parentRef, nameLength, chars, kFSCatInfoNone, NULL, childTempRef, NULL);
-	}
-
-	return result;
-}
-
-
 /*
  Read the UUID from a mounted volume, by calling getattrlist().
  Assumes the path is the mount point of an HFS volume.
