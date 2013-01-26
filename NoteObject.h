@@ -118,6 +118,8 @@ NSInteger compareLabelString(id *a, id *b);
 
 NSInteger compareTitleString(id *a, id *b);
 
+- (NSComparisonResult)compareTitleStrings:(NoteObject *)other;
+
 NSInteger compareUniqueNoteIDBytes(id *a, id *b);
 
 

@@ -216,11 +216,3 @@
 }
 
 @end
-
-@implementation NSMutableArray (Sorting)
-
-- (void)sortUnstableUsingFunction:(NSInteger ( *)(id *, id *))compare {
-	[self sortUsingFunction:(NSInteger ( *)(id, id, void *)) genericSortContextLast context:compare];
-}
-
-@end

@@ -219,6 +219,28 @@ NSInteger compareTitleString(id *a, id *b) {
 	return (NSInteger) stringResult;
 }
 
+- (NSComparisonResult)compareTitleStrings:(NoteObject *)other {
+	NSComparisonResult result = [self.title caseInsensitiveCompare: other.title];
+	
+	if (result == NSOrderedSame) {
+		__weak id weakSelf = self;
+
+		result = compareDateCreated(&weakSelf, &other);
+		if (!result) {
+			result = compareUniqueNoteIDBytes(&weakSelf, &other);
+		}
+
+		if (result > 0)
+			result = NSOrderedDescending;
+		else if (result < 0)
+			result = NSOrderedAscending;
+		else
+			result = NSOrderedSame;
+	}
+
+	return result;
+}
+
 NSInteger compareUniqueNoteIDBytes(id *a, id *b) {
 	return memcmp((&(*(NoteObject **) a)->uniqueNoteIDBytes), (&(*(NoteObject **) b)->uniqueNoteIDBytes), sizeof(CFUUIDBytes));
 }

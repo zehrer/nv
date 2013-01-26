@@ -188,7 +188,9 @@ void updateForVerifiedExistingNote(DeletionManager *self, NoteObject *goodNote) 
 	[confirmDeletionButton setState:![[notationController notationPrefs] confirmFileDeletion]];
 
 	//sort notes by title
-	[deletedNotes sortUnstableUsingFunction:compareTitleString];
+	[deletedNotes sortedArrayWithOptions: NSSortConcurrent usingComparator: ^NSComparisonResult(NoteObject *obj1, NoteObject *obj2) {
+		return [obj1 compareTitleStrings: obj2];
+	}];
 
 	[window setFrame:[self windowSizeForNotesFromSender:window] display:NO];
 
