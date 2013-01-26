@@ -353,7 +353,7 @@ long BlockSizeForNotation(NotationController *controller) {
 
 				NSError *err = nil;
 				if ([self.fileManager moveItemAtURL: self.noteDirectoryURL toURL: newURL error: &err]) {
-					_noteDirectoryURL = newURL;
+					_noteDirectoryURL = [newURL fileReferenceURL];
 				} else {
 					NSRunAlertPanel([NSString stringWithFormat:NSLocalizedString(@"Couldn't move notes into the chosen folder because %@", nil), [err localizedDescription]], NSLocalizedString(@"Your notes were not moved.", nil), NSLocalizedString(@"OK", nil), NULL, NULL);
 					continue;
@@ -581,7 +581,7 @@ long BlockSizeForNotation(NotationController *controller) {
 		}
 	}
 	
-	return notesDatabaseURL;
+	return [notesDatabaseURL fileReferenceURL];
 }
 
 - (void)notifyOfChangedTrash {

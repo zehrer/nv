@@ -133,7 +133,7 @@
 		aliasNeedsUpdating = YES; //we don't know if we have an alias yet
 
 		noteDirectoryRef = *directoryRef;
-		_noteDirectoryURL = [NSURL URLWithFSRef: directoryRef];
+		_noteDirectoryURL = [[NSURL URLWithFSRef: directoryRef] fileReferenceURL];
 
 		//check writable and readable perms, warning user if necessary
 
@@ -1633,7 +1633,7 @@
 
 - (NSURL *)noteDatabaseURL {
 	if (!_noteDatabaseURL && !IsZeros(&noteDatabaseRef, sizeof(FSRef))) {
-		_noteDatabaseURL = [NSURL URLWithFSRef: &noteDatabaseRef];
+		_noteDatabaseURL = [[NSURL URLWithFSRef: &noteDatabaseRef] fileReferenceURL];
 	}
 	return _noteDatabaseURL;
 }

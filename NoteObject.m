@@ -1699,7 +1699,7 @@ BOOL noteTitleIsAPrefixOfOtherNoteTitle(NoteObject *longerNote, NoteObject *shor
 
 - (NSURL *)noteFileURL {
 	// I know this is slow. Temporary.
-	return [NSURL URLWithFSRef: self.noteFileRef];
+	return [[NSURL URLWithFSRef: self.noteFileRef] fileReferenceURL];
 }
 
 
