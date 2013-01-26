@@ -53,13 +53,11 @@ typedef NSRange NSRange32;
 
 @interface NoteObject () {
 	NSMutableAttributedString *_contentString;
-	NSDate *_attributesModificationDate;
 	NSURL *_noteFileURL; // temporary while we migrate away from FSRef
 }
 
 @property(nonatomic, copy, readwrite) NSString *filename;
 @property(nonatomic, readwrite) NoteStorageFormat storageFormat;
-@property(nonatomic, readwrite) UInt32 fileNodeID;
 @property(nonatomic, readwrite) UInt32 fileSize;
 @property(nonatomic, copy, readwrite) NSString *title;
 @property(nonatomic, copy, readwrite) NSString *labels;
@@ -86,10 +84,6 @@ typedef NSRange NSRange32;
 
 - (id)init {
 	if ((self = [super init])) {
-
-		perDiskInfoGroups = calloc(1, sizeof(PerDiskInfo));
-		perDiskInfoGroups[0].diskIDIndex = -1;
-		perDiskInfoGroupCount = 1;
 
 		currentFormatID = SingleDatabaseFormat;
 		fileEncoding = NSUTF8StringEncoding;
@@ -122,32 +116,22 @@ typedef NSRange NSRange32;
 	}
 }
 
-- (void)setAttributesModificationDate:(NSDate *)attributesModificationDate {
-	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
-	if (!localDelegate) {
-		_attributesModificationDate = attributesModificationDate;
-		return;
-	}
-	UTCDateTime dateTime;
-	[_attributesModificationDate getUTCDateTime: &dateTime];
-	SetPerDiskInfoWithTableIndex(&dateTime, NULL, (UInt32) [localDelegate diskUUIDIndex], &perDiskInfoGroups, &perDiskInfoGroupCount);
-	_attributesModificationDate = [NSDate datewithUTCDateTime: &dateTime] ?: attributesModificationDate;
-}
-
 - (NSDate *)attributesModificationDate {
 	if (!_attributesModificationDate) {
-		id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
-		if (!localDelegate) return nil;
+		if (perDiskInfoGroupCount) {
+			id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
+			if (!localDelegate) return nil;
 
-		//init from delegate based on disk table index
-		NSUInteger i, tableIndex = [localDelegate diskUUIDIndex];
+			//init from delegate based on disk table index
+			NSUInteger i, tableIndex = [localDelegate diskUUIDIndex];
 
-		for (i = 0; i < perDiskInfoGroupCount; i++) {
-			//check if this date has actually been initialized; this entry could be here only because -setFileNoteID: was called
-			if (perDiskInfoGroups[i].diskIDIndex == tableIndex && !UTCDateTimeIsEmpty(perDiskInfoGroups[i].attrTime)) {
-				UTCDateTime time = perDiskInfoGroups[i].attrTime;
-				_attributesModificationDate = [NSDate datewithUTCDateTime: &time];
-				break;
+			for (i = 0; i < perDiskInfoGroupCount; i++) {
+				//check if this date has actually been initialized; this entry could be here only because -setFileNoteID: was called
+				if (perDiskInfoGroups[i].diskIDIndex == tableIndex && !UTCDateTimeIsEmpty(perDiskInfoGroups[i].attrTime)) {
+					UTCDateTime time = perDiskInfoGroups[i].attrTime;
+					_attributesModificationDate = [NSDate datewithUTCDateTime: &time];
+					break;
+				}
 			}
 		}
 
@@ -157,33 +141,6 @@ typedef NSRange NSRange32;
 		}
 	}
 	return _attributesModificationDate;
-}
-
-- (UInt32)fileNodeID {
-	if (!nodeID) {
-		id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
-		if (!localDelegate) return -1;
-
-		NSUInteger i, tableIndex = [localDelegate diskUUIDIndex];
-
-		for (i = 0; i < perDiskInfoGroupCount; i++) {
-			//check if this nodeID has actually been initialized; this entry could be here only because -setAttributesModificationDate: was called
-			if (perDiskInfoGroups[i].diskIDIndex == tableIndex && perDiskInfoGroups[i].nodeID != 0U) {
-				return (nodeID = perDiskInfoGroups[i].nodeID);
-			}
-		}
-
-		//this note doesn't have a file-modified date, so initialize something that at least won't repeat this lookup
-		self.fileNodeID = 1;
-	}
-	return nodeID;
-}
-
-- (void)setFileNodeID:(UInt32)fileNodeID {
-	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
-	if (!localDelegate) return;
-	SetPerDiskInfoWithTableIndex(NULL, &fileNodeID, (UInt32) [localDelegate diskUUIDIndex], &perDiskInfoGroups, &perDiskInfoGroupCount);
-	nodeID = fileNodeID;
 }
 
 NSInteger compareDateModified(id *a, id *b) {
@@ -277,10 +234,6 @@ NSInteger compareTitleStringReverse(id *a, id *b) {
 		return dateResult;
 	}
 	return (NSInteger) stringResult;
-}
-
-NSInteger compareNodeID(id *a, id *b) {
-	return (*(NoteObject **) a).fileNodeID - (*(NoteObject **) b).fileNodeID;;
 }
 
 NSInteger compareFileSize(id *a, id *b) {
@@ -403,10 +356,14 @@ row) {
 				_contentModificationDate = [NSDate datewithUTCDateTime: &time];
 			}
 
-			NSUInteger decodedPerDiskByteCount = 0;
-			const uint8_t *decodedPerDiskBytes = [decoder decodeBytesForKey:VAR_STR(perDiskInfoGroups) returnedLength:&decodedPerDiskByteCount];
-			if (decodedPerDiskBytes && decodedPerDiskByteCount) {
-				CopyPerDiskInfoGroupsToOrder(&perDiskInfoGroups, &perDiskInfoGroupCount, (PerDiskInfo *) decodedPerDiskBytes, decodedPerDiskByteCount, 1);
+			if ([decoder containsValueForKey: VAR_STR(attributesModificationDate)]) {
+				_attributesModificationDate = [decoder decodeObjectForKey: VAR_STR(attributesModificationDate)];
+			} else if ([decoder containsValueForKey: VAR_STR(perDiskInfoGroups)]) {
+				NSUInteger decodedPerDiskByteCount = 0;
+				const uint8_t *decodedPerDiskBytes = [decoder decodeBytesForKey:VAR_STR(perDiskInfoGroups) returnedLength:&decodedPerDiskByteCount];
+				if (decodedPerDiskBytes && decodedPerDiskByteCount) {
+					CopyPerDiskInfoGroupsToOrder(&perDiskInfoGroups, &perDiskInfoGroupCount, (PerDiskInfo *) decodedPerDiskBytes, decodedPerDiskByteCount, 1);
+				}
 			}
 
 			fileEncoding = [decoder decodeIntegerForKey:VAR_STR(fileEncoding)];
@@ -447,13 +404,9 @@ row) {
 		[coder encodeInt32:currentFormatID forKey:VAR_STR(currentFormatID)];
 		[coder encodeInt32:logicalSize forKey:VAR_STR(logicalSize)];
 
-		void *flippedPerDiskInfoGroups = calloc(perDiskInfoGroupCount, sizeof(PerDiskInfo));
-		CopyPerDiskInfoGroupsToOrder((PerDiskInfo **) &flippedPerDiskInfoGroups, &perDiskInfoGroupCount, perDiskInfoGroups, perDiskInfoGroupCount * sizeof(PerDiskInfo), 0);
-
-		[coder encodeBytes:flippedPerDiskInfoGroups length:perDiskInfoGroupCount * sizeof(PerDiskInfo) forKey:VAR_STR(perDiskInfoGroups)];
-		free(flippedPerDiskInfoGroups);
-
 		[coder encodeObject: self.contentModificationDate forKey: VAR_STR(contentModificationDate)];
+		[coder encodeObject: self.attributesModificationDate forKey: VAR_STR(attributesModificationDate)];
+
 		[coder encodeInteger:fileEncoding forKey:VAR_STR(fileEncoding)];
 
 		[coder encodeBytes:(const uint8_t *) &uniqueNoteIDBytes length:sizeof(CFUUIDBytes) forKey:VAR_STR(uniqueNoteIDBytes)];
@@ -518,8 +471,8 @@ row) {
 		self.contentModificationDate = [NSDate datewithUTCDateTime: &lastModified];
 		UTCDateTime lastAttrModified = entry.lastAttrModified;
 		self.attributesModificationDate = [NSDate datewithUTCDateTime: &lastAttrModified];
-		self.fileNodeID = entry.nodeID;
 		self.fileSize = entry.logicalSize;
+		self.creationDate = entry.creationDate;
 
 		CFUUIDRef uuidRef = CFUUIDCreate(kCFAllocatorDefault);
 		uniqueNoteIDBytes = CFUUIDGetUUIDBytes(uuidRef);
@@ -1143,8 +1096,7 @@ row) {
 			[self setFilenameFromTitle];
 		}
 
-		(void) [self writeFileDatesAndUpdateTrackingInfo];
-
+		[self writeFileDatesAndUpdateTrackingInfo];
 
 		//finished writing to file successfully
 		shouldWriteToFile = NO;
@@ -1161,43 +1113,50 @@ row) {
 	return YES;
 }
 
-- (OSStatus)writeFileDatesAndUpdateTrackingInfo {
-	if (SingleDatabaseFormat == currentFormatID) return noErr;
+- (BOOL)writeFileDatesAndUpdateTrackingInfo {
+	if (SingleDatabaseFormat == currentFormatID) return YES;
 	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
 
 	//sync the file's creation and modification date:
-	FSCatalogInfo catInfo;
-	[self.creationDate getUTCDateTime: &catInfo.createDate];
-	[self.modificationDate getUTCDateTime: &catInfo.contentModDate];
+	NSDictionary *attributes = @{NSURLCreationDateKey: self.creationDate, NSURLContentModificationDateKey: self.modificationDate};
 
-	// if this method is called anywhere else, then use [delegate refreshFileRefIfNecessary: self.noteFileRef withName:filename charsBuffer:chars]; instead
-	// for now, it is not called in any situations where the fsref might accidentally point to a moved file
-	OSStatus err = noErr;
+	// if this method is called anywhere else, then use [delegate
+	// refreshFileRefIfNecessary: self.noteFileRef withName:filename
+	// charsBuffer:chars]; instead, for now, it is not called in any situations
+	// where the fsref might accidentally point to a moved file
+	NSError *error = nil;
 	do {
-		if (noErr != err || IsZeros(self.noteFileRef, sizeof(FSRef))) {
-			if (!(_noteFileURL = [localDelegate notesDirectoryContainsFile: filename returningFSRef: self.noteFileRef])) return fnfErr;
+		if (error || !_noteFileURL) {
+			if (!(_noteFileURL = [localDelegate notesDirectoryContainsFile: filename returningFSRef: self.noteFileRef])) return NO;
 		}
-		err = FSSetCatalogInfo(self.noteFileRef, kFSCatInfoCreateDate | kFSCatInfoContentMod, &catInfo);
-	} while (fnfErr == err);
+		[self.noteFileURL setResourceValues: attributes error: &error];
+	} while (error.code == NSFileNoSuchFileError);
 
-	if (noErr != err) {
-		NSLog(@"could not set catalog info: %d", err);
-		return err;
+	if (error) {
+		NSLog(@"could not set catalog info: %@", error);
+		return NO;
+		
 	}
 
 	//regardless of whether FSSetCatalogInfo was successful, the file mod date could still have changed
+	OSStatus err = noErr;
+	FSCatalogInfo catInfo;
 
 	if ((err = [localDelegate fileInNotesDirectory: self.noteFileRef isOwnedByUs:NULL hasCatalogInfo:&catInfo]) != noErr) {
 		NSLog(@"Unable to get new modification date of file %@: %d", filename, err);
-		return err;
+		return NO;
 	}
-	
+
 	self.contentModificationDate = [NSDate datewithUTCDateTime: &catInfo.contentModDate];
 	self.attributesModificationDate = [NSDate datewithUTCDateTime: &catInfo.attributeModDate];
-	self.fileNodeID = catInfo.nodeID;
 	self.fileSize = (UInt32) (catInfo.dataLogicalSize & 0xFFFFFFFF);
 
-	return noErr;
+	NSDate *createDate = [NSDate datewithUTCDateTime: &catInfo.createDate];
+	if ([self.creationDate compare: createDate] == NSOrderedDescending) {
+		self.creationDate = createDate;
+	}
+
+	return YES;
 }
 
 - (OSStatus)writeCurrentFileEncodingToFSRef:(FSRef *)fsRef {
@@ -1298,8 +1257,12 @@ row) {
 		if ([localDelegate fileInNotesDirectory: self.noteFileRef isOwnedByUs:NULL hasCatalogInfo:&info] == noErr) {
 			self.contentModificationDate = [NSDate datewithUTCDateTime: &info.contentModDate];
 			self.attributesModificationDate = [NSDate datewithUTCDateTime: &info.attributeModDate];
-			self.fileNodeID = info.nodeID;
 			self.fileSize = (UInt32) (info.dataLogicalSize & 0xFFFFFFFF);
+
+			NSDate *createDate = [NSDate datewithUTCDateTime: &info.createDate];
+			if ([self.creationDate compare: createDate] == NSOrderedDescending) {
+				self.creationDate = createDate;
+			}
 
 			return YES;
 		}
@@ -1327,9 +1290,11 @@ row) {
 	UTCDateTime lastAttrModified = catEntry.lastAttrModified;
 	self.contentModificationDate = [NSDate datewithUTCDateTime: &lastModified];
 	self.attributesModificationDate = [NSDate datewithUTCDateTime: &lastAttrModified];
-	
-	self.fileNodeID = catEntry.nodeID;
 	self.fileSize = catEntry.logicalSize;
+
+	if ([self.creationDate compare: catEntry.creationDate] == NSOrderedDescending) {
+		self.creationDate = catEntry.creationDate;
+	}
 
 	NSArray *openMetaTags = [NSFileManager getOpenMetaTagsForItemAtURL: self.noteFileURL error: NULL];
 	if (openMetaTags) {

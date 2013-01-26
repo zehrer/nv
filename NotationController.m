@@ -454,10 +454,6 @@
 			[NSObject cancelPreviousPerformRequestsWithTarget:walWriter selector:@selector(synchronize) object:nil];
 		}
 
-		//purge attr-mod-times for old disk uuids here
-		[self purgeOldPerDiskInfoFromNotes];
-
-
 		NSData *serializedData = [FrozenNotation frozenDataWithExistingNotes:allNotes deletedNotes:deletedNotes prefs:notationPrefs];
 		if (!serializedData) {
 

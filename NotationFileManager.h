@@ -40,8 +40,6 @@ long BlockSizeForNotation(NotationController *controller);
 
 NSUInteger diskUUIDIndexForNotation(NotationController *controller);
 
-- (void)purgeOldPerDiskInfoFromNotes;
-
 - (void)initializeDiskUUIDIfNecessary;
 
 - (BOOL)notesDirectoryIsTrashed;

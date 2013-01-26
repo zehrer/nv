@@ -52,10 +52,6 @@ int ContainsHighAscii(const void *s1, size_t n);
 
 unsigned DumbWordCount(const void *s1, size_t len);
 
-void RemovePerDiskInfoWithTableIndex(UInt32 diskIndex, PerDiskInfo **perDiskGroups, NSUInteger *groupCount);
-
-NSUInteger SetPerDiskInfoWithTableIndex(UTCDateTime *dateTime, UInt32 *nodeID, UInt32 diskIndex, PerDiskInfo **perDiskGroups, NSUInteger *groupCount);
-
 void CopyPerDiskInfoGroupsToOrder(PerDiskInfo **flippedGroups, NSUInteger *existingCount, PerDiskInfo *perDiskGroups, size_t bufferSize, NSInteger toHostOrder);
 
 extern CFStringRef CreateRandomizedFileName();

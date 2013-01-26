@@ -147,11 +147,6 @@ CFUUIDRef CopySyntheticUUIDForVolumeCreationDate(FSRef *fsRef) {
 	return NULL;
 }
 
-- (void)purgeOldPerDiskInfoFromNotes {
-	//here's where notes' PerDiskInfo arrays would have older times removed, depending on -[DiskUUIDEntry lastAccessed]
-	//each note will use RemovePerDiskInfoWithTableIndex
-}
-
 - (void)initializeDiskUUIDIfNecessary {
 	//create a CFUUIDRef that identifies the volume this database sits on
 
@@ -456,7 +451,7 @@ long BlockSizeForNotation(NotationController *controller) {
 	if (owned) *owned = NO;
 
 	if (info) {
-		whichInfo = kFSCatInfoContentMod | kFSCatInfoCreateDate | kFSCatInfoAttrMod | kFSCatInfoNodeID | kFSCatInfoDataSizes;
+		whichInfo = kFSCatInfoContentMod | kFSCatInfoCreateDate | kFSCatInfoAttrMod | kFSCatInfoDataSizes;
 		bzero(info, sizeof(FSCatalogInfo));
 	}
 

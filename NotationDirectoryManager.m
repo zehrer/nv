@@ -205,7 +205,7 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void *info, size_t nu
 			// Grab a batch of source files to process from the source directory
 			status = FSGetCatalogInfoBulk(dirIterator, kMaxFileIteratorCount, &dirObjectCount, NULL,
 					kFSCatInfoNodeFlags | kFSCatInfoFinderInfo | kFSCatInfoContentMod |
-							kFSCatInfoAttrMod | kFSCatInfoDataSizes | kFSCatInfoNodeID,
+							kFSCatInfoAttrMod | kFSCatInfoDataSizes | kFSCatInfoCreateDate,
 					fsCatInfoArray, NULL, NULL, HFSUniNameArray);
 
 			if ((status == errFSNoMoreItems || status == noErr) && dirObjectCount) {
@@ -222,10 +222,9 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void *info, size_t nu
 
 						entry.fileType = ((FileInfo *) fsCatInfoArray[i].finderInfo)->fileType;
 						entry.logicalSize = (UInt32) (fsCatInfoArray[i].dataLogicalSize & 0xFFFFFFFF);
-						entry.nodeID = (UInt32) fsCatInfoArray[i].nodeID;
 						entry.lastModified = fsCatInfoArray[i].contentModDate;
 						entry.lastAttrModified = fsCatInfoArray[i].attributeModDate;
-
+						entry.creationDate = [NSDate datewithUTCDateTime: &fsCatInfoArray[i].createDate];
 
 						if (filename->length > entry.filenameCharCount) {
 							entry.filenameCharCount = filename->length;
@@ -398,19 +397,13 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void *info, size_t nu
 - (void)processNotesAddedByCNID:(NSMutableArray *)addedEntries removed:(NSMutableArray *)removedEntries {
 	NSUInteger aSize = [removedEntries count], bSize = [addedEntries count];
 
-	//sort on nodeID here
+	//sort on creation date here
 	[addedEntries sortWithOptions: NSSortConcurrent usingComparator:^NSComparisonResult(NoteCatalogEntry *aEntry, NoteCatalogEntry *bEntry) {
-		NSInteger diff = (NSInteger)aEntry.nodeID - (NSInteger)bEntry.nodeID;
-		if (diff < 0) return NSOrderedAscending;
-		if (diff > 0) return NSOrderedDescending;
-		return NSOrderedSame;
+		return [aEntry.creationDate compare: bEntry.creationDate];
 	}];
 
 	[removedEntries sortWithOptions: NSSortConcurrent usingComparator:^NSComparisonResult(NoteObject *aEntry, NoteObject *bEntry) {
-		NSInteger diff = (NSInteger)aEntry.fileNodeID - (NSInteger)bEntry.fileNodeID;
-		if (diff < 0) return NSOrderedAscending;
-		if (diff > 0) return NSOrderedDescending;
-		return NSOrderedSame;
+		return [aEntry.creationDate compare: bEntry.creationDate];
 	}];
 
 	NSMutableArray *hfsAddedEntries = [NSMutableArray array];
@@ -428,17 +421,16 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void *info, size_t nu
 		for (j = lastInserted; j < bSize; j++) {
 			NoteCatalogEntry *catEntry = addedEntries[j];
 
-			int order = catEntry.nodeID - currentNote.fileNodeID;
+			NSComparisonResult compare = [currentNote.creationDate compare: catEntry.creationDate];
 
-			if (order > 0) {    //if (A[i] < B[j])
+			if (compare == NSOrderedAscending) { // if (A[i] < B[j])
 				lastInserted = j;
 				exitedEarly = YES;
 
 				NSLog(@"File deleted as per CNID: %@", currentNote.filename);
 				[hfsRemovedEntries addObject:currentNote];
-
 				break;
-			} else if (order == 0) {            //if (A[i] == B[j])
+			} else if (compare == NSOrderedSame) { // if (A[i] == B[j])
 				lastInserted = j + 1;
 				exitedEarly = YES;
 
@@ -454,7 +446,7 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void *info, size_t nu
 				}
 
 				notesChanged = YES;
-
+				
 				break;
 			}
 
@@ -466,7 +458,7 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void *info, size_t nu
 
 		if (!exitedEarly) {
 			NoteCatalogEntry *appendedCatEntry = addedEntries[MIN(lastInserted, bSize - 1)];
-			if (currentNote.fileNodeID - appendedCatEntry.nodeID > 0) {
+			if ([currentNote.creationDate compare: appendedCatEntry.creationDate] == NSOrderedDescending) {
 				lastInserted = bSize;
 
 				//file deleted from disk;

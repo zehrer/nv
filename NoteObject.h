@@ -84,7 +84,6 @@ typedef struct _NoteFilterContext {
 
 	//for syncing to text file
 	NSString *filename;
-	UInt32 nodeID;
 	UInt32 logicalSize;
 	PerDiskInfo *perDiskInfoGroups;
 	NSUInteger perDiskInfoGroupCount;
@@ -131,8 +130,6 @@ NSInteger compareLabelStringReverse(id *a, id *b);
 
 NSInteger compareTitleStringReverse(id *a, id *b);
 
-NSInteger compareNodeID(id *a, id *b);
-
 NSInteger compareFileSize(id *a, id *b);
 
 //syncing w/ server and from journal
@@ -149,7 +146,6 @@ NSInteger compareFileSize(id *a, id *b);
 //syncing w/ files in directory
 @property(nonatomic, copy, readonly) NSString *filename;
 @property(nonatomic, readonly) NoteStorageFormat storageFormat;
-@property(nonatomic, readonly) UInt32 fileNodeID;
 @property(nonatomic, readonly) UInt32 fileSize;
 @property(nonatomic, copy, readonly) NSString *title;
 @property(nonatomic, copy, readonly) NSString *labels;
@@ -249,7 +245,7 @@ BOOL noteTitleIsAPrefixOfOtherNoteTitle(NoteObject *longerNote, NoteObject *shor
 
 - (BOOL)updateFromData:(NSMutableData *)data inFormat:(int)fmt;
 
-- (OSStatus)writeFileDatesAndUpdateTrackingInfo;
+- (BOOL)writeFileDatesAndUpdateTrackingInfo;
 
 - (NSURL *)uniqueNoteLink;
 

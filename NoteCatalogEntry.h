@@ -12,9 +12,10 @@
 @property (nonatomic) UTCDateTime lastAttrModified;
 @property (nonatomic) UInt32 logicalSize;
 @property (nonatomic) OSType fileType;
-@property (nonatomic) UInt32 nodeID;
 @property (nonatomic) CFMutableStringRef filename;
 @property (nonatomic) UniChar *filenameChars;
 @property (nonatomic) UniCharCount filenameCharCount;
+
+@property (nonatomic, copy) NSDate *creationDate;
 
 @end

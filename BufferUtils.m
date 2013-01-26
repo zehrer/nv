@@ -281,67 +281,6 @@ CFStringRef GetRelativeDateStringFromTimeAndLocaleInfo(CFAbsoluteTime time, CFSt
 }
 #endif
 
-//these two methods manipulate notes' perdiskinfo groups, changing the buffers in place
-//on return, groupCount will be set to the number of perdiskinfo structs currently in the buffer
-
-void RemovePerDiskInfoWithTableIndex(UInt32 diskIndex, PerDiskInfo **perDiskGroups, NSUInteger *groupCount) {
-	//used to periodically clean out attr-mod-times for disks that have not been seen in a while
-
-	//if an entry exists, push everything below it upward and resize the buffer (or just copy to a new buffer)
-	//otherwise do nothing
-
-	NSUInteger i = 0, count = *groupCount;
-
-	PerDiskInfo *groups = *perDiskGroups;
-	for (i = 0; i < count; i++) {
-		if (groups[i].diskIDIndex == diskIndex) {
-
-			if (i < count - 1) {
-				//if pair isn't the last struct, then bring everything after pair up one spot
-				memmove(&groups[i], &groups[i + 1], sizeof(PerDiskInfo) * ((count - 1) - i));
-			}
-			ResizeArray(perDiskGroups, count - 1, groupCount);
-			return;
-		}
-	}
-}
-
-NSUInteger SetPerDiskInfoWithTableIndex(UTCDateTime *dateTime, UInt32 *nodeID, UInt32 diskIndex, PerDiskInfo **perDiskGroups, NSUInteger *groupCount) {
-	//if an entry for this diskIndex already exists, then just update it in place
-	//if an entry does not exist, then resize the buffer and add one at the end
-	//if one of dateTime or nodeID is NULL, then do not set it
-
-	assert(nodeID || dateTime);
-
-	NSUInteger i = 0, count = *groupCount;
-
-	PerDiskInfo *groups = *perDiskGroups;
-	for (i = 0; i < count; i++) {
-		//use this slot if the diskIndex matches OR it's the first one listed and its attrModTime and nodeID haven't been touched
-		if (groups[i].diskIDIndex == diskIndex || (!i && groups[i].nodeID == 0U && UTCDateTimeIsEmpty(groups[i].attrTime))) {
-			if (dateTime) groups[i].attrTime = *dateTime;
-			if (nodeID) groups[i].nodeID = *nodeID;
-			groups[i].diskIDIndex = diskIndex;
-			return i;
-		}
-	}
-
-	//	printf("table ID %u not found; expanding to %u\n", (unsigned)diskIndex, (unsigned)(count + 1));
-	//diskID not found in existing buffer; add a new entry one or both attributes
-	ResizeArray(perDiskGroups, count + 1, groupCount);
-
-	// items not currently being set are initialized to a known value, so that
-	// they can be initialized later by NoteObject's attributesModificationDate and
-	// fileNodeID properties although those functions do not initialize these to
-	// anything particularly useful, anyway
-	groups = *perDiskGroups;
-	groups[count].attrTime = dateTime ? *dateTime : (UTCDateTime) {0, 0, 0};
-	groups[count].nodeID = nodeID ? *nodeID : 0;
-	groups[count].diskIDIndex = diskIndex;
-
-	return count;
-}
-
 COMPILE_ASSERT(sizeof(PerDiskInfo) == 16, PER_DISK_INFO_MUST_BE_16_BYTES);
 
 void CopyPerDiskInfoGroupsToOrder(PerDiskInfo **flippedGroups, NSUInteger *existingCount, PerDiskInfo *perDiskGroups, size_t bufferSize, NSInteger toHostOrder) {
