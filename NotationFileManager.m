@@ -208,18 +208,6 @@ NSUInteger diskUUIDIndexForNotation(NotationController *controller) {
 	return controller->diskUUIDIndex;
 }
 
-- (OSStatus)refreshFileRefIfNecessary:(FSRef *)childRef withName:(NSString *)filename charsBuffer:(UniChar *)charsBuffer {
-	BOOL isOwned = NO;
-	if (IsZeros(childRef, sizeof(FSRef)) || [self fileInNotesDirectory:childRef isOwnedByUs:&isOwned hasCatalogInfo:NULL] != noErr || !isOwned) {
-		OSStatus err = noErr;
-		if ((err = FSRefMakeInDirectoryWithString(&noteDirectoryRef, childRef, (__bridge CFStringRef) filename, charsBuffer)) != noErr) {
-			NSLog(@"Could not get an fsref for file with name %@: %d\n", filename, err);
-			return err;
-		}
-	}
-	return noErr;
-}
-
 - (NSURL *)refreshFileURLIfNecessary:(NSURL *)URL withName:(NSString *)filename error: (NSError **)err {
 	if (!URL || ![self fileInNotesDirectoryIsOwnedByUs: URL]) {
 		return [[self.noteDirectoryURL URLByAppendingPathComponent: filename] fileReferenceURL];
@@ -416,24 +404,22 @@ NSUInteger diskUUIDIndexForNotation(NotationController *controller) {
 	return [uniqueFilename stringByAppendingPathExtension:extension];
 }
 
-- (OSStatus)noteFileRenamed:(FSRef *)childRef fromName:(NSString *)oldName toName:(NSString *)newName {
+- (NSURL *)noteFileRenamed:(NSURL *)noteFileURL fromName:(NSString *)oldName toName:(NSString *)newName error:(out NSError **)outError {
 	if (![self currentNoteStorageFormat])
-		return noErr;
+		return noteFileURL;
 
-	UniChar chars[256];
+	NSError *error = nil;
+	NSURL *oldURL = [self refreshFileURLIfNecessary: noteFileURL withName: oldName error: &error];
+	NSURL *newURL = [self URLForFileInNotesDirectory: newName];
 
-	OSStatus err = [self refreshFileRefIfNecessary:childRef withName:oldName charsBuffer:chars];
-	if (noErr != err) return err;
-
-	CFRange range = {0, CFStringGetLength((CFStringRef) newName)};
-	CFStringGetCharacters((CFStringRef) newName, range, chars);
-
-	if ((err = FSRenameUnicode(childRef, range.length, chars, kTextEncodingDefaultFormat, childRef)) != noErr) {
-		NSLog(@"Error renaming file %@ to %@: %d", oldName, newName, err);
-		return err;
+	if (oldURL && newURL) {
+		if ([self.fileManager moveItemAtURL: oldURL toURL: newURL error: &error]) {
+			return newURL;
+		}
 	}
-
-	return noErr;
+	
+	if (outError) *outError = error;
+	return nil;
 }
 
 - (BOOL)fileInNotesDirectoryIsOwnedByUs:(NSURL *)URL {
@@ -466,12 +452,14 @@ NSUInteger diskUUIDIndexForNotation(NotationController *controller) {
 }
 
 - (NSMutableData *)dataFromFileInNotesDirectory:(FSRef *)childRef forFilename:(NSString *)filename {
-	UniChar chars[256];
-	OSStatus err = [self refreshFileRefIfNecessary:childRef withName:filename charsBuffer:chars];
-	if (noErr != err) return nil;
+	NSURL *URL = [NSURL URLWithFSRef: childRef];
+	if (!(URL = [self refreshFileURLIfNecessary: URL withName: filename error: NULL])) {
+		return nil;
+	} else {
+		[URL getFSRef: childRef];
+	}
 
 	NSError *nsErr = nil;
-	NSURL *URL = [NSURL URLWithFSRef: childRef];
 	NSMutableData *data = [NSMutableData dataWithContentsOfURL: URL options: NSDataReadingUncached error: &nsErr];
 	if (!data) NSLog(@"%@: error %@", NSStringFromSelector(_cmd), nsErr);
 	return data;

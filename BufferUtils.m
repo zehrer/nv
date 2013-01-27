@@ -238,15 +238,3 @@ void CopyPerDiskInfoGroupsToOrder(PerDiskInfo **flippedGroups, NSUInteger *exist
 		}
 	}
 }
-
-OSStatus FSRefMakeInDirectoryWithString(FSRef *directoryRef, FSRef *childRef, CFStringRef filename, UniChar *charsBuffer) {
-	CFRange range;
-	range.location = 0;
-	range.length = CFStringGetLength(filename);
-
-	if (range.length > 255) return errFSNameTooLong;
-
-	CFStringGetCharacters(filename, range, charsBuffer);
-
-	return FSMakeFSRefUnicode(directoryRef, range.length, charsBuffer, kTextEncodingDefaultFormat, childRef);
-}

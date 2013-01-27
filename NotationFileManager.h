@@ -40,8 +40,6 @@ NSUInteger diskUUIDIndexForNotation(NotationController *controller);
 
 - (BOOL)notesDirectoryIsTrashed;
 
-- (OSStatus)refreshFileRefIfNecessary:(FSRef *)childRef withName:(NSString *)filename charsBuffer:(UniChar *)charsBuffer;
-
 - (OSStatus)renameAndForgetNoteDatabaseFile:(NSString *)newfilename;
 
 - (BOOL)removeSpuriousDatabaseFileNotes;
@@ -49,8 +47,6 @@ NSUInteger diskUUIDIndexForNotation(NotationController *controller);
 - (void)relocateNotesDirectory;
 
 + (NSURL *)defaultNotesDirectoryURLReturningError:(out NSError **)outErr;
-
-- (OSStatus)noteFileRenamed:(FSRef *)childRef fromName:(NSString *)oldName toName:(NSString *)newName;
 
 - (NSString *)uniqueFilenameForTitle:(NSString *)title fromNote:(NoteObject *)note;
 

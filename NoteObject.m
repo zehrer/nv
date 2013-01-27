@@ -682,12 +682,14 @@ row) {
 		filename = [aString copy];
 
 		if (!externalTrigger) {
-			if ([localDelegate noteFileRenamed:self.noteFileRef fromName:oldName toName:filename] != noErr) {
+			if (!(_noteFileURL = [localDelegate noteFileRenamed: self.noteFileURL fromName: oldName toName: filename error: NULL])) {
 				NSLog(@"Couldn't rename note %@", titleString);
 
 				//revert name
 				filename = oldName;
 				return;
+			} else {
+				[_noteFileURL getFSRef: self.noteFileRef];
 			}
 		} else {
 			[self _setTitleString:[aString stringByDeletingPathExtension]];
@@ -1117,7 +1119,7 @@ row) {
 	NSDictionary *attributes = @{NSURLCreationDateKey: self.creationDate, NSURLContentModificationDateKey: self.modificationDate};
 
 	// if this method is called anywhere else, then use [delegate
-	// refreshFileRefIfNecessary: self.noteFileRef withName:filename
+	// refreshFileURLIfNecessary: self.noteFileURL withName:filename
 	// charsBuffer:chars]; instead, for now, it is not called in any situations
 	// where the fsref might accidentally point to a moved file
 	NSError *error = nil;
@@ -1221,9 +1223,11 @@ row) {
 
 		id <NTNFileManager, SynchronizedNoteObjectDelegate> localDelegate = (id) self.delegate;
 
-		UniChar chars[256];
-		if ([localDelegate refreshFileRefIfNecessary: self.noteFileRef withName:filename charsBuffer:chars] != noErr)
+		if (!(_noteFileURL = [localDelegate refreshFileURLIfNecessary: self.noteFileURL withName: filename error: NULL])) {
 			return NO;
+		} else {
+			[_noteFileURL getFSRef: self.noteFileRef];
+		}
 
 		if ([self writeCurrentFileEncodingToFSRef: self.noteFileRef] != noErr)
 			return NO;
