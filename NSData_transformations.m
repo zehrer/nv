@@ -343,22 +343,6 @@
 	}
 }
 
-//extends nsmutabledata if necessary
-- (void)alignForBlockSize:(NSInteger)alignedBlockSize {
-	NSInteger dataBlockSize = [self length];
-	NSInteger paddedDataBlockSize = 0;
-
-	if (dataBlockSize <= alignedBlockSize)
-		paddedDataBlockSize = alignedBlockSize;
-	else
-		paddedDataBlockSize = alignedBlockSize * ((dataBlockSize + (alignedBlockSize - 1)) / alignedBlockSize);
-
-	//if malloc was used on conventional architectures, nsdata should be smart enough not to have to allocate a new block
-	NSInteger difference = paddedDataBlockSize - dataBlockSize;
-	if (difference > 0)
-		[self increaseLengthBy:difference];
-}
-
 - (BOOL)nv_performAESCryptOperation:(CCOperation)op withKey:(NSData *)key iv:(NSData *)iv {
 	CCCryptorRef cryptor = NULL;
 	CCCryptorStatus cryptStatus = CCCryptorCreate(op, kCCAlgorithmAES128, kCCOptionPKCS7Padding,

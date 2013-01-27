@@ -223,19 +223,6 @@ NSUInteger diskUUIDIndexForNotation(NotationController *controller) {
 	return controller->diskUUIDIndex;
 }
 
-long BlockSizeForNotation(NotationController *controller) {
-	if (!controller->blockSize) {
-		long iosize = 0;
-
-		struct statfs *sfsb = StatFSVolumeInfo(controller);
-		if (sfsb) iosize = sfsb->f_iosize;
-
-		controller->blockSize = MAX(iosize, 16 * 1024);
-	}
-
-	return controller->blockSize;
-}
-
 - (OSStatus)refreshFileRefIfNecessary:(FSRef *)childRef withName:(NSString *)filename charsBuffer:(UniChar *)charsBuffer {
 	BOOL isOwned = NO;
 	if (IsZeros(childRef, sizeof(FSRef)) || [self fileInNotesDirectory:childRef isOwnedByUs:&isOwned hasCatalogInfo:NULL] != noErr || !isOwned) {
@@ -628,19 +615,6 @@ long BlockSizeForNotation(NotationController *controller) {
 
 	if (outError) *outError = error;
 	return nil;
-}
-
-- (long)blockSize {
-	if (!blockSize) {
-		long iosize = 0;
-
-		struct statfs *sfsb = StatFSVolumeInfo(self);
-		if (sfsb) iosize = sfsb->f_iosize;
-
-		blockSize = MAX(iosize, 16 * 1024);
-	}
-
-	return blockSize;
 }
 
 - (NSURL *)trashFolderForURL:(NSURL *)URL error:(out NSError *__autoreleasing *)outError {

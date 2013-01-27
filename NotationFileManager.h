@@ -36,8 +36,6 @@ OSStatus CreateDirectoryIfNotPresent(FSRef *parentRef, CFStringRef subDirectoryN
 
 CFUUIDRef CopyHFSVolumeUUIDForMount(const char *mntonname);
 
-long BlockSizeForNotation(NotationController *controller);
-
 NSUInteger diskUUIDIndexForNotation(NotationController *controller);
 
 - (void)initializeDiskUUIDIfNecessary;

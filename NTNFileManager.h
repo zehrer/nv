@@ -15,7 +15,6 @@
 
 - (NSString *)uniqueFilenameForTitle:(NSString *)title fromNote:(NoteObject *)note;
 
-@property(nonatomic, readonly) long blockSize;
 @property(nonatomic, readonly) NSUInteger diskUUIDIndex;
 
 - (BOOL)fileInNotesDirectoryIsOwnedByUs:(NSURL *)URL;

@@ -77,7 +77,6 @@
 
 		lastLayoutStyleGenerated = -1;
 		lastCheckedDateInHours = hoursFromAbsoluteTime(CFAbsoluteTimeGetCurrent());
-		blockSize = 0;
 
 		unwrittenNotes = [[NSMutableSet alloc] init];
 	}
