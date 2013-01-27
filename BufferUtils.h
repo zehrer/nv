@@ -36,6 +36,4 @@ char *replaceString(char *oldString, const char *newString);
 
 void modp_tolower_copy(char *dest, const char *str, size_t len);
 
-unsigned DumbWordCount(const void *s1, size_t len);
-
 void CopyPerDiskInfoGroupsToOrder(PerDiskInfo **flippedGroups, NSUInteger *existingCount, const uint8_t *perDiskGroupsBuffer, size_t bufferSize, NSInteger toHostOrder);

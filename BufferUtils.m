@@ -115,44 +115,6 @@ void modp_tolower_copy(char *dest, const char *str, size_t len) {
 	}
 }
 
-unsigned DumbWordCount(const void *s1, size_t len) {
-
-	unsigned count = len > 0;
-	//we could do a lot more here, but we don't.
-	const void *ptr = s1;
-	while ((ptr = memchr(ptr + 1, 0x20, len))) {
-		count++;
-	}
-//	printf("bacon: %u\n", count);
-
-	return count;
-}
-
-#if 0
-//this does not use the user's defined date styles
-const double dayInSeconds = 86400.0;
-enum {ThisDay = 0, NextDay, PriorDay};
-CFStringRef GetRelativeDateStringFromTimeAndLocaleInfo(CFAbsoluteTime time, CFStringRef *designations, char **months) {
-    static CFAbsoluteTime currentDay = 0.0;
-    if (currentDay == 0.0)
-	currentDay = ceil(CFAbsoluteTimeGetCurrent() / dayInSeconds) * dayInSeconds;
-
-    CFGregorianDate unitsDate = CFAbsoluteTimeGetGregorianDate(time, NULL);
-    
-    CFAbsoluteTime timeDay = ceil(time / dayInSeconds) * dayInSeconds;
-    if (timeDay == currentDay) {
-	return designations[ThisDay];
-    } else if (timeDay == currentDay + dayInSeconds) {
-	return designations[NextDay];
-    } else if (timeDay == currentDay - dayInSeconds) {
-	return designations[PriorDay];
-    }
-    
-    return CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR("%s %u, %u  %u:%u %s"), 
-				    months[unitsDate.month], unitsDate.day, unitsDate.year, unitsDate.hour, unitsDate.minute, amppmStr);
-}
-#endif
-
 COMPILE_ASSERT(sizeof(PerDiskInfo) == 16, PER_DISK_INFO_MUST_BE_16_BYTES);
 
 void CopyPerDiskInfoGroupsToOrder(PerDiskInfo **flippedGroups, NSUInteger *existingCount, const uint8_t *perDiskGroupsBuffer, size_t bufferSize, NSInteger toHostOrder) {
