@@ -19,8 +19,8 @@
 
 - (BOOL)fileInNotesDirectoryIsOwnedByUs:(NSURL *)URL;
 
-- (NSMutableData *)dataFromFileInNotesDirectory:(FSRef *)childRef forFilename:(NSString *)filename;
-- (NSMutableData *)dataFromFileInNotesDirectory:(FSRef *)childRef forCatalogEntry:(NoteCatalogEntry *)catEntry;
+- (NSMutableData *)dataForFilenameInNotesDirectory:(NSString *)filename URL:(out NSURL **)outURL;
+- (NSMutableData *)dataForCatalogEntryInNotesDirectory:(NoteCatalogEntry *)catEntry URL:(out NSURL **)outURL;
 
 - (NSURL *)noteFileRenamed:(NSURL *)noteFileURL fromName:(NSString *)oldName toName:(NSString *)newName error:(out NSError **)outError;
 

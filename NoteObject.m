@@ -1234,8 +1234,11 @@ row) {
 
 - (BOOL)updateFromFile {
 	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
-	NSMutableData *data = [localDelegate dataFromFileInNotesDirectory: self.noteFileRef forFilename:filename];
-	if (!data) {
+	NSURL *newURL = nil;
+	NSMutableData *data = nil;
+	if ((data = [localDelegate dataForFilenameInNotesDirectory: self.filename URL: &newURL])) {
+		_noteFileURL = newURL;
+	} else {
 		NSLog(@"Couldn't update note from file on disk");
 		return NO;
 	}
@@ -1264,9 +1267,11 @@ row) {
 	BOOL didRestoreLabels = NO;
 
 	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
-
-	NSMutableData *data = [localDelegate dataFromFileInNotesDirectory: self.noteFileRef forCatalogEntry:catEntry];
-	if (!data) {
+	NSURL *newURL = nil;
+	NSMutableData *data = nil;
+	if ((data = [localDelegate dataForFilenameInNotesDirectory: self.filename URL: &newURL])) {
+		_noteFileURL = newURL;
+	} else {
 		NSLog(@"Couldn't update note from file on disk given catalog entry");
 		return NO;
 	}

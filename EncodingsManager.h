@@ -23,10 +23,11 @@
 	NSStringEncoding currentEncoding;
 	NoteObject *note;
 	NSData *noteData;
-	FSRef fsRef;
 }
 
 + (EncodingsManager *)sharedManager;
+
+@property (nonatomic, readonly) NSURL *URL;
 
 - (BOOL)checkUnicode;
 

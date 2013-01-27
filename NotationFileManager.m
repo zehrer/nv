@@ -421,22 +421,15 @@ static struct statfs *StatFSVolumeInfo(NotationController *controller) {
 	return [URL.URLByDeletingLastPathComponent isEqualToFileURL: self.noteDirectoryURL];
 }
 
-- (NSMutableData *)dataFromFileInNotesDirectory:(FSRef *)childRef forCatalogEntry:(NoteCatalogEntry *)catEntry {
-	return [self dataFromFileInNotesDirectory:childRef forFilename: (__bridge NSString *)catEntry.filename];
+- (NSMutableData *)dataForFilenameInNotesDirectory:(NSString *)filename URL:(out NSURL **)outURL {
+	NSURL *URL = [self URLForFileInNotesDirectory: filename];
+	NSMutableData *data = [NSMutableData dataWithContentsOfURL: URL options: NSDataReadingUncached error: NULL];
+	if (data && outURL) *outURL = URL;
+	return data;
 }
 
-- (NSMutableData *)dataFromFileInNotesDirectory:(FSRef *)childRef forFilename:(NSString *)filename {
-	NSURL *URL = [NSURL URLWithFSRef: childRef];
-	if (!(URL = [self refreshFileURLIfNecessary: URL withName: filename error: NULL])) {
-		return nil;
-	} else {
-		[URL getFSRef: childRef];
-	}
-
-	NSError *nsErr = nil;
-	NSMutableData *data = [NSMutableData dataWithContentsOfURL: URL options: NSDataReadingUncached error: &nsErr];
-	if (!data) NSLog(@"%@: error %@", NSStringFromSelector(_cmd), nsErr);
-	return data;
+- (NSMutableData *)dataForCatalogEntryInNotesDirectory:(NoteCatalogEntry *)catEntry URL:(out NSURL **)outURL {
+	return [self dataForFilenameInNotesDirectory: (__bridge NSString *)catEntry.filename URL: outURL];
 }
 
 - (NSURL *)createFileWithNameIfNotPresentInNotesDirectory:(NSString *)filename created:(BOOL *)created error:(out NSError **)outError {

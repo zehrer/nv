@@ -113,13 +113,16 @@ static const NSStringEncoding AllowedEncodings[] = {
 
 	note = aNote;
 
-	bzero(&fsRef, sizeof(FSRef));
+	_URL = nil;
 
 	id <NoteObjectDelegate, NTNFileManager> localNoteDelegate = note.delegate;
-	if (!(noteData = [localNoteDelegate dataFromFileInNotesDirectory:&fsRef forFilename:note.filename])) {
+	NSURL *newURL = nil;
+	if (!(noteData = [localNoteDelegate dataForFilenameInNotesDirectory: note.filename URL: &newURL])) {
 		NSRunAlertPanel([NSString stringWithFormat:NSLocalizedString(@"Error: unable to read the contents of the file quotemark%@.quotemark", nil), aNote.filename],
 				NSLocalizedString(@"The file may no longer exist or has incorrect permissions.", nil), NSLocalizedString(@"OK", nil), NULL, NULL);
 		return;
+	} else {
+		_URL = newURL;
 	}
 
 	if (![self checkUnicode]) {
