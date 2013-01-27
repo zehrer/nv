@@ -214,6 +214,10 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2);
 
 - (NSData *)aliasDataForDefaultDirectory;
 
+- (void)setBookmarkDataForDefaultDirectory:(NSData *)bookmark sender:(id)sender;
+
+- (NSData *)bookmarkDataForDefaultDirectory;
+
 - (NSString *)displayNameForDefaultDirectoryReturningURL:(out NSURL **)outURL;
 
 - (void)setBlorImportAttempted:(BOOL)value;

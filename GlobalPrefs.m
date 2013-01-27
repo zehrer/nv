@@ -39,6 +39,7 @@
 
 static NSString *TriedToImportBlorKey = @"TriedToImportBlor";
 static NSString *DirectoryAliasKey = @"DirectoryAlias";
+static NSString *NTNDirectoryBookmarkKey = @"NTNDirectoryBookmark";
 static NSString *AutoCompleteSearchesKey = @"AutoCompleteSearches";
 static NSString *NoteAttributesVisibleKey = @"NoteAttributesVisible";
 static NSString *TableFontSizeKey = @"TableFontPointSize";
@@ -862,6 +863,26 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
 
 - (NSData *)aliasDataForDefaultDirectory {
 	return [defaults dataForKey:DirectoryAliasKey];
+}
+
+- (void)setBookmarkDataForDefaultDirectory:(NSData *)bookmark sender:(id)sender {
+	[defaults setObject: bookmark forKey: NTNDirectoryBookmarkKey];
+
+	SEND_CALLBACKS();
+}
+
+- (NSData *)bookmarkDataForDefaultDirectory {
+	NSData *data;
+	if ((data = [defaults objectForKey: NTNDirectoryBookmarkKey])) {
+		return data;
+	} else {
+		NSData *alias = [defaults dataForKey:DirectoryAliasKey];
+		NSData *bookmark = (__bridge_transfer NSData *)CFURLCreateBookmarkDataFromAliasRecord(NULL, (__bridge CFDataRef)alias);
+		[defaults removeObjectForKey: DirectoryAliasKey];
+		[defaults setObject: bookmark forKey: NTNDirectoryBookmarkKey];
+		return bookmark;
+	}
+	return nil;
 }
 
 - (NSString *)displayNameForDefaultDirectoryReturningURL:(out NSURL **)outURL {
