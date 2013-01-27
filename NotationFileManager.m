@@ -204,10 +204,6 @@ static struct statfs *StatFSVolumeInfo(NotationController *controller) {
 	return diskUUIDIndex;
 }
 
-NSUInteger diskUUIDIndexForNotation(NotationController *controller) {
-	return controller->diskUUIDIndex;
-}
-
 - (NSURL *)refreshFileURLIfNecessary:(NSURL *)URL withName:(NSString *)filename error: (NSError **)err {
 	if (!URL || ![self fileInNotesDirectoryIsOwnedByUs: URL]) {
 		return [[self.noteDirectoryURL URLByAppendingPathComponent: filename] fileReferenceURL];
@@ -215,11 +211,10 @@ NSUInteger diskUUIDIndexForNotation(NotationController *controller) {
 	return URL;
 }
 
-
 - (BOOL)notesDirectoryIsTrashed {
-	NSURL *trashURL = [self trashFolder];
+	NSURL *trashURL = [self.fileManager URLForDirectory: NSTrashDirectory inDomain:NSUserDomainMask appropriateForURL: nil create:YES error: NULL];
 	if (!trashURL) return NO;
-	NSURL *stdNoteDirectory = self.noteDirectoryURL.URLByStandardizingPath;
+	NSURL *stdNoteDirectory = self.noteDirectoryURL;
 	return [stdNoteDirectory.path hasPrefix: trashURL.path];
 }
 
@@ -547,10 +542,6 @@ NSUInteger diskUUIDIndexForNotation(NotationController *controller) {
 
 	if (outError) *outError = error;
 	return nil;
-}
-
-- (NSURL *)trashFolder {
-	return [self.fileManager URLForDirectory: NSTrashDirectory inDomain:NSUserDomainMask appropriateForURL: nil create:YES error: NULL];
 }
 
 - (NSURL *)URLForFileInNotesDirectory:(NSString *)filename {
