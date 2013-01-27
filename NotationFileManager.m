@@ -32,6 +32,7 @@ NSString *NotesDatabaseFileName = @"Notes & Settings";
 @interface NotationController ()
 
 @property (nonatomic, strong, readwrite) NSURL *noteDatabaseURL;
+@property (nonatomic, strong, readwrite) NSURL *noteDirectoryURL;
 
 @end
 
@@ -305,34 +306,36 @@ static struct statfs *StatFSVolumeInfo(NotationController *controller) {
 				}
 				CFRelease(url);
 
+				NSURL *oldURL = _noteDirectoryURL;
+
 				NSError *err = nil;
 				if ([self.fileManager moveItemAtURL: self.noteDirectoryURL toURL: newURL error: &err]) {
-					_noteDirectoryURL = [newURL fileReferenceURL];
+					self.noteDirectoryURL = [newURL fileReferenceURL];
 				} else {
 					NSRunAlertPanel([NSString stringWithFormat:NSLocalizedString(@"Couldn't move notes into the chosen folder because %@", nil), [err localizedDescription]], NSLocalizedString(@"Your notes were not moved.", nil), NSLocalizedString(@"OK", nil), NULL, NULL);
 					continue;
 				}
 
-				FSRef newNotesDirectory;
-				[_noteDirectoryURL getFSRef: &newNotesDirectory];
-
-				if (FSCompareFSRefs(&noteDirectoryRef, &newNotesDirectory) != noErr) {
+				if ([oldURL isEqualToFileURL: self.noteDirectoryURL]) {
+					FSRef newNotesDirectory;
+					[self.noteDirectoryURL getFSRef: &newNotesDirectory];
 					NSData *aliasData = [NSData aliasDataForFSRef:&newNotesDirectory];
 					if (aliasData) [[GlobalPrefs defaultPrefs] setAliasDataForDefaultDirectory:aliasData sender:self];
 					//we must quit now, as notes will very likely be re-initialized in the same place
-					goto terminate;
+					[NSApp terminate:nil];
+					break;
 				}
 
 				//directory move successful! //show the user where new notes are
-				[[NSWorkspace sharedWorkspace] activateFileViewerSelectingURLs: @[ _noteDirectoryURL ]];
+				[[NSWorkspace sharedWorkspace] activateFileViewerSelectingURLs: @[ self.noteDirectoryURL ]];
 
 				break;
 			} else {
-				goto terminate;
+				[NSApp terminate:nil];
+				break;
 			}
 		} else {
-			terminate:
-					[NSApp terminate:nil];
+			[NSApp terminate:nil];
 			break;
 		}
 	}
