@@ -176,18 +176,4 @@ static NSError *NVTErrorForPOSIXError(int err, NSURL *URL) {
 	return YES;
 }
 
-- (NSString *)pathCopiedFromAliasData:(NSData *)aliasData {
-	AliasHandle inAlias;
-	CFStringRef path = NULL;
-	FSAliasInfoBitmap whichInfo = kFSAliasInfoNone;
-	FSAliasInfo info;
-	if (aliasData && PtrToHand([aliasData bytes], (Handle *) &inAlias, [aliasData length]) == noErr &&
-			FSCopyAliasInfo(inAlias, NULL, NULL, &path, &whichInfo, &info) == noErr) {
-		//this method doesn't always seem to work
-		return (__bridge NSString *) path;
-	}
-
-	return nil;
-}
-
 @end

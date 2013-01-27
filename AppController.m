@@ -299,7 +299,7 @@ void outletObjectAwoke(id sender) {
 
 	NSError *nsErr = nil;
 	NotationController *newNotation = nil;
-	NSData *aliasData = [prefsController aliasDataForDefaultDirectory];
+	NSData *bookmarkData = [prefsController bookmarkDataForDefaultDirectory];
 
 	NSString *subMessage = @"";
 
@@ -310,8 +310,8 @@ void outletObjectAwoke(id sender) {
 	if (kCGEventFlagMaskAlternate == (CGEventSourceFlagsState(kCGEventSourceStateCombinedSessionState) & NSDeviceIndependentModifierFlagsMask)) {
 		showError = NO;
 	} else {
-		if (aliasData) {
-			newNotation = [[NotationController alloc] initWithAliasData:aliasData error: &nsErr];
+		if (bookmarkData) {
+			newNotation = [[NotationController alloc] initWithBookmarkData: bookmarkData error: &nsErr];
 			subMessage = NSLocalizedString(@"Please choose a different folder in which to store your notes.", nil);
 		} else {
 			newNotation = [[NotationController alloc] initWithDefaultDirectoryWithError: &nsErr];
@@ -322,38 +322,30 @@ void outletObjectAwoke(id sender) {
 		if (nsErr.code == NTNPasswordEntryCanceledError) {
 			showError = NO;
 		} else {
-			location = aliasData ? [[NSFileManager defaultManager] pathCopiedFromAliasData:aliasData] : NSLocalizedString(@"your Application Support directory", nil);
-			if (!location) { //fscopyaliasinfo sucks
-				FSRef locationRef;
-				CFStringRef newLocation = NULL;
-				if (![aliasData fsRefAsAlias:&locationRef] || LSCopyDisplayNameForRef(&locationRef, &newLocation) != noErr) {
-					location = NSLocalizedString(@"its current location", nil);
-				} else {
-					location = (__bridge_transfer NSString *) newLocation;
-				}
-			}
+			location = bookmarkData ? newNotation.noteDirectoryURL.path : NSLocalizedString(@"your Application Support directory", nil);
 		}
 	}
 
+	NSURL *newURL = nil;
+
 	while (!newNotation) {
-		if (location) location = [location stringByAbbreviatingWithTildeInPath];
+		if (location && !newURL) newURL = [NSURL fileURLWithPath: location];
 
 		BOOL result = YES;
 		if (showError) {
 			NSString *reason = [NSString reasonStringFromCarbonFSError: (int)nsErr.code];
-			result = (NSRunAlertPanel([NSString stringWithFormat:NSLocalizedString(@"Unable to initialize notes database in \n%@ because %@.", nil), location, reason], subMessage, NSLocalizedString(@"Choose another folder", nil), NSLocalizedString(@"Quit", nil), NULL) == NSAlertDefaultReturn);
+			result = (NSRunAlertPanel([NSString stringWithFormat:NSLocalizedString(@"Unable to initialize notes database in \n%@ because %@.", nil), newURL, reason], subMessage, NSLocalizedString(@"Choose another folder", nil), NSLocalizedString(@"Quit", nil), NULL) == NSAlertDefaultReturn);
 		}
 
 		if (result) {
 			//show nsopenpanel, defaulting to current default notes dir
-			FSRef notesDirectoryRef;
-			if (![prefsWindowController getNewNotesRefFromOpenPanel:&notesDirectoryRef returnedPath:&location]) {
-				//they cancelled the open panel, or it was unable to get the path/FSRef of the file
+			if (!(newURL = [prefsWindowController getNewNotesURLFromOpenPanel])) {
+				//they cancelled the open panel, or it was unable to get the URL of the file
 				[NSApp terminate:self];
 				return;
-			} else if ((newNotation = [[NotationController alloc] initWithDirectoryRef:&notesDirectoryRef error:&nsErr])) {
-				//have to make sure alias data is saved from setNotationController
-				[newNotation setAliasNeedsUpdating:YES];
+			} else if ((newNotation = [[NotationController alloc] initWithDirectory: newURL error:&nsErr])) {
+				//have to make sure bookmark data is saved from setNotationController
+				newNotation.bookmarkNeedsUpdating = YES;
 				break;
 			}
 		} else {
@@ -382,7 +374,7 @@ void outletObjectAwoke(id sender) {
 
 	//tell us..
 	[prefsController registerWithTarget:self forChangesInSettings:
-			@selector(setAliasDataForDefaultDirectory:sender:),  //when someone wants to load a new database
+			@selector(setBookmarkDataForDefaultDirectory:sender:),  //when someone wants to load a new database
 			@selector(setSortedTableColumnKey:reversed:sender:),  //when sorting prefs changed
 			@selector(setNoteBodyFont:sender:),  //when to tell notationcontroller to restyle its notes
 			@selector(setForegroundTextColor:sender:),  //ditto
@@ -446,8 +438,8 @@ void outletObjectAwoke(id sender) {
 		[[window undoManager] removeAllActions];
 		[notationController setUndoManager:[window undoManager]];
 
-		if ([notationController aliasNeedsUpdating]) {
-			[prefsController setAliasDataForDefaultDirectory:[notationController aliasDataForNoteDirectory] sender:self];
+		if ([notationController bookmarkNeedsUpdating]) {
+			[prefsController setBookmarkDataForDefaultDirectory: [notationController bookmarkDataForNoteDirectory] sender: self];
 		}
 		if ([prefsController tableColumnsShowPreview] || [prefsController horizontalLayout]) {
 			[self _forceRegeneratePreviewsForTitleColumn];
@@ -796,28 +788,28 @@ void outletObjectAwoke(id sender) {
 }
 
 - (void)settingChangedForSelectorString:(NSString *)selectorString {
-	if ([selectorString isEqualToString:SEL_STR(setAliasDataForDefaultDirectory :sender :)]) {
+	if ([selectorString isEqualToString:SEL_STR(setBookmarkDataForDefaultDirectory:sender:)]) {
 		// defaults changed for the database location -- load the new one!
 		NSError *anErr = nil;
 		NotationController *newNotation = nil;
-		NSData *newData = [prefsController aliasDataForDefaultDirectory];
+		NSData *newData = [prefsController bookmarkDataForDefaultDirectory];
+
 		if (newData) {
-			if ((newNotation = [[NotationController alloc] initWithAliasData:newData error:&anErr])) {
+			if ((newNotation = [[NotationController alloc] initWithBookmarkData: newData error:&anErr])) {
 				[self setNotationController:newNotation];
 
 			} else {
 
-				//set alias data back
-				NSData *oldData = [notationController aliasDataForNoteDirectory];
-				[prefsController setAliasDataForDefaultDirectory:oldData sender:self];
+				//set bookmark data back
+				NSData *oldData = [notationController bookmarkDataForNoteDirectory];
+				[prefsController setBookmarkDataForDefaultDirectory: oldData sender:self];
 
 				//display alert with err--could not set notation directory
-				NSString *location = [[[NSFileManager defaultManager] pathCopiedFromAliasData:newData] stringByAbbreviatingWithTildeInPath];
-				NSString *oldLocation = [[[NSFileManager defaultManager] pathCopiedFromAliasData:oldData] stringByAbbreviatingWithTildeInPath];
+				NSURL *homeFolder = [NSURL fileURLWithPath: NSHomeDirectory() isDirectory: YES];
+				NSURL *URL = [NSURL URLByResolvingBookmarkData: newData options: NSURLBookmarkResolutionWithoutUI | NSURLBookmarkResolutionWithoutMounting relativeToURL: homeFolder bookmarkDataIsStale: NULL error: NULL];
 				NSString *reason = [NSString reasonStringFromCarbonFSError: (int)anErr.code];
-				NSRunAlertPanel([NSString stringWithFormat:NSLocalizedString(@"Unable to initialize notes database in \n%@ because %@.", nil), location, reason],
-						[NSString stringWithFormat:NSLocalizedString(@"Reverting to current location of %@.", nil), oldLocation],
-						NSLocalizedString(@"OK", nil), NULL, NULL);
+				NSRunAlertPanel([NSString stringWithFormat:NSLocalizedString(@"Unable to initialize notes database in \n%@ because %@.", nil), URL, reason], NSLocalizedString(@"Reverting to current location.", nil),
+								NSLocalizedString(@"OK", nil), NULL, NULL);
 			}
 		}
 	} else if ([selectorString isEqualToString:SEL_STR(setSortedTableColumnKey : reversed:sender :)]) {

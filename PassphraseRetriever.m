@@ -49,17 +49,9 @@
 		}
 	}
 
-	NSString *startingDirectory = NSLocalizedString(@"the current notes directory", nil);
-	FSRef notesDirectoryRef;
-	NSURL *notesDirectoryURL = nil;
-
-	if ([[notationPrefs.delegate aliasDataForNoteDirectory] fsRefAsAlias:&notesDirectoryRef]) {
-		notesDirectoryURL = [NSURL URLWithFSRef: &notesDirectoryRef];
-		NSString *resolvedPath = notesDirectoryURL.path;
-		if (resolvedPath) startingDirectory = resolvedPath;
-	}
+	NSURL *notesDirectoryURL = [notationPrefs.delegate notesDirectoryURL];
 	[helpStringField setStringValue:[NSString stringWithFormat:NSLocalizedString(@"Please enter the passphrase to access notes in %@.", nil),
-															   [startingDirectory stringByAbbreviatingWithTildeInPath]]];
+															   [notesDirectoryURL.path stringByAbbreviatingWithTildeInPath]]];
 
 
 	BOOL notationExists = [[GlobalPrefs defaultPrefs] notationPrefs] != nil;

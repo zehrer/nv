@@ -38,7 +38,6 @@
 #define SEND_CALLBACKS() sendCallbacksForGlobalPrefs(self, _cmd, sender)
 
 static NSString *TriedToImportBlorKey = @"TriedToImportBlor";
-static NSString *DirectoryAliasKey = @"DirectoryAlias";
 static NSString *NTNDirectoryBookmarkKey = @"NTNDirectoryBookmark";
 static NSString *AutoCompleteSearchesKey = @"AutoCompleteSearches";
 static NSString *NoteAttributesVisibleKey = @"NoteAttributesVisible";
@@ -855,16 +854,6 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
 	return bookmarksController;
 }
 
-- (void)setAliasDataForDefaultDirectory:(NSData *)alias sender:(id)sender {
-	[defaults setObject:alias forKey:DirectoryAliasKey];
-
-	SEND_CALLBACKS();
-}
-
-- (NSData *)aliasDataForDefaultDirectory {
-	return [defaults dataForKey:DirectoryAliasKey];
-}
-
 - (void)setBookmarkDataForDefaultDirectory:(NSData *)bookmark sender:(id)sender {
 	[defaults setObject: bookmark forKey: NTNDirectoryBookmarkKey];
 
@@ -873,6 +862,7 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
 
 - (NSData *)bookmarkDataForDefaultDirectory {
 	NSData *data;
+	static NSString *const DirectoryAliasKey = @"DirectoryAlias";
 	if ((data = [defaults objectForKey: NTNDirectoryBookmarkKey])) {
 		return data;
 	} else {
@@ -886,15 +876,18 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
 }
 
 - (NSString *)displayNameForDefaultDirectoryReturningURL:(out NSURL **)outURL {
-	FSRef ref;
 	NSURL *URL = nil;
 
 	if (!outURL || (outURL && !*outURL)) {
-		if (![[self aliasDataForDefaultDirectory] fsRefAsAlias: &ref])
+		NSData *bookmarkData = nil;
+		if (!(bookmarkData = [self bookmarkDataForDefaultDirectory]))
 			return nil;
 
-		URL = [NSURL URLWithFSRef: &ref];
+		NSURL *homeFolder = [NSURL fileURLWithPath: NSHomeDirectory() isDirectory: YES];
+		URL = [NSURL URLByResolvingBookmarkData: bookmarkData options: NSURLBookmarkResolutionWithoutUI | NSURLBookmarkResolutionWithoutMounting relativeToURL: homeFolder bookmarkDataIsStale: NULL error: NULL];
+
 		if (!URL) return nil;
+
 		if (outURL) *outURL = URL;
 	} else {
 		URL = *outURL;
@@ -918,15 +911,18 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
 }
 
 - (NSImage *)iconForDefaultDirectoryReturningURL:(out NSURL **)outURL {
-	FSRef ref;
 	NSURL *URL = nil;
 
 	if (!outURL || (outURL && !*outURL)) {
-		if (![[self aliasDataForDefaultDirectory] fsRefAsAlias: &ref])
+		NSData *bookmarkData = nil;
+		if (!(bookmarkData = [self bookmarkDataForDefaultDirectory]))
 			return nil;
 
-		URL = [NSURL URLWithFSRef: &ref];
+		NSURL *homeFolder = [NSURL fileURLWithPath: NSHomeDirectory() isDirectory: YES];
+		URL = [NSURL URLByResolvingBookmarkData: bookmarkData options: NSURLBookmarkResolutionWithoutUI | NSURLBookmarkResolutionWithoutMounting relativeToURL: homeFolder bookmarkDataIsStale: NULL error: NULL];
+
 		if (!URL) return nil;
+
 		if (outURL) *outURL = URL;
 	} else {
 		URL = *outURL;

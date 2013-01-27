@@ -311,10 +311,9 @@ static struct statfs *StatFSVolumeInfo(NotationController *controller) {
 				}
 
 				if ([oldURL isEqualToFileURL: self.noteDirectoryURL]) {
-					FSRef newNotesDirectory;
-					[self.noteDirectoryURL getFSRef: &newNotesDirectory];
-					NSData *aliasData = [NSData aliasDataForFSRef:&newNotesDirectory];
-					if (aliasData) [[GlobalPrefs defaultPrefs] setAliasDataForDefaultDirectory:aliasData sender:self];
+					NSURL *homeFolder = [NSURL fileURLWithPath: NSHomeDirectory() isDirectory: YES];
+					NSData *bookmarkData = [self.noteDirectoryURL bookmarkDataWithOptions: 0 includingResourceValuesForKeys: nil relativeToURL: homeFolder error: NULL];
+					if (bookmarkData) [[GlobalPrefs defaultPrefs] setBookmarkDataForDefaultDirectory: bookmarkData sender: self];
 					//we must quit now, as notes will very likely be re-initialized in the same place
 					[NSApp terminate:nil];
 					break;

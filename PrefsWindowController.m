@@ -262,28 +262,21 @@
 }
 
 - (void)changeDefaultDirectory {
-	FSRef notesDirectoryRef;
-	NSData *aliasData = nil;
-	NSString *directoryPath = nil;
+	NSURL *URL = nil;
+	NSURL *homeFolder = [NSURL fileURLWithPath: NSHomeDirectory() isDirectory: YES];
+	NSURL *currentURL = [NSURL URLByResolvingBookmarkData: [prefsController bookmarkDataForDefaultDirectory] options: NSURLBookmarkResolutionWithoutMounting | NSURLBookmarkResolutionWithoutUI relativeToURL: homeFolder bookmarkDataIsStale: NULL error: NULL];
 
-	if ([self getNewNotesRefFromOpenPanel:&notesDirectoryRef returnedPath:&directoryPath]) {
-
-		//make sure we're not choosing the same folder as what we started with, because:
-		//-[NotationController initWithAliasData:error:] might attempt to initialize journaling, which will already be in use
-		FSRef currentNotesDirectoryRef;
-		[[prefsController aliasDataForDefaultDirectory] fsRefAsAlias:&currentNotesDirectoryRef];
-		if (FSCompareFSRefs(&notesDirectoryRef, &currentNotesDirectoryRef) != noErr) {
-
-			if ((aliasData = [NSData aliasDataForFSRef:&notesDirectoryRef])) {
-				[prefsController setAliasDataForDefaultDirectory:aliasData sender:self];
-
-				//check for potential synchronization problems; (e.g., simplenote w/ dropbox or writeroom):
-				[[prefsController notationPrefs] checkForKnownRedundantSyncConduitsAtPath:directoryPath];
-			}
-		} else {
+	if ((URL = [self getNewNotesURLFromOpenPanel])) {
+		if ([URL isEqualToFileURL: currentURL]) {
 			NSLog(@"This folder is already chosen!");
-		}
+		} else {
+			NSData *data = [URL bookmarkDataWithOptions: 0 includingResourceValuesForKeys: nil relativeToURL: homeFolder error: NULL];
+			[prefsController setBookmarkDataForDefaultDirectory: data sender: self];
 
+			//check for potential synchronization problems; (e.g., simplenote w/ dropbox or writeroom):
+			[[prefsController notationPrefs] checkForKnownRedundantSyncConduitsAtPath: URL.path];
+			
+		}
 	}
 
 	[folderLocationsMenuButton setMenu:[self directorySelectionMenu]];
@@ -297,22 +290,12 @@
 	[[NSApp delegate] updateRTL];
 }
 
-- (BOOL)getNewNotesRefFromOpenPanel:(FSRef *)notesDirectoryRef returnedPath:(NSString **)path {
-	NSString *startingDirectory = nil;
-
-	if (!notesDirectoryRef) {
-		NSLog(@"notesDirectoryRef is NULL!");
-		return NO;
-	}
-
-	FSRef currentNotesDirectoryRef;
+- (NSURL *)getNewNotesURLFromOpenPanel {
 	NSURL *currentNotesDirectoryURL = nil;
-	//resolve alias to fsref; get path from fsref
-	if ([[prefsController aliasDataForDefaultDirectory] fsRefAsAlias:&currentNotesDirectoryRef]) {
-		currentNotesDirectoryURL = [NSURL URLWithFSRef: &currentNotesDirectoryRef];
-		NSString *resolvedPath = currentNotesDirectoryURL.path;
-		if (resolvedPath) startingDirectory = resolvedPath;
-	}
+
+	NSData *bookmarkData = [prefsController bookmarkDataForDefaultDirectory];
+	NSURL *homeFolder = [NSURL fileURLWithPath: NSHomeDirectory() isDirectory: YES];
+	currentNotesDirectoryURL = [NSURL URLByResolvingBookmarkData: bookmarkData options: NSURLBookmarkResolutionWithoutUI | NSURLBookmarkResolutionWithoutMounting relativeToURL: homeFolder bookmarkDataIsStale: NULL error: NULL];
 
 	NSOpenPanel *openPanel = [NSOpenPanel openPanel];
 	[openPanel setCanCreateDirectories:YES];
@@ -324,23 +307,15 @@
 	[openPanel setTitle:NSLocalizedString(@"Select a folder", @"title of open panel for selecting a notes folder")];
 	[openPanel setPrompt:NSLocalizedString(@"Select", @"title of open panel button to select a folder")];
 	[openPanel setMessage:NSLocalizedString(@"Select the folder that Notational Velocity should use for reading and storing notes.", nil)];
-
-	NSURL *startingDirectoryURL = [[NSURL fileURLWithPath:startingDirectory isDirectory:YES] URLByAppendingPathComponent:@"Notational Data" isDirectory:YES];
+	
+	NSURL *startingDirectoryURL = [currentNotesDirectoryURL.URLByDeletingLastPathComponent URLByAppendingPathComponent:@"Notational Data" isDirectory:YES];
 	openPanel.directoryURL = startingDirectoryURL;
 
 	if ([openPanel runModal] == NSOKButton) {
-		NSURL *URL = openPanel.URL;
-
-		if (!URL)
-			return NO;
-
-		if (path)
-			*path = URL.path.copy;
-
-		return CFURLGetFSRef((__bridge CFURLRef) URL, notesDirectoryRef);
+		return openPanel.URL;
 	}
 
-	return NO;
+	return nil;
 }
 
 - (NotationPrefsViewController *)notationPrefsViewController {

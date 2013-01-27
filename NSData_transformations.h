@@ -32,10 +32,6 @@
 
 - (NSString *)pathURLFromWebArchive;
 
-- (BOOL)fsRefAsAlias:(FSRef *)fsRef;
-
-+ (NSData *)aliasDataForFSRef:(FSRef *)fsRef;
-
 - (NSMutableString *)newStringUsingBOMReturningEncoding:(NSStringEncoding *)encoding;
 
 + (NSData *)uncachedDataFromFile:(NSString *)filename;

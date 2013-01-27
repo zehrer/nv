@@ -111,7 +111,7 @@
 
 - (void)changeDefaultDirectory;
 
-- (BOOL)getNewNotesRefFromOpenPanel:(FSRef *)notesDirectoryRef returnedPath:(NSString **)path;
+- (NSURL *)getNewNotesURLFromOpenPanel;
 
 - (NotationPrefsViewController *)notationPrefsViewController;
 

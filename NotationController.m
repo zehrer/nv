@@ -53,59 +53,54 @@
 
 @implementation NotationController
 
+- (void)ntn_sharedInit {
+	self.fileManager = [NSFileManager new];
+
+	directoryChangesFound = notesChanged = NO;
+
+	allNotes = [[NSMutableArray alloc] init]; //<--the authoritative list of all memory-accessible notes
+	deletedNotes = [[NSMutableSet alloc] init];
+	prefsController = [GlobalPrefs defaultPrefs];
+	self.filteredNotesList = [[NSMutableArray alloc] init];
+	deletionManager = [[DeletionManager alloc] initWithNotationController:self];
+
+	self.allLabels = [[NSCountedSet alloc] init];
+	self.filteredLabels = [[NSCountedSet alloc] init];
+
+	manglingString = currentFilterStr = NULL;
+	lastWordInFilterStr = 0;
+	selectedNoteIndex = NSNotFound;
+
+	fsCatInfoArray = NULL;
+	HFSUniNameArray = NULL;
+
+	lastLayoutStyleGenerated = -1;
+	lastCheckedDateInHours = hoursFromAbsoluteTime(CFAbsoluteTimeGetCurrent());
+
+	unwrittenNotes = [[NSMutableSet alloc] init];
+}
+
 - (id)init {
 	if ((self = [super init])) {
-		self.fileManager = [NSFileManager new];
-		
-		directoryChangesFound = notesChanged = aliasNeedsUpdating = NO;
-
-		allNotes = [[NSMutableArray alloc] init]; //<--the authoritative list of all memory-accessible notes
-		deletedNotes = [[NSMutableSet alloc] init];
-		prefsController = [GlobalPrefs defaultPrefs];
-		self.filteredNotesList = [[NSMutableArray alloc] init];
-		deletionManager = [[DeletionManager alloc] initWithNotationController:self];
-
-		self.allLabels = [[NSCountedSet alloc] init];
-		self.filteredLabels = [[NSCountedSet alloc] init];
-
-		manglingString = currentFilterStr = NULL;
-		lastWordInFilterStr = 0;
-		selectedNoteIndex = NSNotFound;
-
-		fsCatInfoArray = NULL;
-		HFSUniNameArray = NULL;
-
-		lastLayoutStyleGenerated = -1;
-		lastCheckedDateInHours = hoursFromAbsoluteTime(CFAbsoluteTimeGetCurrent());
-
-		unwrittenNotes = [[NSMutableSet alloc] init];
+		[self ntn_sharedInit];
 	}
 	return self;
 }
 
+- (id)initWithBookmarkData:(NSData *)data error:(out NSError **)outError {
+	NSError *error = nil;
+	NSURL *URL = nil;
+	BOOL stale = NO;
+	NSURL *homeFolder = [NSURL fileURLWithPath: NSHomeDirectory() isDirectory: YES];
 
-- (id)initWithAliasData:(NSData *)data error:(out NSError **)err {
-	OSStatus anErr = noErr;
-
-	if (data && (anErr = PtrToHand([data bytes], (Handle *) &aliasHandle, [data length])) == noErr) {
-
-		FSRef targetRef;
-		Boolean changed;
-
-		if ((anErr = FSResolveAliasWithMountFlags(NULL, aliasHandle, &targetRef, &changed, 0)) == noErr) {
-
-			NSError *anNSErr = nil;
-			if ((self = [self initWithDirectoryRef: &targetRef error: &anNSErr])) {
-				aliasNeedsUpdating = changed;
-				return self;
-			} else {
-				if (err) *err = anNSErr;
-				return nil;
-			}
+	if ((URL = [NSURL URLByResolvingBookmarkData: data options: NSURLBookmarkResolutionWithoutUI | NSURLBookmarkResolutionWithoutMounting relativeToURL: homeFolder bookmarkDataIsStale: &stale error: &error])) {
+		if ((self = [self initWithDirectory: URL error: &error])) {
+			self.bookmarkNeedsUpdating = stale;
+			return self;
 		}
 	}
 
-	if (err) *err = [NSError errorWithDomain: NSOSStatusErrorDomain code: anErr userInfo: nil];
+	if (outError) *outError = error;
 	return nil;
 }
 
@@ -114,9 +109,7 @@
 	NSURL *targetURL = nil;
 
 	if ((targetURL = [NotationController defaultNotesDirectoryURLReturningError: &error])) {
-		FSRef targetRef;
-		[targetURL getFSRef: &targetRef];
-		if ((self = [self initWithDirectoryRef: &targetRef error: &error])) {
+		if ((self = [self initWithDirectory:targetURL error: &error])) {
 			return self;
 		}
 	}
@@ -125,19 +118,17 @@
 	return nil;
 }
 
-- (id)initWithDirectoryRef:(FSRef *)directoryRef error:(out NSError **)err {
-	if (err) *err = nil;
+- (id)initWithDirectory:(NSURL *)directoryURL error:(out NSError **)err {
+	if ((self = [super init])) {
+		[self ntn_sharedInit];
 
-	if ((self = [self init])) {
-		aliasNeedsUpdating = YES; //we don't know if we have an alias yet
-
-		noteDirectoryRef = *directoryRef;
-		_noteDirectoryURL = [[NSURL URLWithFSRef: directoryRef] fileReferenceURL];
+		self.bookmarkNeedsUpdating = YES;
+		self.noteDirectoryURL = [directoryURL fileReferenceURL];
 
 		//check writable and readable perms, warning user if necessary
-
 		//first read cache file
 		NSError *anErr = nil;
+		
 		if (![self _readAndInitializeSerializedNotesWithError: &anErr]) {
 			if (err) *err = anErr;
 			return nil;
@@ -643,42 +634,9 @@
 	}
 }
 
-- (NSData *)aliasDataForNoteDirectory {
-	NSData *theData = nil;
-
-	FSRef userHomeFoundRef, *relativeRef = &userHomeFoundRef;
-
-	if (aliasNeedsUpdating) {
-		OSErr err = FSFindFolder(kUserDomain, kCurrentUserFolderType, kCreateFolder, &userHomeFoundRef);
-		if (err != noErr) {
-			relativeRef = NULL;
-			NSLog(@"FSFindFolder error: %d", err);
-		}
-	}
-
-	//re-fill handle from fsref if necessary, storing path relative to user directory
-	if (aliasNeedsUpdating && FSNewAlias(relativeRef, &noteDirectoryRef, &aliasHandle) != noErr)
-		return nil;
-
-	if (aliasHandle != NULL) {
-		aliasNeedsUpdating = NO;
-
-		HLock((Handle) aliasHandle);
-		theData = [NSData dataWithBytes:*aliasHandle length:GetHandleSize((Handle) aliasHandle)];
-		HUnlock((Handle) aliasHandle);
-
-		return theData;
-	}
-
-	return nil;
-}
-
-- (void)setAliasNeedsUpdating:(BOOL)needsUpdate {
-	aliasNeedsUpdating = needsUpdate;
-}
-
-- (BOOL)aliasNeedsUpdating {
-	return aliasNeedsUpdating;
+- (NSData *)bookmarkDataForNoteDirectory {
+	NSURL *homeFolder = [NSURL fileURLWithPath: NSHomeDirectory() isDirectory: YES];
+	return [self.noteDirectoryURL bookmarkDataWithOptions: 0 includingResourceValuesForKeys: nil relativeToURL: homeFolder error: NULL];
 }
 
 - (void)closeAllResources {

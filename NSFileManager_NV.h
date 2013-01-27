@@ -23,6 +23,4 @@
 + (NSStringEncoding)textEncodingOfItemAtURL:(NSURL *)URL;
 + (BOOL)setTextEncoding:(NSStringEncoding)encoding ofItemAtURL:(NSURL *)URL;
 
-- (NSString *)pathCopiedFromAliasData:(NSData *)aliasData;
-
 @end

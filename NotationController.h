@@ -90,8 +90,6 @@ typedef NS_OPTIONS(NSInteger, NVNoteRevealOptions) {
 	NSUInteger diskUUIDIndex;
 	CFUUIDRef diskUUID;
 	FSRef noteDirectoryRef;
-	AliasHandle aliasHandle;
-	BOOL aliasNeedsUpdating;
 	OSStatus lastWriteError;
 	NSError *_lastWriteNSError;
 
@@ -114,17 +112,15 @@ typedef NS_OPTIONS(NSInteger, NVNoteRevealOptions) {
 
 - (id)init;
 
-- (id)initWithAliasData:(NSData *)data error:(out NSError **)err;
-
 - (id)initWithDefaultDirectoryWithError:(out NSError **)err;
 
-- (id)initWithDirectoryRef:(FSRef *)directoryRef error:(out NSError **)err;
+- (id)initWithBookmarkData:(NSData *)data error:(out NSError **)err;
 
-- (void)setAliasNeedsUpdating:(BOOL)needsUpdate;
+- (id)initWithDirectory:(NSURL *)directoryURL error:(out NSError **)err;
 
-- (BOOL)aliasNeedsUpdating;
+@property (nonatomic) BOOL bookmarkNeedsUpdating;
 
-- (NSData *)aliasDataForNoteDirectory;
+- (NSData *)bookmarkDataForNoteDirectory;
 
 - (BOOL)_readAndInitializeSerializedNotesWithError:(out NSError **)outError;
 

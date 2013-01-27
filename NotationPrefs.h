@@ -36,6 +36,8 @@ extern NSString *NotationPrefsDidChangeNotification;
 
 - (void)databaseSettingsChangedFromOldFormat:(NoteStorageFormat)oldFormat;
 
+- (NSURL *)notesDirectoryURL;
+
 @optional
 
 - (void)flushEverything;
@@ -43,8 +45,6 @@ extern NSString *NotationPrefsDidChangeNotification;
 - (void)trashRemainingNoteFilesInDirectory;
 
 - (NSUInteger)totalNoteCount;
-
-- (NSData *)aliasDataForNoteDirectory;
 
 @end
 
