@@ -55,8 +55,6 @@ static const unsigned char gsToLowerMap[256] = {
 #define MAX(A,B)	({ __typeof__(A) __a = (A); __typeof__(B) __b = (B); __a < __b ? __b : __a; })
 #endif
 
-static u_int32_t u8_nextchar(const char *s, size_t *i);
-
 char *replaceString(char *oldString, const char *newString) {
 	size_t newLen = strlen(newString) + 1;
 
@@ -115,15 +113,6 @@ void modp_tolower_copy(char *dest, const char *str, size_t len) {
 		case 0:
 			*dest = '\0';
 	}
-}
-
-
-int ContainsUInteger(const NSUInteger *uintArray, size_t count, NSUInteger auint) {
-	size_t i;
-	for (i = 0; i < count; i++) {
-		if (uintArray[i] == auint) return 1;
-	}
-	return 0;
 }
 
 unsigned DumbWordCount(const void *s1, size_t len) {

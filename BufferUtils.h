@@ -34,8 +34,6 @@ typedef struct _PerDiskInfo {
 
 char *replaceString(char *oldString, const char *newString);
 
-int ContainsUInteger(const NSUInteger *uintArray, size_t count, NSUInteger auint);
-
 void modp_tolower_copy(char *dest, const char *str, size_t len);
 
 unsigned DumbWordCount(const void *s1, size_t len);

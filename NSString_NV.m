@@ -602,10 +602,16 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, NSUInteger charIndex) 
 	BOOL hasHighASCII = data.ntn_containsHighASCII;
 	NSStringEncoding firstEncodingToTry = hasHighASCII ? NSUTF8StringEncoding : [NSString defaultCStringEncoding];
 
-#define AddIfUnique(enc) if (!ContainsUInteger(encodingsToTry, encodingIndex, (enc))) encodingsToTry[encodingIndex++] = (enc)
+	__block NSStringEncoding *encodingsToTry = calloc(5, sizeof(NSStringEncoding));
+	__block NSUInteger encodingIndex = 0;
 
-	NSStringEncoding encodingsToTry[5] = {0, 0, 0, 0, 0};
-	NSUInteger encodingIndex = 0;
+	void(^AddIfUnique)(NSStringEncoding) = ^(NSStringEncoding enc) {
+		size_t i;
+		for (i = 0; i < encodingIndex; i++) {
+			if (encodingsToTry[i] == enc) return;
+		}
+		encodingsToTry[encodingIndex++] = enc;
+	};
 
 	AddIfUnique(firstEncodingToTry);
 
@@ -628,10 +634,14 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, NSUInteger charIndex) 
 		stringFromData = [[NSMutableString alloc] initWithData: data encoding: encodingsToTry[encodingIndex]];
 	} while (!stringFromData && ++encodingIndex < 5);
 
+	NSStringEncoding goodEncoding = encodingsToTry[encodingIndex];
+
+	free(encodingsToTry);
+
 	if (stringFromData) {
 		NSAssert(encodingIndex < 5, @"got valid string from data, but encodingIndex is too high!");
 		//report ASCII files as UTF-8 data in case this encoding will be used for future writes of a note
-		if (outEncoding) *outEncoding = hasHighASCII ? encodingsToTry[encodingIndex] : NSUTF8StringEncoding;
+		if (outEncoding) *outEncoding = hasHighASCII ? goodEncoding : NSUTF8StringEncoding;
 		return stringFromData;
 	}
 
