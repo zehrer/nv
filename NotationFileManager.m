@@ -327,7 +327,7 @@ static void uuid_create_md5_from_name(unsigned char result_uuid[16], const void 
 }
 
 - (NSMutableData *)dataForCatalogEntryInNotesDirectory:(NoteCatalogEntry *)catEntry URL:(out NSURL **)outURL {
-	return [self dataForFilenameInNotesDirectory: (__bridge NSString *)catEntry.filename URL: outURL];
+	return [self dataForFilenameInNotesDirectory: catEntry.filename URL: outURL];
 }
 
 - (NSURL *)createFileWithNameIfNotPresentInNotesDirectory:(NSString *)filename created:(BOOL *)created error:(out NSError **)outError {

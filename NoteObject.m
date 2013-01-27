@@ -464,7 +464,7 @@ row) {
 	if ((self = [self init])) {
 		self.delegate = aDelegate;
 		id <NoteObjectDelegate, NTNFileManager> localDelegate = aDelegate;
-		self.filename = (__bridge NSMutableString *)entry.filename;
+		self.filename = entry.filename;
 		self.storageFormat = [localDelegate currentNoteStorageFormat];
 		self.contentModificationDate = entry.contentModificationDate;
 		self.attributesModificationDate = entry.attributeModificationDate;
@@ -1263,7 +1263,7 @@ row) {
 	if (![self updateFromData:data inFormat:currentFormatID])
 		return NO;
 
-	[self setFilename:(__bridge NSString *) catEntry.filename withExternalTrigger:YES];
+	[self setFilename: catEntry.filename withExternalTrigger:YES];
 
 	self.contentModificationDate = catEntry.contentModificationDate;
 	self.attributesModificationDate = catEntry.attributeModificationDate;
