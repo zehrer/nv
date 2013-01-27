@@ -363,7 +363,7 @@ row) {
 				NSUInteger decodedPerDiskByteCount = 0;
 				const uint8_t *decodedPerDiskBytes = [decoder decodeBytesForKey:VAR_STR(perDiskInfoGroups) returnedLength:&decodedPerDiskByteCount];
 				if (decodedPerDiskBytes && decodedPerDiskByteCount) {
-					CopyPerDiskInfoGroupsToOrder(&perDiskInfoGroups, &perDiskInfoGroupCount, (PerDiskInfo *) decodedPerDiskBytes, decodedPerDiskByteCount, 1);
+					CopyPerDiskInfoGroupsToOrder(&perDiskInfoGroups, &perDiskInfoGroupCount, decodedPerDiskBytes, decodedPerDiskByteCount, 1);
 				}
 			}
 

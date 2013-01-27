@@ -16,8 +16,6 @@
    - Neither the name of Notational Velocity nor the names of its contributors may be used to endorse 
      or promote products derived from this software without specific prior written permission. */
 
-#define ResizeArray(__DirectBuffer, __objCount, __bufObjCount)    _ResizeBuffer((void***)(__DirectBuffer), (__objCount), (__bufObjCount), sizeof(typeof(**(__DirectBuffer))))
-
 #define UTCDateTimeIsEmpty(__UTCDT) (*(int64_t*)&((__UTCDT)) == 0LL)
 
 typedef struct _PerDiskInfo {
@@ -26,8 +24,8 @@ typedef struct _PerDiskInfo {
 	//the disk UUIDs table is tracked separately in FrozenNotation; it should only ever be appended-to
 	UInt32 diskIDIndex;
 
-	//catalog node ID of a file
-	UInt32 nodeID;
+	//catalog node ID of a file - UNUSED
+	UInt32 nodeID__unused;
 
 	//the attribute modification time of a file
 	UTCDateTime attrTime;
@@ -35,8 +33,6 @@ typedef struct _PerDiskInfo {
 } PerDiskInfo;
 
 char *replaceString(char *oldString, const char *newString);
-
-void _ResizeBuffer(void ***buffer, NSUInteger objCount, NSUInteger *bufSize, NSUInteger elemSize);
 
 int IsZeros(const void *s1, size_t n);
 
@@ -52,7 +48,7 @@ int ContainsHighAscii(const void *s1, size_t n);
 
 unsigned DumbWordCount(const void *s1, size_t len);
 
-void CopyPerDiskInfoGroupsToOrder(PerDiskInfo **flippedGroups, NSUInteger *existingCount, PerDiskInfo *perDiskGroups, size_t bufferSize, NSInteger toHostOrder);
+void CopyPerDiskInfoGroupsToOrder(PerDiskInfo **flippedGroups, NSUInteger *existingCount, const uint8_t *perDiskGroupsBuffer, size_t bufferSize, NSInteger toHostOrder);
 
 OSStatus FSCreateFileIfNotPresentInDirectory(FSRef *directoryRef, FSRef *childRef, CFStringRef filename, Boolean *created);
 

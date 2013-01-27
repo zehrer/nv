@@ -67,17 +67,6 @@ char *replaceString(char *oldString, const char *newString) {
 	return resizedString;
 }
 
-
-void _ResizeBuffer(void ***buffer, NSUInteger objCount, NSUInteger *bufObjCount, NSUInteger elemSize) {
-	assert(buffer && bufObjCount);
-
-	if ((*bufObjCount < objCount || !*buffer) && elemSize && objCount) {
-		*buffer = (void **) realloc(*buffer, elemSize * objCount);
-		*bufObjCount = objCount;
-	}
-
-}
-
 int IsZeros(const void *s1, size_t n) {
 	if (n != 0) {
 		const unsigned char *p1 = s1;
@@ -283,14 +272,15 @@ CFStringRef GetRelativeDateStringFromTimeAndLocaleInfo(CFAbsoluteTime time, CFSt
 
 COMPILE_ASSERT(sizeof(PerDiskInfo) == 16, PER_DISK_INFO_MUST_BE_16_BYTES);
 
-void CopyPerDiskInfoGroupsToOrder(PerDiskInfo **flippedGroups, NSUInteger *existingCount, PerDiskInfo *perDiskGroups, size_t bufferSize, NSInteger toHostOrder) {
+void CopyPerDiskInfoGroupsToOrder(PerDiskInfo **flippedGroups, NSUInteger *existingCount, const uint8_t *perDiskGroupsBuffer, size_t bufferSize, NSInteger toHostOrder) {
 	//for decoding and encoding an array of PerDiskInfo structs as a single buffer
 	//swap between host order and big endian
 	//resizes flippedPairs if it is too small (based on *existingCount)
 
 	NSUInteger i, count = bufferSize / sizeof(PerDiskInfo);
 
-	ResizeArray(flippedGroups, count, existingCount);
+	*flippedGroups = calloc(count, sizeof(PerDiskInfo));
+	PerDiskInfo *perDiskGroups = (PerDiskInfo *)perDiskGroupsBuffer;
 	PerDiskInfo *newGroups = *flippedGroups;
 
 	//does this need to flip the entire struct, too?
@@ -300,7 +290,6 @@ void CopyPerDiskInfoGroupsToOrder(PerDiskInfo **flippedGroups, NSUInteger *exist
 			newGroups[i].attrTime.highSeconds = CFSwapInt16BigToHost(group.attrTime.highSeconds);
 			newGroups[i].attrTime.lowSeconds = CFSwapInt32BigToHost(group.attrTime.lowSeconds);
 			newGroups[i].attrTime.fraction = CFSwapInt16BigToHost(group.attrTime.fraction);
-			newGroups[i].nodeID = CFSwapInt32BigToHost(group.nodeID);
 			newGroups[i].diskIDIndex = CFSwapInt32BigToHost(group.diskIDIndex);
 		}
 	} else {
@@ -309,7 +298,6 @@ void CopyPerDiskInfoGroupsToOrder(PerDiskInfo **flippedGroups, NSUInteger *exist
 			newGroups[i].attrTime.highSeconds = CFSwapInt16HostToBig(group.attrTime.highSeconds);
 			newGroups[i].attrTime.lowSeconds = CFSwapInt32HostToBig(group.attrTime.lowSeconds);
 			newGroups[i].attrTime.fraction = CFSwapInt16HostToBig(group.attrTime.fraction);
-			newGroups[i].nodeID = CFSwapInt32HostToBig(group.nodeID);
 			newGroups[i].diskIDIndex = CFSwapInt32HostToBig(group.diskIDIndex);
 		}
 	}
