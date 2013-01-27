@@ -444,27 +444,9 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, NSUInteger charIndex) 
 	return NO;
 }
 
-- (char *)copyLowercaseASCIIString {
-
-	const char *cstringPtr = NULL;
-
-	//here we are making assumptions (based on observations and CFString.c) about the implementation of CFStringGetCStringPtr:
-	//with a non-western language preference, kCFStringEncodingASCII or another Latin variant must be used instead of kCFStringEncodingMacRoman
-	if ((cstringPtr = CFStringGetCStringPtr((CFStringRef) self, kCFStringEncodingMacRoman)) ||
-			(cstringPtr = CFStringGetCStringPtr((CFStringRef) self, kCFStringEncodingASCII))) {
-
-		size_t length = [self length];
-		char *cstringBuffer = (char *) malloc(length + 1);
-		//modp will add the NULL terminator
-		modp_tolower_copy(cstringBuffer, cstringPtr, length);
-
-		return cstringBuffer;
-	} else {
-		//will be true on Snow Leopard for empty strings
-		//NSLog(@"found string that should have been 7 bit, but (apparently) is not.");
-	}
-
-	return NULL;
+- (NSString *)ntn_copyLowercaseASCIIString {
+	NSData *data = [[self lowercaseString] dataUsingEncoding: NSASCIIStringEncoding allowLossyConversion: YES];
+	return [[NSString alloc] initWithData: data encoding: NSASCIIStringEncoding];
 }
 
 - (BOOL)couldCopyLowercaseASCIIString {

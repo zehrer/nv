@@ -60,7 +60,7 @@ CFDateFormatterRef simplenoteDateFormatter(NSInteger lowPrecision);
 
 BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, NSUInteger charIndex);
 
-- (char *)copyLowercaseASCIIString;
+- (NSString *)ntn_copyLowercaseASCIIString;
 
 - (NSString *)stringWithPercentEscapes;
 
