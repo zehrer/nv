@@ -315,28 +315,6 @@ void CopyPerDiskInfoGroupsToOrder(PerDiskInfo **flippedGroups, NSUInteger *exist
 	}
 }
 
-CFStringRef CreateRandomizedFileName();
-
-CFStringRef CreateRandomizedFileName() {
-	static int sequence = 0;
-
-	sequence++;
-
-	ProcessSerialNumber psn;
-	OSStatus err = noErr;
-	if ((err = GetCurrentProcess(&psn)) != noErr) {
-		printf("error getting process serial number: %d\n", (int) err);
-
-		//just use the location of our memory
-		psn.lowLongOfPSN = (unsigned int) &psn;
-	}
-
-	CFStringRef name = CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR(".%lu%lu-%d-%d"),
-			(unsigned long) psn.highLongOfPSN, (unsigned long) psn.lowLongOfPSN, (int) CFAbsoluteTimeGetCurrent(), sequence);
-
-	return name;
-}
-
 OSStatus FSCreateFileIfNotPresentInDirectory(FSRef *directoryRef, FSRef *childRef, CFStringRef filename, Boolean *created) {
 	UniChar chars[256];
 	OSStatus result = noErr;

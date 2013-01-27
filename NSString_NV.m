@@ -533,6 +533,17 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, NSUInteger charIndex) 
 	return (ContainsHighAscii(self.UTF8String, self.length));
 }
 
++ (NSString *)ntn_stringWithRandomizedFileName {
+	static int sequence = 0;
+
+	sequence++;
+
+	int psn = [[NSProcessInfo processInfo] processIdentifier];
+	int date = [NSDate timeIntervalSinceReferenceDate];
+
+	return [NSString stringWithFormat: @"%d-%d-%d", psn, date, sequence];
+}
+
 @end
 
 @implementation NSMutableString (NV)

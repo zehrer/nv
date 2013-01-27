@@ -580,7 +580,7 @@ NSUInteger diskUUIDIndexForNotation(NotationController *controller) {
 }
 
 - (void)notifyOfChangedTrash {
-	NSURL *sillyURL = [NSURL fileURLWithPath: [NSTemporaryDirectory() stringByAppendingPathComponent:(__bridge_transfer NSString *)CreateRandomizedFileName()]];
+	NSURL *sillyURL = [NSURL fileURLWithPath: [NSTemporaryDirectory() stringByAppendingPathComponent: [NSString ntn_stringWithRandomizedFileName]]];
 	[self.fileManager createDirectoryAtURL: sillyURL withIntermediateDirectories: YES attributes: nil error: NULL];
 	[self.fileManager trashItemAtURL: sillyURL resultingItemURL: NULL error: NULL];
 }
