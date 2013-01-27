@@ -229,23 +229,17 @@ static struct statfs *StatFSVolumeInfo(NotationController *controller) {
 	return ret;
 }
 
-- (OSStatus)renameAndForgetNoteDatabaseFile:(NSString *)newfilename {
+- (BOOL)renameAndForgetNoteDatabaseFile:(NSString *)newfilename {
 	//this method does not move the note database file; for now it is used in cases of upgrading incompatible files
-
-	UniChar chars[256];
-	OSStatus err = noErr;
-	CFRange range = {0, CFStringGetLength((CFStringRef) newfilename)};
-	CFStringGetCharacters((CFStringRef) newfilename, range, chars);
-
-	if ((err = FSRenameUnicode(&noteDatabaseRef, range.length, chars, kTextEncodingDefaultFormat, NULL)) != noErr) {
-		NSLog(@"Error renaming notes database file to %@: %d", newfilename, err);
-		return err;
-	} else {
-		_noteDatabaseURL = nil;
+	NSURL *newURL = [self.noteDatabaseURL.URLByDeletingLastPathComponent URLByAppendingPathComponent: newfilename];
+	NSError *error = nil;
+	if ([self.fileManager moveItemAtURL: self.noteDatabaseURL toURL: newURL error: &error]) {
+		_noteDatabaseURL = newURL;
+		return YES;
 	}
-	//reset the FSRef to ensure it doesn't point to the renamed file
-	bzero(&noteDatabaseRef, sizeof(FSRef));
-	return noErr;
+
+	_noteDatabaseURL = nil;
+	return NO;
 }
 
 - (BOOL)removeSpuriousDatabaseFileNotes {

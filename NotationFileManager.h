@@ -38,7 +38,7 @@ CFUUIDRef CopyHFSVolumeUUIDForMount(const char *mntonname);
 
 - (BOOL)notesDirectoryIsTrashed;
 
-- (OSStatus)renameAndForgetNoteDatabaseFile:(NSString *)newfilename;
+- (BOOL)renameAndForgetNoteDatabaseFile:(NSString *)newfilename;
 
 - (BOOL)removeSpuriousDatabaseFileNotes;
 
