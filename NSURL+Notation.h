@@ -11,4 +11,6 @@
 + (NSURL *)URLWithFSRef:(const FSRef *)ref;
 - (BOOL)getFSRef:(out FSRef *)outRef;
 
+- (BOOL)isEqualToFileURL:(NSURL *)object;
+
 @end
