@@ -29,6 +29,12 @@
 
 NSString *NotesDatabaseFileName = @"Notes & Settings";
 
+@interface NotationController ()
+
+@property (nonatomic, strong, readwrite) NSURL *noteDatabaseURL;
+
+@end
+
 @implementation NotationController (NotationFileManager)
 
 static struct statfs *StatFSVolumeInfo(NotationController *controller);
@@ -234,11 +240,11 @@ static struct statfs *StatFSVolumeInfo(NotationController *controller) {
 	NSURL *newURL = [self.noteDatabaseURL.URLByDeletingLastPathComponent URLByAppendingPathComponent: newfilename];
 	NSError *error = nil;
 	if ([self.fileManager moveItemAtURL: self.noteDatabaseURL toURL: newURL error: &error]) {
-		_noteDatabaseURL = newURL;
+		self.noteDatabaseURL = newURL;
 		return YES;
 	}
 
-	_noteDatabaseURL = nil;
+	self.noteDatabaseURL = nil;
 	return NO;
 }
 

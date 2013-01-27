@@ -89,7 +89,7 @@ typedef NS_OPTIONS(NSInteger, NVNoteRevealOptions) {
 	struct statfs *statfsInfo;
 	NSUInteger diskUUIDIndex;
 	CFUUIDRef diskUUID;
-	FSRef noteDirectoryRef, noteDatabaseRef;
+	FSRef noteDirectoryRef;
 	AliasHandle aliasHandle;
 	BOOL aliasNeedsUpdating;
 	OSStatus lastWriteError;
@@ -101,7 +101,7 @@ typedef NS_OPTIONS(NSInteger, NVNoteRevealOptions) {
 	NSTimer *changeWritingTimer;
 	NSUndoManager *undoManager;
 
-	NSURL *_noteDirectoryURL, *_noteDatabaseURL;
+	NSURL *_noteDirectoryURL;
 }
 
 @property(nonatomic, strong) NSMutableArray *filteredNotesList;

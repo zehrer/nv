@@ -46,6 +46,7 @@
 
 @property (nonatomic, strong) NSMutableDictionary *labelImages;
 @property (nonatomic, strong, readwrite) NSFileManager *fileManager;
+@property (nonatomic, strong, readwrite) NSURL *noteDatabaseURL;
 
 @end
 
@@ -72,8 +73,6 @@
 
 		fsCatInfoArray = NULL;
 		HFSUniNameArray = NULL;
-
-		bzero(&noteDatabaseRef, sizeof(FSRef));
 
 		lastLayoutStyleGenerated = -1;
 		lastCheckedDateInHours = hoursFromAbsoluteTime(CFAbsoluteTimeGetCurrent());
@@ -204,9 +203,7 @@
 
 - (BOOL)_readAndInitializeSerializedNotesWithError:(out NSError **)outError {
 	NSError *nsErr = nil;
-	if ((_noteDatabaseURL = [self createFileWithNameIfNotPresentInNotesDirectory: NotesDatabaseFileName created: NULL error: &nsErr])) {
-		[_noteDatabaseURL getFSRef: &noteDatabaseRef];
-	} else {
+	if (!(self.noteDatabaseURL = [self createFileWithNameIfNotPresentInNotesDirectory: NotesDatabaseFileName created: NULL error: &nsErr])) {
 		if (outError) *outError = nsErr;
 		return NO;
 	}
@@ -459,7 +456,7 @@
 		//we should have all journal records on disk by now
 		//ensure a newly-written Notes & Settings file is valid before finalizing the save
 		//read the file back from disk, deserialize it, decrypt and decompress it, and compare the notes roughly to our current notes
-		if ((_noteDatabaseURL = [self writeDataToNotesDirectory: serializedData withName: NotesDatabaseFileName verifyUsingBlock:^BOOL(NSURL *temporaryFileURL, NSError **outError) {
+		if (!(self.noteDatabaseURL = [self writeDataToNotesDirectory: serializedData withName: NotesDatabaseFileName verifyUsingBlock:^BOOL(NSURL *temporaryFileURL, NSError **outError) {
 			NSAssert([temporaryFileURL.lastPathComponent isEqualToString:NotesDatabaseFileName], @"attempting to verify something other than the database");
 			NSDate *date = [NSDate date];
 			NSError *error = nil;
@@ -507,8 +504,6 @@
 			if (result) NSLog(@"verified %lu notes in %g s", [notesToVerify count], (float) [[NSDate date] timeIntervalSinceDate:date]);
 			return result;
 		} error: NULL])) {
-			[_noteDatabaseURL getFSRef: &noteDatabaseRef];
-		} else {
 			return NO;
 		}
 
@@ -1620,13 +1615,6 @@
 - (void)noteDidUpdateContents:(NoteObject *)note {
 	id <NotationControllerDelegate> delegate = self.delegate;
 	[delegate contentsUpdatedForNote:note];
-}
-
-- (NSURL *)noteDatabaseURL {
-	if (!_noteDatabaseURL && !IsZeros(&noteDatabaseRef, sizeof(FSRef))) {
-		_noteDatabaseURL = [[NSURL URLWithFSRef: &noteDatabaseRef] fileReferenceURL];
-	}
-	return _noteDatabaseURL;
 }
 
 @end
