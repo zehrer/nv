@@ -36,7 +36,7 @@ extern NSString *NotationPrefsDidChangeNotification;
 
 - (void)databaseSettingsChangedFromOldFormat:(NoteStorageFormat)oldFormat;
 
-- (NSURL *)notesDirectoryURL;
+- (NSURL *)noteDirectoryURL;
 
 @optional
 

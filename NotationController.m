@@ -108,7 +108,7 @@
 	NSError *error = nil;
 	NSURL *targetURL = nil;
 
-	if ((targetURL = [NotationController defaultNotesDirectoryURLReturningError: &error])) {
+	if ((targetURL = [NotationController defaultNoteDirectoryURLReturningError: &error])) {
 		if ((self = [self initWithDirectory:targetURL error: &error])) {
 			return self;
 		}

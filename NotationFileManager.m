@@ -334,14 +334,14 @@ static struct statfs *StatFSVolumeInfo(NotationController *controller) {
 	}
 }
 
-+ (NSURL *)defaultNotesDirectoryURLReturningError:(out NSError **)outErr {
++ (NSURL *)defaultNoteDirectoryURLReturningError:(out NSError **)outErr {
 	NSError *err = nil;
 	NSURL *appSupportURL = nil;
-	NSURL *notesDirectoryURL = nil;
+	NSURL *noteDirectoryURL = nil;
 
 	if ((appSupportURL = [[NSFileManager defaultManager] URLForDirectory: NSApplicationSupportDirectory inDomain: NSUserDomainMask appropriateForURL: nil create: YES error: &err])) {
-		if ((notesDirectoryURL = [self createDirectoryIfNotPresentWithName: @"Notational Data" inDirectory: appSupportURL error: &err])) {
-			return notesDirectoryURL;
+		if ((noteDirectoryURL = [self createDirectoryIfNotPresentWithName: @"Notational Data" inDirectory: appSupportURL error: &err])) {
+			return noteDirectoryURL;
 		}
 	}
 

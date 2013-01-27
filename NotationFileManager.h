@@ -44,7 +44,7 @@ CFUUIDRef CopyHFSVolumeUUIDForMount(const char *mntonname);
 
 - (void)relocateNotesDirectory;
 
-+ (NSURL *)defaultNotesDirectoryURLReturningError:(out NSError **)outErr;
++ (NSURL *)defaultNoteDirectoryURLReturningError:(out NSError **)outErr;
 
 - (NSString *)uniqueFilenameForTitle:(NSString *)title fromNote:(NoteObject *)note;
 

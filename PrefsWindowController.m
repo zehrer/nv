@@ -291,11 +291,11 @@
 }
 
 - (NSURL *)getNewNotesURLFromOpenPanel {
-	NSURL *currentNotesDirectoryURL = nil;
+	NSURL *currentNoteDirectoryURL = nil;
 
 	NSData *bookmarkData = [prefsController bookmarkDataForDefaultDirectory];
 	NSURL *homeFolder = [NSURL fileURLWithPath: NSHomeDirectory() isDirectory: YES];
-	currentNotesDirectoryURL = [NSURL URLByResolvingBookmarkData: bookmarkData options: NSURLBookmarkResolutionWithoutUI | NSURLBookmarkResolutionWithoutMounting relativeToURL: homeFolder bookmarkDataIsStale: NULL error: NULL];
+	currentNoteDirectoryURL = [NSURL URLByResolvingBookmarkData: bookmarkData options: NSURLBookmarkResolutionWithoutUI | NSURLBookmarkResolutionWithoutMounting relativeToURL: homeFolder bookmarkDataIsStale: NULL error: NULL];
 
 	NSOpenPanel *openPanel = [NSOpenPanel openPanel];
 	[openPanel setCanCreateDirectories:YES];
@@ -308,7 +308,7 @@
 	[openPanel setPrompt:NSLocalizedString(@"Select", @"title of open panel button to select a folder")];
 	[openPanel setMessage:NSLocalizedString(@"Select the folder that Notational Velocity should use for reading and storing notes.", nil)];
 	
-	NSURL *startingDirectoryURL = [currentNotesDirectoryURL.URLByDeletingLastPathComponent URLByAppendingPathComponent:@"Notational Data" isDirectory:YES];
+	NSURL *startingDirectoryURL = [currentNoteDirectoryURL.URLByDeletingLastPathComponent URLByAppendingPathComponent:@"Notational Data" isDirectory:YES];
 	openPanel.directoryURL = startingDirectoryURL;
 
 	if ([openPanel runModal] == NSOKButton) {

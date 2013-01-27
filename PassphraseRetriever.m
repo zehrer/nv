@@ -49,9 +49,9 @@
 		}
 	}
 
-	NSURL *notesDirectoryURL = [notationPrefs.delegate notesDirectoryURL];
+	NSURL *noteDirectoryURL = [notationPrefs.delegate noteDirectoryURL];
 	[helpStringField setStringValue:[NSString stringWithFormat:NSLocalizedString(@"Please enter the passphrase to access notes in %@.", nil),
-															   [notesDirectoryURL.path stringByAbbreviatingWithTildeInPath]]];
+															   [noteDirectoryURL.path stringByAbbreviatingWithTildeInPath]]];
 
 
 	BOOL notationExists = [[GlobalPrefs defaultPrefs] notationPrefs] != nil;
