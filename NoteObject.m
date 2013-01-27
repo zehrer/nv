@@ -1085,8 +1085,8 @@ row) {
 		[NSFileManager setOpenMetaTags: self.orderedLabelTitles forItemAtURL: self.noteFileURL error: NULL];
 
 		//always hide the file extension for all types
-		LSSetExtensionHiddenForRef(self.noteFileRef, TRUE);
-
+		[self.noteFileURL setResourceValue: @YES forKey: NSURLHasHiddenExtensionKey error: NULL];
+		
 		if (!resetFilename) {
 			//NSLog(@"resetting the file name just because.");
 			[self setFilenameFromTitle];
