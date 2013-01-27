@@ -269,7 +269,7 @@ BOOL noteTitleIsAPrefixOfOtherNoteTitle(NoteObject *longerNote, NoteObject *shor
 
 - (BOOL)removeUsingJournal:(WALStorageController *)wal;
 
-- (OSStatus)exportToDirectoryRef:(FSRef *)directoryRef withFilename:(NSString *)userFilename usingFormat:(NoteStorageFormat)storageFormat overwrite:(BOOL)overwrite;
+- (BOOL)exportToDirectory:(NSURL *)directory filename:(NSString *)userFilename format:(NoteStorageFormat)storageFormat overwrite:(BOOL)overwrite error:(out NSError **)outError;
 
 - (NSRange)nextRangeForWords:(NSArray *)words options:(NSStringCompareOptions)opts range:(NSRange)inRange;
 

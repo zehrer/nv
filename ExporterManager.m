@@ -71,31 +71,33 @@
 				BOOL lastNote = i != [notes count] - 1;
 				NoteObject *note = notes[i];
 
-				OSStatus err = [note exportToDirectoryRef:&directoryRef withFilename:filename usingFormat:storageFormat overwrite:overwriteNotes];
+				NSError *error = nil;
+				BOOL success = [note exportToDirectory: URL filename: filename format: storageFormat overwrite: overwriteNotes error: &error];
 
-				if (err == dupFNErr) {
+				if (!success && error.code == NSFileWriteFileExistsError) {
 					//ask about overwriting
 					NSString *existingName = filename ? : note.filename;
 					existingName = [[existingName stringByDeletingPathExtension] stringByAppendingPathExtension:[NotationPrefs pathExtensionForFormat:storageFormat]];
 					result = NSRunAlertPanel([NSString stringWithFormat:NSLocalizedString(@"A file named quotemark%@quotemark already exists.", nil), existingName],
-							NSLocalizedString(@"Replace its current contents with that of the note?", @"replace the file's contents?"),
-							NSLocalizedString(@"Replace", nil), NSLocalizedString(@"Don't Replace", nil), lastNote ? NSLocalizedString(@"Replace All", nil) : nil, nil);
+											 NSLocalizedString(@"Replace its current contents with that of the note?", @"replace the file's contents?"),
+											 NSLocalizedString(@"Replace", nil), NSLocalizedString(@"Don't Replace", nil), lastNote ? NSLocalizedString(@"Replace All", nil) : nil, nil);
 					if (result == NSAlertDefaultReturn || result == NSAlertOtherReturn) {
 						if (result == NSAlertOtherReturn) overwriteNotes = YES;
-						err = [note exportToDirectoryRef:&directoryRef withFilename:filename usingFormat:storageFormat overwrite:YES];
+						success = [note exportToDirectory: URL filename: filename format: storageFormat overwrite: YES error: &error];
 					} else continue;
 				}
 
-				if (err != noErr) {
+				if (!success) {
 					NSString *exportErrorTitleString = [NSString stringWithFormat:NSLocalizedString(@"The note quotemark%@quotemark couldn't be exported because %@.", nil),
-																				  note.title, [NSString reasonStringFromCarbonFSError:err]];
+														note.title, [NSString reasonStringFromCarbonFSError: (int)error.code]];
 					if (!lastNote) {
 						NSRunAlertPanel(exportErrorTitleString, NULL, NSLocalizedString(@"OK", nil), nil, nil, nil);
 					} else {
 						result = NSRunAlertPanel(exportErrorTitleString, NSLocalizedString(@"Continue exporting?", @"alert title for exporter interruption"),
-								NSLocalizedString(@"Continue", @"(exporting notes?)"), NSLocalizedString(@"Stop Exporting", @"(notes?)"), nil);
+												 NSLocalizedString(@"Continue", @"(exporting notes?)"), NSLocalizedString(@"Stop Exporting", @"(notes?)"), nil);
 						if (result != NSAlertDefaultReturn) break;
 					}
+
 				}
 			}
 

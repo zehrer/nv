@@ -40,6 +40,7 @@
 #import "NSURL+Notation.h"
 #import "NSDate+Notation.h"
 #import "NoteCatalogEntry.h"
+#import "NSError+Notation.h"
 
 #if __LP64__
 // Needed for compatability with data created by 32bit app
@@ -1489,14 +1490,12 @@ row) {
 	//so expect the delegate to know to schedule the same update itself
 }
 
-- (OSStatus)exportToDirectoryRef:(FSRef *)directoryRef withFilename:(NSString *)userFilename usingFormat:(NoteStorageFormat)storageFormat overwrite:(BOOL)overwrite {
-
+- (BOOL)exportToDirectory:(NSURL *)directoryURL filename:(NSString *)userFilename format:(NoteStorageFormat)storageFormat overwrite:(BOOL)overwrite error:(out NSError **)outError {
 	NSData *formattedData = nil;
 	NSError *error = nil;
 
 	NSMutableAttributedString *contentMinusColor = [self.contentString mutableCopy];
 	[contentMinusColor removeAttribute:NSForegroundColorAttributeName range:NSMakeRange(0, [contentMinusColor length])];
-
 
 	switch (storageFormat) {
 		case SingleDatabaseFormat:
@@ -1525,8 +1524,11 @@ row) {
 		default:
 			NSLog(@"Attempted to export using unknown format ID: %ld", storageFormat);
 	}
-	if (!formattedData)
-		return kDataFormattingErr;
+
+	if (!formattedData) {
+		if (outError) *outError = [NSError errorWithDomain: NTNErrorDomain code: NTNDataFormattingError userInfo: nil];
+		return NO;
+	}
 
 	//can use our already-determined filename to write here
 	//but what about file names that were the same except for their extension? e.g., .txt vs. .text
@@ -1536,38 +1538,25 @@ row) {
 	//one last replacing, though if the unique file-naming method worked this should be unnecessary
 	newfilename = [newfilename stringByReplacingOccurrencesOfString:@":" withString:@"/"];
 
-	NSURL *directoryURL = [NSURL URLWithFSRef: directoryRef];
 	NSURL *fileURL = [directoryURL URLByAppendingPathComponent: newfilename];
-	FSRef fileRef;
-	[fileURL getFSRef: &fileRef];
 
-	if (!overwrite) {
-		if ([fileURL checkResourceIsReachableAndReturnError: NULL]) {
-			NSLog(@"File already existed!");
-			return dupFNErr;
-		}
+	if ([formattedData writeToURL: fileURL options: overwrite ? NSDataWritingAtomic : NSDataWritingWithoutOverwriting  error: &error]) {
+		if (storageFormat == PlainTextFormat)
+			[NSFileManager setTextEncoding: self.fileEncoding ofItemAtURL: fileURL];
+
+		[NSFileManager setOpenMetaTags: self.orderedLabelTitles forItemAtURL: fileURL error: NULL];
+
+		//also export the note's modification and creation dates
+		[fileURL setResourceValues: @{
+			  NSURLCreationDateKey: self.creationDate,
+   NSURLContentModificationDateKey: self.modificationDate }
+							 error: NULL];
+
+		return YES;
+
 	}
 
-	NSError *nsErr = nil;
-	if (![formattedData writeToURL: fileURL options: NSDataWritingAtomic error: &nsErr]) {
-		NSLog(@"error writing to file: %@", nsErr);
-		return writErr;
-	}
-
-	//yes, the file is probably not on the same volume as our notes directory
-	if (PlainTextFormat == storageFormat) {
-		[self writeCurrentFileEncodingToFSRef:&fileRef];
-	}
-
-	[NSFileManager setOpenMetaTags: self.orderedLabelTitles forItemAtURL: fileURL error: NULL];
-
-	//also export the note's modification and creation dates
-	[fileURL setResourceValues: @{
-		  NSURLCreationDateKey: self.creationDate,
-		  NSURLContentModificationDateKey: self.modificationDate }
-						 error: NULL];
-
-	return noErr;
+	return NO;
 }
 
 - (void)editExternallyUsingEditor:(ExternalEditor *)ed {
