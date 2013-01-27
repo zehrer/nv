@@ -222,9 +222,9 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void *info, size_t nu
 
 						entry.fileType = ((FileInfo *) fsCatInfoArray[i].finderInfo)->fileType;
 						entry.logicalSize = (UInt32) (fsCatInfoArray[i].dataLogicalSize & 0xFFFFFFFF);
-						entry.lastModified = fsCatInfoArray[i].contentModDate;
-						entry.lastAttrModified = fsCatInfoArray[i].attributeModDate;
 						entry.creationDate = [NSDate datewithUTCDateTime: &fsCatInfoArray[i].createDate];
+						entry.contentModificationDate = [NSDate datewithUTCDateTime: &fsCatInfoArray[i].contentModDate];
+						entry.attributeModificationDate = [NSDate datewithUTCDateTime: &fsCatInfoArray[i].attributeModDate];
 
 						if (filename->length > entry.filenameCharCount) {
 							entry.filenameCharCount = filename->length;
@@ -264,11 +264,8 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void *info, size_t nu
 
 	NSDate *noteLastAttrMod = aNoteObject.attributesModificationDate;
 	NSDate *noteLastMod = aNoteObject.contentModificationDate;
-
-	UTCDateTime catLastAttrModTime = catEntry.lastAttrModified;
-	UTCDateTime catLastModTime = catEntry.lastModified;
-	NSDate *catLastAttrMod = [NSDate datewithUTCDateTime: &catLastAttrModTime];
-	NSDate *catLastMod = [NSDate datewithUTCDateTime: &catLastModTime];
+	NSDate *catLastAttrMod = catEntry.attributeModificationDate;
+	NSDate *catLastMod = catEntry.contentModificationDate;
 
 	// TODO some garbage is getting generated somewhere
 	if ([noteLastMod isGreaterThan: [NSDate distantFuture]]) {

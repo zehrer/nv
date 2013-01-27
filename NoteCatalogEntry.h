@@ -8,8 +8,6 @@
 
 @interface NoteCatalogEntry : NSObject
 
-@property (nonatomic) UTCDateTime lastModified;
-@property (nonatomic) UTCDateTime lastAttrModified;
 @property (nonatomic) UInt32 logicalSize;
 @property (nonatomic) OSType fileType;
 @property (nonatomic) CFMutableStringRef filename;
@@ -17,5 +15,7 @@
 @property (nonatomic) UniCharCount filenameCharCount;
 
 @property (nonatomic, copy) NSDate *creationDate;
+@property (nonatomic, copy) NSDate *contentModificationDate;
+@property (nonatomic, copy) NSDate *attributeModificationDate;
 
 @end

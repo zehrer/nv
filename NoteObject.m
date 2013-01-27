@@ -466,10 +466,8 @@ row) {
 		id <NoteObjectDelegate, NTNFileManager> localDelegate = aDelegate;
 		self.filename = (__bridge NSMutableString *)entry.filename;
 		self.storageFormat = [localDelegate currentNoteStorageFormat];
-		UTCDateTime lastModified = entry.lastModified;
-		self.contentModificationDate = [NSDate datewithUTCDateTime: &lastModified];
-		UTCDateTime lastAttrModified = entry.lastAttrModified;
-		self.attributesModificationDate = [NSDate datewithUTCDateTime: &lastAttrModified];
+		self.contentModificationDate = entry.contentModificationDate;
+		self.attributesModificationDate = entry.attributeModificationDate;
 		self.fileSize = entry.logicalSize;
 		self.creationDate = entry.creationDate;
 
@@ -1267,10 +1265,8 @@ row) {
 
 	[self setFilename:(__bridge NSString *) catEntry.filename withExternalTrigger:YES];
 
-	UTCDateTime lastModified = catEntry.lastModified;
-	UTCDateTime lastAttrModified = catEntry.lastAttrModified;
-	self.contentModificationDate = [NSDate datewithUTCDateTime: &lastModified];
-	self.attributesModificationDate = [NSDate datewithUTCDateTime: &lastAttrModified];
+	self.contentModificationDate = catEntry.contentModificationDate;
+	self.attributesModificationDate = catEntry.attributeModificationDate;
 	self.fileSize = catEntry.logicalSize;
 
 	if ([self.creationDate compare: catEntry.creationDate] == NSOrderedDescending) {
