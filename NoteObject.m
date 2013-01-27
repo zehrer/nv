@@ -54,7 +54,6 @@ typedef NSRange NSRange32;
 
 @interface NoteObject () {
 	NSMutableAttributedString *_contentString;
-	NSURL *_noteFileURL; // temporary while we migrate away from FSRef
 }
 
 @property(nonatomic, copy, readwrite) NSString *filename;
@@ -68,6 +67,7 @@ typedef NSRange NSRange32;
 @property(nonatomic, strong, readwrite) NSDate *contentModificationDate;
 @property(nonatomic, strong, readwrite) NSDate *attributesModificationDate;
 
+@property(nonatomic, strong, readwrite) NSURL *noteFileURL;
 
 @end
 
@@ -638,7 +638,7 @@ row) {
 		//woe to the exporter who also left the note files in the notes directory after switching to a singledb format
 		//his note names might not be up-to-date
 		if ([localDelegate currentNoteStorageFormat] != SingleDatabaseFormat ||
-				!(_noteFileURL = [localDelegate notesDirectoryContainsFile: filename returningFSRef: self.noteFileRef])) {
+				!(self.noteFileURL = [localDelegate notesDirectoryContainsFile: filename returningFSRef: NULL])) {
 			
 			[self setFilenameFromTitle];
 		}
@@ -682,14 +682,12 @@ row) {
 		filename = [aString copy];
 
 		if (!externalTrigger) {
-			if (!(_noteFileURL = [localDelegate noteFileRenamed: self.noteFileURL fromName: oldName toName: filename error: NULL])) {
+			if (!(self.noteFileURL = [localDelegate noteFileRenamed: self.noteFileURL fromName: oldName toName: filename error: NULL])) {
 				NSLog(@"Couldn't rename note %@", titleString);
 
 				//revert name
 				filename = oldName;
 				return;
-			} else {
-				[_noteFileURL getFSRef: self.noteFileRef];
 			}
 		} else {
 			[self _setTitleString:[aString stringByDeletingPathExtension]];
@@ -951,10 +949,6 @@ row) {
 }
 
 - (void)invalidateFSRef {
-	//bzero(&noteFileRef, sizeof(FSRef));
-	if (noteFileRef)
-		free(noteFileRef);
-	noteFileRef = NULL;
 }
 
 - (BOOL)writeUsingCurrentFileFormatIfNecessary {
@@ -967,12 +961,9 @@ row) {
 
 - (BOOL)writeUsingCurrentFileFormatIfNonExistingOrChanged {
 	BOOL fileWasCreated = NO;
-	BOOL fileIsOwned = NO;
 	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
 
-	if ((_noteFileURL = [localDelegate createFileWithNameIfNotPresentInNotesDirectory: filename created: &fileWasCreated error: NULL])) {
-		[_noteFileURL getFSRef: self.noteFileRef];
-	} else {
+	if (!(self.noteFileURL = [localDelegate createFileWithNameIfNotPresentInNotesDirectory: filename created: &fileWasCreated error: NULL])) {
 		return NO;
 	}
 
@@ -1069,9 +1060,7 @@ row) {
 		//could offer to merge or revert changes
 
 		NSURL *newNoteFileURL = nil; // change this to the noteFileURL ivar one day
-		if ((newNoteFileURL = [localDelegate writeDataToNotesDirectory: formattedData withName: filename verifyUsingBlock: NULL error: &error])) {
-			[newNoteFileURL getFSRef: self.noteFileRef];
-		} else {
+		if (!(newNoteFileURL = [localDelegate writeDataToNotesDirectory: formattedData withName: filename verifyUsingBlock: NULL error: &error])) {
 			NSLog(@"Unable to save note file %@", filename);
 			[localDelegate noteDidNotWrite:self error: error];
 			return NO;
@@ -1122,8 +1111,8 @@ row) {
 	// where the fsref might accidentally point to a moved file
 	NSError *error = nil;
 	do {
-		if (error || !_noteFileURL) {
-			if (!(_noteFileURL = [localDelegate notesDirectoryContainsFile: filename returningFSRef: self.noteFileRef])) return NO;
+		if (error || !self.noteFileURL) {
+			if (!(self.noteFileURL = [localDelegate notesDirectoryContainsFile: filename returningFSRef: NULL])) return NO;
 		}
 		[self.noteFileURL setResourceValues: attributes error: &error];
 	} while (error.code == NSFileNoSuchFileError);
@@ -1212,10 +1201,8 @@ row) {
 
 		id <NTNFileManager, SynchronizedNoteObjectDelegate> localDelegate = (id) self.delegate;
 
-		if (!(_noteFileURL = [localDelegate refreshFileURLIfNecessary: self.noteFileURL withName: filename error: NULL])) {
+		if (!(self.noteFileURL = [localDelegate refreshFileURLIfNecessary: self.noteFileURL withName: filename error: NULL])) {
 			return NO;
-		} else {
-			[_noteFileURL getFSRef: self.noteFileRef];
 		}
 
 		if (![self writeCurrentFileEncodingToURL: self.noteFileURL]) return NO;
@@ -1237,7 +1224,7 @@ row) {
 	NSURL *newURL = nil;
 	NSMutableData *data = nil;
 	if ((data = [localDelegate dataForFilenameInNotesDirectory: self.filename URL: &newURL])) {
-		_noteFileURL = newURL;
+		self.noteFileURL = newURL;
 	} else {
 		NSLog(@"Couldn't update note from file on disk");
 		return NO;
@@ -1270,7 +1257,7 @@ row) {
 	NSURL *newURL = nil;
 	NSMutableData *data = nil;
 	if ((data = [localDelegate dataForFilenameInNotesDirectory: self.filename URL: &newURL])) {
-		_noteFileURL = newURL;
+		self.noteFileURL = newURL;
 	} else {
 		NSLog(@"Couldn't update note from file on disk given catalog entry");
 		return NO;
@@ -1408,8 +1395,7 @@ row) {
 	if ((URL = [localDelegate moveFileToTrash: self.noteFileURL forFilename: filename error: &err])) {
 		//file's gone! don't assume it's not coming back. if the storage format was not single-db, this note better be removed
 		//currentFormatID = SingleDatabaseFormat;
-		_noteFileURL = URL;
-		[URL getFSRef: self.noteFileRef];
+		self.noteFileURL = URL;
 	} else {
 		NSLog(@"Couldn't move file to trash: %@", err);
 	}
@@ -1645,17 +1631,10 @@ BOOL noteTitleIsAPrefixOfOtherNoteTitle(NoteObject *longerNote, NoteObject *shor
 	//queue note to be synchronized to disk (and network if necessary)
 }
 
-- (FSRef *)noteFileRef {
-	if (!noteFileRef) {
-		noteFileRef = calloc(1, sizeof(FSRef));
-	}
-	return noteFileRef;
+- (void)setNoteFileURL:(NSURL *)noteFileURL {
+	// extremely coarse. cheaper to do the retain than compare
+	if (noteFileURL == _noteFileURL) return;
+	_noteFileURL = noteFileURL;
 }
-
-- (NSURL *)noteFileURL {
-	// I know this is slow. Temporary.
-	return [[NSURL URLWithFSRef: self.noteFileRef] fileReferenceURL];
-}
-
 
 @end

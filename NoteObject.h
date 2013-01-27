@@ -94,9 +94,6 @@ typedef struct _NoteFilterContext {
 	//for storing in write-ahead-log
 	unsigned int logSequenceNumber;
 
-	//not determined until it's time to read to or write from a text file
-	FSRef *noteFileRef;
-
 	//the first for syncing w/ NV server, as the ID cannot be encrypted
 	CFUUIDBytes uniqueNoteIDBytes;
 
@@ -157,8 +154,7 @@ NSInteger compareFileSize(id *a, id *b);
 @property (nonatomic, strong, readonly) NSDate *contentModificationDate;
 @property (nonatomic, strong, readonly) NSDate *attributesModificationDate;
 
-@property (nonatomic, readonly) FSRef *noteFileRef;
-@property (nonatomic, readonly) NSURL *noteFileURL;
+@property (nonatomic, strong, readonly) NSURL *noteFileURL;
 
 #define DefColAttrAccessor(__FName, __IVar) force_inline id __FName(NotesTableView *tv, NoteObject *note, NSInteger row) { return note->__IVar; }
 
