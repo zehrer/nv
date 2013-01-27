@@ -67,18 +67,6 @@ char *replaceString(char *oldString, const char *newString) {
 	return resizedString;
 }
 
-int IsZeros(const void *s1, size_t n) {
-	if (n != 0) {
-		const unsigned char *p1 = s1;
-
-		do {
-			if (*p1++ != 0)
-				return (0);
-		} while (--n != 0);
-	}
-	return (1);
-}
-
 void modp_tolower_copy(char *dest, const char *str, size_t len) {
 	size_t i;
 	unsigned long long eax, ebx;
