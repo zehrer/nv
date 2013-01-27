@@ -21,6 +21,7 @@
 #import "NoteObject.h"
 #import "GlobalPrefs.h"
 #import "NSURL+Notation.h"
+#import "NSData+Notation.h"
 
 @implementation NSString (NV)
 
@@ -529,8 +530,8 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, NSUInteger charIndex) 
 	return (__bridge_transfer NSData *) outData;
 }
 
-- (BOOL)containsHighASCII {
-	return (ContainsHighAscii(self.UTF8String, self.length));
+- (BOOL)ntn_containsHighASCII {
+	return [[self dataUsingEncoding: NSUTF8StringEncoding] ntn_containsHighASCII];
 }
 
 + (NSString *)ntn_stringWithRandomizedFileName {
@@ -578,26 +579,28 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, NSUInteger charIndex) 
 	}
 }
 
-+ (NSMutableString *)newShortLivedStringFromFile:(NSString *)filename {
-	NSStringEncoding anEncoding = NSMacOSRomanStringEncoding; //won't use this, doesn't matter
++ (NSMutableString *)ntn_newShortLivedStringFromURL:(NSURL *)URL {
+	NSParameterAssert(URL);
 
-	return [self newShortLivedStringFromData:[NSMutableData dataWithContentsOfFile:filename options:NSUncachedRead error:NULL]
-						   ofGuessedEncoding:&anEncoding withPath:[filename fileSystemRepresentation] orWithFSRef:NULL];
+	NSError *error = nil;
+	NSData *data = nil;
+	if (!(data = [NSData dataWithContentsOfURL: URL options: NSDataReadingUncached | NSDataReadingMappedIfSafe error: &error])) {
+		NSLog(@"Could not read from URL: %@", URL);
+		return nil;
+	}
+
+	return [self ntn_newShortLivedStringFromData: data guessedEncoding: NULL withURL: URL];
 }
 
-+ (NSMutableString *)newShortLivedStringFromData:(NSMutableData *)data ofGuessedEncoding:(NSStringEncoding *)encoding withPath:(const char *)aPath orWithFSRef:(const FSRef *)fsRef {
++ (NSMutableString *)ntn_newShortLivedStringFromData:(NSData *)data guessedEncoding:(out NSStringEncoding *)outEncoding withURL:(NSURL *)URL {
 	//this will fail if data lacks a BOM, but try it first as it's the fastest check
-	NSMutableString *stringFromData = [data newStringUsingBOMReturningEncoding:encoding];
+	NSMutableString *stringFromData = [data newStringUsingBOMReturningEncoding: outEncoding];
 	if (stringFromData) {
 		return stringFromData;
 	}
 
-	//TODO: there are some false positives for UTF-8 detection; e.g., the MacOSRoman-encoded copyright symbol
-
-	//if it's just 7-bit ASCII, jump straight to the fastest encoding; don't even try UTF-8 (but report UTF-8, anyway)
-	BOOL hasHighASCII = ContainsHighAscii([data bytes], [data length]);
-	CFStringEncoding cfasciiEncoding = CFStringGetSystemEncoding() == kCFStringEncodingMacRoman ? kCFStringEncodingMacRoman : kCFStringEncodingASCII;
-	NSStringEncoding firstEncodingToTry = hasHighASCII ? NSUTF8StringEncoding : CFStringConvertEncodingToNSStringEncoding(cfasciiEncoding);
+	BOOL hasHighASCII = data.ntn_containsHighASCII;
+	NSStringEncoding firstEncodingToTry = hasHighASCII ? NSUTF8StringEncoding : [NSString defaultCStringEncoding];
 
 #define AddIfUnique(enc) if (!ContainsUInteger(encodingsToTry, encodingIndex, (enc))) encodingsToTry[encodingIndex++] = (enc)
 
@@ -609,30 +612,26 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, NSUInteger charIndex) 
 	if (hasHighASCII) {
 		//check the file on disk for extended attributes only if absolutely necessary
 		NSStringEncoding extendedAttrsEncoding = 0;
-		if (!aPath && fsRef && !IsZeros(fsRef, sizeof(FSRef))) {
-			NSURL *URL = [NSURL URLWithFSRef: fsRef];
-			if (URL) extendedAttrsEncoding = [NSFileManager textEncodingOfItemAtURL: URL];
-		} else if (aPath) {
-			NSURL *URL = [NSURL fileURLWithPath: [NSString stringWithUTF8String: aPath]];
-			if (URL) extendedAttrsEncoding = [NSFileManager textEncodingOfItemAtURL: URL];
+		if (URL) {
+			extendedAttrsEncoding = [NSFileManager textEncodingOfItemAtURL: URL];
 		}
 		if (extendedAttrsEncoding) AddIfUnique(extendedAttrsEncoding);
 	}
-	AddIfUnique(*encoding);
-	NSStringEncoding systemEncoding = CFStringConvertEncodingToNSStringEncoding(CFStringGetSystemEncoding());
-	AddIfUnique(systemEncoding);
+	if (outEncoding) {
+		AddIfUnique(*outEncoding);
+	}
+	AddIfUnique([NSString defaultCStringEncoding]);
 	AddIfUnique(NSMacOSRomanStringEncoding);
 
 	encodingIndex = 0;
 	do {
-		stringFromData = [[NSMutableString alloc] initWithBytesNoCopy:[data mutableBytes] length:[data length]
-															 encoding:encodingsToTry[encodingIndex] freeWhenDone:NO];
+		stringFromData = [[NSMutableString alloc] initWithData: data encoding: encodingsToTry[encodingIndex]];
 	} while (!stringFromData && ++encodingIndex < 5);
 
 	if (stringFromData) {
 		NSAssert(encodingIndex < 5, @"got valid string from data, but encodingIndex is too high!");
 		//report ASCII files as UTF-8 data in case this encoding will be used for future writes of a note
-		*encoding = hasHighASCII ? encodingsToTry[encodingIndex] : NSUTF8StringEncoding;
+		if (outEncoding) *outEncoding = hasHighASCII ? encodingsToTry[encodingIndex] : NSUTF8StringEncoding;
 		return stringFromData;
 	}
 

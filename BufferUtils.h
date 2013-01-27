@@ -40,8 +40,6 @@ int ContainsUInteger(const NSUInteger *uintArray, size_t count, NSUInteger auint
 
 void modp_tolower_copy(char *dest, const char *str, size_t len);
 
-int ContainsHighAscii(const void *s1, size_t n);
-
 unsigned DumbWordCount(const void *s1, size_t len);
 
 void CopyPerDiskInfoGroupsToOrder(PerDiskInfo **flippedGroups, NSUInteger *existingCount, const uint8_t *perDiskGroupsBuffer, size_t bufferSize, NSInteger toHostOrder);

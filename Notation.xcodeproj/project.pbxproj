@@ -211,6 +211,7 @@
 		6C25173416B2E8DA0088B37E /* NSError+Notation.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C25173316B2E8DA0088B37E /* NSError+Notation.m */; };
 		6C25173716B2F2E50088B37E /* NSString+UTType.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C25173616B2F2E50088B37E /* NSString+UTType.m */; };
 		6C25173A16B2F6EA0088B37E /* NoteCatalogEntry.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C25173916B2F6EA0088B37E /* NoteCatalogEntry.m */; };
+		6C3E591D16B5B3BE002E7E7A /* NSData+Notation.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C3E591C16B5B3BD002E7E7A /* NSData+Notation.m */; };
 		6C916D1D16B2645800416AB5 /* NSDate+Notation.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C916D1C16B2645700416AB5 /* NSDate+Notation.m */; };
 		6C916D2016B2681B00416AB5 /* NSURL+Notation.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C916D1F16B2681B00416AB5 /* NSURL+Notation.m */; };
 		6CCC107E16A47D9800A4E469 /* BufferUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 6CCC107D16A47D9800A4E469 /* BufferUtils.m */; };
@@ -656,6 +657,8 @@
 		6C25173616B2F2E50088B37E /* NSString+UTType.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+UTType.m"; sourceTree = "<group>"; };
 		6C25173816B2F6EA0088B37E /* NoteCatalogEntry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NoteCatalogEntry.h; sourceTree = "<group>"; };
 		6C25173916B2F6EA0088B37E /* NoteCatalogEntry.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NoteCatalogEntry.m; sourceTree = "<group>"; };
+		6C3E591B16B5B3BD002E7E7A /* NSData+Notation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSData+Notation.h"; sourceTree = "<group>"; };
+		6C3E591C16B5B3BD002E7E7A /* NSData+Notation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSData+Notation.m"; sourceTree = "<group>"; };
 		6C916D1B16B2645700416AB5 /* NSDate+Notation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSDate+Notation.h"; sourceTree = "<group>"; };
 		6C916D1C16B2645700416AB5 /* NSDate+Notation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSDate+Notation.m"; sourceTree = "<group>"; };
 		6C916D1E16B2681A00416AB5 /* NSURL+Notation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSURL+Notation.h"; sourceTree = "<group>"; };
@@ -779,6 +782,8 @@
 				21DB4BE512DE4E3D0057F52B /* NSString_CustomTruncation.m */,
 				216D987D12CE68AD0004B9CE /* NSFileManager_NV.h */,
 				216D987E12CE68AD0004B9CE /* NSFileManager_NV.m */,
+				6C3E591B16B5B3BD002E7E7A /* NSData+Notation.h */,
+				6C3E591C16B5B3BD002E7E7A /* NSData+Notation.m */,
 				21B548F9112F307E00E163A1 /* NotationDirectoryManager.h */,
 				21B548F8112F307E00E163A1 /* NotationDirectoryManager.m */,
 				2181171109F311110020A252 /* DeletedNoteObject.h */,
@@ -1496,6 +1501,7 @@
 				6C25173416B2E8DA0088B37E /* NSError+Notation.m in Sources */,
 				6C25173716B2F2E50088B37E /* NSString+UTType.m in Sources */,
 				6C25173A16B2F6EA0088B37E /* NoteCatalogEntry.m in Sources */,
+				6C3E591D16B5B3BE002E7E7A /* NSData+Notation.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

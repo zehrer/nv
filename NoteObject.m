@@ -528,7 +528,7 @@ row) {
 
 - (void)updateContentCacheCStringIfNecessary {
 	if (contentCacheNeedsUpdate) {
-		contentsWere7Bit = self.contentString.string.containsHighASCII;
+		contentsWere7Bit = self.contentString.string.ntn_containsHighASCII;
 	}
 }
 
@@ -536,7 +536,7 @@ row) {
 	if (contentsWere7Bit) {
 		if (!self.contentString.string.couldCopyLowercaseASCIIString) contentsWere7Bit = NO;
 	} else {
-		contentsWere7Bit = self.contentString ? !self.contentString.string.containsHighASCII : NO;
+		contentsWere7Bit = self.contentString ? !self.contentString.string.ntn_containsHighASCII : NO;
 	}
 }
 
@@ -1345,9 +1345,8 @@ row) {
 			break;
 		case PlainTextFormat:
 			//try to merge/re-match attributes?
-			if ((stringFromData = [NSMutableString newShortLivedStringFromData:data ofGuessedEncoding:&fileEncoding withPath:NULL orWithFSRef: self.noteFileRef])) {
-				attributedStringFromData = [[NSMutableAttributedString alloc] initWithString:stringFromData
-																				  attributes:[[GlobalPrefs defaultPrefs] noteBodyAttributes]];
+			if ((stringFromData = [NSMutableString ntn_newShortLivedStringFromData: data guessedEncoding: &fileEncoding withURL: self.noteFileURL])) {
+				attributedStringFromData = [[NSMutableAttributedString alloc] initWithString:stringFromData attributes:[[GlobalPrefs defaultPrefs] noteBodyAttributes]];
 			} else {
 				NSLog(@"String could not be initialized from data");
 			}

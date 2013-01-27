@@ -78,7 +78,7 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, NSUInteger charIndex);
 
 - (NSData *)decodeBase64;
 
-@property(nonatomic, readonly) BOOL containsHighASCII;
+@property(nonatomic, readonly) BOOL ntn_containsHighASCII;
 @property(nonatomic, readonly) BOOL couldCopyLowercaseASCIIString;
 
 //- (NSTextView*)textViewWithFrame:(NSRect*)theFrame;
@@ -90,10 +90,10 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, NSUInteger charIndex);
 @interface NSMutableString (NV)
 - (void)replaceTabsWithSpacesOfWidth:(NSInteger)tabWidth;
 
-+ (NSMutableString *)newShortLivedStringFromFile:(NSString *)filename;
++ (NSMutableString *)ntn_newShortLivedStringFromURL:(NSURL *)URL;
 
-+ (NSMutableString *)newShortLivedStringFromData:(NSMutableData *)data ofGuessedEncoding:(NSStringEncoding *)encoding
-										withPath:(const char *)aPath orWithFSRef:(const FSRef *)fsRef;
++ (NSMutableString *)ntn_newShortLivedStringFromData:(NSData *)data guessedEncoding:(out NSStringEncoding *)outEncoding withURL:(NSURL *)URL;
+
 @end
 
 @interface NSScanner (NV)

@@ -398,13 +398,10 @@ static NSString *const NTVNoteImporterLinkTitleKey = @"NTVNoteImporterLinkTitle"
 			NSLog(@"Error importing PDF %@ (%@, %@)", filename, [e name], [e reason]);
 		}
 	} else if ([UTI ut_conformsToType: @"public.plain-text"] || [extension isEqualToString:@"txt"] || [extension isEqualToString:@"text"]) {
-
-		NSMutableString *stringFromData = [NSMutableString newShortLivedStringFromFile:filename];
+		NSMutableString *stringFromData = [NSMutableString ntn_newShortLivedStringFromURL: fileURL];
 		if (stringFromData) {
-			attributedStringFromData = [[NSMutableAttributedString alloc] initWithString:stringFromData
-																			  attributes:[[GlobalPrefs defaultPrefs] noteBodyAttributes]];
+			attributedStringFromData = [[NSMutableAttributedString alloc] initWithString:stringFromData attributes:[[GlobalPrefs defaultPrefs] noteBodyAttributes]];
 		}
-
 	}
 	// else {
 	//try spotlight importer if on 10.4
@@ -706,8 +703,7 @@ static NSString *const NTVNoteImporterLinkTitleKey = @"NTVNoteImporterLinkTitle"
 }
 
 - (NSArray *)_importDelimitedFile:(NSString *)filename withDelimiter:(NSString *)delimiter {
-
-	NSMutableString *contents = [NSMutableString newShortLivedStringFromFile:filename];
+	NSMutableString *contents = [NSMutableString ntn_newShortLivedStringFromURL: [NSURL fileURLWithPath: filename]];
 	if (!contents) return nil;
 
 	// normalize newlines

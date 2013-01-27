@@ -138,36 +138,6 @@ int ContainsUInteger(const NSUInteger *uintArray, size_t count, NSUInteger auint
 	return 0;
 }
 
-
-int ContainsHighAscii(const void *s1, size_t n) {
-
-	register NSUInteger *intBuffer = (NSUInteger *) s1;
-	register NSUInteger i, integerCount = n / sizeof(NSUInteger);
-	register NSUInteger pattern =
-#if __LP64__ || NS_BUILD_32_LIKE_64
-			0x8080808080808080;
-#else
-	0x80808080;
-#endif
-
-	for (i = 0; i < integerCount; i++) {
-		if (pattern & intBuffer[i]) {
-			return 1;
-		}
-	}
-
-	unsigned char *charBuffer = (unsigned char *) s1;
-	NSUInteger leftOverCharCount = n % sizeof(NSUInteger);
-
-	for (i = n - leftOverCharCount; i < n; i++) {
-		if (charBuffer[i] > 127) {
-			return 1;
-		}
-	}
-
-	return 0;
-}
-
 unsigned DumbWordCount(const void *s1, size_t len) {
 
 	unsigned count = len > 0;

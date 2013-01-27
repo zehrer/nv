@@ -288,8 +288,7 @@
 		//false because we just fixed the BOM right up there
 		//string = (NSString*)CFStringCreateWithBytes(kCFAllocatorDefault, b, len, kCFStringEncodingUTF8, false);
 		string = [[NSMutableString alloc] initWithBytes:b length:len encoding:NSUTF8StringEncoding];
-		if (string)
-			*encoding = NSUTF8StringEncoding;
+		if (string && encoding) *encoding = NSUTF8StringEncoding;
 
 		return string;
 	}
@@ -307,10 +306,8 @@
 			memcpy(u, b, len);
 		}
 
-
 		string = (NSMutableString *) CFBridgingRelease(CFStringCreateMutableWithExternalCharactersNoCopy(NULL, (UniChar *) u, (CFIndex) len / 2, (CFIndex) len / 2, kCFAllocatorDefault));
-		if (string)
-			*encoding = NSUnicodeStringEncoding;
+		if (string && encoding) *encoding = NSUnicodeStringEncoding;
 		return string;
 	}
 
