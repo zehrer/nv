@@ -47,6 +47,7 @@
 @property (nonatomic, strong) NSMutableDictionary *labelImages;
 @property (nonatomic, strong, readwrite) NSFileManager *fileManager;
 @property (nonatomic, strong, readwrite) NSURL *noteDatabaseURL;
+@property (nonatomic, strong, readwrite) NSURL *noteDirectoryURL;
 
 @end
 
@@ -1615,6 +1616,19 @@
 - (void)noteDidUpdateContents:(NoteObject *)note {
 	id <NotationControllerDelegate> delegate = self.delegate;
 	[delegate contentsUpdatedForNote:note];
+}
+
+#pragma mark -
+
+- (void)setNoteDatabaseURL:(NSURL *)noteDatabaseURL {
+	if (noteDatabaseURL == _noteDatabaseURL) return;
+	_noteDatabaseURL = noteDatabaseURL;
+}
+
+- (void)setNoteDirectoryURL:(NSURL *)noteDirectoryURL {
+	if (noteDirectoryURL == _noteDirectoryURL) return;
+	_noteDirectoryURL = noteDirectoryURL;
+	
 }
 
 @end
