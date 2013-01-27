@@ -54,8 +54,6 @@ NSUInteger diskUUIDIndexForNotation(NotationController *controller);
 
 - (NSString *)uniqueFilenameForTitle:(NSString *)title fromNote:(NoteObject *)note;
 
-+ (OSStatus)trashFolderRef:(FSRef *)trashRef forChild:(FSRef *)childRef;
-
 - (void)notifyOfChangedTrash;
 
 @end

@@ -778,22 +778,21 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 		}
 
 		NSArray *notes = [[(NotationController *) [self dataSource] filteredNotesList] objectsAtIndexes:selectedRows];
-		NSMutableArray *paths = [NSMutableArray arrayWithCapacity:[notes count]];
-		unsigned int i;
-		for (i = 0; i < [notes count]; i++) {
-			NoteObject *note = notes[i];
-			//for now, allow option-dragging-out only for notes with separate file-backing stores
+		NSMutableArray *URLs = [NSMutableArray arrayWithCapacity: notes.count];
+
+		for (NoteObject *note in notes) {
 			if (note.storageFormat != SingleDatabaseFormat) {
-				NSString *aPath = [note noteFilePath];
-				if (aPath) [paths addObject:aPath];
+				NSURL *aURL = note.noteFileURL;
+				if (aURL) [URLs addObject: aURL];
 			}
 		}
-		if ([paths count] > 0) {
-			NSImage *image = [[NSWorkspace sharedWorkspace] iconForFile:[paths lastObject]];
+
+		if (URLs.count) {
+			NSImage *image = [[NSWorkspace sharedWorkspace] iconForFile: [URLs.lastObject path]];
 
 			NSPasteboard *pboard = [NSPasteboard pasteboardWithName:NSDragPboard];
-			[pboard declareTypes:@[NSFilenamesPboardType] owner:nil];
-			[pboard setPropertyList:paths forType:NSFilenamesPboardType];
+			[pboard declareTypes: @[NSURLPboardType] owner: nil];
+			[pboard writeObjects: URLs];
 
 			[NSApp preventWindowOrdering];
 			[self dragImage:image at:dragPoint offset:NSZeroSize event:event pasteboard:pboard source:self slideBack:YES];

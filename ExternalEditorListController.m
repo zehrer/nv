@@ -83,12 +83,12 @@ NSString *ExternalEditorsChangedNotification = @"ExternalEditorsChanged";
 	NSNumber *canHandleNumber = knownPathExtensions[extension];
 
 	if (!canHandleNumber) {
-		NSString *path = [aNote noteFilePath];
+		NSURL *URL = aNote.noteFileURL;
 
 		Boolean canAccept = false;
-		OSStatus err = LSCanURLAcceptURL((__bridge CFURLRef) [NSURL fileURLWithPath:path], (__bridge CFURLRef) [self resolvedURL], kLSRolesEditor, kLSAcceptAllowLoginUI, &canAccept);
+		OSStatus err = LSCanURLAcceptURL((__bridge CFURLRef)URL, (__bridge CFURLRef) [self resolvedURL], kLSRolesEditor, kLSAcceptAllowLoginUI, &canAccept);
 		if (noErr != err) {
-			NSLog(@"LSCanURLAcceptURL '%@' err: %d", path, err);
+			NSLog(@"LSCanURLAcceptURL '%@' err: %d", URL, err);
 		}
 		knownPathExtensions[extension] = @((BOOL) canAccept);
 

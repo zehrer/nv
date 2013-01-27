@@ -543,20 +543,6 @@ NSUInteger diskUUIDIndexForNotation(NotationController *controller) {
 	[self.fileManager trashItemAtURL: sillyURL resultingItemURL: NULL error: NULL];
 }
 
-+ (OSStatus)trashFolderRef:(FSRef *)trashRef forChild:(FSRef *)childRef {
-	FSVolumeRefNum volume = kOnAppropriateDisk;
-	FSCatalogInfo info;
-	// get the volume the file resides on and use this as the base for finding the trash folder
-	// since each volume will contain its own trash folder...
-
-	if (FSGetCatalogInfo(childRef, kFSCatInfoVolume, &info, NULL, NULL, NULL) == noErr)
-		volume = info.volume;
-	// go ahead and find the trash folder on that volume.
-	// the trash folder for the current user may not yet exist on that volume, so ask to automatically create it
-
-	return FSFindFolder(volume, kTrashFolderType, kCreateFolder, trashRef);
-}
-
 - (NSURL *)moveFileToTrash:(NSURL *)childURL forFilename:(NSString *)filename error:(out NSError **)outError {
 	NSError *error = nil;
 

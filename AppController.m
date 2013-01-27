@@ -728,13 +728,12 @@ void outletObjectAwoke(id sender) {
 
 - (IBAction)revealNote:(id)sender {
 	NSIndexSet *indexes = [notesTableView selectedRowIndexes];
-	NSString *path = nil;
-
-	if ([indexes count] != 1 || !(path = [[notationController noteObjectAtFilteredIndex:[indexes lastIndex]] noteFilePath])) {
+	NSURL *URL = nil;
+	if ([indexes count] != 1 || !(URL = [[notationController noteObjectAtFilteredIndex:[indexes lastIndex]] noteFileURL])) {
 		NSBeep();
 		return;
 	}
-	[[NSWorkspace sharedWorkspace] selectFile:path inFileViewerRootedAtPath:@""];
+	[[NSWorkspace sharedWorkspace] activateFileViewerSelectingURLs: @[URL]];
 }
 
 - (IBAction)editNoteExternally:(id)sender {

@@ -93,18 +93,12 @@ static const NSStringEncoding AllowedEncodings[] = {
 		if (NSRunAlertPanel([NSString stringWithFormat:alertTitleString, note.filename],
 				NSLocalizedString(@"If you wish to convert it, you must open and re-save the file in an external editor.", "alert description when converting from unicode"),
 				NSLocalizedString(@"OK", nil), NSLocalizedString(@"Open in TextEdit", @"title of button for opening the current note in text edit"), NULL) != NSAlertDefaultReturn) {
-
-			NSString *textEditPath = [[NSWorkspace sharedWorkspace] absolutePathForAppBundleWithIdentifier:@"com.apple.TextEdit"];
-			if (textEditPath) {
-				NSString *resolvedPath = [note noteFilePath];
-				if (!resolvedPath) {
-					NSRunAlertPanel(NSLocalizedString(@"Could not locate the note file.", nil), NSLocalizedString(@"Does it still exist?", nil),
-							NSLocalizedString(@"I'll Go See", @"... if it exists"), NULL, NULL);
-				} else {
-					[[NSWorkspace sharedWorkspace] openFile:resolvedPath withApplication:textEditPath];
-				}
+			NSURL *resolvedURL = note.noteFileURL;
+			if (![resolvedURL checkResourceIsReachableAndReturnError: NULL]) {
+				NSRunAlertPanel(NSLocalizedString(@"Could not locate the note file.", nil), NSLocalizedString(@"Does it still exist?", nil),
+								NSLocalizedString(@"I'll Go See", @"... if it exists"), NULL, NULL);
 			} else {
-				NSRunAlertPanel(NSLocalizedString(@"Could not find the application TextEdit.", nil), NSLocalizedString(@"You may need to re-run the Mac OS X installer.", nil), NSLocalizedString(@"OK", nil), NULL, NULL);
+				[[NSWorkspace sharedWorkspace] openURLs: @[resolvedURL] withAppBundleIdentifier: @"com.apple.TextEdit" options: NSWorkspaceLaunchDefault additionalEventParamDescriptor: NULL launchIdentifiers: NULL];
 			}
 		}
 

@@ -160,9 +160,7 @@ static ODBEditor *_sharedODBEditor;
 
 	//let's first see if we can avoid this whole ODB protocol rigmarole altogether, and ideally even allow non-plain-text editors to be used
 	if ([ed canEditNoteDirectly:aNote]) {
-		NSString *path = [aNote noteFilePath];
-
-		[[NSWorkspace sharedWorkspace] openURLs:@[[NSURL fileURLWithPath:path]] withAppBundleIdentifier:[ed bundleIdentifier] options:NSWorkspaceLaunchDefault additionalEventParamDescriptor:nil launchIdentifiers:NULL];
+		[[NSWorkspace sharedWorkspace] openURLs:@[aNote.noteFileURL] withAppBundleIdentifier:[ed bundleIdentifier] options:NSWorkspaceLaunchDefault additionalEventParamDescriptor:nil launchIdentifiers:NULL];
 		return YES;
 	}
 

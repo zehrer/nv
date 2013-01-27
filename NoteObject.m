@@ -948,14 +948,6 @@ row) {
 																	   [idsDict URLEncodedString]]];
 }
 
-- (NSString *)noteFilePath {
-	UniChar chars[256];
-	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
-	if (localDelegate && [localDelegate refreshFileRefIfNecessary: self.noteFileRef withName:filename charsBuffer:chars] == noErr)
-		return self.noteFileURL.path;
-	return nil;
-}
-
 - (void)invalidateFSRef {
 	//bzero(&noteFileRef, sizeof(FSRef));
 	if (noteFileRef)
@@ -1381,7 +1373,6 @@ row) {
 
 	_contentString = attributedStringFromData;
 	[_contentString santizeForeignStylesForImporting];
-	//NSLog(@"%s(%@): %@", _cmd, [self noteFilePath], [contentString string]);
 
 	//[contentString setAttributedString:attributedStringFromData];
 	contentCacheNeedsUpdate = YES;

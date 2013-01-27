@@ -249,8 +249,6 @@ BOOL noteTitleIsAPrefixOfOtherNoteTitle(NoteObject *longerNote, NoteObject *shor
 
 - (NSURL *)uniqueNoteLink;
 
-- (NSString *)noteFilePath;
-
 - (void)invalidateFSRef;
 
 - (BOOL)writeUsingJournal:(WALStorageController *)wal;
