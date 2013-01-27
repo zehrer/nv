@@ -245,7 +245,7 @@ BOOL noteTitleIsAPrefixOfOtherNoteTitle(NoteObject *longerNote, NoteObject *shor
 
 - (NSURL *)uniqueNoteLink;
 
-- (void)invalidateFSRef;
+- (void)invalidateURL;
 
 - (BOOL)writeUsingJournal:(WALStorageController *)wal;
 

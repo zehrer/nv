@@ -99,8 +99,6 @@ typedef NSRange NSRange32;
 - (void)dealloc {
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 
-	[self invalidateFSRef];
-
 	if (perDiskInfoGroups)
 		free(perDiskInfoGroups);
 }
@@ -948,7 +946,8 @@ row) {
 																	   [idsDict URLEncodedString]]];
 }
 
-- (void)invalidateFSRef {
+- (void)invalidateURL {
+	self.noteFileURL = nil;
 }
 
 - (BOOL)writeUsingCurrentFileFormatIfNecessary {
