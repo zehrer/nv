@@ -58,15 +58,11 @@ NSUInteger diskUUIDIndexForNotation(NotationController *controller);
 
 - (NSString *)uniqueFilenameForTitle:(NSString *)title fromNote:(NoteObject *)note;
 
-- (OSStatus)fileInNotesDirectory:(FSRef *)childRef isOwnedByUs:(BOOL *)owned hasCatalogInfo:(FSCatalogInfo *)info;
-
 - (OSStatus)deleteFileInNotesDirectory:(FSRef *)childRef forFilename:(NSString *)filename;
 
 - (OSStatus)createFileIfNotPresentInNotesDirectory:(FSRef *)childRef forFilename:(NSString *)filename fileWasCreated:(BOOL *)created;
 
 + (OSStatus)trashFolderRef:(FSRef *)trashRef forChild:(FSRef *)childRef;
-
-- (OSStatus)moveFileToTrash:(FSRef *)childRef forFilename:(NSString *)filename;
 
 - (void)notifyOfChangedTrash;
 

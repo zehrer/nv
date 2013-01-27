@@ -1409,13 +1409,16 @@ row) {
 }
 
 - (void)moveFileToTrash {
-	OSStatus err = noErr;
 	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
-	if ((err = [localDelegate moveFileToTrash: self.noteFileRef forFilename:filename]) != noErr) {
-		NSLog(@"Couldn't move file to trash: %d", err);
-	} else {
+	NSError *err = nil;
+	NSURL *URL = nil;
+	if ((URL = [localDelegate moveFileToTrash: self.noteFileURL forFilename: filename error: &err])) {
 		//file's gone! don't assume it's not coming back. if the storage format was not single-db, this note better be removed
 		//currentFormatID = SingleDatabaseFormat;
+		_noteFileURL = URL;
+		[URL getFSRef: self.noteFileRef];
+	} else {
+		NSLog(@"Couldn't move file to trash: %@", err);
 	}
 }
 

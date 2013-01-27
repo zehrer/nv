@@ -234,6 +234,13 @@ long BlockSizeForNotation(NotationController *controller) {
 	return noErr;
 }
 
+- (NSURL *)refreshFileURLIfNecessary:(NSURL *)URL withName:(NSString *)filename error: (NSError **)err {
+	if (!URL || ![self fileInNotesDirectoryIsOwnedByUs: URL]) {
+		return [[self.noteDirectoryURL URLByAppendingPathComponent: filename] fileReferenceURL];
+	}
+	return URL;
+}
+
 
 - (BOOL)notesDirectoryIsTrashed {
 	NSURL *trashURL = [[self trashFolderForURL: self.noteDirectoryURL error: NULL] URLByStandardizingPath];
@@ -444,6 +451,10 @@ long BlockSizeForNotation(NotationController *controller) {
 	return noErr;
 }
 
+- (BOOL)fileInNotesDirectoryIsOwnedByUs:(NSURL *)URL {
+	return [URL.URLByDeletingLastPathComponent isEqualToFileURL: self.noteDirectoryURL];
+}
+
 - (OSStatus)fileInNotesDirectory:(FSRef *)childRef isOwnedByUs:(BOOL *)owned hasCatalogInfo:(FSCatalogInfo *)info {
 	FSRef parentRef;
 	FSCatalogInfoBitmap whichInfo = kFSCatInfoNone;
@@ -582,69 +593,22 @@ long BlockSizeForNotation(NotationController *controller) {
 	return FSFindFolder(volume, kTrashFolderType, kCreateFolder, trashRef);
 }
 
-- (OSStatus)moveFileToTrash:(FSRef *)childRef forFilename:(NSString *)filename {
-	UniChar chars[256];
+- (NSURL *)moveFileToTrash:(NSURL *)childURL forFilename:(NSString *)filename error:(out NSError **)outError {
+	NSError *error = nil;
 
-	OSStatus err = [self refreshFileRefIfNecessary:childRef withName:filename charsBuffer:chars];
-	if (noErr != err) return err;
+	if ((childURL = [self refreshFileURLIfNecessary: childURL withName: filename error: &error])) {
+		NSURL *outURL = nil;
+		if (([self.fileManager trashItemAtURL: childURL resultingItemURL: &outURL error: &error])) {
 
-	FSRef folder;
-	if ([NotationController trashFolderRef:&folder forChild:childRef] != noErr)
-		return err;
-
-	err = FSMoveObject(childRef, &folder, NULL);
-	if (err == dupFNErr) {
-		// try to rename the duplicate file in the trash
-
-		HFSUniStr255 name;
-
-		err = FSGetCatalogInfo(childRef, kFSCatInfoNone, NULL, &name, NULL, NULL);
-		if (err == noErr) {
-			UInt16 origLen = name.length;
-			if (origLen > 245)
-				origLen = 245;
-
-			FSRef duplicateFile;
-			err = FSMakeFSRefUnicode(&folder, name.length, name.unicode, kTextEncodingUnknown, &duplicateFile);
-
-			if (err == noErr) {
-				int i = 1, j;
-				while (1) {
-					i++;
-					// attempt to create new unique name
-					HFSUniStr255 newName = name;
-					char num[16];
-					int numLen;
-
-					numLen = sprintf(num, "%d", i);
-					newName.unicode[origLen] = ' ';
-					for (j = 0; j < numLen; j++)
-						newName.unicode[origLen + j + 1] = num[j];
-					newName.length = origLen + numLen + 1;
-
-					err = FSRenameUnicode(&duplicateFile, newName.length, newName.unicode, kTextEncodingUnknown, NULL);
-					if (err != dupFNErr)
-						break;
-				}
-				if (err == noErr) err = FSMoveObject(childRef, &folder, NULL);
+			if (![self.noteDirectoryURL setResourceValue: [NSDate date] forKey: NSURLContentModificationDateKey error: &error]) {
+				NSLog(@"couldn't touch modification date of file's parent folder: error %@", error);
 			}
+			return outURL;
 		}
 	}
 
-	if (err == noErr) {
-		FSCatalogInfo catInfo;
-
-		CFAbsoluteTime now = CFAbsoluteTimeGetCurrent();
-		err = UCConvertCFAbsoluteTimeToUTCDateTime(now, &catInfo.contentModDate);
-		if (err == noErr)
-			err = FSSetCatalogInfo(&noteDirectoryRef, kFSCatInfoContentMod, &catInfo);
-		if (err) {
-			NSLog(@"couldn't touch modification date of file's parent folder: error %d", err);
-			err = noErr;
-		}
-	}
-
-	return err;
+	if (outError) *outError = error;
+	return nil;
 }
 
 - (long)blockSize {
