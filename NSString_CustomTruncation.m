@@ -20,6 +20,70 @@
 #import "GlobalPrefs.h"
 #import "BufferUtils.h"
 
+static const u_int32_t offsetsFromUTF8[6] = {
+	0x00000000UL, 0x00003080UL, 0x000E2080UL,
+	0x03C82080UL, 0xFA082080UL, 0x82082080UL
+};
+
+#define isutf(c) (((c)&0xC0)!=0x80)
+
+/* reads the next utf-8 sequence out of a string, updating an index */
+static force_inline u_int32_t u8_nextchar(const char *s, size_t *i) {
+	u_int32_t ch = 0;
+	size_t sz = 0;
+
+	do {
+		ch <<= 6;
+		ch += (unsigned char) s[(*i)];
+		sz++;
+	} while (s[*i] && (++(*i)) && !isutf(s[*i]));
+	ch -= offsetsFromUTF8[sz - 1];
+
+	return ch;
+}
+
+static void replace_breaks_utf8(char *s, size_t up_to_len) {
+	//needed to detect NSLineSeparatorCharacter and NSParagraphSeparatorCharacter
+
+	if (!s) return;
+
+	size_t i = 0, lasti = 0;
+	u_int32_t c;
+
+	while (i < up_to_len && s[i]) {
+		c = u8_nextchar(s, &i);
+
+		//get rid of any kind of funky whitespace-esq character
+		if (c == 0x0009 || c == 0x000a || c == 0x000d || c == 0x0003 || c == 0x2029 || c == 0x2028 || c == 0x000c) {
+			//fill in the entire UTF sequence with spaces
+			char *cur_s = (char *) &s[lasti];
+			//			printf("\n");
+			do {
+				//				printf("%X ", (u_int32_t)*cur_s);
+				*cur_s = ' ';
+			} while (++cur_s < &s[i]);
+		}
+		lasti = i;
+	}
+}
+
+static void replace_breaks(char *str, size_t up_to_len) {
+	//traverses string to up_to_len chars or NULL, whichever comes first
+	//replaces any occurance of \n, \r, or \t with a space
+
+	if (!str) return;
+
+	size_t i = 0;
+	int c;
+	char *s = str;
+	do {
+		c = *s;
+		if (c == 0x0009 || c == 0x000a || c == 0x000d || c == 0x0003 || c == 0x000c) {
+			*s = ' ';
+		}
+	} while (++i < up_to_len && *(s++) != 0);
+}
+
 @implementation NSString (CustomTruncation)
 
 static NSMutableParagraphStyle *LineBreakingStyle();
@@ -29,7 +93,6 @@ static NSDictionary *GrayTextAttributes();
 static NSDictionary *LineTruncAttributes();
 
 static size_t EstimatedCharCountForWidth(float upToWidth);
-
 
 - (NSString *)truncatedPreviewStringOfLength:(NSUInteger)bodyCharCount {
 
@@ -49,28 +112,25 @@ static size_t EstimatedCharCountForWidth(float upToWidth);
 			if ([self length] == bodyCharCount) {
 				//if this is supposed to be the entire string, don't waffle around
 				const char *fullUTF8String = [self UTF8String];
-				if (fullUTF8String) {
-					usedBufLen = bodyCharCount = strlen(fullUTF8String);
-					bodyPreviewBuffer = realloc(bodyPreviewBuffer, bodyCharCount + 1);
-					memcpy(bodyPreviewBuffer, fullUTF8String, bodyCharCount + 1);
-					goto replace;
-				}
-			}
-			if (!CFStringGetBytes((CFStringRef) self, CFRangeMake(0, bodyCharCount), bodyPreviewEncoding, ' ', FALSE,
-					(UInt8 *) bodyPreviewBuffer, bodyCharCount + 1, &usedBufLen)) {
+				usedBufLen = bodyCharCount = strlen(fullUTF8String);
+				bodyPreviewBuffer = realloc(bodyPreviewBuffer, bodyCharCount + 1);
+				memcpy(bodyPreviewBuffer, fullUTF8String, bodyCharCount + 1);
+			} else if (!CFStringGetBytes((CFStringRef) self, CFRangeMake(0, bodyCharCount), bodyPreviewEncoding, ' ', FALSE,
+										  (UInt8 *) bodyPreviewBuffer, bodyCharCount + 1, &usedBufLen)) {
 				NSLog(@"can't get utf8 string from '%@' (charcount: %lu)", self, (unsigned long) bodyCharCount);
 				free(bodyPreviewBuffer);
 				return nil;
 			}
+			
 		}
 	}
-	replace:
-			//if bodyPreviewBuffer is a UTF-8 encoded string, then examine the string one UTF-8 sequence at a time to catch multi-byte breaks
-			if (bodyPreviewEncoding == kCFStringEncodingUTF8) {
-				replace_breaks_utf8(bodyPreviewBuffer, bodyCharCount);
-			} else {
-				replace_breaks(bodyPreviewBuffer, bodyCharCount);
-			}
+	
+	//if bodyPreviewBuffer is a UTF-8 encoded string, then examine the string one UTF-8 sequence at a time to catch multi-byte breaks
+	if (bodyPreviewEncoding == kCFStringEncodingUTF8) {
+		replace_breaks_utf8(bodyPreviewBuffer, bodyCharCount);
+	} else {
+		replace_breaks(bodyPreviewBuffer, bodyCharCount);
+	}
 
 	NSString *truncatedBodyString = [[NSString alloc] initWithBytesNoCopy:bodyPreviewBuffer length:usedBufLen
 																 encoding:CFStringConvertEncodingToNSStringEncoding(bodyPreviewEncoding) freeWhenDone:YES];
