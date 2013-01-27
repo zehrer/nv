@@ -104,7 +104,7 @@
 	return nil;
 }
 
-- (id)initWithDefaultDirectoryWithNSError:(out NSError **)err {
+- (id)initWithDefaultDirectoryWithError:(out NSError **)err {
 	NSError *error = nil;
 	NSURL *targetURL = nil;
 
