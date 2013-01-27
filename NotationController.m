@@ -71,9 +71,6 @@
 	lastWordInFilterStr = 0;
 	selectedNoteIndex = NSNotFound;
 
-	fsCatInfoArray = NULL;
-	HFSUniNameArray = NULL;
-
 	lastLayoutStyleGenerated = -1;
 	lastCheckedDateInHours = hoursFromAbsoluteTime(CFAbsoluteTimeGetCurrent());
 
@@ -1486,11 +1483,6 @@
 	for (NoteObject *note in allNotes) {
 		note.delegate = nil;
 	}
-
-	if (fsCatInfoArray)
-		free(fsCatInfoArray);
-	if (HFSUniNameArray)
-		free(HFSUniNameArray);
 }
 
 #pragma mark - 

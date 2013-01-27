@@ -78,9 +78,6 @@ typedef NS_OPTIONS(NSInteger, NVNoteRevealOptions) {
 
 	NSMutableSet *deletedNotes;
 
-	FSCatalogInfo *fsCatInfoArray;
-	HFSUniStr255 *HFSUniNameArray;
-
 	FSEventStreamRef noteDirEventStreamRef;
 	BOOL eventStreamStarted;
 

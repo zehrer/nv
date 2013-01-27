@@ -10,10 +10,8 @@
 
 @property (nonatomic) UInt32 logicalSize;
 @property (nonatomic) OSType fileType;
-@property (nonatomic) CFMutableStringRef filename;
-@property (nonatomic) UniChar *filenameChars;
-@property (nonatomic) UniCharCount filenameCharCount;
 
+@property (nonatomic, copy) NSString *filename;
 @property (nonatomic, copy) NSDate *creationDate;
 @property (nonatomic, copy) NSDate *contentModificationDate;
 @property (nonatomic, copy) NSDate *attributeModificationDate;

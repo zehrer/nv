@@ -186,76 +186,57 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void *info, size_t nu
 
 //scour the notes directory for fresh meat
 - (NSArray *)_readFilesInDirectory {
-
-	OSStatus status = noErr;
-	FSIterator dirIterator;
-	ItemCount dirObjectCount = 0;
-	unsigned int i = 0;
-
-	//something like 16 VM pages used here?
-	if (!fsCatInfoArray) fsCatInfoArray = (FSCatalogInfo *) calloc(kMaxFileIteratorCount, sizeof(FSCatalogInfo));
-	if (!HFSUniNameArray) HFSUniNameArray = (HFSUniStr255 *) calloc(kMaxFileIteratorCount, sizeof(HFSUniStr255));
+	__block BOOL hasError = NO;
+	NSArray *keys = @[ NSURLIsDirectoryKey, NSURLNameKey, NSURLTypeIdentifierKey, NSURLFileSizeKey, NSURLCreationDateKey, NSURLContentModificationDateKey, NSURLAttributeModificationDateKey ];
+	NSDirectoryEnumerator *enumerator = [self.fileManager enumeratorAtURL: self.noteDirectoryURL includingPropertiesForKeys: keys options: NSDirectoryEnumerationSkipsSubdirectoryDescendants | NSDirectoryEnumerationSkipsHiddenFiles errorHandler:^BOOL(NSURL *url, NSError *error) {
+		NSLog(@"Error enumerating files: %@", error);
+		hasError = YES;
+		return NO;
+	}];
 
 	NSMutableArray *catalogEntries = [NSMutableArray array];
 
-	if ((status = FSOpenIterator(&noteDirectoryRef, kFSIterateFlat, &dirIterator)) == noErr) {
-		//catEntriesCount = 0;
+	for (NSURL *URL in enumerator) {
+        NSNumber *isDirectory;
+        [URL getResourceValue:&isDirectory forKey:NSURLIsDirectoryKey error:NULL];
 
-		do {
-			// Grab a batch of source files to process from the source directory
-			status = FSGetCatalogInfoBulk(dirIterator, kMaxFileIteratorCount, &dirObjectCount, NULL,
-					kFSCatInfoNodeFlags | kFSCatInfoFinderInfo | kFSCatInfoContentMod |
-							kFSCatInfoAttrMod | kFSCatInfoDataSizes | kFSCatInfoCreateDate,
-					fsCatInfoArray, NULL, NULL, HFSUniNameArray);
+		// Only read files, not directories
+		if ([isDirectory boolValue]) {
+			[enumerator skipDescendants];
+		} else {
+			// TODO: filter these only for files that will be added
+			// that way we can catch changes in files whose format is still being lazily updated
+			NoteCatalogEntry *entry = [NoteCatalogEntry new];
 
-			if ((status == errFSNoMoreItems || status == noErr) && dirObjectCount) {
-				status = noErr;
+			NSString *filename = nil;
+			[URL getResourceValue: &filename forKey: NSURLNameKey error: NULL];
+			if (filename) entry.filename = filename;
 
-				for (i = 0; i < dirObjectCount; i++) {
-					// Only read files, not directories
-					if (!(fsCatInfoArray[i].nodeFlags & kFSNodeIsDirectoryMask)) {
-						//filter these only for files that will be added
-						//that way we can catch changes in files whose format is still being lazily updated
+			NSString *fileType = nil;
+			[URL getResourceValue: &fileType forKey: NSURLTypeIdentifierKey error: NULL];
+			if (fileType) entry.fileType = UTGetOSTypeFromString((__bridge CFStringRef)fileType);
 
-						NoteCatalogEntry *entry = [NoteCatalogEntry new];
-						HFSUniStr255 *filename = &HFSUniNameArray[i];
+			NSNumber *size = nil;
+			[URL getResourceValue: &size forKey: NSURLFileSizeKey error: NULL];
+			if (size) entry.logicalSize = [size unsignedIntValue];
 
-						entry.fileType = ((FileInfo *) fsCatInfoArray[i].finderInfo)->fileType;
-						entry.logicalSize = (UInt32) (fsCatInfoArray[i].dataLogicalSize & 0xFFFFFFFF);
-						entry.creationDate = [NSDate datewithUTCDateTime: &fsCatInfoArray[i].createDate];
-						entry.contentModificationDate = [NSDate datewithUTCDateTime: &fsCatInfoArray[i].contentModDate];
-						entry.attributeModificationDate = [NSDate datewithUTCDateTime: &fsCatInfoArray[i].attributeModDate];
+			NSDate *creationDate = nil;
+			[URL getResourceValue: &creationDate forKey: NSURLCreationDateKey error: NULL];
+			if (creationDate) entry.creationDate = creationDate;
 
-						if (filename->length > entry.filenameCharCount) {
-							entry.filenameCharCount = filename->length;
-							entry.filenameChars = (UniChar *) realloc(entry.filenameChars, entry.filenameCharCount * sizeof(UniChar));
-						}
+			NSDate *contentModificationDate = nil;
+			[URL getResourceValue: &creationDate forKey: NSURLContentModificationDateKey error: NULL];
+			if (contentModificationDate) entry.contentModificationDate = contentModificationDate;
 
-						memcpy(entry.filenameChars, filename->unicode, filename->length * sizeof(UniChar));
+			NSDate *attributeModificationDate = nil;
+			[URL getResourceValue: &attributeModificationDate forKey: NSURLAttributeModificationDateKey error: NULL];
+			if (attributeModificationDate) entry.attributeModificationDate = attributeModificationDate;
 
-						if (!entry.filename)
-							entry.filename = CFStringCreateMutableWithExternalCharactersNoCopy(NULL, entry.filenameChars, filename->length, entry.filenameCharCount, kCFAllocatorNull);
-						else
-							CFStringSetExternalCharactersNoCopy(entry.filename, entry.filenameChars, filename->length, entry.filenameCharCount);
+			[catalogEntries addObject: entry];
+		}
+    }
 
-						// mipe: Normalize the filename to make sure that it will be found regardless of international characters
-						CFStringNormalize(entry.filename, kCFStringNormalizationFormC);
-
-						[catalogEntries addObject: entry];
-					}
-				}
-			}
-
-		} while (status == noErr);
-
-		FSCloseIterator(dirIterator);
-		
-		return [catalogEntries copy];
-	}
-
-	NSLog(@"Error opening FSIterator: %d", status);
-
-	return nil;
+	return hasError ? nil : [catalogEntries copy];
 }
 
 - (BOOL)modifyNoteIfNecessary:(NoteObject *)aNoteObject usingCatalogEntry:(NoteCatalogEntry *)catEntry {
@@ -321,7 +302,7 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void *info, size_t nu
 	}];
 
 	NSArray *catEntries = [array sortedArrayWithOptions: NSSortConcurrent | NSSortStable usingComparator: ^NSComparisonResult(NoteCatalogEntry *obj1, NoteCatalogEntry *obj2) {
-		return [(__bridge NSString *)obj1.filename caseInsensitiveCompare: (__bridge NSString *)obj2.filename];
+		return [obj1.filename caseInsensitiveCompare: obj2.filename];
 	}];
 	NSUInteger bSize = catEntries.count;
 
@@ -335,7 +316,7 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void *info, size_t nu
 		for (j = lastInserted; j < bSize; j++) {
 			NoteCatalogEntry *entry = catEntries[j];
 
-			NSComparisonResult order = [note.filename caseInsensitiveCompare: (__bridge NSString *)entry.filename];
+			NSComparisonResult order = [note.filename caseInsensitiveCompare: entry.filename];
 			if (order == NSOrderedAscending) {		//if (A[i] < B[j])
 				lastInserted = j;
 				exitedEarly = YES;
@@ -360,7 +341,7 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void *info, size_t nu
 			NSUInteger idx = MIN(lastInserted, bSize - 1);
 			NoteCatalogEntry *tEntry = catEntries[idx];
 
-			if ([note.filename caseInsensitiveCompare: (__bridge NSString *)tEntry.filename] == NSOrderedDescending) {
+			if ([note.filename caseInsensitiveCompare: tEntry.filename] == NSOrderedDescending) {
 				lastInserted = bSize;
 
 				//NSLog(@"FILE DELETED (after): %@", currentNotes[i].filename);
@@ -439,7 +420,7 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void *info, size_t nu
 
 					directoryChangesFound = YES;
 
-					[currentNote setFilename:(__bridge NSString *)catEntry.filename withExternalTrigger:YES];
+					[currentNote setFilename: catEntry.filename withExternalTrigger:YES];
 				}
 
 				notesChanged = YES;
