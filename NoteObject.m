@@ -638,7 +638,7 @@ row) {
 		//woe to the exporter who also left the note files in the notes directory after switching to a singledb format
 		//his note names might not be up-to-date
 		if ([localDelegate currentNoteStorageFormat] != SingleDatabaseFormat ||
-				!(self.noteFileURL = [localDelegate notesDirectoryContainsFile: filename returningFSRef: NULL])) {
+				!(self.noteFileURL = [localDelegate notesDirectoryContainsFile: filename])) {
 			
 			[self setFilenameFromTitle];
 		}
@@ -1112,7 +1112,7 @@ row) {
 	NSError *error = nil;
 	do {
 		if (error || !self.noteFileURL) {
-			if (!(self.noteFileURL = [localDelegate notesDirectoryContainsFile: filename returningFSRef: NULL])) return NO;
+			if (!(self.noteFileURL = [localDelegate notesDirectoryContainsFile: filename])) return NO;
 		}
 		[self.noteFileURL setResourceValues: attributes error: &error];
 	} while (error.code == NSFileNoSuchFileError);

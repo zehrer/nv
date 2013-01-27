@@ -24,7 +24,6 @@
 
 - (NSURL *)noteFileRenamed:(NSURL *)noteFileURL fromName:(NSString *)oldName toName:(NSString *)newName error:(out NSError **)outError;
 
-- (NSURL *)notesDirectoryContainsFile:(NSString *)filename returningFSRef:(FSRef *)childRef;
 - (NSURL *)notesDirectoryContainsFile:(NSString *)filename;
 
 - (NSURL *)refreshFileURLIfNecessary:(NSURL *)URL withName:(NSString *)filename error: (NSError **)err;

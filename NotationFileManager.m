@@ -230,12 +230,6 @@ static struct statfs *StatFSVolumeInfo(NotationController *controller) {
 	return [[self.noteDirectoryURL URLByAppendingPathComponent: filename] fileReferenceURL];
 }
 
-- (NSURL *)notesDirectoryContainsFile:(NSString *)filename returningFSRef:(FSRef *)childRef {
-	NSURL *ret = [self notesDirectoryContainsFile: filename];
-	if (childRef) [ret getFSRef: childRef];
-	return ret;
-}
-
 - (BOOL)renameAndForgetNoteDatabaseFile:(NSString *)newfilename {
 	//this method does not move the note database file; for now it is used in cases of upgrading incompatible files
 	NSURL *newURL = [self.noteDatabaseURL.URLByDeletingLastPathComponent URLByAppendingPathComponent: newfilename];
