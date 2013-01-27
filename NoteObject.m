@@ -976,15 +976,18 @@ row) {
 	BOOL fileIsOwned = NO;
 	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
 
-	if (localDelegate && [localDelegate createFileIfNotPresentInNotesDirectory: self.noteFileRef forFilename:filename fileWasCreated:&fileWasCreated] != noErr)
+	if ((_noteFileURL = [localDelegate createFileWithNameIfNotPresentInNotesDirectory: filename created: &fileWasCreated error: NULL])) {
+		[_noteFileURL getFSRef: self.noteFileRef];
+	} else {
 		return NO;
+	}
 
 	if (fileWasCreated) {
 		NSLog(@"writing note %@, because it didn't exist", titleString);
 		return [self writeUsingCurrentFileFormat];
 	}
 
-	//createFileIfNotPresentInNotesDirectory: works by name, so if this file is not owned by us at this point, it was a race with moving it
+	//createFileWithNameIfNotPresentInNotesDirectory: works by name, so if this file is not owned by us at this point, it was a race with moving it
 	FSCatalogInfo info;
 	if (localDelegate && [localDelegate fileInNotesDirectory: self.noteFileRef isOwnedByUs:&fileIsOwned hasCatalogInfo:&info] != noErr)
 		return NO;

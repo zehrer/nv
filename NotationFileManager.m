@@ -33,21 +33,6 @@ NSString *NotesDatabaseFileName = @"Notes & Settings";
 
 static struct statfs *StatFSVolumeInfo(NotationController *controller);
 
-OSStatus CreateDirectoryIfNotPresent(FSRef *parentRef, CFStringRef subDirectoryName, FSRef *childRef) {
-	UniChar chars[256];
-
-	OSStatus result;
-	if ((result = FSRefMakeInDirectoryWithString(parentRef, childRef, subDirectoryName, chars))) {
-		if (result == fnfErr) {
-			result = FSCreateDirectoryUnicode(parentRef, CFStringGetLength(subDirectoryName),
-					chars, kFSCatInfoNone, NULL, childRef, NULL, NULL);
-		}
-		return result;
-	}
-
-	return noErr;
-}
-
 + (NSURL *)createDirectoryIfNotPresentWithName:(NSString *)subName inDirectory:(NSURL *)directory error:(out NSError **)outError {
 	NSURL *URL = [directory URLByAppendingPathComponent: subName isDirectory: YES];
 	if (![URL checkResourceIsReachableAndReturnError: NULL]) {
@@ -244,7 +229,7 @@ NSUInteger diskUUIDIndexForNotation(NotationController *controller) {
 
 
 - (BOOL)notesDirectoryIsTrashed {
-	NSURL *trashURL = [[self trashFolderForURL: self.noteDirectoryURL error: NULL] URLByStandardizingPath];
+	NSURL *trashURL = [self trashFolder];
 	if (!trashURL) return NO;
 	NSURL *stdNoteDirectory = self.noteDirectoryURL.URLByStandardizingPath;
 	return [stdNoteDirectory.path hasPrefix: trashURL.path];
@@ -368,23 +353,6 @@ NSUInteger diskUUIDIndexForNotation(NotationController *controller) {
 			break;
 		}
 	}
-}
-
-+ (OSStatus)getDefaultNotesDirectoryRef:(FSRef *)notesDir {
-	FSRef appSupportFoundRef;
-
-	OSErr err = FSFindFolder(kUserDomain, kApplicationSupportFolderType, kCreateFolder, &appSupportFoundRef);
-	if (err != noErr) {
-		NSLog(@"Unable to locate or create an Application Support directory: %d", err);
-		return err;
-	} else {
-		//now try to get Notational Database directory
-		if ((err = CreateDirectoryIfNotPresent(&appSupportFoundRef, (CFStringRef) @"Notational Data", notesDir)) != noErr) {
-
-			return err;
-		}
-	}
-	return noErr;
 }
 
 + (NSURL *)defaultNotesDirectoryURLReturningError:(out NSError **)outErr {
@@ -522,9 +490,12 @@ NSUInteger diskUUIDIndexForNotation(NotationController *controller) {
 	return data;
 }
 
-- (OSStatus)createFileIfNotPresentInNotesDirectory:(FSRef *)childRef forFilename:(NSString *)filename fileWasCreated:(BOOL *)created {
-
-	return FSCreateFileIfNotPresentInDirectory(&noteDirectoryRef, childRef, (__bridge CFStringRef) filename, (Boolean *) created);
+- (NSURL *)createFileWithNameIfNotPresentInNotesDirectory:(NSString *)filename created:(BOOL *)created error:(out NSError **)outError {
+	NSURL *URL = [self.noteDirectoryURL URLByAppendingPathComponent: filename];
+	if (![URL checkResourceIsReachableAndReturnError: NULL]) {
+		return [[NSData data] writeToURL: URL options: NSDataWritingWithoutOverwriting error: outError] ? URL : nil;
+	}
+	return URL;
 }
 
 //either name or destRef must be valid; destRef is declared invalid by filling the struct with 0
@@ -617,8 +588,12 @@ NSUInteger diskUUIDIndexForNotation(NotationController *controller) {
 	return nil;
 }
 
-- (NSURL *)trashFolderForURL:(NSURL *)URL error:(out NSError *__autoreleasing *)outError {
-	return [self.fileManager URLForDirectory: NSTrashDirectory inDomain:NSUserDomainMask appropriateForURL: URL create:YES error: outError];
+- (NSURL *)trashFolder {
+	return [self.fileManager URLForDirectory: NSTrashDirectory inDomain:NSUserDomainMask appropriateForURL: nil create:YES error: NULL];
+}
+
+- (NSURL *)URLForFileInNotesDirectory:(NSString *)filename {
+	return [self.noteDirectoryURL URLByAppendingPathComponent: filename];
 }
 
 @end

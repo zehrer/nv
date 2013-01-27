@@ -239,24 +239,6 @@ void CopyPerDiskInfoGroupsToOrder(PerDiskInfo **flippedGroups, NSUInteger *exist
 	}
 }
 
-OSStatus FSCreateFileIfNotPresentInDirectory(FSRef *directoryRef, FSRef *childRef, CFStringRef filename, Boolean *created) {
-	UniChar chars[256];
-	OSStatus result = noErr;
-
-	if (created) *created = false;
-
-	if ((result = FSRefMakeInDirectoryWithString(directoryRef, childRef, filename, chars))) {
-		if (result == fnfErr) {
-			if (created) *created = true;
-
-			result = FSCreateFileUnicode(directoryRef, CFStringGetLength(filename), chars, kFSCatInfoNone, NULL, childRef, NULL);
-		}
-		return result;
-	}
-
-	return noErr;
-}
-
 OSStatus FSRefMakeInDirectoryWithString(FSRef *directoryRef, FSRef *childRef, CFStringRef filename, UniChar *charsBuffer) {
 	CFRange range;
 	range.location = 0;

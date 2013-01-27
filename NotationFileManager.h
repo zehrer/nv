@@ -32,8 +32,6 @@ typedef union VolumeUUID {
 
 @interface NotationController (NotationFileManager) <NTNFileManager>
 
-OSStatus CreateDirectoryIfNotPresent(FSRef *parentRef, CFStringRef subDirectoryName, FSRef *childRef);
-
 CFUUIDRef CopyHFSVolumeUUIDForMount(const char *mntonname);
 
 NSUInteger diskUUIDIndexForNotation(NotationController *controller);
@@ -50,8 +48,6 @@ NSUInteger diskUUIDIndexForNotation(NotationController *controller);
 
 - (void)relocateNotesDirectory;
 
-+ (OSStatus)getDefaultNotesDirectoryRef:(FSRef *)notesDir;
-
 + (NSURL *)defaultNotesDirectoryURLReturningError:(out NSError **)outErr;
 
 - (OSStatus)noteFileRenamed:(FSRef *)childRef fromName:(NSString *)oldName toName:(NSString *)newName;
@@ -59,8 +55,6 @@ NSUInteger diskUUIDIndexForNotation(NotationController *controller);
 - (NSString *)uniqueFilenameForTitle:(NSString *)title fromNote:(NoteObject *)note;
 
 - (OSStatus)deleteFileInNotesDirectory:(FSRef *)childRef forFilename:(NSString *)filename;
-
-- (OSStatus)createFileIfNotPresentInNotesDirectory:(FSRef *)childRef forFilename:(NSString *)filename fileWasCreated:(BOOL *)created;
 
 + (OSStatus)trashFolderRef:(FSRef *)trashRef forChild:(FSRef *)childRef;
 

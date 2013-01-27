@@ -203,13 +203,14 @@
 }
 
 - (BOOL)_readAndInitializeSerializedNotesWithError:(out NSError **)outError {
-	OSStatus err = noErr;
-	if ((err = [self createFileIfNotPresentInNotesDirectory:&noteDatabaseRef forFilename:NotesDatabaseFileName fileWasCreated:nil]) != noErr) {
-		if (outError) *outError = [NSError errorWithDomain: NSOSStatusErrorDomain code: err userInfo: nil];
+	NSError *nsErr = nil;
+	if ((_noteDatabaseURL = [self createFileWithNameIfNotPresentInNotesDirectory: NotesDatabaseFileName created: NULL error: &nsErr])) {
+		[_noteDatabaseURL getFSRef: &noteDatabaseRef];
+	} else {
+		if (outError) *outError = nsErr;
 		return NO;
 	}
-
-	NSError *nsErr = nil;
+	
 	NSData *notesData = nil;
 	if (!(notesData = [NSData dataWithContentsOfURL: self.noteDatabaseURL options: NSDataReadingUncached | NSDataReadingMappedIfSafe error: &nsErr])) {
 		if (outError) *outError = nsErr;
@@ -240,11 +241,14 @@
 	syncSessionController = [[SyncSessionController alloc] initWithSyncDelegate:self notationPrefs:notationPrefs];
 
 	//frozennotation will work out passwords, keychains, decryption, etc...
+	OSStatus err;
 	if (!(allNotes = [frozenNotation unpackedNotesReturningError:&err])) {
 		//notes could be nil because the user cancelled password authentication
 		//or because they were corrupted, or for some other reason
-		if (err != noErr)
-			return err;
+		if (err != noErr) {
+			if (outError) *outError = [NSError errorWithDomain: NTNErrorDomain code: err userInfo: nil];
+			return NO;
+		}
 
 		allNotes = [[NSMutableArray alloc] init];
 	} else {
