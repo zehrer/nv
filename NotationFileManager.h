@@ -32,8 +32,6 @@ typedef union VolumeUUID {
 
 @interface NotationController (NotationFileManager) <NTNFileManager>
 
-CFUUIDRef CopyHFSVolumeUUIDForMount(const char *mntonname);
-
 - (void)initializeDiskUUIDIfNecessary;
 
 - (BOOL)notesDirectoryIsTrashed;

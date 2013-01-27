@@ -23,7 +23,7 @@
 #import "NSData_transformations.h"
 #import "NSURL+Notation.h"
 #import "NoteCatalogEntry.h"
-#include <sys/mount.h>
+#import "NSDate+Notation.h"
 
 #import <CommonCrypto/CommonCrypto.h>
 
@@ -38,8 +38,6 @@ NSString *NotesDatabaseFileName = @"Notes & Settings";
 
 @implementation NotationController (NotationFileManager)
 
-static struct statfs *StatFSVolumeInfo(NotationController *controller);
-
 + (NSURL *)createDirectoryIfNotPresentWithName:(NSString *)subName inDirectory:(NSURL *)directory error:(out NSError **)outError {
 	NSURL *URL = [directory URLByAppendingPathComponent: subName isDirectory: YES];
 	if (![URL checkResourceIsReachableAndReturnError: NULL]) {
@@ -53,43 +51,6 @@ static struct statfs *StatFSVolumeInfo(NotationController *controller);
 	}
 	return URL;
 }
-
-/*
- Read the UUID from a mounted volume, by calling getattrlist().
- Assumes the path is the mount point of an HFS volume.
- */
-static BOOL GetVolumeUUIDAttr(const char *path, VolumeUUID *volumeUUIDPtr) {
-	struct attrlist alist;
-	struct FinderAttrBuf {
-		u_int32_t info_length;
-		u_int32_t finderinfo[8];
-	} volFinderInfo;
-
-	int result = -1;
-
-	/* Set up the attrlist structure to get the volume's Finder Info */
-	alist.bitmapcount = 5;
-	alist.reserved = 0;
-	alist.commonattr = ATTR_CMN_FNDRINFO;
-	alist.volattr = ATTR_VOL_INFO;
-	alist.dirattr = 0;
-	alist.fileattr = 0;
-	alist.forkattr = 0;
-
-	/* Get the Finder Info */
-	if ((result = getattrlist(path, &alist, &volFinderInfo, sizeof(volFinderInfo), 0))) {
-		NSLog(@"GetVolumeUUIDAttr error: %d", result);
-		return NO;
-	}
-
-	/* Copy the UUID from the Finder Into to caller's buffer */
-	VolumeUUID *finderInfoUUIDPtr = (VolumeUUID *) (&volFinderInfo.finderinfo[6]);
-	volumeUUIDPtr->v.high = CFSwapInt32BigToHost(finderInfoUUIDPtr->v.high);
-	volumeUUIDPtr->v.low = CFSwapInt32BigToHost(finderInfoUUIDPtr->v.low);
-
-	return YES;
-}
-
 
 // Create a version 3 UUID; derived using "name" via MD5 checksum.
 static void uuid_create_md5_from_name(unsigned char result_uuid[16], const void *name, int namelen) {
@@ -110,49 +71,6 @@ static void uuid_create_md5_from_name(unsigned char result_uuid[16], const void 
 	result_uuid[8] = (result_uuid[8] & 0x3F) | 0x80;
 }
 
-
-CFUUIDRef CopyHFSVolumeUUIDForMount(const char *mntonname) {
-	VolumeUUID targetVolumeUUID;
-
-	unsigned char rawUUID[8];
-
-	if (!GetVolumeUUIDAttr(mntonname, &targetVolumeUUID))
-		return NULL;
-
-	((uint32_t *) rawUUID)[0] = CFSwapInt32HostToBig(targetVolumeUUID.v.high);
-	((uint32_t *) rawUUID)[1] = CFSwapInt32HostToBig(targetVolumeUUID.v.low);
-
-	CFUUIDBytes uuidBytes;
-	uuid_create_md5_from_name((void *) &uuidBytes, rawUUID, sizeof(rawUUID));
-
-	return CFUUIDCreateFromUUIDBytes(NULL, uuidBytes);
-}
-
-CFUUIDRef CopySyntheticUUIDForVolumeCreationDate(FSRef *fsRef);
-
-CFUUIDRef CopySyntheticUUIDForVolumeCreationDate(FSRef *fsRef) {
-
-	FSCatalogInfo fileInfo;
-	if (FSGetCatalogInfo(fsRef, kFSCatInfoVolume, &fileInfo, NULL, NULL, NULL) == noErr) {
-
-		FSVolumeInfo volInfo;
-		OSStatus err = FSGetVolumeInfo(fileInfo.volume, 0, NULL, kFSVolInfoCreateDate, &volInfo, NULL, NULL);
-		if (err == noErr) {
-			volInfo.createDate.highSeconds = CFSwapInt16HostToBig(volInfo.createDate.highSeconds);
-			volInfo.createDate.lowSeconds = CFSwapInt32HostToBig(volInfo.createDate.lowSeconds);
-			volInfo.createDate.fraction = CFSwapInt16HostToBig(volInfo.createDate.fraction);
-
-			CFUUIDBytes uuidBytes;
-			uuid_create_md5_from_name((void *) &uuidBytes, (void *) &volInfo.createDate, sizeof(UTCDateTime));
-
-			return CFUUIDCreateFromUUIDBytes(NULL, uuidBytes);
-		} else {
-			NSLog(@"can't even get the volume creation date -- what are you trying to do to me?");
-		}
-	}
-	return NULL;
-}
-
 - (void)initializeDiskUUIDIfNecessary {
 	//create a CFUUIDRef that identifies the volume this database sits on
 
@@ -161,50 +79,34 @@ CFUUIDRef CopySyntheticUUIDForVolumeCreationDate(FSRef *fsRef) {
 
 	if (!diskUUID && [self currentNoteStorageFormat] != SingleDatabaseFormat) {
 
-		struct statfs *sfsb = StatFSVolumeInfo(self);
-		//if this is not an hfs+ disk, then get the FSEvents UUID
-		//if this is not Leopard or the FSEvents UUID is null,
-		//then take MD5 sum of creation date + some other info?
-
-		if (!strcmp(sfsb->f_fstypename, "hfs")) {
-			//if this is an HFS volume, then use getattrlist to get finderinfo from the volume
-			diskUUID = CopyHFSVolumeUUIDForMount(sfsb->f_mntonname);
-		}
-
-		//ah but what happens when a non-hfs disk is first mounted on leopard+, and then moves to a tiger machine?
-		//or vise-versa; that calls for tracking how the UUIDs were generated, and grouping them together when others are found;
-		//this is probably unnecessary for now
-		if (!diskUUID) {
-			//this is not an hfs disk, and this computer is new enough to have FSEvents
-			diskUUID = FSEventsCopyUUIDForDevice(sfsb->f_fsid.val[0]);
-		}
+		id uuidString = nil;
+		[self.noteDirectoryURL getResourceValue: &uuidString forKey: NSURLVolumeUUIDStringKey error: NULL];
+		if (uuidString) diskUUID = CFUUIDCreateFromString(NULL, (__bridge CFStringRef)uuidString);
 
 		if (!diskUUID) {
-			//all other checks failed; just use the volume's creation date
-			diskUUID = CopySyntheticUUIDForVolumeCreationDate(&noteDirectoryRef);
+			// all other checks failed; just use the volume's creation date
+			NSDate *date = nil;
+			[self.noteDirectoryURL getResourceValue: &date forKey: NSURLVolumeCreationDateKey error: NULL];
+			if (date) {
+				// UTCDateTime
+				UTCDateTime dateTime;
+				[date getUTCDateTime: &dateTime];
+				dateTime.highSeconds = CFSwapInt16HostToBig(dateTime.highSeconds);
+				dateTime.lowSeconds = CFSwapInt32HostToBig(dateTime.lowSeconds);
+				dateTime.fraction = CFSwapInt16HostToBig(dateTime.fraction);
+
+				CFUUIDBytes uuidBytes;
+				uuid_create_md5_from_name((void *) &uuidBytes, (void *) &dateTime, sizeof(UTCDateTime));
+
+				diskUUID = CFUUIDCreateFromUUIDBytes(NULL, uuidBytes);
+			} else {
+				NSLog(@"can't even get the volume creation date -- what are you trying to do to me?");
+				return;
+			}
 		}
+
 		diskUUIDIndex = [notationPrefs tableIndexOfDiskUUID:diskUUID];
 	}
-}
-
-static struct statfs *StatFSVolumeInfo(NotationController *controller) {
-	if (!controller->statfsInfo) {
-		OSStatus err = noErr;
-		const UInt32 maxPathSize = 4 * 1024;
-		UInt8 *convertedPath = (UInt8 *) malloc(maxPathSize * sizeof(UInt8));
-
-		if ((err = FSRefMakePath(&(controller->noteDirectoryRef), convertedPath, maxPathSize)) == noErr) {
-
-			controller->statfsInfo = calloc(1, sizeof(struct statfs));
-
-			if (statfs((char *) convertedPath, controller->statfsInfo))
-				NSLog(@"statfs: error %d\n", errno);
-		} else
-			NSLog(@"FSRefMakePath: error %d\n", err);
-
-		free(convertedPath);
-	}
-	return controller->statfsInfo;
 }
 
 - (NSUInteger)diskUUIDIndex {

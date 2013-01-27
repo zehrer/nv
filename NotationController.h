@@ -86,7 +86,6 @@ typedef NS_OPTIONS(NSInteger, NVNoteRevealOptions) {
 
 	NSUInteger lastCheckedDateInHours;
 	int lastLayoutStyleGenerated;
-	struct statfs *statfsInfo;
 	NSUInteger diskUUIDIndex;
 	CFUUIDRef diskUUID;
 	FSRef noteDirectoryRef;
