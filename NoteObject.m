@@ -1536,40 +1536,36 @@ row) {
 	//one last replacing, though if the unique file-naming method worked this should be unnecessary
 	newfilename = [newfilename stringByReplacingOccurrencesOfString:@":" withString:@"/"];
 
-	BOOL fileWasCreated = NO;
-
+	NSURL *directoryURL = [NSURL URLWithFSRef: directoryRef];
+	NSURL *fileURL = [directoryURL URLByAppendingPathComponent: newfilename];
 	FSRef fileRef;
-	OSStatus err = FSCreateFileIfNotPresentInDirectory(directoryRef, &fileRef, (__bridge CFStringRef) newfilename, (Boolean *) &fileWasCreated);
-	if (err != noErr) {
-		NSLog(@"FSCreateFileIfNotPresentInDirectory: %d", err);
-		return err;
+	[fileURL getFSRef: &fileRef];
+
+	if (!overwrite) {
+		if ([fileURL checkResourceIsReachableAndReturnError: NULL]) {
+			NSLog(@"File already existed!");
+			return dupFNErr;
+		}
 	}
-	
-	if (!fileWasCreated && !overwrite) {
-		NSLog(@"File already existed!");
-		return dupFNErr;
+
+	NSError *nsErr = nil;
+	if (![formattedData writeToURL: fileURL options: NSDataWritingAtomic error: &nsErr]) {
+		NSLog(@"error writing to file: %@", nsErr);
+		return writErr;
 	}
+
 	//yes, the file is probably not on the same volume as our notes directory
-
-
-	NSURL *fileURL = [NSURL URLWithFSRef: &fileRef];
-
-	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
-	if ((err = FSRefWriteData(&fileRef, localDelegate.blockSize, [formattedData length], [formattedData bytes], 0, true)) != noErr) {
-		NSLog(@"error writing to temporary file: %d", err);
-		return err;
-	}
 	if (PlainTextFormat == storageFormat) {
-		(void) [self writeCurrentFileEncodingToFSRef:&fileRef];
+		[self writeCurrentFileEncodingToFSRef:&fileRef];
 	}
 
 	[NSFileManager setOpenMetaTags: self.orderedLabelTitles forItemAtURL: fileURL error: NULL];
 
 	//also export the note's modification and creation dates
-	FSCatalogInfo catInfo;
-	[self.creationDate getUTCDateTime: &catInfo.createDate];
-	[self.modificationDate getUTCDateTime: &catInfo.contentModDate];
-	FSSetCatalogInfo(&fileRef, kFSCatInfoCreateDate | kFSCatInfoContentMod, &catInfo);
+	[fileURL setResourceValues: @{
+		  NSURLCreationDateKey: self.creationDate,
+		  NSURLContentModificationDateKey: self.modificationDate }
+						 error: NULL];
 
 	return noErr;
 }

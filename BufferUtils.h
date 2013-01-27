@@ -60,6 +60,4 @@ OSStatus FSCreateFileIfNotPresentInDirectory(FSRef *directoryRef, FSRef *childRe
 
 OSStatus FSRefMakeInDirectoryWithString(FSRef *directoryRef, FSRef *childRef, CFStringRef filename, UniChar *charsBuffer);
 
-OSStatus FSRefWriteData(FSRef *fsRef, size_t maximumWriteSize, UInt64 bufferSize, const void *buffer, UInt16 modeOptions, Boolean truncateFile);
-
 CFStringRef CopyReasonFromFSErr(OSStatus err);
