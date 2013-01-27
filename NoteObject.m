@@ -1079,7 +1079,7 @@ row) {
 		
 		//if writing plaintext set the file encoding with setxattr
 		if (PlainTextFormat == formatID) {
-			(void) [self writeCurrentFileEncodingToFSRef: self.noteFileRef];
+			[self writeCurrentFileEncodingToURL: self.noteFileURL];
 		}
 
 		[NSFileManager setOpenMetaTags: self.orderedLabelTitles forItemAtURL: self.noteFileURL error: NULL];
@@ -1152,16 +1152,10 @@ row) {
 	return YES;
 }
 
-- (OSStatus)writeCurrentFileEncodingToFSRef:(FSRef *)fsRef {
-	NSAssert(fsRef, @"cannot write file encoding to a NULL FSRef");
-	//this is not the note's own fsRef; it could be anywhere
-
-	NSURL *URL = [NSURL URLWithFSRef: fsRef];
-	if ([NSFileManager setTextEncoding: fileEncoding ofItemAtURL: URL]) {
-		return noErr;
-	}
-
-	return ioErr;
+- (BOOL)writeCurrentFileEncodingToURL:(NSURL *)URL {
+	NSParameterAssert(URL);
+	//this is not the note's own URL; it could be anywhere
+	return [NSFileManager setTextEncoding: self.fileEncoding ofItemAtURL: URL];
 }
 
 - (BOOL)upgradeToUTF8IfUsingSystemEncoding {
@@ -1224,8 +1218,7 @@ row) {
 			[_noteFileURL getFSRef: self.noteFileRef];
 		}
 
-		if ([self writeCurrentFileEncodingToFSRef: self.noteFileRef] != noErr)
-			return NO;
+		if (![self writeCurrentFileEncodingToURL: self.noteFileURL]) return NO;
 
 		if ((updated = [self updateFromFile])) {
 			[self makeNoteDirtyUpdateTime:NO updateFile:NO];

@@ -229,7 +229,7 @@ BOOL noteTitleIsAPrefixOfOtherNoteTitle(NoteObject *longerNote, NoteObject *shor
 
 - (void)registerModificationWithOwnedServices;
 
-- (OSStatus)writeCurrentFileEncodingToFSRef:(FSRef *)fsRef;
+- (BOOL)writeCurrentFileEncodingToURL:(NSURL *)URL;
 
 - (void)_setFileEncoding:(NSStringEncoding)encoding;
 
