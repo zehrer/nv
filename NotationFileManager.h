@@ -54,6 +54,8 @@ NSUInteger diskUUIDIndexForNotation(NotationController *controller);
 
 + (OSStatus)getDefaultNotesDirectoryRef:(FSRef *)notesDir;
 
++ (NSURL *)defaultNotesDirectoryURLReturningError:(out NSError **)outErr;
+
 - (OSStatus)noteFileRenamed:(FSRef *)childRef fromName:(NSString *)oldName toName:(NSString *)newName;
 
 - (NSString *)uniqueFilenameForTitle:(NSString *)title fromNote:(NoteObject *)note;

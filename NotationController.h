@@ -115,11 +115,11 @@ typedef NS_OPTIONS(NSInteger, NVNoteRevealOptions) {
 
 - (id)init;
 
-- (id)initWithAliasData:(NSData *)data error:(OSStatus *)err;
+- (id)initWithAliasData:(NSData *)data error:(out NSError **)err;
 
-- (id)initWithDefaultDirectoryReturningError:(OSStatus *)err;
+- (id)initWithDefaultDirectoryWithError:(out NSError **)err;
 
-- (id)initWithDirectoryRef:(FSRef *)directoryRef error:(OSStatus *)err;
+- (id)initWithDirectoryRef:(FSRef *)directoryRef error:(out NSError **)err;
 
 - (void)setAliasNeedsUpdating:(BOOL)needsUpdate;
 

@@ -48,6 +48,20 @@ OSStatus CreateDirectoryIfNotPresent(FSRef *parentRef, CFStringRef subDirectoryN
 	return noErr;
 }
 
++ (NSURL *)createDirectoryIfNotPresentWithName:(NSString *)subName inDirectory:(NSURL *)directory error:(out NSError **)outError {
+	NSURL *URL = [directory URLByAppendingPathComponent: subName isDirectory: YES];
+	if (![URL checkResourceIsReachableAndReturnError: NULL]) {
+		NSError *error = nil;
+		if ([[NSFileManager defaultManager] createDirectoryAtURL: URL withIntermediateDirectories: YES attributes: nil error: &error]) {
+			return URL;
+		} else {
+			if (outError) *outError = error;
+			return nil;
+		}
+	}
+	return URL;
+}
+
 /*
  Read the UUID from a mounted volume, by calling getattrlist().
  Assumes the path is the mount point of an HFS volume.
@@ -384,6 +398,22 @@ long BlockSizeForNotation(NotationController *controller) {
 		}
 	}
 	return noErr;
+}
+
++ (NSURL *)defaultNotesDirectoryURLReturningError:(out NSError **)outErr {
+	NSError *err = nil;
+	NSURL *appSupportURL = nil;
+	NSURL *notesDirectoryURL = nil;
+
+	if ((appSupportURL = [[NSFileManager defaultManager] URLForDirectory: NSApplicationSupportDirectory inDomain: NSUserDomainMask appropriateForURL: nil create: YES error: &err])) {
+		if ((notesDirectoryURL = [self createDirectoryIfNotPresentWithName: @"Notational Data" inDirectory: appSupportURL error: &err])) {
+			return notesDirectoryURL;
+		}
+	}
+
+	if (outErr) *outErr = err;
+
+	return nil;
 }
 
 //whenever a note uses this method to change its filename, we will have to re-establish all the links to it

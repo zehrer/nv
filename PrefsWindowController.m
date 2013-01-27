@@ -269,7 +269,7 @@
 	if ([self getNewNotesRefFromOpenPanel:&notesDirectoryRef returnedPath:&directoryPath]) {
 
 		//make sure we're not choosing the same folder as what we started with, because:
-		//-[NotationController initWithAliasData:] might attempt to initialize journaling, which will already be in use
+		//-[NotationController initWithAliasData:error:] might attempt to initialize journaling, which will already be in use
 		FSRef currentNotesDirectoryRef;
 		[[prefsController aliasDataForDefaultDirectory] fsRefAsAlias:&currentNotesDirectoryRef];
 		if (FSCompareFSRefs(&notesDirectoryRef, &currentNotesDirectoryRef) != noErr) {

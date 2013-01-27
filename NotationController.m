@@ -85,7 +85,7 @@
 }
 
 
-- (id)initWithAliasData:(NSData *)data error:(OSStatus *)err {
+- (id)initWithAliasData:(NSData *)data error:(out NSError **)err {
 	OSStatus anErr = noErr;
 
 	if (data && (anErr = PtrToHand([data bytes], (Handle *) &aliasHandle, [data length])) == noErr) {
@@ -94,40 +94,40 @@
 		Boolean changed;
 
 		if ((anErr = FSResolveAliasWithMountFlags(NULL, aliasHandle, &targetRef, &changed, 0)) == noErr) {
-			if ((self = [self initWithDirectoryRef:&targetRef error:&anErr])) {
-				aliasNeedsUpdating = changed;
-				*err = noErr;
 
+			NSError *anNSErr = nil;
+			if ((self = [self initWithDirectoryRef: &targetRef error: &anNSErr])) {
+				aliasNeedsUpdating = changed;
 				return self;
+			} else {
+				if (err) *err = anNSErr;
+				return nil;
 			}
 		}
 	}
 
-	*err = anErr;
-
+	if (err) *err = [NSError errorWithDomain: NSOSStatusErrorDomain code: anErr userInfo: nil];
 	return nil;
 }
 
-- (id)initWithDefaultDirectoryReturningError:(OSStatus *)err {
-	FSRef targetRef;
+- (id)initWithDefaultDirectoryWithNSError:(out NSError **)err {
+	NSError *error = nil;
+	NSURL *targetURL = nil;
 
-	OSStatus anErr = noErr;
-	if ((anErr = [NotationController getDefaultNotesDirectoryRef:&targetRef]) == noErr) {
-
-		if ((self = [self initWithDirectoryRef:&targetRef error:&anErr])) {
-			*err = noErr;
+	if ((targetURL = [NotationController defaultNotesDirectoryURLReturningError: &error])) {
+		FSRef targetRef;
+		[targetURL getFSRef: &targetRef];
+		if ((self = [self initWithDirectoryRef: &targetRef error: &error])) {
 			return self;
 		}
 	}
 
-	*err = anErr;
-
+	if (err) *err = error;
 	return nil;
 }
 
-- (id)initWithDirectoryRef:(FSRef *)directoryRef error:(OSStatus *)err {
-
-	*err = noErr;
+- (id)initWithDirectoryRef:(FSRef *)directoryRef error:(out NSError **)err {
+	if (err) *err = nil;
 
 	if ((self = [self init])) {
 		aliasNeedsUpdating = YES; //we don't know if we have an alias yet
@@ -138,9 +138,9 @@
 		//check writable and readable perms, warning user if necessary
 
 		//first read cache file
-		OSStatus anErr = noErr;
-		if ((anErr = [self _readAndInitializeSerializedNotes]) != noErr) {
-			*err = anErr;
+		NSError *anErr = nil;
+		if (![self _readAndInitializeSerializedNotesWithError: &anErr]) {
+			if (err) *err = anErr;
 			return nil;
 		}
 
@@ -148,7 +148,7 @@
 		//and sync based on notes in directory and their mod. dates
 		[self databaseSettingsChangedFromOldFormat:[notationPrefs notesStorageFormat]];
 		if (!walWriter) {
-			*err = kJournalingError;
+			if (err) *err = [NSError errorWithDomain: NTNErrorDomain code: NTNJournalingError userInfo: nil];
 			return nil;
 		}
 
@@ -156,7 +156,6 @@
 
 		[self updateTitlePrefixConnections];
 	}
-
 	return self;
 }
 

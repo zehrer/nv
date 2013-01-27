@@ -43,6 +43,7 @@
 #import "WordCountToken.h"
 #import <objc/message.h>
 #import "NSString_CustomTruncation.h"
+#import "NSError+Notation.h"
 
 NSWindow *normalWindow;
 int ModFlagger;
@@ -296,7 +297,7 @@ void outletObjectAwoke(id sender) {
 	NSDate *before = [NSDate date];
 	prefsWindowController = [[PrefsWindowController alloc] init];
 
-	OSStatus err = noErr;
+	NSError *nsErr = nil;
 	NotationController *newNotation = nil;
 	NSData *aliasData = [prefsController aliasDataForDefaultDirectory];
 
@@ -310,15 +311,15 @@ void outletObjectAwoke(id sender) {
 		showError = NO;
 	} else {
 		if (aliasData) {
-			newNotation = [[NotationController alloc] initWithAliasData:aliasData error:&err];
+			newNotation = [[NotationController alloc] initWithAliasData:aliasData error: &nsErr];
 			subMessage = NSLocalizedString(@"Please choose a different folder in which to store your notes.", nil);
 		} else {
-			newNotation = [[NotationController alloc] initWithDefaultDirectoryReturningError:&err];
+			newNotation = [[NotationController alloc] initWithDefaultDirectoryWithError: &nsErr];
 			subMessage = NSLocalizedString(@"Please choose a folder in which your notes will be stored.", nil);
 		}
 
 		//no need to display an alert if the error wasn't real
-		if (err == kPassCanceledErr) {
+		if (nsErr.code == NTNPasswordEntryCanceledError) {
 			showError = NO;
 		} else {
 			location = aliasData ? [[NSFileManager defaultManager] pathCopiedFromAliasData:aliasData] : NSLocalizedString(@"your Application Support directory", nil);
@@ -339,7 +340,7 @@ void outletObjectAwoke(id sender) {
 
 		BOOL result = YES;
 		if (showError) {
-			NSString *reason = [NSString reasonStringFromCarbonFSError:err];
+			NSString *reason = [NSString reasonStringFromCarbonFSError: (int)nsErr.code];
 			result = (NSRunAlertPanel([NSString stringWithFormat:NSLocalizedString(@"Unable to initialize notes database in \n%@ because %@.", nil), location, reason], subMessage, NSLocalizedString(@"Choose another folder", nil), NSLocalizedString(@"Quit", nil), NULL) == NSAlertDefaultReturn);
 		}
 
@@ -350,7 +351,7 @@ void outletObjectAwoke(id sender) {
 				//they cancelled the open panel, or it was unable to get the path/FSRef of the file
 				[NSApp terminate:self];
 				return;
-			} else if ((newNotation = [[NotationController alloc] initWithDirectoryRef:&notesDirectoryRef error:&err])) {
+			} else if ((newNotation = [[NotationController alloc] initWithDirectoryRef:&notesDirectoryRef error:&nsErr])) {
 				//have to make sure alias data is saved from setNotationController
 				[newNotation setAliasNeedsUpdating:YES];
 				break;
@@ -818,13 +819,12 @@ void outletObjectAwoke(id sender) {
 
 - (void)settingChangedForSelectorString:(NSString *)selectorString {
 	if ([selectorString isEqualToString:SEL_STR(setAliasDataForDefaultDirectory :sender :)]) {
-		//defaults changed for the database location -- load the new one!
-
-		OSStatus err = noErr;
+		// defaults changed for the database location -- load the new one!
+		NSError *anErr = nil;
 		NotationController *newNotation = nil;
 		NSData *newData = [prefsController aliasDataForDefaultDirectory];
 		if (newData) {
-			if ((newNotation = [[NotationController alloc] initWithAliasData:newData error:&err])) {
+			if ((newNotation = [[NotationController alloc] initWithAliasData:newData error:&anErr])) {
 				[self setNotationController:newNotation];
 
 			} else {
@@ -836,7 +836,7 @@ void outletObjectAwoke(id sender) {
 				//display alert with err--could not set notation directory
 				NSString *location = [[[NSFileManager defaultManager] pathCopiedFromAliasData:newData] stringByAbbreviatingWithTildeInPath];
 				NSString *oldLocation = [[[NSFileManager defaultManager] pathCopiedFromAliasData:oldData] stringByAbbreviatingWithTildeInPath];
-				NSString *reason = [NSString reasonStringFromCarbonFSError:err];
+				NSString *reason = [NSString reasonStringFromCarbonFSError: (int)anErr.code];
 				NSRunAlertPanel([NSString stringWithFormat:NSLocalizedString(@"Unable to initialize notes database in \n%@ because %@.", nil), location, reason],
 						[NSString stringWithFormat:NSLocalizedString(@"Reverting to current location of %@.", nil), oldLocation],
 						NSLocalizedString(@"OK", nil), NULL, NULL);
