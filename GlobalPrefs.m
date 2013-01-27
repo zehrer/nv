@@ -868,7 +868,7 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
 	FSRef ref;
 	NSURL *URL = nil;
 
-	if (!outURL && !*outURL) {
+	if (!outURL || (outURL && !*outURL)) {
 		if (![[self aliasDataForDefaultDirectory] fsRefAsAlias: &ref])
 			return nil;
 
@@ -900,7 +900,7 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
 	FSRef ref;
 	NSURL *URL = nil;
 
-	if (!outURL && !*outURL) {
+	if (!outURL || (outURL && !*outURL)) {
 		if (![[self aliasDataForDefaultDirectory] fsRefAsAlias: &ref])
 			return nil;
 
