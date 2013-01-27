@@ -23,6 +23,7 @@
 - (OSStatus)fileInNotesDirectory:(FSRef *)childRef isOwnedByUs:(BOOL *)owned hasCatalogInfo:(FSCatalogInfo *)info;
 
 - (NSMutableData *)dataFromFileInNotesDirectory:(FSRef *)childRef forFilename:(NSString *)filename;
+- (NSMutableData *)dataFromFileInNotesDirectory:(FSRef *)childRef forCatalogEntry:(NoteCatalogEntry *)catEntry;
 
 - (OSStatus)noteFileRenamed:(FSRef *)childRef fromName:(NSString *)oldName toName:(NSString *)newName;
 
@@ -36,8 +37,6 @@
 - (OSStatus)createFileIfNotPresentInNotesDirectory:(FSRef *)childRef forFilename:(NSString *)filename fileWasCreated:(BOOL *)created;
 
 - (NSURL *)writeDataToNotesDirectory:(NSData *)data withName:(NSString *)filename verifyUsingBlock:(BOOL(^)(NSURL *, NSError **))block error:(NSError **)outError;
-
-- (NSMutableData *)dataFromFileInNotesDirectory:(FSRef *)childRef forCatalogEntry:(NoteCatalogEntry *)catEntry;
 
 - (NSURL *)moveFileToTrash:(NSURL *)childURL forFilename:(NSString *)filename error:(out NSError **)outError;
 

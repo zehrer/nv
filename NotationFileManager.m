@@ -519,31 +519,20 @@ long BlockSizeForNotation(NotationController *controller) {
 	return noErr;
 }
 
-- (NSMutableData *)dataFromFileInNotesDirectory:(FSRef *)childRef forFilename:(NSString *)filename {
-	return [self dataFromFileInNotesDirectory:childRef forFilename:filename fileSize:0];
-}
-
 - (NSMutableData *)dataFromFileInNotesDirectory:(FSRef *)childRef forCatalogEntry:(NoteCatalogEntry *)catEntry {
-	return [self dataFromFileInNotesDirectory:childRef forFilename: (__bridge NSString *)catEntry.filename fileSize: catEntry.logicalSize];
+	return [self dataFromFileInNotesDirectory:childRef forFilename: (__bridge NSString *)catEntry.filename];
 }
 
-- (NSMutableData *)dataFromFileInNotesDirectory:(FSRef *)childRef forFilename:(NSString *)filename fileSize:(UInt64)givenFileSize {
-
-	UInt64 fileSize = givenFileSize;
-	char *notesDataPtr = NULL;
-
+- (NSMutableData *)dataFromFileInNotesDirectory:(FSRef *)childRef forFilename:(NSString *)filename {
 	UniChar chars[256];
 	OSStatus err = [self refreshFileRefIfNecessary:childRef withName:filename charsBuffer:chars];
 	if (noErr != err) return nil;
 
-	if ((err = FSRefReadData(childRef, BlockSizeForNotation(self), &fileSize, (void **) &notesDataPtr, noCacheMask)) != noErr) {
-		NSLog(@"%@: error %d", NSStringFromSelector(_cmd), err);
-		return nil;
-	}
-	if (!notesDataPtr)
-		return nil;
-
-	return [[NSMutableData alloc] initWithBytesNoCopy:notesDataPtr length:fileSize freeWhenDone:YES];
+	NSError *nsErr = nil;
+	NSURL *URL = [NSURL URLWithFSRef: childRef];
+	NSMutableData *data = [NSMutableData dataWithContentsOfURL: URL options: NSDataReadingUncached error: &nsErr];
+	if (!data) NSLog(@"%@: error %@", NSStringFromSelector(_cmd), nsErr);
+	return data;
 }
 
 - (OSStatus)createFileIfNotPresentInNotesDirectory:(FSRef *)childRef forFilename:(NSString *)filename fileWasCreated:(BOOL *)created {
