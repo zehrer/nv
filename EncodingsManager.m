@@ -231,20 +231,15 @@ static const NSStringEncoding AllowedEncodings[] = {
 }
 
 - (BOOL)shouldUpdateNoteFromDisk {
-	FSCatalogInfo info;
-	OSStatus err = noErr;
-	id <NoteObjectDelegate, NTNFileManager> localNoteDelegate = note.delegate;
 
-	if ((err = [localNoteDelegate fileInNotesDirectory:&fsRef isOwnedByUs:NULL hasCatalogInfo:&info]) != noErr) {
-		NSRunAlertPanel([NSString stringWithFormat:NSLocalizedString(@"Error: the modification date of the file quotemark%@quotemark could not be determined because %@", nil),
-												   note.filename, [NSString reasonStringFromCarbonFSError:err]], NSLocalizedString(@"The file may no longer exist or has incorrect permissions.", nil),
-				NSLocalizedString(@"OK", nil), NULL, NULL);
+	NSDate *diskModification = nil;
+	NSError *error = nil;
+	if (![note.noteFileURL getResourceValue: &diskModification forKey: NSURLContentModificationDateKey error: &error]) {
+		NSRunAlertPanel(error.description, error.localizedFailureReason, NSLocalizedString(@"OK", nil), nil, nil);
 		return NO;
 	}
 
 	NSDate *noteModification = note.contentModificationDate;
-	NSDate *diskModification = [NSDate datewithUTCDateTime: &info.contentModDate];
-
 	if ([noteModification isGreaterThan: diskModification]) {
 		NSInteger result = NSRunCriticalAlertPanel([NSString stringWithFormat:NSLocalizedString(@"The note quotemark%@quotemark is newer than its file on disk.", nil), note.title],
 												   NSLocalizedString(@"If you update this note with re-interpreted data from the file, you may overwrite your changes.", nil),

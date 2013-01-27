@@ -1133,20 +1133,18 @@ row) {
 		return NO;
 		
 	}
-	//regardless of whether setting resource values was successful, the file mod date could still have changed
-	OSStatus err = noErr;
-	FSCatalogInfo catInfo;
 
-	if ((err = [localDelegate fileInNotesDirectory: self.noteFileRef isOwnedByUs:NULL hasCatalogInfo:&catInfo]) != noErr) {
-		NSLog(@"Unable to get new modification date of file %@: %d", filename, err);
+	//regardless of whether setting resource values was successful, the file mod date could still have changed
+	if (!(attributes = [self.noteFileURL resourceValuesForKeys: @[NSURLContentModificationDateKey, NSURLAttributeModificationDateKey, NSURLFileSizeKey, NSURLCreationDateKey] error: &error])) {
+		NSLog(@"Unable to get new modification date of file %@: %@", filename, error);
 		return NO;
 	}
 
-	self.contentModificationDate = [NSDate datewithUTCDateTime: &catInfo.contentModDate];
-	self.attributesModificationDate = [NSDate datewithUTCDateTime: &catInfo.attributeModDate];
-	self.fileSize = (UInt32) (catInfo.dataLogicalSize & 0xFFFFFFFF);
+	self.contentModificationDate = attributes[NSURLContentModificationDateKey];
+	self.attributesModificationDate = attributes[NSURLAttributeModificationDateKey];
+	self.fileSize = [attributes[NSURLFileSizeKey] unsignedIntegerValue];
 
-	NSDate *createDate = [NSDate datewithUTCDateTime: &catInfo.createDate];
+	NSDate *createDate = attributes[NSURLCreationDateKey];
 	if ([self.creationDate compare: createDate] == NSOrderedDescending) {
 		self.creationDate = createDate;
 	}
@@ -1250,13 +1248,15 @@ row) {
 	}
 
 	if ([self updateFromData:data inFormat:currentFormatID]) {
-		FSCatalogInfo info;
-		if ([localDelegate fileInNotesDirectory: self.noteFileRef isOwnedByUs:NULL hasCatalogInfo:&info] == noErr) {
-			self.contentModificationDate = [NSDate datewithUTCDateTime: &info.contentModDate];
-			self.attributesModificationDate = [NSDate datewithUTCDateTime: &info.attributeModDate];
-			self.fileSize = (UInt32) (info.dataLogicalSize & 0xFFFFFFFF);
+		NSDictionary *attributes = nil;
+		NSError *error = nil;
+		
+		if ((attributes = [self.noteFileURL resourceValuesForKeys: @[NSURLContentModificationDateKey, NSURLAttributeModificationDateKey, NSURLFileSizeKey, NSURLCreationDateKey] error: &error])) {
+			self.contentModificationDate = attributes[NSURLContentModificationDateKey];
+			self.attributesModificationDate = attributes[NSURLAttributeModificationDateKey];
+			self.fileSize = [attributes[NSURLFileSizeKey] unsignedIntegerValue];
 
-			NSDate *createDate = [NSDate datewithUTCDateTime: &info.createDate];
+			NSDate *createDate = attributes[NSURLCreationDateKey];
 			if ([self.creationDate compare: createDate] == NSOrderedDescending) {
 				self.creationDate = createDate;
 			}

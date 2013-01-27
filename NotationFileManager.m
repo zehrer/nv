@@ -421,27 +421,6 @@ static struct statfs *StatFSVolumeInfo(NotationController *controller) {
 	return [URL.URLByDeletingLastPathComponent isEqualToFileURL: self.noteDirectoryURL];
 }
 
-- (OSStatus)fileInNotesDirectory:(FSRef *)childRef isOwnedByUs:(BOOL *)owned hasCatalogInfo:(FSCatalogInfo *)info {
-	FSRef parentRef;
-	FSCatalogInfoBitmap whichInfo = kFSCatInfoNone;
-
-	if (owned) *owned = NO;
-
-	if (info) {
-		whichInfo = kFSCatInfoContentMod | kFSCatInfoCreateDate | kFSCatInfoAttrMod | kFSCatInfoDataSizes;
-		bzero(info, sizeof(FSCatalogInfo));
-	}
-
-	OSStatus err = noErr;
-
-	if ((err = FSGetCatalogInfo(childRef, whichInfo, info, NULL, NULL, &parentRef)) != noErr)
-		return err;
-
-	if (owned) *owned = (FSCompareFSRefs(&parentRef, &noteDirectoryRef) == noErr);
-
-	return noErr;
-}
-
 - (NSMutableData *)dataFromFileInNotesDirectory:(FSRef *)childRef forCatalogEntry:(NoteCatalogEntry *)catEntry {
 	return [self dataFromFileInNotesDirectory:childRef forFilename: (__bridge NSString *)catEntry.filename];
 }
