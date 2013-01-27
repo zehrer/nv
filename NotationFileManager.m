@@ -461,19 +461,6 @@ NSUInteger diskUUIDIndexForNotation(NotationController *controller) {
 	return noErr;
 }
 
-- (OSStatus)deleteFileInNotesDirectory:(FSRef *)childRef forFilename:(NSString *)filename {
-	UniChar chars[256];
-	OSStatus err = [self refreshFileRefIfNecessary:childRef withName:filename charsBuffer:chars];
-	if (noErr != err) return err;
-
-	if ((err = FSDeleteObject(childRef)) != noErr) {
-		NSLog(@"Error deleting file: %d", err);
-		return err;
-	}
-
-	return noErr;
-}
-
 - (NSMutableData *)dataFromFileInNotesDirectory:(FSRef *)childRef forCatalogEntry:(NoteCatalogEntry *)catEntry {
 	return [self dataFromFileInNotesDirectory:childRef forFilename: (__bridge NSString *)catEntry.filename];
 }

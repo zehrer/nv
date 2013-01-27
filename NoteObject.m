@@ -1427,20 +1427,7 @@ row) {
 }
 
 - (void)removeFileFromDirectory {
-#if PERMADELETE
-	OSStatus err = noErr;
-	if ((err = [delegate deleteFileInNotesDirectory: self.noteFileRef forFilename:filename]) != noErr) {
-		
-		if (err != fnfErr) {
-			//what happens if we wanted to undo the deletion? moveFileToTrash will now tell the note that it shouldn't look for the file
-			//so it would not be rewritten on re-creation?
-			NSLog(@"Unable to delete file %@ (%d); moving to trash instead", filename, err);
-			[self moveFileToTrash];
-		}
-	}
-#else
 	[self moveFileToTrash];
-#endif
 }
 
 - (BOOL)removeUsingJournal:(WALStorageController *)wal {
