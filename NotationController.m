@@ -203,35 +203,32 @@
 	}
 }
 
-- (OSStatus)_readAndInitializeSerializedNotes {
-
+- (BOOL)_readAndInitializeSerializedNotesWithError:(out NSError **)outError {
 	OSStatus err = noErr;
-	if ((err = [self createFileIfNotPresentInNotesDirectory:&noteDatabaseRef forFilename:NotesDatabaseFileName fileWasCreated:nil]) != noErr)
-		return err;
+	if ((err = [self createFileIfNotPresentInNotesDirectory:&noteDatabaseRef forFilename:NotesDatabaseFileName fileWasCreated:nil]) != noErr) {
+		if (outError) *outError = [NSError errorWithDomain: NSOSStatusErrorDomain code: err userInfo: nil];
+		return NO;
+	}
 
-	UInt64 fileSize = 0;
-	char *notesData = NULL;
-	if ((err = FSRefReadData(&noteDatabaseRef, BlockSizeForNotation(self), &fileSize, (void **) &notesData, noCacheMask)) != noErr)
-		return err;
+	NSError *nsErr = nil;
+	NSData *notesData = nil;
+	if (!(notesData = [NSData dataWithContentsOfURL: self.noteDatabaseURL options: NSDataReadingUncached | NSDataReadingMappedIfSafe error: &nsErr])) {
+		if (outError) *outError = nsErr;
+		return NO;
+	}
 
 	FrozenNotation *frozenNotation = nil;
-
-	if (fileSize > 0) {
-		NSData *archivedNotation = [[NSData alloc] initWithBytesNoCopy:notesData length:fileSize freeWhenDone:NO];
+	if (notesData.length) {
 		@try {
-			frozenNotation = [NSKeyedUnarchiver unarchiveObjectWithData:archivedNotation];
+			frozenNotation = [NSKeyedUnarchiver unarchiveObjectWithData: notesData];
 		} @catch (NSException *e) {
 			NSLog(@"Error unarchiving notes and preferences from data (%@, %@)", [e name], [e reason]);
 
-			if (notesData)
-				free(notesData);
-
 			//perhaps this shouldn't be an error, but the user should instead have the option of overwriting the DB with a new one?
-			return kCoderErr;
+			if (outError) *outError = [NSError errorWithDomain: NTNErrorDomain code: NTNDeserializationError userInfo: @{NSURLErrorKey: self.noteDatabaseURL}];
+			return NO;
 		}
-
 	}
-
 
 	if (!(notationPrefs = [frozenNotation notationPrefs]))
 		notationPrefs = [[NotationPrefs alloc] init];
@@ -240,7 +237,6 @@
 	//notationPrefs will have the index of the current disk UUID (or we will add it otherwise)
 	//which will be used to determine which attr-mod-time to use for each note after decoding
 	[self initializeDiskUUIDIfNecessary];
-
 
 	syncSessionController = [[SyncSessionController alloc] initWithSyncDelegate:self notationPrefs:notationPrefs];
 
@@ -265,10 +261,7 @@
 
 	[self makeForegroundTextColorMatchGlobalPrefs];
 
-	if (notesData)
-		free(notesData);
-
-	return noErr;
+	return YES;
 }
 
 - (BOOL)initializeJournaling {

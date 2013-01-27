@@ -127,7 +127,7 @@ typedef NS_OPTIONS(NSInteger, NVNoteRevealOptions) {
 
 - (NSData *)aliasDataForNoteDirectory;
 
-- (OSStatus)_readAndInitializeSerializedNotes;
+- (BOOL)_readAndInitializeSerializedNotesWithError:(out NSError **)outError;
 
 - (void)processRecoveredNotes:(NSDictionary *)dict;
 
