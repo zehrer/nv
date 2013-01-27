@@ -982,12 +982,10 @@ row) {
 	}
 
 	//createFileWithNameIfNotPresentInNotesDirectory: works by name, so if this file is not owned by us at this point, it was a race with moving it
-	FSCatalogInfo info;
-	if (localDelegate && [localDelegate fileInNotesDirectory: self.noteFileRef isOwnedByUs:&fileIsOwned hasCatalogInfo:&info] != noErr)
-		return NO;
+	NSDate *timeOnDisk = nil;
+	if (![self.noteFileURL getResourceValue: &timeOnDisk forKey: NSURLContentModificationDateKey error: NULL]) return NO;
 
 	NSDate *lastTime = self.contentModificationDate;
-	NSDate *timeOnDisk = [NSDate datewithUTCDateTime: &info.contentModDate];
 
 	if ([lastTime isGreaterThan: timeOnDisk]) {
 		NSLog(@"writing note %@, because it was modified", titleString);
@@ -1135,8 +1133,7 @@ row) {
 		return NO;
 		
 	}
-
-	//regardless of whether FSSetCatalogInfo was successful, the file mod date could still have changed
+	//regardless of whether setting resource values was successful, the file mod date could still have changed
 	OSStatus err = noErr;
 	FSCatalogInfo catInfo;
 
@@ -1315,14 +1312,14 @@ row) {
 	if (!self.creationDate || didRestoreLabels) {
 		//when reading files from disk for the first time, grab their creation date
 		//or if this file has just been altered, grab its newly-changed modification dates
+		NSDictionary *attributes = [self.noteFileURL resourceValuesForKeys: @[NSURLCreationDateKey, NSURLContentModificationDateKey, NSURLAttributeModificationDateKey] error: NULL];
 
-		FSCatalogInfo info;
-		if ([localDelegate fileInNotesDirectory: self.noteFileRef isOwnedByUs:NULL hasCatalogInfo:&info] == noErr) {
-			if (!self.creationDate) self.creationDate = [NSDate datewithUTCDateTime: &info.createDate];
-			
+		if (attributes) {
+			if (!self.creationDate) self.creationDate = attributes[NSURLCreationDateKey];
+
 			if (didRestoreLabels) {
-				self.contentModificationDate = [NSDate datewithUTCDateTime: &info.contentModDate];
-				self.attributesModificationDate = [NSDate datewithUTCDateTime: &info.attributeModDate];
+				self.contentModificationDate = attributes[NSURLContentModificationDateKey];
+				self.attributesModificationDate = attributes[NSURLAttributeModificationDateKey];
 			}
 		}
 	}
