@@ -58,7 +58,7 @@ typedef NSRange NSRange32;
 
 @property(nonatomic, copy, readwrite) NSString *filename;
 @property(nonatomic, readwrite) NoteStorageFormat storageFormat;
-@property(nonatomic, readwrite) UInt32 fileSize;
+@property(nonatomic, readwrite) NSUInteger fileSize;
 @property(nonatomic, copy, readwrite) NSString *title;
 @property(nonatomic, copy, readwrite) NSString *labels;
 @property(nonatomic, readwrite) NSStringEncoding fileEncoding;
@@ -77,7 +77,6 @@ typedef NSRange NSRange32;
 
 @synthesize filename = filename;
 @synthesize storageFormat = currentFormatID;
-@synthesize fileSize = logicalSize;
 @synthesize title = titleString;
 @synthesize labels = labelString;
 @synthesize fileEncoding = fileEncoding;
@@ -235,11 +234,6 @@ NSInteger compareTitleStringReverse(id *a, id *b) {
 	return (NSInteger) stringResult;
 }
 
-NSInteger compareFileSize(id *a, id *b) {
-	return (*(NoteObject **) a)->logicalSize - (*(NoteObject **) b)->logicalSize;
-}
-
-
 #include "SynchronizedNoteMixIns.h"
 
 //DefColAttrAccessor(wordCountOfNote, wordCountString)
@@ -344,7 +338,7 @@ row) {
 			logSequenceNumber = [decoder decodeInt32ForKey:VAR_STR(logSequenceNumber)];
 
 			currentFormatID = [decoder decodeInt32ForKey:VAR_STR(currentFormatID)];
-			logicalSize = [decoder decodeInt32ForKey:VAR_STR(logicalSize)];
+			self.fileSize = [decoder decodeIntegerForKey: VAR_STR(logicalSize)];
 
 			if ([decoder containsValueForKey: VAR_STR(contentModificationDate)]) {
 				_contentModificationDate = [decoder decodeObjectForKey: VAR_STR(contentModificationDate)];
@@ -401,7 +395,8 @@ row) {
 		[coder encodeInt32:logSequenceNumber forKey:VAR_STR(logSequenceNumber)];
 
 		[coder encodeInt32:currentFormatID forKey:VAR_STR(currentFormatID)];
-		[coder encodeInt32:logicalSize forKey:VAR_STR(logicalSize)];
+
+		[coder encodeInteger: self.fileSize forKey:VAR_STR(logicalSize)];
 
 		[coder encodeObject: self.contentModificationDate forKey: VAR_STR(contentModificationDate)];
 		[coder encodeObject: self.attributesModificationDate forKey: VAR_STR(attributesModificationDate)];
@@ -468,7 +463,7 @@ row) {
 		self.storageFormat = [localDelegate currentNoteStorageFormat];
 		self.contentModificationDate = entry.contentModificationDate;
 		self.attributesModificationDate = entry.attributeModificationDate;
-		self.fileSize = entry.logicalSize;
+		self.fileSize = entry.fileSize;
 		self.creationDate = entry.creationDate;
 
 		CFUUIDRef uuidRef = CFUUIDCreate(kCFAllocatorDefault);
@@ -1267,7 +1262,7 @@ row) {
 
 	self.contentModificationDate = catEntry.contentModificationDate;
 	self.attributesModificationDate = catEntry.attributeModificationDate;
-	self.fileSize = catEntry.logicalSize;
+	self.fileSize = catEntry.fileSize;
 
 	if ([self.creationDate compare: catEntry.creationDate] == NSOrderedDescending) {
 		self.creationDate = catEntry.creationDate;

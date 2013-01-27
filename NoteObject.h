@@ -84,7 +84,6 @@ typedef struct _NoteFilterContext {
 
 	//for syncing to text file
 	NSString *filename;
-	UInt32 logicalSize;
 	PerDiskInfo *perDiskInfoGroups;
 	NSUInteger perDiskInfoGroupCount;
 	NoteStorageFormat currentFormatID;
@@ -127,8 +126,6 @@ NSInteger compareLabelStringReverse(id *a, id *b);
 
 NSInteger compareTitleStringReverse(id *a, id *b);
 
-NSInteger compareFileSize(id *a, id *b);
-
 //syncing w/ server and from journal
 - (CFUUIDBytes *)uniqueNoteIDBytes;
 
@@ -143,7 +140,7 @@ NSInteger compareFileSize(id *a, id *b);
 //syncing w/ files in directory
 @property(nonatomic, copy, readonly) NSString *filename;
 @property(nonatomic, readonly) NoteStorageFormat storageFormat;
-@property(nonatomic, readonly) UInt32 fileSize;
+@property(nonatomic, readonly) NSUInteger fileSize;
 @property(nonatomic, copy, readonly) NSString *title;
 @property(nonatomic, copy, readonly) NSString *labels;
 @property(nonatomic, readonly) NSStringEncoding fileEncoding;

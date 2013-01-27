@@ -218,7 +218,7 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void *info, size_t nu
 
 			NSNumber *size = nil;
 			[URL getResourceValue: &size forKey: NSURLFileSizeKey error: NULL];
-			if (size) entry.logicalSize = [size unsignedIntValue];
+			if (size) entry.fileSize = [size unsignedIntegerValue];
 
 			NSDate *creationDate = nil;
 			[URL getResourceValue: &creationDate forKey: NSURLCreationDateKey error: NULL];
@@ -253,7 +253,7 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void *info, size_t nu
 		noteLastMod = catLastMod;
 	}
 
-	BOOL sizesEquals = (aNoteObject.fileSize == catEntry.logicalSize);
+	BOOL sizesEquals = (aNoteObject.fileSize == catEntry.fileSize);
 	BOOL lastAttrModDatesEqual = [noteLastAttrMod isEqualToDate: catLastAttrMod];
 	BOOL lastModDatesEquals = [noteLastMod isEqualToDate: catLastMod];
 
@@ -478,7 +478,7 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void *info, size_t nu
 	NSMutableDictionary *addedDict = [NSMutableDictionary dictionaryWithCapacity:[addedEntries count]];
 
 	for (NoteCatalogEntry *addedEntry in addedEntries) {
-		NSNumber *sizeKey = @(addedEntry.logicalSize);
+		NSNumber *sizeKey = @(addedEntry.fileSize);
 		id sameSizeObj = addedDict[sizeKey];
 
 		if ([sameSizeObj isKindOfClass:[NSArray class]]) {
@@ -534,7 +534,7 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void *info, size_t nu
 		}
 
 		if (!foundMatchingContent) {
-			NSLog(@"File %@ _actually_ removed (size: %u)", removedObj.filename, removedObj.fileSize);
+			NSLog(@"File %@ _actually_ removed (size: %lu)", removedObj.filename, removedObj.fileSize);
 			[deletionManager addDeletedNote:removedObj];
 		}
 	}

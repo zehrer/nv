@@ -8,10 +8,10 @@
 
 @interface NoteCatalogEntry : NSObject
 
-@property (nonatomic) UInt32 logicalSize;
 @property (nonatomic) OSType fileType;
 
 @property (nonatomic, copy) NSString *filename;
+@property (nonatomic) NSUInteger fileSize;
 @property (nonatomic, copy) NSDate *creationDate;
 @property (nonatomic, copy) NSDate *contentModificationDate;
 @property (nonatomic, copy) NSDate *attributeModificationDate;
