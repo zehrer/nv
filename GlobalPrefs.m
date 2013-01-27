@@ -30,6 +30,7 @@
 #import "NSString_NV.h"
 #import "AppController.h"
 #import "NotationController.h"
+#import "NSURL+Notation.h"
 #import <MASShortcut/MASShortcut.h>
 #import <MASShortcut/MASShortcut+UserDefaults.h>
 #import <objc/message.h>
@@ -863,20 +864,24 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
 	return [defaults dataForKey:DirectoryAliasKey];
 }
 
-- (NSString *)displayNameForDefaultDirectoryWithFSRef:(FSRef *)fsRef {
+- (NSString *)displayNameForDefaultDirectoryReturningURL:(out NSURL **)outURL {
+	FSRef ref;
+	NSURL *URL = nil;
 
-	if (!fsRef)
-		return nil;
-
-	if (IsZeros(fsRef, sizeof(FSRef))) {
-		if (![[self aliasDataForDefaultDirectory] fsRefAsAlias:fsRef])
+	if (!outURL && !*outURL) {
+		if (![[self aliasDataForDefaultDirectory] fsRefAsAlias: &ref])
 			return nil;
+
+		URL = [NSURL URLWithFSRef: &ref];
+		if (!URL) return nil;
+		if (outURL) *outURL = URL;
+	} else {
+		URL = *outURL;
 	}
+
 	CFStringRef displayName = NULL;
-	if (LSCopyDisplayNameForRef(fsRef, &displayName) == noErr) {
-		return (__bridge NSString *) displayName;
-	}
-	return nil;
+	LSCopyDisplayNameForURL((__bridge CFURLRef)URL, &displayName);
+	return (__bridge NSString *) displayName;
 }
 
 - (void)setBlorImportAttempted:(BOOL)value {
@@ -891,33 +896,24 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
 	[defaults synchronize];
 }
 
-- (NSImage *)iconForDefaultDirectoryWithFSRef:(FSRef *)fsRef {
-	OSStatus err = noErr;
+- (NSImage *)iconForDefaultDirectoryReturningURL:(out NSURL **)outURL {
+	FSRef ref;
+	NSURL *URL = nil;
 
-	if (!fsRef)
-		return nil;
-
-	if (IsZeros(fsRef, sizeof(FSRef))) {
-		if (![[self aliasDataForDefaultDirectory] fsRefAsAlias:fsRef])
+	if (!outURL && !*outURL) {
+		if (![[self aliasDataForDefaultDirectory] fsRefAsAlias: &ref])
 			return nil;
+
+		URL = [NSURL URLWithFSRef: &ref];
+		if (!URL) return nil;
+		if (outURL) *outURL = URL;
+	} else {
+		URL = *outURL;
 	}
-	IconRef iconRef;
-	if ((err = GetIconRefFromFileInfo(fsRef, 0, NULL, 0, NULL, kIconServicesNormalUsageFlag, &iconRef, NULL)) == noErr) {
-
-		NSImage *image = [[NSImage alloc] initWithSize:NSMakeSize(16.0f, 16.0f)];
-		NSRect frame = NSMakeRect(0.0f, 0.0f, 16.0f, 16.0f);
-
-		[image lockFocus];
-		err = PlotIconRefInContext([[NSGraphicsContext currentContext] graphicsPort], (CGRect *) &frame, 0, 0, nil, 0, iconRef);
-		[image unlockFocus];
-
-		if (err == noErr)
-			return image;
-	}
-
-	NSLog(@"iconForDefaultDirectory error: %d", err);
-
-	return nil;
+	
+	NSImage *image = nil;
+	[URL getResourceValue: &image forKey: NSURLEffectiveIconKey error: NULL];
+	return image;
 }
 
 //elasticthreads' work

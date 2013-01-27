@@ -214,7 +214,7 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2);
 
 - (NSData *)aliasDataForDefaultDirectory;
 
-- (NSString *)displayNameForDefaultDirectoryWithFSRef:(FSRef *)fsRef;
+- (NSString *)displayNameForDefaultDirectoryReturningURL:(out NSURL **)outURL;
 
 - (void)setBlorImportAttempted:(BOOL)value;
 
@@ -222,7 +222,7 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2);
 
 - (void)synchronize;
 
-- (NSImage *)iconForDefaultDirectoryWithFSRef:(FSRef *)fsRef;
+- (NSImage *)iconForDefaultDirectoryReturningURL:(out NSURL **)outURL;
 
 //
 - (void)setRTL:(BOOL)value sender:(id)sender;

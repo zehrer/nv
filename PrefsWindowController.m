@@ -238,12 +238,12 @@
 - (NSMenu *)directorySelectionMenu {
 	NSMenu *theMenu = [[NSMenu alloc] initWithTitle:@"Note Directory Menu"];
 
-	FSRef targetRef = {{0}};
-	NSString *name = [prefsController displayNameForDefaultDirectoryWithFSRef:&targetRef];
+	NSURL *targetURL = nil;
+	NSString *name = [prefsController displayNameForDefaultDirectoryReturningURL: &targetURL];
 	if (!name)
 		name = NSLocalizedString(@"<Directory unknown>", nil);
 
-	NSImage *iconImage = [prefsController iconForDefaultDirectoryWithFSRef:&targetRef];
+	NSImage *iconImage = [prefsController iconForDefaultDirectoryReturningURL: &targetURL];
 
 	NSMenuItem *theMenuItem = [[NSMenuItem alloc] initWithTitle:name action:nil keyEquivalent:@""];
 
