@@ -553,8 +553,9 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString *serv
 
 	preferencesChanged = YES;
 
-	if ([self.delegate respondsToSelector:@selector(databaseEncryptionSettingsChanged)])
-		[self.delegate databaseEncryptionSettingsChanged];
+	id <NVPreferencesDelegate> delegate = self.delegate;
+	if ([delegate respondsToSelector:@selector(databaseEncryptionSettingsChanged)])
+		[delegate databaseEncryptionSettingsChanged];
 }
 
 - (NSData *)WALSessionKey {
@@ -575,20 +576,22 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString *serv
 
 		[self updateOSTypesArray];
 
-		if ([self.delegate respondsToSelector:@selector(databaseSettingsChangedFromOldFormat:)])
-			[self.delegate databaseSettingsChangedFromOldFormat:oldFormat];
+		id <NVPreferencesDelegate> delegate = self.delegate;
+		if ([delegate respondsToSelector:@selector(databaseSettingsChangedFromOldFormat:)])
+			[delegate databaseSettingsChangedFromOldFormat:oldFormat];
 
 		//should notationprefs need to do this?
-		if ([self.delegate respondsToSelector:@selector(flushEverything)])
-			[self.delegate flushEverything];
+		if ([delegate respondsToSelector:@selector(flushEverything)])
+			[delegate flushEverything];
 	}
 }
 
 - (BOOL)shouldDisplaySheetForProposedFormat:(NSInteger)proposedFormat {
 	BOOL notesExist = YES;
 
-	if ([self.delegate respondsToSelector:@selector(totalNoteCount)])
-		notesExist = [self.delegate totalNoteCount] > 0;
+	id <NVPreferencesDelegate> delegate = self.delegate;
+	if ([delegate respondsToSelector:@selector(totalNoteCount)])
+		notesExist = [delegate totalNoteCount] > 0;
 
 	return (proposedFormat == SingleDatabaseFormat && notesStorageFormat != SingleDatabaseFormat && notesExist);
 }
@@ -607,8 +610,9 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString *serv
 
 	if (returnCode == NSAlertOtherReturn) {
 		//tell delegate to delete all its notes' files
-		if ([self.delegate respondsToSelector:@selector(trashRemainingNoteFilesInDirectory)])
-			[self.delegate trashRemainingNoteFilesInDirectory];
+		id <NVPreferencesDelegate> delegate = self.delegate;
+		if ([delegate respondsToSelector:@selector(trashRemainingNoteFilesInDirectory)])
+			[delegate trashRemainingNoteFilesInDirectory];
 	}
 	//but what if the files remain after switching to a single-db format--and then the user deletes a bunch of the files themselves?
 	//should we switch the currentFormatIDs of those notes to single-db? I guess.
@@ -645,8 +649,9 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString *serv
 	}
 
 	if (oldValue != value) {
-		if ([self.delegate respondsToSelector:@selector(databaseEncryptionSettingsChanged)])
-			[self.delegate databaseEncryptionSettingsChanged];
+		id <NVPreferencesDelegate> delegate = self.delegate;
+		if ([delegate respondsToSelector:@selector(databaseEncryptionSettingsChanged)])
+			[delegate databaseEncryptionSettingsChanged];
 	}
 }
 
@@ -675,7 +680,8 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString *serv
 		accountDict[@"enabled"] = @(isEnabled);
 
 		preferencesChanged = YES;
-		[self.delegate syncSettingsChangedForService:serviceName];
+		id <NVPreferencesDelegate> delegate = self.delegate;
+		[delegate syncSettingsChangedForService:serviceName];
 	}
 }
 
@@ -685,7 +691,8 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString *serv
 	if ([self syncFrequencyInMinutesForServiceName:serviceName] != frequencyInMinutes) {
 		accountDict[@"frequency"] = @(frequencyInMinutes);
 		preferencesChanged = YES;
-		[self.delegate syncSettingsChangedForService:serviceName];
+		id <NVPreferencesDelegate> delegate = self.delegate;
+		[delegate syncSettingsChangedForService:serviceName];
 	}
 }
 
@@ -716,7 +723,9 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString *serv
 		accountDict[@"username"] = username;
 
 		preferencesChanged = YES;
-		[self.delegate syncSettingsChangedForService:serviceName];
+
+		id <NVPreferencesDelegate> delegate = self.delegate;
+		[delegate syncSettingsChangedForService:serviceName];
 	}
 }
 
@@ -768,7 +777,9 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString *serv
 		}
 
 		preferencesChanged = YES;
-		[self.delegate syncSettingsChangedForService:serviceName];
+
+		id <NVPreferencesDelegate> delegate = self.delegate;
+		[delegate syncSettingsChangedForService:serviceName];
 	}
 }
 
@@ -793,7 +804,8 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString *serv
 			NSLog(@"not removing password for %@ because a keychain sync account name couldn't be created", serviceName);
 		}
 
-		[self.delegate syncSettingsChangedForService:serviceName];
+		id <NVPreferencesDelegate> delegate = self.delegate;
+		[delegate syncSettingsChangedForService:serviceName];
 	}
 }
 
@@ -1025,7 +1037,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString *serv
 }
 
 - (BOOL)catalogEntryAllowed:(NoteCatalogEntry *)catEntry {
-	NSString *filename = (__bridge NSString *)catEntry.filename;
+	NSString *filename = catEntry.filename;
 
 	if (![filename length])
 		return NO;

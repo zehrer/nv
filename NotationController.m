@@ -1477,14 +1477,6 @@
 	return img;
 }
 
-- (void)dealloc {
-
-	[notationPrefs setDelegate:nil];
-	for (NoteObject *note in allNotes) {
-		note.delegate = nil;
-	}
-}
-
 #pragma mark - 
 
 - (NSArray *)labelTitlesPrefixedByString:(NSString *)prefix indexOfSelectedItem:(NSInteger *)anIndex minusWordSet:(NSSet *)antiSet {

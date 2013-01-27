@@ -228,6 +228,6 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString *serv
 
 - (BOOL)catalogEntryAllowed:(NoteCatalogEntry *)catEntry;
 
-@property(nonatomic, unsafe_unretained) id <NVPreferencesDelegate> delegate;
+@property(nonatomic, weak) id <NVPreferencesDelegate> delegate;
 
 @end
