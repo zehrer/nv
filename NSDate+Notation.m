@@ -23,7 +23,7 @@ static NSTimeInterval CarbonReferenceDate()
 
 @implementation NSDate (Notation)
 
-+ (NSDate *)datewithUTCDateTime:(const UTCDateTime *)utc {
++ (NSDate *)dateWithUTCDateTime:(const UTCDateTime *)utc {
 	NSTimeInterval utcTime = *(unsigned long long*)utc / 65536.0;
     return [NSDate dateWithTimeIntervalSinceReferenceDate: CarbonReferenceDate() + utcTime];
 }

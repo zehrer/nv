@@ -10,7 +10,7 @@
 
 @interface NSDate (Notation)
 
-+ (NSDate *)datewithUTCDateTime:(const UTCDateTime *)utc;
++ (NSDate *)dateWithUTCDateTime:(const UTCDateTime *)utc;
 - (void)getUTCDateTime:(out UTCDateTime *)utc;
 
 @end

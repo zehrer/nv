@@ -127,7 +127,7 @@ typedef NSRange NSRange32;
 				//check if this date has actually been initialized; this entry could be here only because -setFileNoteID: was called
 				if (perDiskInfoGroups[i].diskIDIndex == tableIndex && !UTCDateTimeIsEmpty(perDiskInfoGroups[i].attrTime)) {
 					UTCDateTime time = perDiskInfoGroups[i].attrTime;
-					_attributesModificationDate = [NSDate datewithUTCDateTime: &time];
+					_attributesModificationDate = [NSDate dateWithUTCDateTime: &time];
 					break;
 				}
 			}
@@ -346,7 +346,7 @@ row) {
 				UTCDateTime time;
 				int64_t oldDate = [decoder decodeInt64ForKey:VAR_STR(fileModifiedDate)];
 				memcpy(&time, &oldDate, sizeof(int64_t));
-				_contentModificationDate = [NSDate datewithUTCDateTime: &time];
+				_contentModificationDate = [NSDate dateWithUTCDateTime: &time];
 			}
 
 			if ([decoder containsValueForKey: VAR_STR(attributesModificationDate)]) {
