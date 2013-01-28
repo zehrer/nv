@@ -8,15 +8,11 @@
 
 #import "NSDate+Notation.h"
 
-static NSTimeInterval CarbonReferenceDate()
-{
+static NSDate *NTNCarbonReferenceDate() {
 	static dispatch_once_t onceToken;
-	static NSTimeInterval carbonReferenceDate = 0;
+	static NSDate * carbonReferenceDate = nil;
 	dispatch_once(&onceToken, ^{
-        NSTimeZone *gmt = [NSTimeZone timeZoneWithAbbreviation:@"GMT"];
-        NSDate *ref = [[NSCalendarDate alloc] initWithYear: 1904 month: 1 day: 1
-													  hour: 0 minute: 0 second: 0 timeZone: gmt];
-        carbonReferenceDate = [ref timeIntervalSinceReferenceDate];
+        carbonReferenceDate = [[NSCalendarDate alloc] initWithYear: 1904 month: 1 day: 1 hour: 0 minute: 0 second: 0 timeZone: [NSTimeZone timeZoneForSecondsFromGMT: 0]];
 	});
 	return carbonReferenceDate;
 }
@@ -24,13 +20,14 @@ static NSTimeInterval CarbonReferenceDate()
 @implementation NSDate (Notation)
 
 + (NSDate *)dateWithUTCDateTime:(const UTCDateTime *)utc {
+	NSParameterAssert(utc);
 	NSTimeInterval utcTime = *(unsigned long long*)utc / 65536.0;
-    return [NSDate dateWithTimeIntervalSinceReferenceDate: CarbonReferenceDate() + utcTime];
+	return [NTNCarbonReferenceDate() dateByAddingTimeInterval: utcTime];
 }
 
 - (void)getUTCDateTime:(out UTCDateTime *)utc {
 	NSParameterAssert(utc);
-	*(unsigned long long *)utc = (self.timeIntervalSinceReferenceDate - CarbonReferenceDate()) * 65536.0;
+	*(unsigned long long *)utc = [self timeIntervalSinceDate: NTNCarbonReferenceDate()] * 65536.0;
 }
 
 @end
