@@ -210,27 +210,27 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void *info, size_t nu
 
 			NSString *filename = nil;
 			[URL getResourceValue: &filename forKey: NSURLNameKey error: NULL];
-			if (filename) entry.filename = filename;
+			entry.filename = filename;
 
 			NSString *fileType = nil;
 			[URL getResourceValue: &fileType forKey: NSURLTypeIdentifierKey error: NULL];
-			if (fileType) entry.fileType = UTGetOSTypeFromString((__bridge CFStringRef)fileType);
+			entry.fileType = UTGetOSTypeFromString((__bridge CFStringRef)fileType);
 
 			NSNumber *size = nil;
 			[URL getResourceValue: &size forKey: NSURLFileSizeKey error: NULL];
-			if (size) entry.fileSize = [size unsignedIntegerValue];
+			entry.fileSize = [size unsignedIntegerValue];
 
 			NSDate *creationDate = nil;
 			[URL getResourceValue: &creationDate forKey: NSURLCreationDateKey error: NULL];
-			if (creationDate) entry.creationDate = creationDate;
-
-			NSDate *contentModificationDate = nil;
-			[URL getResourceValue: &creationDate forKey: NSURLContentModificationDateKey error: NULL];
-			if (contentModificationDate) entry.contentModificationDate = contentModificationDate;
+			entry.creationDate = creationDate;
 
 			NSDate *attributeModificationDate = nil;
 			[URL getResourceValue: &attributeModificationDate forKey: NSURLAttributeModificationDateKey error: NULL];
-			if (attributeModificationDate) entry.attributeModificationDate = attributeModificationDate;
+			entry.attributeModificationDate = attributeModificationDate;
+			
+			NSDate *contentModificationDate = nil;
+			[URL getResourceValue: &contentModificationDate forKey: NSURLContentModificationDateKey error: NULL];
+			entry.contentModificationDate = contentModificationDate ?: attributeModificationDate;
 
 			[catalogEntries addObject: entry];
 		}

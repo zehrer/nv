@@ -1418,8 +1418,7 @@ row) {
 	//else we don't turn file updating off--we might be overwriting the state of a previous note-dirty message
 
 	id <NoteObjectDelegate, SynchronizedNoteObjectDelegate> localDelegate = (id) self.delegate;
-
-	if (updateTime) {
+	if (localDelegate && updateTime) {
 		self.modificationDate = [NSDate date];
 
 		if ([localDelegate currentNoteStorageFormat] == SingleDatabaseFormat) {
