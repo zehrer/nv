@@ -49,7 +49,8 @@
 		}
 	}
 
-	NSURL *noteDirectoryURL = [notationPrefs.delegate noteDirectoryURL];
+	id <NVPreferencesDelegate> delegate = notationPrefs.delegate;
+	NSURL *noteDirectoryURL = [delegate noteDirectoryURL];
 	[helpStringField setStringValue:[NSString stringWithFormat:NSLocalizedString(@"Please enter the passphrase to access notes in %@.", nil),
 															   [noteDirectoryURL.path stringByAbbreviatingWithTildeInPath]]];
 
