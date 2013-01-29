@@ -1051,8 +1051,7 @@ row) {
 		//see if the file's fileModDate (if it exists) is newer than this note's current fileModificationDate
 		//could offer to merge or revert changes
 
-		NSURL *newNoteFileURL = nil; // change this to the noteFileURL ivar one day
-		if (!(newNoteFileURL = [localDelegate writeDataToNotesDirectory: formattedData withName: filename verifyUsingBlock: NULL error: &error])) {
+		if (!(self.noteFileURL = [localDelegate writeDataToNotesDirectory: formattedData withName: filename verifyUsingBlock: NULL error: &error])) {
 			NSLog(@"Unable to save note file %@", filename);
 			[localDelegate noteDidNotWrite:self error: error];
 			return NO;
