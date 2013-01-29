@@ -149,7 +149,7 @@
 - (void)awakeFromNib {
 	cssString = [[self class] css];
 	htmlString = [[self class] html];
-	lastNote = [[NSApp delegate] selectedNoteObject];
+	lastNote = [[NSApp delegate] currentNote];
 	[sourceView setTextContainerInset:NSMakeSize(10.0, 12.0)];
 	NSScrollView *scrlView = [sourceView enclosingScrollView];
 	[scrlView setScrollsDynamically:YES];
@@ -309,15 +309,15 @@
 	NSString *processedString = [NSString performSelector:mode withObject:rawString];
 	NSString *previewString = processedString;
 	NSMutableString *outputString = [NSMutableString stringWithString:(NSString *) htmlString];
-	NSString *noteTitle = app.selectedNoteObject ? [app.selectedNoteObject.title copy] : @"";
+	NSString *noteTitle = app.currentNote ? [app.currentNote.title copy] : @"";
 
-	if (lastNote == [app selectedNoteObject]) {
+	if ([lastNote isEqual: app.currentNote]) {
 		NSString *restoreScrollPosition = [NSString stringWithFormat:@"\n<script>var body = document.getElementsByTagName('body')[0],oldscroll = %@;body.scrollTop = oldscroll;</script>", lastScrollPosition];
 		previewString = [processedString stringByAppendingString:restoreScrollPosition];
 	} else {
 		cssString = [[self class] css];
 		htmlString = [[self class] html];
-		lastNote = [app selectedNoteObject];
+		lastNote = app.currentNote;
 	}
 	NSString *nvSupportPath = [[NSFileManager defaultManager] applicationSupportDirectory];
 
@@ -413,7 +413,7 @@
 
 - (IBAction)shareNote:(id)sender {
 	AppController *app = [NSApp delegate];
-	NSString *noteTitle = app.selectedNoteObject ? [app.selectedNoteObject.title copy] : @"";
+	NSString *noteTitle = app.currentNote ? [app.currentNote.title copy] : @"";
 	NSString *rawString = [app noteContent];
 	SEL mode = [self markupProcessorSelector:[app currentPreviewMode]];
 	NSString *processedString = [NSString performSelector:mode withObject:rawString];
@@ -493,7 +493,7 @@
 		[templateNote setStringValue:@"Select this to embed the ouput within your current preview HTML and CSS"];
 	}
 
-	savePanel.nameFieldStringValue = app.selectedNoteObject ? [app.selectedNoteObject.title copy] : @"";
+	savePanel.nameFieldStringValue = app.currentNote ? [app.currentNote.title copy] : @"";
 
 	[savePanel beginSheetModalForWindow:self.window completionHandler:^(NSInteger result) {
 		if (result == NSFileHandlingPanelOKButton) {

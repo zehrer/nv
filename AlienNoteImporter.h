@@ -27,10 +27,7 @@ extern NSString *RetrievedPasswordKey;
 	IBOutlet NSView *importAccessoryView;
 
 	id source;
-	NSMutableDictionary *documentSettings;
 	BOOL shouldGrabCreationDates;
-
-	BOOL shouldUseReadability;
 }
 
 //a directory containing notes, a custom bundle, or custom file format in which more than one note could be expected
@@ -48,11 +45,9 @@ extern NSString *RetrievedPasswordKey;
 
 + (NSString *)blorPath;
 
-+ (Class)PDFDocClass;
-
 - (NSView *)accessoryView;
 
-- (NSDictionary *)documentSettings;
+@property (nonatomic, copy, readonly) NSDictionary *documentSettings;
 
 - (NSArray *)importedNotes;
 
@@ -67,9 +62,7 @@ extern NSString *RetrievedPasswordKey;
 
 - (NSArray *)notesInFile:(NSString *)filename;
 
-- (BOOL)shouldUseReadability;
-
-- (void)setShouldUseReadability:(BOOL)value;
+@property (nonatomic) BOOL shouldUseReadability;
 
 - (NSString *)contentUsingReadability:(NSString *)htmlFile;
 

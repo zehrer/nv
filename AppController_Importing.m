@@ -163,8 +163,8 @@
 		//dispatch searchForString: and revealNote:options: as appropriate
 
 		//add currentNote to the snapback button back-stack
-		if (currentNote) {
-			[field pushFollowedLink:[[NoteBookmark alloc] initWithNoteObject:currentNote searchString:[self fieldSearchString]]];
+		if (self.currentNote) {
+			[field pushFollowedLink:[[NoteBookmark alloc] initWithNoteObject: self.currentNote searchString:[self fieldSearchString]]];
 		}
 
 		NSString *terms = [aURL path];
@@ -274,8 +274,8 @@
 		}
 	} else if ([[aURL host] length]) {
 		//assume find by default
-		if (currentNote) {
-			[field pushFollowedLink:[[NoteBookmark alloc] initWithNoteObject:currentNote searchString:[self fieldSearchString]]];
+		if (self.currentNote) {
+			[field pushFollowedLink:[[NoteBookmark alloc] initWithNoteObject: self.currentNote searchString:[self fieldSearchString]]];
 		}
 		[self searchForString:[aURL host]];
 		return YES;

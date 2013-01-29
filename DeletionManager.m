@@ -20,6 +20,8 @@
 
 @implementation DeletionManager
 
+@synthesize notationController = notationController;
+
 - (id)init {
 	if ((self = [super init])) {
 		deletedNotes = [[NSMutableArray alloc] init];
@@ -41,15 +43,6 @@
 
 	[window setFloatingPanel:YES];
 	[window setDelegate:self];
-}
-
-- (void)dealloc {
-
-	notationController = nil;
-}
-
-- (NotationController *)notationController {
-	return notationController;
 }
 
 - (BOOL)noteFileIsAlreadyDeleted:(NoteObject *)aNote {

@@ -26,11 +26,8 @@
 	IBOutlet NSTextField *progressStatus;
 	IBOutlet NSPanel *window;
 
-	NSURL *url;
 	NSURLDownload *downloader;
-	NSString *downloadPath, *tempDirectory;
-
-	id userData;
+	NSString *tempDirectory;
 
 	BOOL isIndicating, isImporting;
 
@@ -41,9 +38,9 @@
 
 - (id)initWithURL:(NSURL *)aUrl delegate:(id)aDelegate userData:(id)someObj;
 
-- (NSURL *)url;
+@property (nonatomic, strong, readonly) NSURL *url;
 
-- (id)userData;
+@property (nonatomic, strong, readonly) id userData;
 
 @property(nonatomic, weak) id <URLGetterDelegate> delegate;
 
@@ -53,7 +50,7 @@
 
 - (void)updateProgress;
 
-- (NSString *)downloadPath;
+@property (nonatomic, copy, readonly) NSString *downloadPath;
 
 - (void)endDownloadWithPath:(NSString *)path;
 

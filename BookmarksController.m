@@ -290,7 +290,7 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 	SEL action = [menuItem action];
 	if (action == @selector(addBookmark:)) {
 
-		return ([bookmarks count] < 27 && [delegate selectedNoteObject]);
+		return ([bookmarks count] < 27 && [delegate currentNote]);
 	}
 
 	return YES;
@@ -504,14 +504,14 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 	id <BookmarksControllerDelegate> delegate = self.delegate;
 	if (!delegate) return;
 
-	if (![delegate selectedNoteObject]) {
+	if (![delegate currentNote]) {
 
 		NSRunAlertPanel(NSLocalizedString(@"No note selected.", @"alert title when bookmarking no note"), NSLocalizedString(@"You must select a note before it can be added as a bookmark.", nil), NSLocalizedString(@"OK", nil), nil, NULL);
 
 	} else if ([bookmarks count] < 27) {
 		NSString *newString = [[delegate fieldSearchString] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
 
-		NoteBookmark *bookmark = [[NoteBookmark alloc] initWithNoteObject:[delegate selectedNoteObject] searchString:newString];
+		NoteBookmark *bookmark = [[NoteBookmark alloc] initWithNoteObject:[delegate currentNote] searchString:newString];
 		if (bookmark) {
 
 			NSUInteger existingIndex = [bookmarks indexOfObject:bookmark];

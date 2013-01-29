@@ -14,6 +14,10 @@
 
 @implementation URLGetter
 
+@synthesize downloadPath = downloadPath;
+@synthesize userData = userData;
+@synthesize url = url;
+
 - (id)initWithURL:(NSURL *)aUrl delegate:(id <URLGetterDelegate>)aDelegate userData:(id)someObj {
 	if (!aUrl || [aUrl isFileURL]) {
 		return nil;
@@ -29,15 +33,6 @@
 	}
 
 	return self;
-}
-
-
-- (NSURL *)url {
-	return url;
-}
-
-- (id)userData {
-	return userData;
 }
 
 - (IBAction)cancelDownload:(id)sender {
@@ -164,10 +159,6 @@
 	[self stopProgressIndication];
 
 
-}
-
-- (NSString *)downloadPath {
-	return downloadPath;
 }
 
 @end

@@ -43,7 +43,10 @@ NSString *PasswordWasRetrievedFromKeychainKey = @"PasswordRetrievedFromKeychain"
 NSString *RetrievedPasswordKey = @"RetrievedPassword";
 NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 
-@interface AlienNoteImporter ()
+@interface AlienNoteImporter () {
+	NSMutableDictionary *documentSettings;
+}
+
 - (NSArray *)_importStickies:(NSString *)filename;
 
 - (NSArray *)_importBlorNotes:(NSString *)filename;
@@ -58,6 +61,8 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 @end
 
 @implementation AlienNoteImporter
+
+@synthesize shouldUseReadability = shouldUseReadability;
 
 - (id)init {
 	if ((self = [super init])) {
@@ -139,13 +144,8 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 	return self;
 }
 
-
-+ (Class)PDFDocClass {
-	return [PDFDocument class];
-}
-
 - (NSDictionary *)documentSettings {
-	return documentSettings;
+	return [documentSettings copy];
 }
 
 - (NSView *)accessoryView {
@@ -592,14 +592,6 @@ static NSString *const NTVNoteImporterLinkTitleKey = @"NTVNoteImporterLinkTitle"
 
 
 	return strippedString;
-}
-
-- (BOOL)shouldUseReadability {
-	return shouldUseReadability;
-}
-
-- (void)setShouldUseReadability:(BOOL)value {
-	shouldUseReadability = value;
 }
 
 - (NSArray *)_importStickies:(NSString *)filename {

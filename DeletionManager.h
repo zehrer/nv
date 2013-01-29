@@ -19,13 +19,12 @@
 	IBOutlet NSPanel *window;
 	IBOutlet NSButton *confirmDeletionButton;
 	NSMutableArray *deletedNotes;
-	NotationController *notationController;
 	BOOL hasDeletedNotes;
 }
 
 - (id)initWithNotationController:(NotationController *)aNotationController;
 
-- (NotationController *)notationController;
+@property (nonatomic, weak, readonly) NotationController *notationController;
 
 - (IBAction)changeConfirmDeletion:(id)sender;
 

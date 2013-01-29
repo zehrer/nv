@@ -18,8 +18,9 @@
 
 #import "DiskUUIDEntry.h"
 
-
 @implementation DiskUUIDEntry
+
+@synthesize uuidRef = uuidRef, lastAccessed = lastAccessed;
 
 - (id)initWithUUIDRef:(CFUUIDRef)aUUIDRef {
 	if ((self = [super init])) {
@@ -65,14 +66,6 @@
 
 - (void)see {
 	lastAccessed = [NSDate date];
-}
-
-- (CFUUIDRef)uuidRef {
-	return uuidRef;
-}
-
-- (NSDate *)lastAccessed {
-	return lastAccessed;
 }
 
 - (NSString *)description {

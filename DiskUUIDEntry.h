@@ -15,17 +15,13 @@
    - Neither the name of Notational Velocity nor the names of its contributors may be used to endorse 
      or promote products derived from this software without specific prior written permission. */
 
-@interface DiskUUIDEntry : NSObject {
-
-	NSDate *lastAccessed;
-	CFUUIDRef uuidRef;
-}
+@interface DiskUUIDEntry : NSObject
 
 - (id)initWithUUIDRef:(CFUUIDRef)aUUIDRef;
 
 - (void)see;
 
-- (CFUUIDRef)uuidRef;
+@property (nonatomic, readonly) CFUUIDRef uuidRef;
+@property (nonatomic, strong, readonly) NSDate *lastAccessed;
 
-- (NSDate *)lastAccessed;
 @end

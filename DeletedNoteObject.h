@@ -25,14 +25,13 @@
 	unsigned int logSequenceNumber;
 	CFUUIDBytes uniqueNoteIDBytes;
 	NSMutableDictionary *syncServicesMD;
-	id <SynchronizedNote> originalNote;
 }
 
 + (id)deletedNoteWithNote:(id <SynchronizedNote>)aNote;
 
 - (id)initWithExistingObject:(id <SynchronizedNote>)note;
 
-- (id <SynchronizedNote>)originalNote;
+@property (nonatomic, strong, readonly) id <SynchronizedNote> originalNote;
 
 - (CFUUIDBytes *)uniqueNoteIDBytes;
 

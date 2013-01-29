@@ -21,6 +21,8 @@
 
 @implementation DeletedNoteObject
 
+@synthesize originalNote = originalNote;
+
 + (id)deletedNoteWithNote:(id <SynchronizedNote>)aNote {
 	return [[DeletedNoteObject alloc] initWithExistingObject:aNote];
 }
@@ -68,15 +70,10 @@
 	}
 }
 
-- (id <SynchronizedNote>)originalNote {
-	return originalNote;
-}
-
 - (NSString *)description {
 	return [NSString stringWithFormat:@"DeletedNoteObj(%@) %@", [NSString uuidStringWithBytes:uniqueNoteIDBytes], syncServicesMD];
 }
 
 #include "SynchronizedNoteMixIns.h"
-
 
 @end

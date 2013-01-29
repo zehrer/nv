@@ -74,7 +74,7 @@
 
 - (NSMenu *)statBarMenu;
 
-- (NoteObject *)selectedNoteObject;
+@property (nonatomic, readonly) NoteObject *currentNote;
 
 - (NSString *)fieldSearchString;
 

@@ -67,6 +67,7 @@ static const CGFloat kMaxNotesListDimension = 600.0f;
 
 @implementation AppController
 
+@synthesize currentNote = currentNote;
 
 - (id)init {
 	self = [super init];
@@ -1154,10 +1155,6 @@ void outletObjectAwoke(id sender) {
 
 
 	currentNote = aNote;
-}
-
-- (NoteObject *)selectedNoteObject {
-	return currentNote;
 }
 
 - (NSString *)fieldSearchString {

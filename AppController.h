@@ -98,7 +98,6 @@
 	NSString *typedString;
 	NSArray *cTags;
 
-	NoteObject *currentNote;
 	NSArray *savedSelectedNotes;
 
 	PreviewController *previewController;
@@ -168,7 +167,7 @@ extern void outletObjectAwoke(id sender);
 
 - (void)_configureDividerForCurrentLayout;
 
-- (NoteObject *)selectedNoteObject;
+@property (nonatomic, strong, readonly) NoteObject *currentNote;
 
 - (void)restoreListStateUsingPreferences;
 
