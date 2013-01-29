@@ -151,7 +151,7 @@ NSInteger compareTitleStringReverse(id *a, id *b);
 @property (nonatomic, strong, readonly) NSDate *contentModificationDate;
 @property (nonatomic, strong, readonly) NSDate *attributesModificationDate;
 
-@property (nonatomic, strong, readonly) NSURL *noteFileURL;
+@property (nonatomic, copy, readonly) NSURL *noteFileURL;
 
 #define DefColAttrAccessor(__FName, __IVar) force_inline id __FName(NotesTableView *tv, NoteObject *note, NSInteger row) { return note->__IVar; }
 
@@ -221,8 +221,6 @@ BOOL noteTitleIsAPrefixOfOtherNoteTitle(NoteObject *longerNote, NoteObject *shor
 - (void)updateWithSyncBody:(NSString *)newBody andTitle:(NSString *)newTitle;
 
 - (void)registerModificationWithOwnedServices;
-
-- (BOOL)writeCurrentFileEncodingToURL:(NSURL *)URL;
 
 - (void)_setFileEncoding:(NSStringEncoding)encoding;
 

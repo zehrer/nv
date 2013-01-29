@@ -67,7 +67,7 @@ typedef NSRange NSRange32;
 @property(nonatomic, strong, readwrite) NSDate *contentModificationDate;
 @property(nonatomic, strong, readwrite) NSDate *attributesModificationDate;
 
-@property(nonatomic, strong, readwrite) NSURL *noteFileURL;
+@property(nonatomic, copy, readwrite) NSURL *noteFileURL;
 
 @end
 
@@ -1059,7 +1059,7 @@ row) {
 		
 		//if writing plaintext set the file encoding with setxattr
 		if (PlainTextFormat == formatID) {
-			[self writeCurrentFileEncodingToURL: self.noteFileURL];
+			[NSFileManager setTextEncoding: self.fileEncoding ofItemAtURL: self.noteFileURL];
 		}
 
 		[NSFileManager setOpenMetaTags: self.orderedLabelTitles forItemAtURL: self.noteFileURL error: NULL];
@@ -1132,12 +1132,6 @@ row) {
 	return YES;
 }
 
-- (BOOL)writeCurrentFileEncodingToURL:(NSURL *)URL {
-	NSParameterAssert(URL);
-	//this is not the note's own URL; it could be anywhere
-	return [NSFileManager setTextEncoding: self.fileEncoding ofItemAtURL: URL];
-}
-
 - (BOOL)upgradeToUTF8IfUsingSystemEncoding {
 	if (CFStringConvertEncodingToNSStringEncoding(CFStringGetSystemEncoding()) == fileEncoding)
 		return [self upgradeEncodingToUTF8];
@@ -1196,7 +1190,7 @@ row) {
 			return NO;
 		}
 
-		if (![self writeCurrentFileEncodingToURL: self.noteFileURL]) return NO;
+		if (![NSFileManager setTextEncoding: self.fileEncoding ofItemAtURL: self.noteFileURL]) return NO;
 
 		if ((updated = [self updateFromFile])) {
 			[self makeNoteDirtyUpdateTime:NO updateFile:NO];
@@ -1617,12 +1611,6 @@ BOOL noteTitleIsAPrefixOfOtherNoteTitle(NoteObject *longerNote, NoteObject *shor
 - (void)_undoManagerDidChange:(NSNotification *)notification {
 	[self makeNoteDirtyUpdateTime:YES updateFile:YES];
 	//queue note to be synchronized to disk (and network if necessary)
-}
-
-- (void)setNoteFileURL:(NSURL *)noteFileURL {
-	// extremely coarse. cheaper to do the retain than compare
-	if (noteFileURL == _noteFileURL) return;
-	_noteFileURL = noteFileURL;
 }
 
 @end

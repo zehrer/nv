@@ -115,7 +115,7 @@ static void uuid_create_md5_from_name(unsigned char result_uuid[16], const void 
 
 - (NSURL *)refreshFileURLIfNecessary:(NSURL *)URL withName:(NSString *)filename error: (NSError **)err {
 	if (!URL || ![self fileInNotesDirectoryIsOwnedByUs: URL]) {
-		return [[self.noteDirectoryURL URLByAppendingPathComponent: filename] fileReferenceURL];
+		return [self.noteDirectoryURL URLByAppendingPathComponent: filename];
 	}
 	return URL;
 }
@@ -128,8 +128,8 @@ static void uuid_create_md5_from_name(unsigned char result_uuid[16], const void 
 }
 
 - (NSURL *)notesDirectoryContainsFile:(NSString *)filename {
-	if (!filename) return NO;
-	return [[self.noteDirectoryURL URLByAppendingPathComponent: filename] fileReferenceURL];
+	if (!filename) return nil;
+	return [self.noteDirectoryURL URLByAppendingPathComponent: filename];
 }
 
 - (BOOL)renameAndForgetNoteDatabaseFile:(NSString *)newfilename {
@@ -202,11 +202,11 @@ static void uuid_create_md5_from_name(unsigned char result_uuid[16], const void 
 				}
 				CFRelease(url);
 
-				NSURL *oldURL = _noteDirectoryURL;
+				NSURL *oldURL = self.noteDirectoryURL;
 
 				NSError *err = nil;
 				if ([self.fileManager moveItemAtURL: self.noteDirectoryURL toURL: newURL error: &err]) {
-					self.noteDirectoryURL = [newURL fileReferenceURL];
+					self.noteDirectoryURL = newURL;
 				} else {
 					NSRunAlertPanel([NSString stringWithFormat:NSLocalizedString(@"Couldn't move notes into the chosen folder because %@", nil), [err localizedDescription]], NSLocalizedString(@"Your notes were not moved.", nil), NSLocalizedString(@"OK", nil), NULL, NULL);
 					continue;
@@ -372,22 +372,26 @@ static void uuid_create_md5_from_name(unsigned char result_uuid[16], const void 
 		}
 	}
 
+	NSURL *newURL = nil;
+
 	// if it exists, swap; otherwise, just move
 	if ([notesDatabaseURL checkResourceIsReachableAndReturnError: NULL]) {
-		if (![self.fileManager replaceItemAtURL: notesDatabaseURL withItemAtURL: temporaryDatabaseURL backupItemName: nil options: 0 resultingItemURL: &notesDatabaseURL error: &error]) {
+		if (![self.fileManager replaceItemAtURL: notesDatabaseURL withItemAtURL: temporaryDatabaseURL backupItemName: nil options: 0 resultingItemURL: &newURL error: &error]) {
 			NSLog(@"error exchanging contents of temporary file with destination file %@: %@", filename, error);
 			if (outError) *outError = error;
 			return nil;
 		}
 	} else {
-		if (![self.fileManager moveItemAtURL: temporaryDatabaseURL toURL: notesDatabaseURL error: &error]) {
+		if ([self.fileManager moveItemAtURL: temporaryDatabaseURL toURL: notesDatabaseURL error: &error]) {
+			newURL = [notesDatabaseURL copy];
+		} else {
 			NSLog(@"error moving temporary file to destination file %@: %@", filename, error);
 			if (outError) *outError = error;
 			return nil;
 		}
 	}
 	
-	return [notesDatabaseURL fileReferenceURL];
+	return newURL;
 }
 
 - (void)notifyOfChangedTrash {

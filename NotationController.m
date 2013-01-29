@@ -120,7 +120,7 @@
 		[self ntn_sharedInit];
 
 		self.bookmarkNeedsUpdating = YES;
-		self.noteDirectoryURL = [directoryURL fileReferenceURL];
+		self.noteDirectoryURL = directoryURL;
 
 		//check writable and readable perms, warning user if necessary
 		//first read cache file
