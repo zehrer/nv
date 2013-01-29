@@ -17,24 +17,12 @@
 
 @class NoteObject;
 
-@interface LabelObject : NSObject {
-	NSString *labelName, *lowercaseName;
-	NSMutableSet *notes;
-
-	NSUInteger lowercaseHash;
-}
-
-NSString *titleOfLabel(LabelObject *label);
-
-int compareLabel(const void *one, const void *two);
+@interface LabelObject : NSObject
 
 - (id)initWithTitle:(NSString *)name;
 
-- (NSString *)title;
-
-- (NSString *)associativeIdentifier;
-
-- (void)setTitle:(NSString *)title;
+@property (nonatomic, copy) NSString *title;
+@property (nonatomic, readonly, copy) NSSet *noteSet;
 
 - (void)addNote:(NoteObject *)note;
 
@@ -43,11 +31,5 @@ int compareLabel(const void *one, const void *two);
 - (void)removeNote:(NoteObject *)note;
 
 - (void)removeNoteSet:(NSSet *)noteSet;
-
-- (NSSet *)noteSet;
-
-- (BOOL)isEqual:(id)anObject;
-
-- (NSUInteger)hash;
 
 @end

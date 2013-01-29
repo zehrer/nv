@@ -22,9 +22,9 @@
 
 @interface NVViewLocationContext : NSObject
 
-@property(nonatomic) BOOL pivotRowWasEdge;
-@property(nonatomic, unsafe_unretained) id pivotObject;
-@property(nonatomic) float verticalDistanceToPivotRow;
+@property (nonatomic) BOOL pivotRowWasEdge;
+@property (nonatomic, weak) id pivotObject;
+@property (nonatomic) float verticalDistanceToPivotRow;
 
 @end
 
@@ -122,7 +122,7 @@
 
 - (void)_incrementNoteSelectionByTag:(NSInteger)tag;
 
-@property(nonatomic, unsafe_unretained) id <NVLabelsListSource> labelsListSource;
+@property(nonatomic, weak) id <NVLabelsListSource> labelsListSource;
 
 - (NSArray *)labelCompletionsForString:(NSString *)fieldString index:(NSInteger)index;
 

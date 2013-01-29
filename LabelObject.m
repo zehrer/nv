@@ -21,86 +21,59 @@
 #import "LabelObject.h"
 #import "NoteObject.h"
 
+@interface LabelObject ()
+
+@property (nonatomic, copy) NSString *lowercaseTitle;
+@property (nonatomic, strong) NSMutableSet *notes;
+
+@end
+
 @implementation LabelObject
 
 - (id)initWithTitle:(NSString *)name {
 	if ((self = [super init])) {
-		labelName = name;
-		lowercaseName = [name lowercaseString];
-
-		lowercaseHash = [lowercaseName hash];
-
-		notes = [[NSMutableSet alloc] init];
+		self.title = name;
+		self.lowercaseTitle = self.title.lowercaseString;
+		self.notes = [NSMutableSet set];
 	}
 	return self;
 }
 
-force_inline NSString* titleOfLabel(LabelObject *label) {
-	return label->labelName;
-}
-
-int compareLabel(const void *one, const void *two) {
-
-	return (int) CFStringCompare((CFStringRef) titleOfLabel(*(__unsafe_unretained LabelObject **) one),
-			(CFStringRef) titleOfLabel(*(__unsafe_unretained LabelObject **) two), kCFCompareCaseInsensitive);
-}
-
-- (NSString *)title {
-	return labelName;
-}
-
-- (NSString *)associativeIdentifier {
-	return lowercaseName;
-}
-
-
 - (void)setTitle:(NSString *)title {
-	labelName = title;
-
-	lowercaseName = [title lowercaseString];
-
-	lowercaseHash = [lowercaseName hash];
+	_title = [title copy];
+	self.lowercaseTitle = [title lowercaseString];
 }
 
 - (void)addNote:(NoteObject *)note {
-	[notes addObject:note];
+	[self.notes addObject:note];
 }
 
 - (void)removeNote:(NoteObject *)note {
-	[notes removeObject:note];
+	[self.notes removeObject:note];
 }
 
 - (void)addNoteSet:(NSSet *)noteSet {
-	[notes unionSet:noteSet];
+	[self.notes unionSet:noteSet];
 }
 
 - (void)removeNoteSet:(NSSet *)noteSet {
-	[notes minusSet:noteSet];
+	[self.notes minusSet:noteSet];
 }
 
 - (NSSet *)noteSet {
-	return notes;
+	return [self.notes copy];
 }
 
 - (NSString *)description {
-	return [labelName stringByAppendingFormat:@" (used by %@)", notes];
+	return [self.title stringByAppendingFormat:@" (used by %@)", self.notes];
 }
 
-/*- (NSArray*)notesSharedWithSet:(NSSet*)filteredSet {
-    NSMutableSet *intersectedSet = [NSMutableSet setWithSet:notes]; 
-
-    [intersectedSet intersectSet:filteredSet];
-    
-    return [intersectedSet allObjects];
-}*/
-
 - (BOOL)isEqual:(id)anObject {
-	return [lowercaseName isEqualToString:[anObject associativeIdentifier]];
+	return [self.lowercaseTitle isEqualToString:[anObject lowercaseTitle]];
 }
 
 - (NSUInteger)hash {
-	return lowercaseHash;
+	return self.lowercaseTitle.hash;
 }
-
 
 @end

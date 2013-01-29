@@ -1484,14 +1484,14 @@
 	NSMutableArray *objs = [self.allLabels.allObjects mutableCopy];
 	NSMutableArray *titles = [NSMutableArray arrayWithCapacity:self.allLabels.count];
 
-	[objs sortUsingComparator:^NSComparisonResult(id obj1, id obj2) {
-		return compareLabel(&obj1, &obj2);
+	[objs sortUsingComparator:^NSComparisonResult(LabelObject *obj1, LabelObject *obj2) {
+		return [obj1.title caseInsensitiveCompare: obj2.title];
 	}];
 
 	NSUInteger titleLen, j = 0, shortestTitleLen = UINT_MAX;
 
 	for (LabelObject *label in objs) {
-		NSString *title = titleOfLabel(label);
+		NSString *title = label.title;
 
 		if ([title rangeOfString:prefix options:NSCaseInsensitiveSearch | NSAnchoredSearch range:NSMakeRange(0, prefix.length)].location != NSNotFound) {
 			if (![antiSet containsObject:title]) {
