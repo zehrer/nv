@@ -103,8 +103,8 @@ typedef NS_OPTIONS(NSInteger, NVNoteRevealOptions) {
 
 @property (nonatomic, strong, readonly) NSFileManager *fileManager;
 
-@property (nonatomic, readonly) NSURL *noteDirectoryURL;
-@property (nonatomic, readonly) NSURL *noteDatabaseURL;
+@property (nonatomic, copy, readonly) NSURL *noteDirectoryURL;
+@property (nonatomic, copy, readonly) NSURL *noteDatabaseURL;
 
 - (id)init;
 

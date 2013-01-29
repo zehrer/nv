@@ -64,8 +64,8 @@ typedef NSRange NSRange32;
 @property(nonatomic, readwrite) NSStringEncoding fileEncoding;
 @property(nonatomic, strong, readwrite) NSMutableArray *prefixParents;
 
-@property(nonatomic, strong, readwrite) NSDate *contentModificationDate;
-@property(nonatomic, strong, readwrite) NSDate *attributesModificationDate;
+@property(nonatomic, copy, readwrite) NSDate *contentModificationDate;
+@property(nonatomic, copy, readwrite) NSDate *attributesModificationDate;
 
 @property(nonatomic, copy, readwrite) NSURL *noteFileURL;
 

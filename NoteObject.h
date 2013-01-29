@@ -146,10 +146,10 @@ NSInteger compareTitleStringReverse(id *a, id *b);
 @property(nonatomic, readonly) NSStringEncoding fileEncoding;
 @property(nonatomic, strong, readonly) NSMutableArray *prefixParents;
 
-@property (nonatomic, strong) NSDate *creationDate;
-@property (nonatomic, strong) NSDate *modificationDate;
-@property (nonatomic, strong, readonly) NSDate *contentModificationDate;
-@property (nonatomic, strong, readonly) NSDate *attributesModificationDate;
+@property (nonatomic, copy) NSDate *creationDate;
+@property (nonatomic, copy) NSDate *modificationDate;
+@property (nonatomic, copy, readonly) NSDate *contentModificationDate;
+@property (nonatomic, copy, readonly) NSDate *attributesModificationDate;
 
 @property (nonatomic, copy, readonly) NSURL *noteFileURL;
 

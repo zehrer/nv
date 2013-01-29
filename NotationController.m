@@ -46,8 +46,8 @@
 
 @property (nonatomic, strong) NSMutableDictionary *labelImages;
 @property (nonatomic, strong, readwrite) NSFileManager *fileManager;
-@property (nonatomic, strong, readwrite) NSURL *noteDatabaseURL;
-@property (nonatomic, strong, readwrite) NSURL *noteDirectoryURL;
+@property (nonatomic, copy, readwrite) NSURL *noteDatabaseURL;
+@property (nonatomic, copy, readwrite) NSURL *noteDirectoryURL;
 
 @end
 

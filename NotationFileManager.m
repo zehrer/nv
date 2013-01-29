@@ -31,8 +31,8 @@ NSString *NotesDatabaseFileName = @"Notes & Settings";
 
 @interface NotationController ()
 
-@property (nonatomic, strong, readwrite) NSURL *noteDatabaseURL;
-@property (nonatomic, strong, readwrite) NSURL *noteDirectoryURL;
+@property (nonatomic, copy, readwrite) NSURL *noteDatabaseURL;
+@property (nonatomic, copy, readwrite) NSURL *noteDirectoryURL;
 
 @end
 
