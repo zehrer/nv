@@ -152,48 +152,29 @@ typedef NSRange NSRange32;
 	return _attributesModificationDate;
 }
 
-NSInteger compareDateModified(id *a, id *b) {
-	NoteObject *aObj = *(NoteObject **)a;
-	NoteObject *bObj = *(NoteObject **)b;
-	return [aObj.modificationDate compare: bObj.modificationDate];
+- (NSComparisonResult)compareDateModified:(NoteObject *)other {
+	return [self.modificationDate compare: other.modificationDate];
 }
 
-NSInteger compareDateCreated(id *a, id *b) {
-	NoteObject *aObj = *(NoteObject **)a;
-	NoteObject *bObj = *(NoteObject **)b;
-	return [aObj.creationDate compare: bObj.creationDate];
+- (NSComparisonResult)compareDateCreated:(NoteObject *)other {
+	return [self.creationDate compare: other.creationDate];
 }
 
-NSInteger compareLabelString(id *a, id *b) {
-	return (NSInteger) CFStringCompare((CFStringRef) (*(NoteObject **) a).labels,
-			(CFStringRef) (*(NoteObject **) b).labels, kCFCompareCaseInsensitive);
+- (NSComparisonResult)compareLabels:(NoteObject *)other {
+	return [self.labels caseInsensitiveCompare: other.labels];
 }
 
-NSInteger compareTitleString(id *a, id *b) {
-	//add kCFCompareNumerically to options for natural order sort
-	CFComparisonResult stringResult = CFStringCompare((CFStringRef) (*(NoteObject **) a).title,
-			(CFStringRef) (*(NoteObject **) b).title,
-			kCFCompareCaseInsensitive);
-	if (stringResult == kCFCompareEqualTo) {
-
-		NSInteger dateResult = compareDateCreated(a, b);
-		if (!dateResult)
-			return compareUniqueNoteIDBytes(a, b);
-
-		return dateResult;
-	}
-
-	return (NSInteger) stringResult;
+NSInteger compareUniqueNoteIDBytes(id *a, id *b) {
+	return memcmp((&(*(NoteObject **) a)->uniqueNoteIDBytes), (&(*(NoteObject **) b)->uniqueNoteIDBytes), sizeof(CFUUIDBytes));
 }
 
-- (NSComparisonResult)compareTitleStrings:(NoteObject *)other {
+- (NSComparisonResult)compareTitles:(NoteObject *)other {
 	NSComparisonResult result = [self.title caseInsensitiveCompare: other.title];
 	
 	if (result == NSOrderedSame) {
-		__weak id weakSelf = self;
-
-		result = compareDateCreated(&weakSelf, &other);
+		result = [self compareDateCreated: other];
 		if (!result) {
+			__weak id weakSelf = self;
 			result = compareUniqueNoteIDBytes(&weakSelf, &other);
 		}
 
@@ -206,43 +187,6 @@ NSInteger compareTitleString(id *a, id *b) {
 	}
 
 	return result;
-}
-
-NSInteger compareUniqueNoteIDBytes(id *a, id *b) {
-	return memcmp((&(*(NoteObject **) a)->uniqueNoteIDBytes), (&(*(NoteObject **) b)->uniqueNoteIDBytes), sizeof(CFUUIDBytes));
-}
-
-
-NSInteger compareDateModifiedReverse(id *a, id *b) {
-	NoteObject *aObj = *(NoteObject **)a;
-	NoteObject *bObj = *(NoteObject **)b;
-	return [bObj.modificationDate compare: aObj.modificationDate];
-}
-
-NSInteger compareDateCreatedReverse(id *a, id *b) {
-	NoteObject *aObj = *(NoteObject **)a;
-	NoteObject *bObj = *(NoteObject **)b;
-	return [bObj.creationDate compare: aObj.creationDate];
-}
-
-NSInteger compareLabelStringReverse(id *a, id *b) {
-	return (NSInteger) CFStringCompare((CFStringRef) (*(NoteObject **) b).labels,
-			(CFStringRef) (*(NoteObject **) a).labels, kCFCompareCaseInsensitive);
-}
-
-NSInteger compareTitleStringReverse(id *a, id *b) {
-	CFComparisonResult stringResult = CFStringCompare((CFStringRef) (*(NoteObject **) b).title,
-			(CFStringRef) (*(NoteObject **) a).title,
-			kCFCompareCaseInsensitive);
-
-	if (stringResult == kCFCompareEqualTo) {
-		NSInteger dateResult = compareDateCreatedReverse(a, b);
-		if (!dateResult)
-			return compareUniqueNoteIDBytes(b, a);
-
-		return dateResult;
-	}
-	return (NSInteger) stringResult;
 }
 
 #include "SynchronizedNoteMixIns.h"

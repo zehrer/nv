@@ -97,9 +97,8 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 			return [note dateCreatedString];
 		}];
 
-		NSInteger(*sortFunctions[])(id *, id *) = {compareTitleString, compareLabelString, compareDateModified, compareDateCreated};
-		NSInteger(*reverseSortFunctions[])(id *, id *) = {compareTitleStringReverse, compareLabelStringReverse, compareDateModifiedReverse,
-				compareDateCreatedReverse};
+		SEL sortSelectors[] = { @selector(compareTitles:), @selector(compareLabels:), @selector(compareDateModified:), @selector(compareDateCreated:) };
+
 
 		unsigned int i;
 		for (i = 0; i < sizeof(colStrings) / sizeof(NSString *); i++) {
@@ -109,8 +108,7 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 
 			column.mutatingSelector = colMutators[i];
 			column.attributeBlock = attributeFunctions[i];
-			column.sortingFunction = sortFunctions[i];
-			column.reverseSortingFunction = reverseSortFunctions[i];
+			column.sortSelector = sortSelectors[i];
 			[column setResizingMask:NSTableColumnUserResizingMask];
 
 			allColsDict[colStrings[i]] = column;

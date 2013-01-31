@@ -22,9 +22,8 @@
 - (void)updateWidthForHighlight;
 
 @property(nonatomic, assign) SEL mutatingSelector;
+@property(nonatomic, assign) SEL sortSelector;
 @property(nonatomic, copy) id (^attributeBlock)(NoteObject *, NotesTableView *, NSInteger);
-@property(nonatomic, assign) NSInteger (*sortingFunction)(id *, id *);
-@property(nonatomic, assign) NSInteger (*reverseSortingFunction)(id *, id *);
 
 - (void)setResizingMaskNumber:(NSNumber *)resizingMaskNumber;
 

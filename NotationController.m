@@ -686,7 +686,7 @@
 	//sort alphabetically to find shorter prefixes first
 	NSMutableArray *allNotesAlpha = [allNotes mutableCopy];
 	[allNotesAlpha sortWithOptions:NSSortStable usingComparator:^NSComparisonResult(id obj1, id obj2) {
-		return compareTitleString(&obj1, &obj2);
+		return [obj1 compareTitles: obj2];
 	}];
 
 	[allNotes makeObjectsPerformSelector:@selector(removeAllPrefixParentNotes)];
@@ -1342,29 +1342,44 @@
 	NoteAttributeColumn *col = sortColumn;
 	if (col) {
 		BOOL reversed = [prefsController tableIsReverseSorted];
-		NSInteger (*sortFunction)(id *, id *) = (reversed ? col.reverseSortingFunction : col.sortingFunction);
-		NSInteger (*stringSortFunction)(id *, id *) = (reversed ? compareTitleStringReverse : compareTitleString);
+		SEL sortSelector = col.sortSelector;
+		SEL stringSortSelector = @selector(compareTitles:);
 
-		[allNotes sortWithOptions:NSSortStable usingComparator:^NSComparisonResult(id obj1, id obj2) {
-			return stringSortFunction(&obj1, &obj2);
+		[allNotes sortWithOptions:NSSortStable usingComparator:^NSComparisonResult(NoteObject *obj1, NoteObject *obj2) {
+			if (reversed) {
+				return [obj2 compareTitles: obj1];
+			} else {
+				return [obj1 compareTitles: obj2];
+			}
 		}];
 
-		if (sortFunction != stringSortFunction) {
-			[allNotes sortWithOptions:NSSortStable usingComparator:^NSComparisonResult(id obj1, id obj2) {
-				return sortFunction(&obj1, &obj2);
+		if (!sel_isEqual(sortSelector, stringSortSelector)) {
+			[allNotes sortWithOptions:NSSortStable usingComparator:^NSComparisonResult(NoteObject *obj1, NoteObject *obj2) {
+				if (reversed) {
+					return objc_msgSend(obj2, sortSelector, obj1);
+				} else {
+					return objc_msgSend(obj1, sortSelector, obj2);
+				}
 			}];
 		}
 
-
 		if (self.filteredNotesList.count != [allNotes count]) {
 
-			[self.filteredNotesList sortWithOptions:NSSortStable usingComparator:^NSComparisonResult(id obj1, id obj2) {
-				return stringSortFunction(&obj1, &obj2);
+			[self.filteredNotesList sortWithOptions:NSSortStable usingComparator:^NSComparisonResult(NoteObject *obj1, NoteObject *obj2) {
+				if (reversed) {
+					return [obj2 compareTitles: obj1];
+				} else {
+					return [obj1 compareTitles: obj2];
+				}
 			}];
 
-			if (sortFunction != stringSortFunction) {
-				[self.filteredNotesList sortWithOptions:NSSortStable usingComparator:^NSComparisonResult(id obj1, id obj2) {
-					return sortFunction(&obj1, &obj2);
+			if (!sel_isEqual(sortSelector, stringSortSelector)) {
+				[self.filteredNotesList sortWithOptions:NSSortStable usingComparator:^NSComparisonResult(NoteObject *obj1, NoteObject *obj2) {
+					if (reversed) {
+						return objc_msgSend(obj2, sortSelector, obj1);
+					} else {
+						return objc_msgSend(obj1, sortSelector, obj2);
+					}
 				}];
 			}
 
@@ -1384,16 +1399,25 @@
 	if (col) {
 		BOOL reversed = [prefsController tableIsReverseSorted];
 
-		NSInteger (*sortFunction)(id *, id *) = (reversed ? col.reverseSortingFunction : col.sortingFunction);
-		NSInteger (*stringSortFunction)(id *, id *) = (reversed ? compareTitleStringReverse : compareTitleString);
 
-		[allNotes sortWithOptions:NSSortStable usingComparator:^NSComparisonResult(id obj1, id obj2) {
-			return stringSortFunction(&obj1, &obj2);
+		SEL sortSelector = col.sortSelector;
+		SEL stringSortSelector = @selector(compareTitles:);
+
+		[allNotes sortWithOptions:NSSortStable usingComparator:^NSComparisonResult(NoteObject *obj1, NoteObject *obj2) {
+			if (reversed) {
+				return [obj2 compareTitles: obj1];
+			} else {
+				return [obj1 compareTitles: obj2];
+			}
 		}];
 
-		if (sortFunction != stringSortFunction) {
-			[allNotes sortWithOptions:NSSortStable usingComparator:^NSComparisonResult(id obj1, id obj2) {
-				return sortFunction(&obj1, &obj2);
+		if (!sel_isEqual(sortSelector, stringSortSelector)) {
+			[allNotes sortWithOptions:NSSortStable usingComparator:^NSComparisonResult(NoteObject *obj1, NoteObject *obj2) {
+				if (reversed) {
+					return objc_msgSend(obj2, sortSelector, obj1);
+				} else {
+					return objc_msgSend(obj1, sortSelector, obj2);
+				}
 			}];
 		}
 	}

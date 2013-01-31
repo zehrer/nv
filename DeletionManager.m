@@ -184,7 +184,7 @@ void updateForVerifiedExistingNote(DeletionManager *self, NoteObject *goodNote) 
 
 	//sort notes by title
 	[deletedNotes sortedArrayWithOptions: NSSortConcurrent usingComparator: ^NSComparisonResult(NoteObject *obj1, NoteObject *obj2) {
-		return [obj1 compareTitleStrings: obj2];
+		return [obj1 compareTitles: obj2];
 	}];
 
 	[window setFrame:[self windowSizeForNotesFromSender:window] display:NO];

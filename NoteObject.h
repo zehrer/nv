@@ -94,26 +94,13 @@ typedef struct _NoteFilterContext {
 	NSMutableDictionary *syncServicesMD;
 }
 
-NSInteger compareDateModified(id *a, id *b);
+- (NSComparisonResult)compareDateModified:(NoteObject *)other;
 
-NSInteger compareDateCreated(id *a, id *b);
+- (NSComparisonResult)compareDateCreated:(NoteObject *)other;
 
-NSInteger compareLabelString(id *a, id *b);
+- (NSComparisonResult)compareLabels:(NoteObject *)other;
 
-NSInteger compareTitleString(id *a, id *b);
-
-- (NSComparisonResult)compareTitleStrings:(NoteObject *)other;
-
-NSInteger compareUniqueNoteIDBytes(id *a, id *b);
-
-
-NSInteger compareDateModifiedReverse(id *a, id *b);
-
-NSInteger compareDateCreatedReverse(id *a, id *b);
-
-NSInteger compareLabelStringReverse(id *a, id *b);
-
-NSInteger compareTitleStringReverse(id *a, id *b);
+- (NSComparisonResult)compareTitles:(NoteObject *)other;
 
 //syncing w/ server and from journal
 - (CFUUIDBytes *)uniqueNoteIDBytes;
