@@ -1052,7 +1052,8 @@ enum {
 				(hasRChar && charRange.location == 0 && CharIndexIsMember(NSMaxRange(charRange)))) {
 
 			NSSet *existingWordSet = [NSSet setWithArray:[[aTextView string] labelCompatibleWords]];
-			return [self.labelsListSource labelTitlesPrefixedByString:[[aTextView string] substringWithRange:charRange]
+			id <NVLabelsListSource> labelsList = self.labelsListSource;
+			return [labelsList labelTitlesPrefixedByString:[[aTextView string] substringWithRange:charRange]
 												  indexOfSelectedItem:anIndex minusWordSet:existingWordSet];
 		}
 	}
@@ -1202,7 +1203,8 @@ enum {
 				(hasRChar && charRange.location == 0 && CharIndexIsMember(NSMaxRange(charRange)))) {
 
 			NSSet *existingWordSet = [NSSet setWithArray:[fieldString labelCompatibleWords]];
-			tags = [self.labelsListSource labelTitlesPrefixedByString:[fieldString substringWithRange:charRange]
+			id <NVLabelsListSource> labelsList = self.labelsListSource;
+			tags = [labelsList labelTitlesPrefixedByString:[fieldString substringWithRange:charRange]
 												  indexOfSelectedItem:&index minusWordSet:existingWordSet];
 		}
 	}

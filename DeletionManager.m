@@ -139,8 +139,8 @@ void updateForVerifiedExistingNote(DeletionManager *self, NoteObject *goodNote) 
 
 
 - (void)processDeletedNotes {
-
-	if ([[notationController notationPrefs] confirmFileDeletion]) {
+	NotationController *controller = self.notationController;
+	if ([controller.notationPrefs confirmFileDeletion]) {
 		[self showPanelForDeletedNotes];
 	} else {
 		[self removeDeletedNotes];
@@ -178,7 +178,9 @@ void updateForVerifiedExistingNote(DeletionManager *self, NoteObject *goodNote) 
 			return;
 		}
 	}
-	[confirmDeletionButton setState:![[notationController notationPrefs] confirmFileDeletion]];
+
+	NotationController *controller = self.notationController;
+	[confirmDeletionButton setState:![controller.notationPrefs confirmFileDeletion]];
 
 	//sort notes by title
 	[deletedNotes sortedArrayWithOptions: NSSortConcurrent usingComparator: ^NSComparisonResult(NoteObject *obj1, NoteObject *obj2) {
@@ -195,15 +197,16 @@ void updateForVerifiedExistingNote(DeletionManager *self, NoteObject *goodNote) 
 }
 
 - (void)removeDeletedNotes {
-
+	NotationController *controller = self.notationController;
+	
 	//for purposes of generating useful undo messages
 	if ([deletedNotes count] > 1) {
 
-		[notationController removeNotes:[deletedNotes copy]];
+		[controller removeNotes:[deletedNotes copy]];
 
 	} else if ([deletedNotes count] == 1) {
 
-		[notationController removeNote:[deletedNotes lastObject]];
+		[controller removeNote:[deletedNotes lastObject]];
 
 	} else {
 		NSLog(@"No deleted notes?!");
@@ -215,7 +218,8 @@ void updateForVerifiedExistingNote(DeletionManager *self, NoteObject *goodNote) 
 }
 
 - (IBAction)changeConfirmDeletion:(id)sender {
-	[[notationController notationPrefs] setConfirmsFileDeletion:![confirmDeletionButton state]];
+	NotationController *controller = self.notationController;
+	[controller.notationPrefs setConfirmsFileDeletion:![confirmDeletionButton state]];
 	[[NSNotificationCenter defaultCenter] postNotificationName:NotationPrefsDidChangeNotification object:nil];
 }
 
@@ -225,18 +229,19 @@ void updateForVerifiedExistingNote(DeletionManager *self, NoteObject *goodNote) 
 }
 
 - (IBAction)restoreAction:(id)sender {
+	NotationController *controller = self.notationController;
 
 	//force-write the files
 	unsigned int i;
 	for (i = 0; i < [deletedNotes count]; i++) {
 		[deletedNotes[i] makeNoteDirtyUpdateTime:NO updateFile:YES];
 	}
-	[notationController synchronizeNoteChanges:nil];
+	[controller synchronizeNoteChanges:nil];
 
 	//force-synchronize directory to get notationcontroller to tell DeletionManager that the file now exists via updateForVerifiedExistingNote
 	//if restoring the file did not result in the dialog being dismissed, then it was not actually restored
-	[NSObject cancelPreviousPerformRequestsWithTarget:notationController selector:@selector(synchronizeNotesFromDirectory) object:nil];
-	[notationController synchronizeNotesFromDirectory];
+	[NSObject cancelPreviousPerformRequestsWithTarget:controller selector:@selector(synchronizeNotesFromDirectory) object:nil];
+	[controller synchronizeNotesFromDirectory];
 }
 
 
