@@ -71,10 +71,8 @@ typedef struct _NoteFilterContext {
 @end
 
 @interface NoteObject : NSObject <NSCoding, SynchronizedNote> {
-	NSAttributedString *tableTitleString;
 	NSString *titleString, *labelString;
 
-	NSMutableSet *labelSet;
 	BOOL contentsWere7Bit, contentCacheNeedsUpdate;
 	//if this note's title is "Chicken Shack menu listing", its prefix parent might have the title "Chicken Shack"
 	NSMutableArray *prefixParentNotes;
@@ -97,12 +95,6 @@ typedef struct _NoteFilterContext {
 	CFUUIDBytes uniqueNoteIDBytes;
 
 	NSMutableDictionary *syncServicesMD;
-
-	//more metadata
-	NSRange selectedRange;
-
-	//each note has its own undo manager--isn't that nice?
-	NSUndoManager *undoManager;
 }
 
 NSInteger compareDateModified(id *a, id *b);
@@ -153,8 +145,6 @@ NSInteger compareTitleStringReverse(id *a, id *b);
 
 @property (nonatomic, copy, readonly) NSURL *noteFileURL;
 
-#define DefColAttrAccessor(__FName, __IVar) force_inline id __FName(NotesTableView *tv, NoteObject *note, NSInteger row) { return note->__IVar; }
-
 //return types are NSString or NSAttributedString, satisifying NSTableDataSource protocol otherwise
 id titleOfNote2(NotesTableView *tv, NoteObject *note, NSInteger row);
 
@@ -187,7 +177,7 @@ BOOL noteTitleIsAPrefixOfOtherNoteTitle(NoteObject *longerNote, NoteObject *shor
 
 - (id)initWithCatalogEntry:(NoteCatalogEntry *)entry delegate:(id <NoteObjectDelegate, NTNFileManager>)aDelegate;
 
-- (NSSet *)labelSet;
+@property (nonatomic, copy, readonly) NSSet *labelSet;
 
 - (void)replaceMatchingLabelSet:(NSSet *)aLabelSet;
 
@@ -254,8 +244,6 @@ BOOL noteTitleIsAPrefixOfOtherNoteTitle(NoteObject *longerNote, NoteObject *shor
 
 - (void)moveFileToTrash;
 
-- (void)removeFileFromDirectory;
-
 - (BOOL)removeUsingJournal:(WALStorageController *)wal;
 
 - (BOOL)exportToDirectory:(NSURL *)directory filename:(NSString *)userFilename format:(NoteStorageFormat)storageFormat overwrite:(BOOL)overwrite error:(out NSError **)outError;
@@ -269,8 +257,6 @@ BOOL noteTitleIsAPrefixOfOtherNoteTitle(NoteObject *longerNote, NoteObject *shor
 - (void)setFilenameFromTitle;
 
 - (void)setFilename:(NSString *)aString withExternalTrigger:(BOOL)externalTrigger;
-
-- (BOOL)_setTitleString:(NSString *)aNewTitle;
 
 - (void)setTitleString:(NSString *)aNewTitle;
 
@@ -294,9 +280,7 @@ BOOL noteTitleIsAPrefixOfOtherNoteTitle(NoteObject *longerNote, NoteObject *shor
 
 - (void)updateDateStrings;
 
-- (void)setSelectedRange:(NSRange)newRange;
-
-- (NSRange)lastSelectedRange;
+@property (nonatomic) NSRange selectedRange;
 
 - (BOOL)contentsWere7Bit;
 
@@ -304,8 +288,6 @@ BOOL noteTitleIsAPrefixOfOtherNoteTitle(NoteObject *longerNote, NoteObject *shor
 
 - (void)removeAllPrefixParentNotes;
 
-- (NSUndoManager *)undoManager;
-
-- (void)_undoManagerDidChange:(NSNotification *)notification;
+@property (nonatomic, strong, readonly) NSUndoManager *undoManager;
 
 @end

@@ -990,7 +990,7 @@
 
 	//we do this after removing it from the array to avoid re-discovering a removed file
 	if ([notationPrefs notesStorageFormat] != SingleDatabaseFormat) {
-		[aNoteObject removeFileFromDirectory];
+		[aNoteObject moveFileToTrash];
 	}
 	//add journal removal event
 	if (walWriter && ![walWriter writeRemovalForNote:aNoteObject]) {

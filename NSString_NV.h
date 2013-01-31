@@ -85,6 +85,8 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, NSUInteger charIndex);
 
 + (NSString *)ntn_stringWithRandomizedFileName;
 
+- (NSString *)ntn_normalizedString;
+
 @end
 
 @interface NSMutableString (NV)

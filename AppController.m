@@ -1459,7 +1459,7 @@ void outletObjectAwoke(id sender) {
 		[self _setCurrentNote:note];
 
 		NSRange firstFoundTermRange = NSMakeRange(NSNotFound, 0);
-		NSRange noteSelectionRange = [currentNote lastSelectedRange];
+		NSRange noteSelectionRange = currentNote.selectedRange;
 
 		if (noteSelectionRange.location == NSNotFound ||
 				NSMaxRange(noteSelectionRange) > [[note contentString] length]) {

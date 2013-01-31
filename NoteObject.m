@@ -54,6 +54,11 @@ typedef NSRange NSRange32;
 
 @interface NoteObject () {
 	NSMutableAttributedString *_contentString;
+
+	NSMutableSet *_labelSet;
+
+	//each note has its own undo manager--isn't that nice?
+	NSUndoManager *_undoManager;
 }
 
 @property(nonatomic, copy, readwrite) NSString *filename;
@@ -68,6 +73,9 @@ typedef NSRange NSRange32;
 @property(nonatomic, copy, readwrite) NSDate *attributesModificationDate;
 
 @property(nonatomic, copy, readwrite) NSURL *noteFileURL;
+
+@property (nonatomic, strong) NSAttributedString *tableTitleString;
+
 
 @end
 
@@ -87,7 +95,7 @@ typedef NSRange NSRange32;
 
 		currentFormatID = SingleDatabaseFormat;
 		fileEncoding = NSUTF8StringEncoding;
-		selectedRange = NSMakeRange(NSNotFound, 0);
+		self.selectedRange = NSMakeRange(NSNotFound, 0);
 
 		//other instance variables initialized on demand
 	}
@@ -109,8 +117,8 @@ typedef NSRange NSRange32;
 	if (localDelegate) {
 		//do things that ought to have been done during init, but were not possible due to lack of delegate information
 		if (!self.filename) self.filename = [localDelegate uniqueFilenameForTitle:titleString fromNote:self];
-		if (!tableTitleString && !didUnarchive) [self updateTablePreviewString];
-		if (!labelSet && !didUnarchive) [self updateLabelConnectionsAfterDecoding];
+		if (!self.tableTitleString && !didUnarchive) [self updateTablePreviewString];
+		if (!_labelSet && !didUnarchive) [self updateLabelConnectionsAfterDecoding];
 	}
 }
 
@@ -236,25 +244,32 @@ NSInteger compareTitleStringReverse(id *a, id *b) {
 
 #include "SynchronizedNoteMixIns.h"
 
-//DefColAttrAccessor(wordCountOfNote, wordCountString)
-DefColAttrAccessor(titleOfNote2, titleString)
-DefColAttrAccessor(dateCreatedStringOfNote, dateCreatedString)
-DefColAttrAccessor(dateModifiedStringOfNote, dateModifiedString)
+force_inline id titleOfNote2(NotesTableView *tv, NoteObject *note, NSInteger row) {
+	return note.title;
+}
+
+force_inline id dateCreatedStringOfNote(NotesTableView *tv, NoteObject *note, NSInteger row) {
+	return note->dateCreatedString;
+}
+
+force_inline id dateModifiedStringOfNote(NotesTableView *tv, NoteObject *note, NSInteger row) {
+	return note->dateModifiedString;
+}
 
 force_inline id
 tableTitleOfNote(NotesTableView *tv, NoteObject *note, NSInteger
 row) {
-	if (note->tableTitleString) return note->tableTitleString;
-	return note.title;
+	return note.tableTitleString ?: note.title;
 }
+
 force_inline id
 properlyHighlightingTableTitleOfNote(NotesTableView *tv, NoteObject *note, NSInteger
 row) {
-	if (note->tableTitleString) {
+	if (note.tableTitleString) {
 		if ([tv isRowSelected:row]) {
-			return [note->tableTitleString string];
+			return [note.tableTitleString string];
 		}
-		return note->tableTitleString;
+		return note.tableTitleString;
 	}
 	return note.title;
 }
@@ -272,8 +287,7 @@ row) {
 force_inline id
 unifiedCellSingleLineForNote(NotesTableView *tv, NoteObject *note, NSInteger
 row) {
-
-	id obj = note->tableTitleString ? (id) note->tableTitleString : note.title;
+	id obj = note.tableTitleString ?: note.title;
 
 	UnifiedCell *cell = [[tv tableColumns][0] dataCellForRow:row];
 	[cell setNoteObject:note];
@@ -295,19 +309,11 @@ row) {
 	BOOL rowSelected = [tv isRowSelected:row];
 	BOOL drawShadow = YES;
 
-	id obj = note->tableTitleString ? (rowSelected ? (id) AttributedStringForSelection(note->tableTitleString, drawShadow) :
-			(id) note->tableTitleString) : note.title;
-
-
-	return obj;
+	return note.tableTitleString ? (rowSelected ? AttributedStringForSelection(note.tableTitleString, drawShadow) :
+			note.tableTitleString) : note.title;
 }
 
-//make notationcontroller should send setDelegate: and setLabelString: (if necessary) to each note when unarchiving this way
-
-//there is no measurable difference in speed when using decodeValuesOfObjCTypes, oddly enough
-//the overhead of the _decodeObject* C functions must be significantly greater than the objc_msgSend and argument passing overhead
-#define DECODE_INDIVIDUALLY 1
-
+// make notationcontroller should send setDelegate: and setLabelString: (if necessary) to each note when unarchiving this way
 - (id)initWithCoder:(NSCoder *)decoder {
 	if ((self = [self init])) {
 
@@ -331,8 +337,11 @@ row) {
 				self.modificationDate = [NSDate dateWithTimeIntervalSinceReferenceDate: time];
 			}
 
+			NSRange selectedRange;
 			selectedRange.location = [decoder decodeIntegerForKey:@"selectionRangeLocation"];
 			selectedRange.length = [decoder decodeIntegerForKey:@"selectionRangeLength"];
+			self.selectedRange = selectedRange;
+			
 			contentsWere7Bit = [decoder decodeBoolForKey:VAR_STR(contentsWere7Bit)];
 
 			logSequenceNumber = [decoder decodeInt32ForKey:VAR_STR(logSequenceNumber)];
@@ -388,8 +397,8 @@ row) {
 
 		[coder encodeObject: self.modificationDate forKey: VAR_STR(modificationDate)];
 		[coder encodeObject: self.creationDate forKey: VAR_STR(creationDate)];
-		[coder encodeInteger:selectedRange.location forKey:@"selectionRangeLocation"];
-		[coder encodeInteger:selectedRange.length forKey:@"selectionRangeLength"];
+		[coder encodeInteger: self.selectedRange.location forKey:@"selectionRangeLocation"];
+		[coder encodeInteger: self.selectedRange.length forKey:@"selectionRangeLength"];
 		[coder encodeBool:contentsWere7Bit forKey:VAR_STR(contentsWere7Bit)];
 
 		[coder encodeInt32:logSequenceNumber forKey:VAR_STR(logSequenceNumber)];
@@ -600,16 +609,16 @@ row) {
 			//is called for visible notes at launch and resize only, generation of images for invisible notes is delayed until after launch
 
 			NSSize labelBlockSize = ColumnIsSet(NoteLabelsColumn, [prefs tableColumnsBitmap]) ? [self sizeOfLabelBlocks] : NSZeroSize;
-			tableTitleString = [titleString attributedMultiLinePreviewFromBodyText:self.contentString upToWidth:[localDelegate titleColumnWidth]
+			self.tableTitleString = [titleString attributedMultiLinePreviewFromBodyText:self.contentString upToWidth:[localDelegate titleColumnWidth]
 																	intrusionWidth:labelBlockSize.width];
 		} else {
-			tableTitleString = [titleString attributedSingleLinePreviewFromBodyText:self.contentString upToWidth:[localDelegate titleColumnWidth]];
+			self.tableTitleString = [titleString attributedSingleLinePreviewFromBodyText:self.contentString upToWidth:[localDelegate titleColumnWidth]];
 		}
 	} else {
 		if ([prefs horizontalLayout]) {
-			tableTitleString = [titleString attributedSingleLineTitle];
+			self.tableTitleString = [titleString attributedSingleLineTitle];
 		} else {
-			tableTitleString = nil;
+			self.tableTitleString = nil;
 		}
 	}
 }
@@ -706,12 +715,7 @@ row) {
 - (void)_resanitizeContent {
 	[_contentString santizeForeignStylesForImporting];
 
-	//renormalize the title, in case it is still somehow derived from decomposed HFS+ filenames
-	CFMutableStringRef normalizedString = CFStringCreateMutableCopy(NULL, 0, (CFStringRef) titleString);
-	CFStringNormalize(normalizedString, kCFStringNormalizationFormC);
-
-	[self _setTitleString:[(__bridge NSString *) normalizedString copy]];
-	if (normalizedString) CFRelease(normalizedString);
+	[self _setTitleString: [titleString ntn_normalizedString]];
 
 	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
 	if (localDelegate && [localDelegate currentNoteStorageFormat] == RTFTextFormat)
@@ -723,7 +727,7 @@ row) {
 - (void)updateUnstyledTextWithBaseFont:(NSFont *)baseFont {
 
 	if ([_contentString restyleTextToFont:[[GlobalPrefs defaultPrefs] noteBodyFont] usingBaseFont:baseFont] > 0) {
-		[undoManager removeAllActions];
+		[self.undoManager removeAllActions];
 
 		id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
 		if (localDelegate && [localDelegate currentNoteStorageFormat] == RTFTextFormat)
@@ -751,31 +755,27 @@ row) {
 	//if (!newRange.length) newRange = NSMakeRange(0,0);
 
 	//don't save the range if it's invalid, it's equal to the current range, or the entire note is selected
-	if ((newRange.location != NSNotFound) && !NSEqualRanges(newRange, selectedRange) &&
+	if ((newRange.location != NSNotFound) && !NSEqualRanges(newRange, self.selectedRange) &&
 			!NSEqualRanges(newRange, NSMakeRange(0, self.contentString.length))) {
 		//	NSLog(@"saving: old range: %@, new range: %@", NSStringFromRange(selectedRange), NSStringFromRange(newRange));
-		selectedRange = newRange;
+		self.selectedRange = newRange;
 		[self makeNoteDirtyUpdateTime:NO updateFile:NO];
 	}
-}
-
-- (NSRange)lastSelectedRange {
-	return selectedRange;
 }
 
 //these two methods let us get the actual label objects in use by other notes
 //they assume that the label string already contains the title of the label object(s); that there is only replacement and not addition
 - (void)replaceMatchingLabelSet:(NSSet *)aLabelSet {
-	[labelSet minusSet:aLabelSet];
-	[labelSet unionSet:aLabelSet];
+	[_labelSet minusSet:aLabelSet];
+	[_labelSet unionSet:aLabelSet];
 }
 
 - (void)replaceMatchingLabel:(LabelObject *)aLabel {
 	// just in case this is actually the same label
 
 	//remove the old label and add the new one; if this is the same one, well, too bad
-	[labelSet removeObject:aLabel];
-	[labelSet addObject:aLabel];
+	[_labelSet removeObject:aLabel];
+	[_labelSet addObject:aLabel];
 }
 
 - (void)updateLabelConnectionsAfterDecoding {
@@ -788,11 +788,11 @@ row) {
 	//find differences between previous labels and new ones
 	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
 	if (localDelegate) {
-		NSMutableSet *oldLabelSet = labelSet;
+		NSMutableSet *oldLabelSet = _labelSet;
 		NSMutableSet *newLabelSet = [self labelSetFromCurrentString];
 
 		if (!oldLabelSet) {
-			oldLabelSet = labelSet = [[NSMutableSet alloc] initWithCapacity:[newLabelSet count]];
+			oldLabelSet = _labelSet = [[NSMutableSet alloc] initWithCapacity:[newLabelSet count]];
 		}
 
 		//what's left-over
@@ -804,8 +804,8 @@ row) {
 		[newLabels minusSet:oldLabelSet];
 
 		//update the currently known labels
-		[labelSet minusSet:oldLabels];
-		[labelSet unionSet:newLabels];
+		[_labelSet minusSet:oldLabels];
+		[_labelSet unionSet:newLabels];
 
 		//update our status within the list of all labels, adding or removing from the list and updating the labels where appropriate
 		//these end up calling replaceMatchingLabel*
@@ -819,8 +819,8 @@ row) {
 	//when removing this note from NotationController, other LabelObjects as well as the label controller should know not to list it
 	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
 	if (localDelegate) {
-		[localDelegate note:self didRemoveLabelSet:labelSet];
-		labelSet = nil;
+		[localDelegate note:self didRemoveLabelSet:_labelSet];
+		_labelSet = nil;
 	} else {
 		NSLog(@"not disconnecting labels because no delegate exists");
 	}
@@ -1133,7 +1133,7 @@ row) {
 }
 
 - (BOOL)upgradeToUTF8IfUsingSystemEncoding {
-	if (CFStringConvertEncodingToNSStringEncoding(CFStringGetSystemEncoding()) == fileEncoding)
+	if ([NSString defaultCStringEncoding] == fileEncoding)
 		return [self upgradeEncodingToUTF8];
 	return NO;
 }
@@ -1345,7 +1345,7 @@ row) {
 	//[contentString setAttributedString:attributedStringFromData];
 	contentCacheNeedsUpdate = YES;
 	[self updateContentCacheCStringIfNecessary];
-	[undoManager removeAllActions];
+	[self.undoManager removeAllActions];
 
 	[self updateTablePreviewString];
 
@@ -1366,7 +1366,7 @@ row) {
 
 	//actions that user-editing via AppDelegate would have handled for us:
 	[self updateContentCacheCStringIfNecessary];
-	[undoManager removeAllActions];
+	[self.undoManager removeAllActions];
 
 	[self setTitleString:newTitle];
 }
@@ -1382,10 +1382,6 @@ row) {
 	} else {
 		NSLog(@"Couldn't move file to trash: %@", err);
 	}
-}
-
-- (void)removeFileFromDirectory {
-	[self moveFileToTrash];
 }
 
 - (BOOL)removeUsingJournal:(WALStorageController *)wal {
@@ -1588,24 +1584,24 @@ BOOL noteTitleIsAPrefixOfOtherNoteTitle(NoteObject *longerNote, NoteObject *shor
 }
 
 - (NSSet *)labelSet {
-	return labelSet;
+	return [_labelSet copy];
 }
 
 - (NSUndoManager *)undoManager {
-	if (!undoManager) {
-		undoManager = [[NSUndoManager alloc] init];
+	if (!_undoManager) {
+		_undoManager = [[NSUndoManager alloc] init];
 
 		id center = [NSNotificationCenter defaultCenter];
 		[center addObserver:self selector:@selector(_undoManagerDidChange:)
 					   name:NSUndoManagerDidUndoChangeNotification
-					 object:undoManager];
+					 object:_undoManager];
 
 		[center addObserver:self selector:@selector(_undoManagerDidChange:)
 					   name:NSUndoManagerDidRedoChangeNotification
-					 object:undoManager];
+					 object:_undoManager];
 	}
 
-	return undoManager;
+	return _undoManager;
 }
 
 - (void)_undoManagerDidChange:(NSNotification *)notification {

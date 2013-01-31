@@ -527,6 +527,12 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, NSUInteger charIndex) 
 	return [NSString stringWithFormat: @"%d-%d-%d", psn, date, sequence];
 }
 
+- (NSString *)ntn_normalizedString {
+	NSMutableString *normalizedString = [self mutableCopy];
+	CFStringNormalize((__bridge CFMutableStringRef)normalizedString, kCFStringNormalizationFormC);
+	return [normalizedString copy];
+}
+
 @end
 
 @implementation NSMutableString (NV)

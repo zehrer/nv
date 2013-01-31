@@ -216,7 +216,7 @@ static NSString *const NTVNoteImporterLinkTitleKey = @"NTVNoteImporterLinkTitle"
 					if (linkTitle.length) [[notes lastObject] setTitleString: linkTitle];
 
 					//prefixing should push existing selections forward:
-					NSRange selRange = [[notes lastObject] lastSelectedRange];
+					NSRange selRange = [[notes lastObject] selectedRange];
 					if (selRange.length && prefixedSourceLength)
 						[[notes lastObject] setSelectedRange:NSMakeRange(selRange.location + prefixedSourceLength, selRange.length)];
 
