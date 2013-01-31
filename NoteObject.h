@@ -77,9 +77,6 @@ typedef struct _NoteFilterContext {
 	//if this note's title is "Chicken Shack menu listing", its prefix parent might have the title "Chicken Shack"
 	NSMutableArray *prefixParentNotes;
 
-//	NSString *wordCountString;
-	NSString *dateModifiedString, *dateCreatedString;
-
 	//for syncing to text file
 	NSString *filename;
 	PerDiskInfo *perDiskInfoGroups;
@@ -145,22 +142,16 @@ NSInteger compareTitleStringReverse(id *a, id *b);
 
 @property (nonatomic, copy, readonly) NSURL *noteFileURL;
 
-//return types are NSString or NSAttributedString, satisifying NSTableDataSource protocol otherwise
-id titleOfNote2(NotesTableView *tv, NoteObject *note, NSInteger row);
+- (id)tableTitleOfNote;
 
-id tableTitleOfNote(NotesTableView *tv, NoteObject *note, NSInteger row);
+- (id)unifiedCellSingleLineForTableView:(NotesTableView *)tv row:(NSInteger)row;
 
-id properlyHighlightingTableTitleOfNote(NotesTableView *tv, NoteObject *note, NSInteger row);
+- (id)unifiedCellForTableView:(NotesTableView *)tv row:(NSInteger)row;
 
-id unifiedCellSingleLineForNote(NotesTableView *tv, NoteObject *note, NSInteger row);
+- (id)labelColumnCellForTableView:(NotesTableView *)tv row:(NSInteger)row;
 
-id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteger row);
-
-id labelColumnCellForNote(NotesTableView *tv, NoteObject *note, NSInteger row);
-
-id dateCreatedStringOfNote(NotesTableView *tv, NoteObject *note, NSInteger row);
-
-id dateModifiedStringOfNote(NotesTableView *tv, NoteObject *note, NSInteger row);
+@property (nonatomic, copy, readonly) NSString *dateCreatedString;
+@property (nonatomic, copy, readonly) NSString *dateModifiedString;
 
 id wordCountOfNote(NotesTableView *tv, NoteObject *note, NSInteger row);
 
@@ -189,8 +180,6 @@ BOOL noteTitleIsAPrefixOfOtherNoteTitle(NoteObject *longerNote, NoteObject *shor
 
 - (void)disconnectLabels;
 
-- (BOOL)_setLabelString:(NSString *)newLabelString;
-
 - (void)setLabelString:(NSString *)newLabels;
 
 - (NSMutableSet *)labelSetFromCurrentString;
@@ -199,20 +188,15 @@ BOOL noteTitleIsAPrefixOfOtherNoteTitle(NoteObject *longerNote, NoteObject *shor
 
 - (NSSize)sizeOfLabelBlocks;
 
-- (void)_drawLabelBlocksInRect:(NSRect)aRect rightAlign:(BOOL)onRight highlighted:(BOOL)isHighlighted getSizeOnly:(NSSize *)reqSize;
-
 - (void)drawLabelBlocksInRect:(NSRect)aRect rightAlign:(BOOL)onRight highlighted:(BOOL)isHighlighted;
 
 - (void)setSyncObjectAndKeyMD:(NSDictionary *)aDict forService:(NSString *)serviceName;
 
 - (void)removeAllSyncMDForService:(NSString *)serviceName;
 
-//- (void)removeKey:(NSString*)aKey forService:(NSString*)serviceName;
 - (void)updateWithSyncBody:(NSString *)newBody andTitle:(NSString *)newTitle;
 
 - (void)registerModificationWithOwnedServices;
-
-- (void)_setFileEncoding:(NSStringEncoding)encoding;
 
 - (BOOL)setFileEncodingAndReinterpret:(NSStringEncoding)encoding;
 
@@ -274,7 +258,7 @@ BOOL noteTitleIsAPrefixOfOtherNoteTitle(NoteObject *longerNote, NoteObject *shor
 
 - (void)setForegroundTextColorOnly:(NSColor *)aColor;
 
-- (void)_resanitizeContent;
+- (void)resanitizeContent;
 
 - (void)updateUnstyledTextWithBaseFont:(NSFont *)baseFont;
 

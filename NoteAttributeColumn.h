@@ -11,7 +11,7 @@
    - Neither the name of Notational Velocity nor the names of its contributors may be used to endorse 
      or promote products derived from this software without specific prior written permission. */
 
-@class NotesTableView;
+@class NotesTableView, NoteObject;
 
 @interface NoteAttributeColumn : NSTableColumn {
 	float absoluteMinimumWidth;
@@ -22,7 +22,7 @@
 - (void)updateWidthForHighlight;
 
 @property(nonatomic, assign) SEL mutatingSelector;
-@property(nonatomic, assign) id (*attributeFunction)(id, id, NSInteger);
+@property(nonatomic, copy) id (^attributeBlock)(NoteObject *, NotesTableView *, NSInteger);
 @property(nonatomic, assign) NSInteger (*sortingFunction)(id *, id *);
 @property(nonatomic, assign) NSInteger (*reverseSortingFunction)(id *, id *);
 

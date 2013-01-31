@@ -174,7 +174,7 @@
 			//remove and re-add link attributes for all notes
 			//remove underline attribute for all notes
 			//add automatic strike-through attribute for all notes
-			[allNotes makeObjectsPerformSelector:@selector(_resanitizeContent)];
+			[allNotes makeObjectsPerformSelector:@selector(resanitizeContent)];
 		}
 
 		if (epochIteration < EPOC_ITERATION) {
@@ -1530,8 +1530,8 @@
 
 - (id)tableView:(NSTableView *)tableView objectValueForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
 	NoteAttributeColumn *col = (NoteAttributeColumn *) tableColumn;
-	if (!col.attributeFunction) return nil;
-	return col.attributeFunction(tableView, self.filteredNotesList[row], row);
+	if (!col.attributeBlock) return nil;
+	return col.attributeBlock(self.filteredNotesList[row], (id)tableView, row);
 }
 
 #pragma mark - NSTableViewDataSource (Optional)

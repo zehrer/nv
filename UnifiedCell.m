@@ -192,7 +192,8 @@ NSAttributedString *AttributedStringForSelection(NSAttributedString *str, BOOL w
 			showDateCreated = YES;
 		}
 
-		NSString *dateStr = (showDateCreated ? dateCreatedStringOfNote : dateModifiedStringOfNote)(tv, noteObject, NSNotFound);
+		
+		NSString *dateStr = showDateCreated ? noteObject.dateCreatedString : noteObject.dateModifiedString;
 		[dateStr drawInRect:NSMakeRect(NSMaxX(cellFrame) - 76.0, NSMinY(cellFrame), 70.0, fontHeight) withAttributes:baseAttrs];
 	}
 

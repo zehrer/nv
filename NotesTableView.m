@@ -75,13 +75,28 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 		allColumns = [[NSMutableArray alloc] initWithCapacity:4];
 		allColsDict = [[NSMutableDictionary alloc] initWithCapacity:4];
 
-		id (*titleReferencor)(id, id, NSInteger) = [globalPrefs horizontalLayout] ?
-				([globalPrefs tableColumnsShowPreview] ? unifiedCellForNote : unifiedCellSingleLineForNote) :
-				([globalPrefs tableColumnsShowPreview] ? tableTitleOfNote : titleOfNote2);
-
 		NSString *colStrings[] = {NoteTitleColumnString, NoteLabelsColumnString, NoteDateModifiedColumnString, NoteDateCreatedColumnString};
 		SEL colMutators[] = {@selector(setTitleString:), @selector(setLabelString:), NULL, NULL};
-		id(*attrFunctions[])(id, id, NSInteger) = {titleReferencor, labelColumnCellForNote, dateModifiedStringOfNote, dateCreatedStringOfNote};
+
+		NSArray *attributeFunctions = @[ ^id(NoteObject *note, NotesTableView *tv, NSInteger row){
+			if ([globalPrefs horizontalLayout]) {
+				if ([globalPrefs tableColumnsShowPreview]) {
+					return [note unifiedCellForTableView: tv row: row];
+				} else {
+					return [note unifiedCellSingleLineForTableView: tv row: row];
+				}
+			} else if ([globalPrefs tableColumnsShowPreview]) {
+				return [note tableTitleOfNote];
+			}
+			return note.title;
+		}, ^(NoteObject *note, NotesTableView *tv, NSInteger row){
+			return [note labelColumnCellForTableView: tv row: row];
+		}, ^(NoteObject *note, NotesTableView *tv, NSInteger row){
+			return [note dateModifiedString];
+		}, ^(NoteObject *note, NotesTableView *tv, NSInteger row){
+			return [note dateCreatedString];
+		}];
+
 		NSInteger(*sortFunctions[])(id *, id *) = {compareTitleString, compareLabelString, compareDateModified, compareDateCreated};
 		NSInteger(*reverseSortFunctions[])(id *, id *) = {compareTitleStringReverse, compareLabelStringReverse, compareDateModifiedReverse,
 				compareDateCreatedReverse};
@@ -93,7 +108,7 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 			[column setHeaderCell:[[NotesTableHeaderCell alloc] initTextCell:[[NSBundle mainBundle] localizedStringForKey:colStrings[i] value:@"" table:nil]]];
 
 			column.mutatingSelector = colMutators[i];
-			column.attributeFunction = attrFunctions[i];
+			column.attributeBlock = attributeFunctions[i];
 			column.sortingFunction = sortFunctions[i];
 			column.reverseSortingFunction = reverseSortFunctions[i];
 			[column setResizingMask:NSTableColumnUserResizingMask];
@@ -219,8 +234,18 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 	activeStyle = YES;
 #endif
 	isActiveStyle = activeStyle;
-	col.attributeFunction = [globalPrefs horizontalLayout] ? ([globalPrefs tableColumnsShowPreview] ? unifiedCellForNote : unifiedCellSingleLineForNote) :
-			([globalPrefs tableColumnsShowPreview] ? (activeStyle ? properlyHighlightingTableTitleOfNote : tableTitleOfNote) : titleOfNote2);
+	col.attributeBlock = ^id(NoteObject *note, NotesTableView *tv, NSInteger row){
+		if ([globalPrefs horizontalLayout]) {
+			if ([globalPrefs tableColumnsShowPreview]) {
+				return [note unifiedCellForTableView: tv row: row];
+			} else {
+				return [note unifiedCellSingleLineForTableView: tv row: row];
+			}
+		} else if ([globalPrefs tableColumnsShowPreview]) {
+			return [note tableTitleOfNote];
+		}
+		return note.title;
+	};
 }
 
 - (void)updateTitleDereferencorState {
@@ -1134,19 +1159,6 @@ enum {
 		[editor setString:tagsInTitleColumn ? note.labels : note.title];
 
 		NSRange range = NSMakeRange(0, [[editor string] length]);
-#if 0
-		NoteAttributeColumn *col = [self noteAttributeColumnForIdentifier:NoteTitleColumnString];
-		if (tagsInTitleColumn && dereferencingFunction(col) != unifiedCellSingleLineForNote) {
-			//the textview will comply! when editing tags, use a smaller font, right-aligned
-			[editor setAlignment:NSRightTextAlignment range:range];
-			NSFont *smallerFont = [NSFont systemFontOfSize:[globalPrefs tableFontSize] - 1.0];
-			[editor setFont:smallerFont range:range];
-			NSMutableParagraphStyle *pstyle = [[[NSMutableParagraphStyle alloc] init] autorelease];
-			[pstyle setAlignment:NSRightTextAlignment];
-			[editor setTypingAttributes: @{NSParagraphStyleAttributeName: pstyle, NSFontAttributeName: smallerFont}];
-		}
-#endif
-
 		if (flag) [editor setSelectedRange:range];
 	}
 }

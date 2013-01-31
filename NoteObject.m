@@ -76,6 +76,9 @@ typedef NSRange NSRange32;
 
 @property (nonatomic, strong) NSAttributedString *tableTitleString;
 
+@property (nonatomic, copy, readwrite) NSString *dateCreatedString;
+@property (nonatomic, copy, readwrite) NSString *dateModifiedString;
+
 
 @end
 
@@ -244,73 +247,38 @@ NSInteger compareTitleStringReverse(id *a, id *b) {
 
 #include "SynchronizedNoteMixIns.h"
 
-force_inline id titleOfNote2(NotesTableView *tv, NoteObject *note, NSInteger row) {
-	return note.title;
+- (id)tableTitleOfNote {
+	return self.tableTitleString ?: self.title;
 }
 
-force_inline id dateCreatedStringOfNote(NotesTableView *tv, NoteObject *note, NSInteger row) {
-	return note->dateCreatedString;
-}
-
-force_inline id dateModifiedStringOfNote(NotesTableView *tv, NoteObject *note, NSInteger row) {
-	return note->dateModifiedString;
-}
-
-force_inline id
-tableTitleOfNote(NotesTableView *tv, NoteObject *note, NSInteger
-row) {
-	return note.tableTitleString ?: note.title;
-}
-
-force_inline id
-properlyHighlightingTableTitleOfNote(NotesTableView *tv, NoteObject *note, NSInteger
-row) {
-	if (note.tableTitleString) {
-		if ([tv isRowSelected:row]) {
-			return [note.tableTitleString string];
-		}
-		return note.tableTitleString;
-	}
-	return note.title;
-}
-
-force_inline id
-labelColumnCellForNote(NotesTableView *tv, NoteObject *note, NSInteger
-row) {
-
+- (id)labelColumnCellForTableView:(NotesTableView *)tv row:(NSInteger)row {
 	LabelColumnCell *cell = [[tv tableColumnWithIdentifier:NoteLabelsColumnString] dataCellForRow:row];
-	[cell setNoteObject:note];
-
-	return note.labels;
+	[cell setNoteObject:self];
+	return self.labels;
 }
 
-force_inline id
-unifiedCellSingleLineForNote(NotesTableView *tv, NoteObject *note, NSInteger
-row) {
-	id obj = note.tableTitleString ?: note.title;
+- (id)unifiedCellSingleLineForTableView:(NotesTableView *)tv row:(NSInteger)row {
+	id obj = self.tableTitleString ?: self.title;
 
 	UnifiedCell *cell = [[tv tableColumns][0] dataCellForRow:row];
-	[cell setNoteObject:note];
+	[cell setNoteObject: self];
 	[cell setPreviewIsHidden:YES];
 
 	return obj;
 }
 
-force_inline id
-unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteger
-row) {
+- (id)unifiedCellForTableView:(NotesTableView *)tv row:(NSInteger)row {
 	//snow leopard is stricter about applying the default highlight-attributes (e.g., no shadow unless no paragraph formatting)
 	//so add the shadow here for snow leopard on selected rows
 
 	UnifiedCell *cell = [[tv tableColumns][0] dataCellForRow:row];
-	[cell setNoteObject:note];
+	[cell setNoteObject: self];
 	[cell setPreviewIsHidden:NO];
 
 	BOOL rowSelected = [tv isRowSelected:row];
 	BOOL drawShadow = YES;
 
-	return note.tableTitleString ? (rowSelected ? AttributedStringForSelection(note.tableTitleString, drawShadow) :
-			note.tableTitleString) : note.title;
+	return self.tableTitleString ? (rowSelected ? AttributedStringForSelection(self.tableTitleString, drawShadow) : self.tableTitleString) : self.title;
 }
 
 // make notationcontroller should send setDelegate: and setLabelString: (if necessary) to each note when unarchiving this way
@@ -452,8 +420,8 @@ row) {
 		CFRelease(uuidRef);
 
 		self.creationDate = self.modificationDate = [NSDate date];
-		dateModifiedString = [NSString relativeDateStringWithAbsoluteTime: self.modificationDate.timeIntervalSinceReferenceDate];
-		_contentModificationDate = self.modificationDate;
+		self.dateModifiedString = [NSString relativeDateStringWithAbsoluteTime: self.modificationDate.timeIntervalSinceReferenceDate];
+		self.contentModificationDate = self.modificationDate;
 
 		if (localDelegate) [self updateTablePreviewString];
 	}
@@ -497,7 +465,7 @@ row) {
 		}
 		if (!self.modificationDate || !self.creationDate) {
 			self.modificationDate = self.creationDate = [NSDate date];
-			dateModifiedString = [NSString relativeDateStringWithAbsoluteTime: self.modificationDate.timeIntervalSinceReferenceDate];
+			self.dateModifiedString = [NSString relativeDateStringWithAbsoluteTime: self.modificationDate.timeIntervalSinceReferenceDate];
 		}
 	}
 
@@ -712,7 +680,7 @@ row) {
 	}
 }
 
-- (void)_resanitizeContent {
+- (void)resanitizeContent {
 	[_contentString santizeForeignStylesForImporting];
 
 	[self _setTitleString: [titleString ntn_normalizedString]];
@@ -736,18 +704,18 @@ row) {
 }
 
 - (void)updateDateStrings {
-	dateCreatedString = [NSString relativeDateStringWithAbsoluteTime: self.creationDate.timeIntervalSinceReferenceDate];
-	dateModifiedString = [NSString relativeDateStringWithAbsoluteTime: self.modificationDate.timeIntervalSinceReferenceDate];
+	self.dateCreatedString = [NSString relativeDateStringWithAbsoluteTime: self.creationDate.timeIntervalSinceReferenceDate];
+	self.dateModifiedString = [NSString relativeDateStringWithAbsoluteTime: self.modificationDate.timeIntervalSinceReferenceDate];
 }
 
 - (void)setCreationDate:(NSDate *)creationDate {
 	_creationDate = creationDate;
-	dateCreatedString = [NSString relativeDateStringWithAbsoluteTime: self.creationDate.timeIntervalSinceReferenceDate];
+	self.dateCreatedString = [NSString relativeDateStringWithAbsoluteTime: self.creationDate.timeIntervalSinceReferenceDate];
 }
 
 - (void)setModificationDate:(NSDate *)modificationDate {
 	_modificationDate = modificationDate;
-	dateModifiedString = [NSString relativeDateStringWithAbsoluteTime: self.modificationDate.timeIntervalSinceReferenceDate];
+	self.dateModifiedString = [NSString relativeDateStringWithAbsoluteTime: self.modificationDate.timeIntervalSinceReferenceDate];
 }
 
 
@@ -758,7 +726,7 @@ row) {
 	if ((newRange.location != NSNotFound) && !NSEqualRanges(newRange, self.selectedRange) &&
 			!NSEqualRanges(newRange, NSMakeRange(0, self.contentString.length))) {
 		//	NSLog(@"saving: old range: %@, new range: %@", NSStringFromRange(selectedRange), NSStringFromRange(newRange));
-		self.selectedRange = newRange;
+		_selectedRange = newRange;
 		[self makeNoteDirtyUpdateTime:NO updateFile:NO];
 	}
 }
