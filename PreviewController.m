@@ -12,7 +12,7 @@
 #import "NSString_Markdown.h"
 #import "NSString_Textile.h"
 #import "ETTransparentButtonCell.h"
-#import "NSFileManager+DirectoryLocations.h"
+#import "NSFileManager_NV.h"
 
 #define kDefaultMarkupPreviewVisible @"markupPreviewVisible"
 
@@ -259,7 +259,7 @@
 
 + (NSString *)css {
 	NSFileManager *mgr = [NSFileManager defaultManager];
-	NSString *folder = [[NSFileManager defaultManager] applicationSupportDirectory];
+	NSString *folder = [[mgr ntn_applicationSupportURL] path];
 	NSString *cssFileName = @"custom.css";
 	NSString *customCSSPath = [folder stringByAppendingPathComponent:cssFileName];
 	if ([mgr fileExistsAtPath:customCSSPath]) {
@@ -280,8 +280,8 @@
 
 + (NSString *)html {
 	NSFileManager *mgr = [NSFileManager defaultManager];
+	NSString *folder = [[mgr ntn_applicationSupportURL] path];
 
-	NSString *folder = [[NSFileManager defaultManager] applicationSupportDirectory];
 	NSString *htmlFileName = @"template.html";
 	NSString *customHTMLPath = [folder stringByAppendingPathComponent:htmlFileName];
 	if ([mgr fileExistsAtPath:customHTMLPath]) {
@@ -319,7 +319,9 @@
 		htmlString = [[self class] html];
 		lastNote = app.currentNote;
 	}
-	NSString *nvSupportPath = [[NSFileManager defaultManager] applicationSupportDirectory];
+
+
+	NSString *nvSupportPath = [[[NSFileManager defaultManager] ntn_applicationSupportURL] path];
 
 	[outputString replaceOccurrencesOfString:@"{%support%}" withString:nvSupportPath options:0 range:NSMakeRange(0, [outputString length])];
 	[outputString replaceOccurrencesOfString:@"{%title%}" withString:noteTitle options:0 range:NSMakeRange(0, [outputString length])];
@@ -347,10 +349,7 @@
 + (void)createCustomFiles {
 	NSFileManager *fileManager = [NSFileManager defaultManager];
 
-	NSString *folder = [[NSFileManager defaultManager] applicationSupportDirectory];
-	if ([fileManager fileExistsAtPath:folder] == NO) {
-		[fileManager createDirectoryAtPath:folder withIntermediateDirectories:YES attributes:nil error:NULL];
-	}
+	NSString *folder = [[fileManager ntn_applicationSupportURL] path];
 
 	NSString *cssFileName = @"custom.css";
 	NSString *cssFile = [folder stringByAppendingPathComponent:cssFileName];

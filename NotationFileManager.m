@@ -24,6 +24,7 @@
 #import "NSURL+Notation.h"
 #import "NoteCatalogEntry.h"
 #import "NSDate+Notation.h"
+#import "NSFileManager_NV.h"
 
 #import <CommonCrypto/CommonCrypto.h>
 
@@ -37,20 +38,6 @@ NSString *NotesDatabaseFileName = @"Notes & Settings";
 @end
 
 @implementation NotationController (NotationFileManager)
-
-+ (NSURL *)createDirectoryIfNotPresentWithName:(NSString *)subName inDirectory:(NSURL *)directory error:(out NSError **)outError {
-	NSURL *URL = [directory URLByAppendingPathComponent: subName isDirectory: YES];
-	if (![URL checkResourceIsReachableAndReturnError: NULL]) {
-		NSError *error = nil;
-		if ([[NSFileManager defaultManager] createDirectoryAtURL: URL withIntermediateDirectories: YES attributes: nil error: &error]) {
-			return URL;
-		} else {
-			if (outError) *outError = error;
-			return nil;
-		}
-	}
-	return URL;
-}
 
 // Create a version 3 UUID; derived using "name" via MD5 checksum.
 static void uuid_create_md5_from_name(unsigned char result_uuid[16], const void *name, int namelen) {
@@ -234,22 +221,6 @@ static void uuid_create_md5_from_name(unsigned char result_uuid[16], const void 
 			break;
 		}
 	}
-}
-
-+ (NSURL *)defaultNoteDirectoryURLReturningError:(out NSError **)outErr {
-	NSError *err = nil;
-	NSURL *appSupportURL = nil;
-	NSURL *noteDirectoryURL = nil;
-
-	if ((appSupportURL = [[NSFileManager defaultManager] URLForDirectory: NSApplicationSupportDirectory inDomain: NSUserDomainMask appropriateForURL: nil create: YES error: &err])) {
-		if ((noteDirectoryURL = [self createDirectoryIfNotPresentWithName: @"Notational Data" inDirectory: appSupportURL error: &err])) {
-			return noteDirectoryURL;
-		}
-	}
-
-	if (outErr) *outErr = err;
-
-	return nil;
 }
 
 //whenever a note uses this method to change its filename, we will have to re-establish all the links to it

@@ -23,4 +23,8 @@
 + (NSStringEncoding)textEncodingOfItemAtURL:(NSURL *)URL;
 + (BOOL)setTextEncoding:(NSStringEncoding)encoding ofItemAtURL:(NSURL *)URL;
 
+- (NSURL *)ntn_URLForDirectory:(NSSearchPathDirectory)directory inDomain:(NSSearchPathDomainMask)domain byAppendingPathComponent:(NSString *)pathComponent create:(BOOL)shouldCreate error:(out NSError **)outError;
+- (NSURL *)ntn_URLForApplicationSupportDirectory:(NSString *)pathComponent create:(BOOL)shouldCreate error:(out NSError **)outError;
+- (NSURL *)ntn_applicationSupportURL;
+
 @end

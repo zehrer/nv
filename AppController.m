@@ -39,7 +39,7 @@
 #import "StatusItemView.h"
 #import "PreviewController.h"
 #import "ETClipView.h"
-#import "NSFileManager+DirectoryLocations.h"
+#import "NSFileManager_NV.h"
 #import "WordCountToken.h"
 #import <objc/message.h>
 #import "NSString_CustomTruncation.h"
@@ -76,15 +76,6 @@ static const CGFloat kMaxNotesListDimension = 600.0f;
 		windowUndoManager = [[NSUndoManager alloc] init];
 
 		previewController = [[PreviewController alloc] init];
-
-		NSFileManager *fileManager = [NSFileManager defaultManager];
-
-
-		NSString *folder = [[NSFileManager defaultManager] applicationSupportDirectory];
-
-		if ([fileManager fileExistsAtPath:folder] == NO) {
-			[fileManager createDirectoryAtPath:folder withIntermediateDirectories:YES attributes:nil error:nil];
-		}
 
 		NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
 		[nc addObserver:previewController selector:@selector(requestPreviewUpdate:) name:@"TextView has changed contents" object:self];

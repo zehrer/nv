@@ -42,8 +42,6 @@ typedef union VolumeUUID {
 
 - (void)relocateNotesDirectory;
 
-+ (NSURL *)defaultNoteDirectoryURLReturningError:(out NSError **)outErr;
-
 - (NSString *)uniqueFilenameForTitle:(NSString *)title fromNote:(NoteObject *)note;
 
 - (void)notifyOfChangedTrash;

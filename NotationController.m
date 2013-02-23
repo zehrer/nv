@@ -41,6 +41,7 @@
 #import "NSURL+Notation.h"
 #import "NSError+Notation.h"
 #import <objc/message.h>
+#import "NSFileManager_NV.h"
 
 @interface NotationController ()
 
@@ -101,17 +102,18 @@
 	return nil;
 }
 
-- (id)initWithDefaultDirectoryWithError:(out NSError **)err {
+- (id)initWithDefaultDirectoryWithError:(out NSError **)outError {
 	NSError *error = nil;
-	NSURL *targetURL = nil;
+	NSURL *noteDirectoryURL = nil;
 
-	if ((targetURL = [NotationController defaultNoteDirectoryURLReturningError: &error])) {
-		if ((self = [self initWithDirectory:targetURL error: &error])) {
+	if (!(noteDirectoryURL = [[NSFileManager defaultManager] ntn_URLForApplicationSupportDirectory: @"Notational Data" create: YES error: &error])) {
+		if ((self = [self initWithDirectory: noteDirectoryURL error: &error])) {
 			return self;
 		}
+		return nil;
 	}
 
-	if (err) *err = error;
+	if (outError) *outError = error;
 	return nil;
 }
 

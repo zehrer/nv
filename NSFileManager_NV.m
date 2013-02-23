@@ -176,4 +176,37 @@ static NSError *NVTErrorForPOSIXError(int err, NSURL *URL) {
 	return YES;
 }
 
+- (NSURL *)ntn_URLForDirectory:(NSSearchPathDirectory)directory inDomain:(NSSearchPathDomainMask)domain byAppendingPathComponent:(NSString *)pathComponent create:(BOOL)shouldCreate error:(out NSError **)outError {
+	NSError *localError = nil;
+	NSURL *URL = [self URLForDirectory: directory inDomain: domain appropriateForURL: nil create: YES error: &localError];
+
+	if (!URL) {
+		if (outError) *outError = localError;
+		return nil;
+	}
+
+
+	if (pathComponent) URL = [URL URLByAppendingPathComponent: pathComponent];
+
+	//
+	// Create the path if it doesn't exist
+	//
+	if (![self createDirectoryAtURL: URL withIntermediateDirectories: YES attributes: nil error: &localError]) {
+		if (outError) *outError = localError;
+		return nil;
+	}
+
+	if (outError) *outError = nil;
+	return URL;
+}
+
+- (NSURL *)ntn_URLForApplicationSupportDirectory:(NSString *)pathComponent create:(BOOL)shouldCreate error:(out NSError **)outError {
+	return [self ntn_URLForDirectory: NSApplicationSupportDirectory inDomain: NSUserDomainMask byAppendingPathComponent: pathComponent create: shouldCreate error: outError];
+}
+
+- (NSURL *)ntn_applicationSupportURL {
+	NSString *bundleID = [[NSBundle mainBundle] bundleIdentifier];
+	return [self ntn_URLForDirectory: NSApplicationSupportDirectory inDomain: NSUserDomainMask byAppendingPathComponent: bundleID create: YES error: NULL];
+}
+
 @end
