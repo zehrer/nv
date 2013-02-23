@@ -35,13 +35,14 @@ typedef union {
 
 @interface WALController : NSObject {
 	int logFD;
-	char *journalFile;
 	NSData *logSessionKey;
 
 	z_stream compressionStream;
 }
 
-- (id)initWithParentFSRep:(const char *)path encryptionKey:(NSData *)key;
+@property (nonatomic, copy, readonly) NSString *journalPath;
+
+- (id)initWithDirectory:(NSURL *)directory encryptionKey:(NSData *)key ;
 
 - (BOOL)logFileStillExists;
 
@@ -52,7 +53,6 @@ typedef union {
 @interface WALStorageController : WALController {
 	NSMutableData *unwrittenData;
 }
-- (id)initWithParentFSRep:(const char *)path encryptionKey:(NSData *)key;
 
 - (BOOL)writeEstablishedNote:(id <SynchronizedNote>)aNoteObject;
 
@@ -76,8 +76,6 @@ typedef union {
 	//to ensure we don't mistakenly allocate more memory
 	//than there exists data in what we have yet to read
 }
-
-- (id)initWithParentFSRep:(const char *)path encryptionKey:(NSData *)key;
 
 - (id <SynchronizedNote>)recoverNextObject;
 

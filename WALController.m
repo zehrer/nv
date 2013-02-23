@@ -22,6 +22,13 @@
 #import "DeletedNoteObject.h"
 #import "NSString_NV.h"
 
+@interface WALController ()
+
+@property (nonatomic, strong) NSFileManager *fileManager;
+@property (nonatomic, copy, readwrite) NSString *journalPath;
+
+@end
+
 //file descriptor based for lower level access
 
 //also used as an ad-hoc lock file;
@@ -32,22 +39,25 @@
 
 @implementation WALController
 
-- (id)initWithParentFSRep:(const char *)path encryptionKey:(NSData *)key {
+- (id)initWithDirectory:(NSURL *)directory encryptionKey:(NSData *)key {
 	if ((self = [super init])) {
+		self.fileManager = [NSFileManager new];
+		NSURL *journalURL = [directory URLByAppendingPathComponent: @"Interim Note-Changes" isDirectory: NO];
+
+		NSNumber *size = nil;
+		if ([journalURL getResourceValue: &size forKey: NSURLFileSizeKey error: NULL]) {
+			if ([size unsignedLongLongValue] == 0) {
+				[self.fileManager removeItemAtURL: journalURL error: NULL];
+			}
+		}
+
+		self.journalPath = journalURL.filePathURL.path;
+
 		logFD = -1;
-
-		char filename[] = "Interim Note-Changes";
-		size_t newPathLength = sizeof(filename) + strlen(path) + 2;
-
-		journalFile = (char *) malloc(newPathLength);
-		strlcpy(journalFile, path, newPathLength);
-		strlcat(journalFile, "/", newPathLength);
-		strlcat(journalFile, filename, newPathLength);
 
 		//for simplicity's sake the log file is always compressed and encrypted with the key for the current database
 		//if the database has no encryption, it should have passed some constant known key to us instead
 		logSessionKey = key;
-
 	}
 	return self;
 }
@@ -68,10 +78,10 @@
 }
 
 - (BOOL)destroyLogFile {
-
-	journalFile = (char *) realloc(journalFile, 4096 * sizeof(char));
-	intptr_t pathIntPtr = (intptr_t) journalFile;
-
+	char *newJournal = calloc(PATH_MAX, sizeof(char));
+	strcpy(newJournal, self.journalPath.fileSystemRepresentation);
+	intptr_t pathIntPtr = (intptr_t)newJournal;
+	
 	//get current path of file descriptor in case the directory was moved
 	if (fcntl(logFD, F_GETPATH, pathIntPtr) < 0) {
 		NSLog(@"destroyLogFile: fcntl F_GETPATH error: %s", strerror(errno));
@@ -81,17 +91,13 @@
 		NSLog(@"destroyLogFile: close error: %s:", strerror(errno));
 	}
 
-	if (unlink(journalFile) < 0) {
+	BOOL result = YES;
+	if (unlink(newJournal) < 0) {
 		NSLog(@"destroyLogFile: unlink error: %s", strerror(errno));
-		return NO;
+		result = NO;
 	}
-	return YES;
-}
-
-- (void)dealloc {
-	if (journalFile)
-		free(journalFile);
-
+	free(newJournal);
+	return result;
 }
 
 @end
@@ -108,20 +114,16 @@
 
 //if these operations are all successful, log file is removed
 
-
-- (id)initWithParentFSRep:(const char *)path encryptionKey:(NSData *)key {
-	if ((self = [super initWithParentFSRep:path encryptionKey:key])) {
-
+- (id)initWithDirectory:(NSURL *)directory encryptionKey:(NSData *)key {
+	if ((self = [super initWithDirectory:directory encryptionKey:key])) {
 		//we could make parent dir writable just in case, but that might be a security hazard depending on ownership
 		//chmod(path, S_IRWXU | S_IRWXG | S_IRWXO);
 
-		//attempt to open/create the file exclusively with write-only and append access
-
-		if ((logFD = open(journalFile, O_CREAT | O_EXCL | O_WRONLY | O_APPEND, S_IRUSR | S_IWUSR)) < 0) {
+		if ((logFD = open(self.journalPath.fileSystemRepresentation, O_CREAT | O_EXCL | O_WRONLY | O_APPEND, S_IRUSR | S_IWUSR)) < 0) {
 			//if this fails, the file probably still exists, or we don't have write permission
 			//either way, we shouldn't continue
 
-			NSLog(@"WALStorageController: open error for file %s: %s", journalFile, strerror(errno));
+			NSLog(@"WALStorageController: open error for file %@: %s", self.journalPath, strerror(errno));
 
 			return nil;
 		}
@@ -143,9 +145,7 @@
 			NSLog(@"deflateInit2 returned error: %s", compressionStream.msg);
 			return nil;
 		}
-
 	}
-
 	return self;
 }
 
@@ -200,7 +200,7 @@
 			memmove(bytes, bytes + bytesWritten, newLength);
 			[unwrittenData setLength:newLength];
 		} else {
-			NSLog(@"Unable to empty out unwritten data to journal %s: %s", journalFile, strerror(errno));
+			NSLog(@"Unable to empty out unwritten data to journal %@: %s", self.journalPath, strerror(errno));
 		}
 	}
 
@@ -275,7 +275,7 @@
 	}
 
 	if (bytesWritten < 0) {
-		NSLog(@"Unable to write new data to journal %s: %s", journalFile, strerror(errno));
+		NSLog(@"Unable to write new data to journal %@: %s", self.journalPath, strerror(errno));
 		bytesWritten = 0;
 	}
 
@@ -321,22 +321,24 @@
 
 //if that works, then remove the log file
 
-- (id)initWithParentFSRep:(const char *)path encryptionKey:(NSData *)key {
-	if ((self = [super initWithParentFSRep:path encryptionKey:key])) {
+- (id)initWithDirectory:(NSURL *)directory encryptionKey:(NSData *)key {
+	if ((self = [super initWithDirectory: directory encryptionKey: key])) {
 		fileLength = totalBytesRead = 0;
 
+		const char *journal = self.journalPath.fileSystemRepresentation;
+
 		//make file readable just in case
-		chmod(journalFile, S_IRUSR);
+		chmod(journal, S_IRUSR);
 
 		//attempt to open file read-only
-		if ((logFD = open(journalFile, O_EXCL | O_RDONLY)) < 0) {
-			NSLog(@"WALRecoveryController: open error for file %s: %s", journalFile, strerror(errno));
+		if ((logFD = open(journal, O_EXCL | O_RDONLY)) < 0) {
+			NSLog(@"WALRecoveryController: open error for file %@: %s", self.journalPath, strerror(errno));
 			return nil;
 		}
 
 		struct stat sb;
 		if (fstat(logFD, &sb) < 0) {
-			NSLog(@"WALRecoveryController: fstat error for file %s: %s", journalFile, strerror(errno));
+			NSLog(@"WALRecoveryController: fstat error for file %@: %s", self.journalPath, strerror(errno));
 			return nil;
 		}
 
@@ -358,7 +360,6 @@
 			NSLog(@"inflateInit2 error: %s", compressionStream.msg);
 			return nil;
 		}
-
 	}
 	return self;
 }

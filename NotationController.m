@@ -256,17 +256,17 @@
 }
 
 - (BOOL)initializeJournaling {
-	const char *path = self.noteDirectoryURL.path.fileSystemRepresentation;
+	NSURL *URL = self.noteDirectoryURL;
 	NSData *walSessionKey = [notationPrefs WALSessionKey];
 	BOOL success = NO;
 
 	//initialize the journal if necessary
-	if ((walWriter = [[WALStorageController alloc] initWithParentFSRep: path encryptionKey: walSessionKey])) {
+	if ((walWriter = [[WALStorageController alloc] initWithDirectory: URL encryptionKey: walSessionKey])) {
 		success = YES;
 	} else {
 		//journal file probably already exists, so try to recover it
 
-		WALRecoveryController *walReader = [[WALRecoveryController alloc] initWithParentFSRep: path encryptionKey:walSessionKey];
+		WALRecoveryController *walReader = [[WALRecoveryController alloc] initWithDirectory: URL encryptionKey:walSessionKey];
 
 		if (walReader) {
 			BOOL databaseCouldNotBeFlushed = NO;
@@ -288,7 +288,7 @@
 			//there could be other issues, too (1)
 
 			if ([walReader destroyLogFile]) {
-				if ((walWriter = [[WALStorageController alloc] initWithParentFSRep: path encryptionKey:walSessionKey])) {
+				if ((walWriter = [[WALStorageController alloc] initWithDirectory: URL encryptionKey:walSessionKey])) {
 					if ([recoveredNotes count] > 0) {
 						if (databaseCouldNotBeFlushed) {
 							//re-add the contents of recoveredNotes to walWriter; LSNs should take care of the order; no need to sort
