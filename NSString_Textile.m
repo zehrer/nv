@@ -6,7 +6,7 @@
 #import "NSString_Textile.h"
 #import "PreviewController.h"
 #import "AppController.h"
-#import "NSFileManager+DirectoryLocations.h"
+#import "NSFileManager_NV.h"
 
 @implementation NSString (Textile)
 
@@ -49,8 +49,7 @@
 	NSString *cssString = [[PreviewController class] css];
 	NSMutableString *outputString = [htmlString mutableCopy];
 	NSString *noteTitle = app.currentNote ? [app.currentNote.title copy] : @"";
-
-	NSString *nvSupportPath = [[NSFileManager defaultManager] applicationSupportDirectory];
+	NSString *nvSupportPath = [[[NSFileManager defaultManager] ntn_applicationSupportURL] path];
 
 	[outputString replaceOccurrencesOfString:@"{%support%}" withString:nvSupportPath options:0 range:NSMakeRange(0, [outputString length])];
 	[outputString replaceOccurrencesOfString:@"{%title%}" withString:noteTitle options:0 range:NSMakeRange(0, [outputString length])];
