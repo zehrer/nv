@@ -222,6 +222,8 @@
 		6CB73CE816DA020E00DFCE3F /* Markdownify.nvhelp in Resources */ = {isa = PBXBuildFile; fileRef = 6CB73CE616DA020E00DFCE3F /* Markdownify.nvhelp */; };
 		6CB73CEA16DA036000DFCE3F /* AutoHyperlinks.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6CB73CE916DA036000DFCE3F /* AutoHyperlinks.framework */; };
 		6CB73CEC16DA036600DFCE3F /* Sparkle.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6CB73CEB16DA036600DFCE3F /* Sparkle.framework */; };
+		6CB73CED16DA042B00DFCE3F /* AutoHyperlinks.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 6CB73CE916DA036000DFCE3F /* AutoHyperlinks.framework */; };
+		6CB73CEE16DA042D00DFCE3F /* Sparkle.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 6CB73CEB16DA036600DFCE3F /* Sparkle.framework */; };
 		6CC111E516D6D7AA0080B084 /* NTNSplitView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6CC111DE16D6D7AA0080B084 /* NTNSplitView.m */; };
 		6CC111E616D6D7AA0080B084 /* NTNSplitViewToolbar.m in Sources */ = {isa = PBXBuildFile; fileRef = 6CC111E016D6D7AA0080B084 /* NTNSplitViewToolbar.m */; };
 		6CC111E716D6D7AA0080B084 /* NTNSplitViewToolbarButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 6CC111E216D6D7AA0080B084 /* NTNSplitViewToolbarButton.m */; };
@@ -258,6 +260,8 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				6CB73CED16DA042B00DFCE3F /* AutoHyperlinks.framework in CopyFiles */,
+				6CB73CEE16DA042D00DFCE3F /* Sparkle.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
