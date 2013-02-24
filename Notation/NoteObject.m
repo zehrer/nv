@@ -1153,7 +1153,7 @@ NSInteger compareUniqueNoteIDBytes(id *a, id *b) {
 	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
 	NSURL *newURL = nil;
 	NSMutableData *data = nil;
-	if ((data = [localDelegate dataForFilenameInNotesDirectory: self.filename URL: &newURL])) {
+	if ((data = [localDelegate dataForFilenameInNotesDirectory: catEntry.filename URL: &newURL])) {
 		self.noteFileURL = newURL;
 	} else {
 		NSLog(@"Couldn't update note from file on disk given catalog entry");
