@@ -31,17 +31,13 @@
 }
 
 - (void)awakeFromNib {
-	[self.splitView setAutosaveName: @"nvALTMainSplitView"];
-	[self.splitView setMinSize:100 ofSubviewAtIndex:0];
-	[self.splitView setMaxSize:600 ofSubviewAtIndex:0];
-    [self.splitView setMinSize:200 ofSubviewAtIndex:1];
-
-    [self.splitView setPriority:1 ofSubviewAtIndex:0];
-    [self.splitView setPriority:0 ofSubviewAtIndex:1];
-
-    [self.splitView setCanCollapse:YES subviewAtIndex:0];
-	
 	[super awakeFromNib];
+	
+	[self.splitView setAutosaveName: @"nvALTMainSplitView"];
+    [self.splitView setMinSize:100 ofSubviewAtIndex:0];
+	[self.splitView setMinSize:200 ofSubviewAtIndex:1];
+	[self.splitView setMaxSize:600 ofSubviewAtIndex:0];
+	[self.splitView setCanCollapse:YES subviewAtIndex:0];
 }
 
 - (void)windowDidLoad
