@@ -53,12 +53,12 @@ NSString *const ODBEditorIsEditingString = @"ODBEditorIsEditingString";
 
 @implementation ODBEditor
 
-static ODBEditor *_sharedODBEditor;
-
 + (id)sharedODBEditor {
-	if (_sharedODBEditor == nil) {
+	static dispatch_once_t onceToken;
+	static ODBEditor *_sharedODBEditor;
+	dispatch_once(&onceToken, ^{
 		_sharedODBEditor = [[ODBEditor alloc] init];
-	}
+	});
 	return _sharedODBEditor;
 }
 
@@ -67,10 +67,6 @@ static ODBEditor *_sharedODBEditor;
 		UInt32 packageType = 0;
 		UInt32 packageCreator = 0;
 
-		if (_sharedODBEditor != nil) {
-			[NSException raise:NSInternalInconsistencyException format:@"ODBEditor is a singleton - use [ODBEditor sharedODBEditor]"];
-			return nil;
-		}
 		// our initialization
 
 		CFBundleGetPackageInfo(CFBundleGetMainBundle(), &packageType, &packageCreator);
