@@ -167,29 +167,19 @@ NSString *NVHiddenBulletIndentAttributeName = @"NVBulletIndentTag";
 	return rangesChanged > 0;
 }
 
-- (NSDataDetector *)ntn_URLDetector {
-	static dispatch_once_t onceToken;
-	static NSDataDetector *URLDetector = nil;
-	dispatch_once(&onceToken, ^{
-		URLDetector = [NSDataDetector dataDetectorWithTypes: NSTextCheckingTypeLink error: NULL];
-	});
-	return URLDetector;
-}
-
-- (NSRegularExpression *)ntn_searchLinkDetector {
-	static dispatch_once_t onceToken;
-	static NSRegularExpression *searchLinkDetector = nil;
-	dispatch_once(&onceToken, ^{
-		searchLinkDetector = [NSRegularExpression regularExpressionWithPattern: @"\\[\\[((?! )[\\w ]*)\\]\\]" options: NSRegularExpressionUseUnicodeWordBoundaries error: NULL];
-	});
-	return searchLinkDetector;	
-}
-
 - (void)addLinkAttributesForRange:(NSRange)changedRange {
 	if (!changedRange.length)
 		return;
 
-	[[self ntn_URLDetector] enumerateMatchesInString: self.string options: 0 range: changedRange usingBlock:^(NSTextCheckingResult *result, NSMatchingFlags flags, BOOL *stop) {
+	static dispatch_once_t onceToken;
+	static NSDataDetector *URLDetector = nil;
+	static NSRegularExpression *searchLinkDetector = nil;
+	dispatch_once(&onceToken, ^{
+		URLDetector = [NSDataDetector dataDetectorWithTypes: NSTextCheckingTypeLink error: NULL];
+		searchLinkDetector = [NSRegularExpression regularExpressionWithPattern: @"\\[\\[((?! )[\\w ]*)\\]\\]" options: NSRegularExpressionUseUnicodeWordBoundaries error: NULL];
+	});
+
+	[URLDetector enumerateMatchesInString: self.string options: 0 range: changedRange usingBlock:^(NSTextCheckingResult *result, NSMatchingFlags flags, BOOL *stop) {
 		if (result.resultType == NSTextCheckingTypeLink) {
             NSURL *markedLinkURL = nil;
 			if ((markedLinkURL = result.URL) && !(markedLinkURL.isFileURL && [markedLinkURL.absoluteString rangeOfString:@"/.file/" options:NSLiteralSearch].location != NSNotFound)) {
@@ -199,7 +189,7 @@ NSString *NVHiddenBulletIndentAttributeName = @"NVBulletIndentTag";
 	}];
 
 	// add link attributes for [[wiki-style links to other notes or search terms]]
-	[[self ntn_searchLinkDetector] enumerateMatchesInString: self.string options: 0 range: changedRange usingBlock:^(NSTextCheckingResult *result, NSMatchingFlags flags, BOOL *stop) {
+	[searchLinkDetector enumerateMatchesInString: self.string options: 0 range: changedRange usingBlock:^(NSTextCheckingResult *result, NSMatchingFlags flags, BOOL *stop) {
 		NSRange trimmedRange;
 		NSString *trimmedText;
 		if (result.numberOfRanges > 1) {
