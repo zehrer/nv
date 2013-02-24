@@ -824,7 +824,7 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
 }
 
 - (CFUUIDBytes)UUIDBytesOfLastSelectedNote {
-	CFUUIDBytes bytes = NULL;
+	CFUUIDBytes bytes;
 
 	NSString *uuidString = [defaults objectForKey:LastSelectedNoteUUIDBytesKey];
 	if (uuidString) bytes = [uuidString uuidBytes];
