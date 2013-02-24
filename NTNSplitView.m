@@ -117,10 +117,6 @@ static CGFloat const NTNDefaultAnimationDuration = 0.2;
 	return self;
 }
 
-- (void)reset {
-	[self ntn_sharedInit];
-}
-
 - (void)dealloc {
 	free(_lastValuesBeforeCollapse);
 	free(_subviewStates);
@@ -318,18 +314,19 @@ static CGFloat const NTNDefaultAnimationDuration = 0.2;
 #pragma mark - Splitview delegate methods
 
 - (CGFloat)splitView:(NSSplitView *)splitView constrainMinCoordinate:(CGFloat)proposedMin ofSubviewAt:(NSInteger)viewIndex {
-	DMSubviewConstraint *subviewConstraint = _subviewContraints[viewIndex];
-	if (!subviewConstraint.minSize && !subviewConstraint.maxSize) // no constraint set for this
-		return proposedMin;
+    DMSubviewConstraint *subviewConstraint = _subviewContraints[viewIndex];
+    if (!subviewConstraint.minSize) // no constraint set for this
+        return proposedMin;
 
-	NSView *targetSubview = ((NSView *) splitView.subviews[viewIndex]);
+	NSView *targetSubview = splitView.subviews[viewIndex];
 	CGFloat subviewOrigin = (splitView.isVertical ? targetSubview.frame.origin.x : targetSubview.frame.origin.y);
 	CGFloat finalCoordinate = subviewOrigin + subviewConstraint.minSize;
 	return finalCoordinate;
 }
 
 - (CGFloat)splitView:(NSSplitView *)splitView constrainMaxCoordinate:(CGFloat)proposedMax ofSubviewAt:(NSInteger)offset {
-	DMSubviewConstraint *constraintShrinkingSubview = _subviewContraints[offset + 1];
+	DMSubviewConstraint *constraintGrowingSubview = _subviewContraints[offset];
+	DMSubviewConstraint *constraintShrinkingSubview = _subviewContraints[offset+1];
 
 	NSView *growingSubview = self.subviews[offset];
 	NSView *shrinkingSubview = self.subviews[offset + 1];
@@ -345,8 +342,8 @@ static CGFloat const NTNDefaultAnimationDuration = 0.2;
 		shrinkingSize = shrinkingSubviewFrame.size.height;
 	}
 
-	CGFloat minimumSize = constraintShrinkingSubview.minSize;
-	return currentCoordinate + (shrinkingSize - minimumSize);
+	CGFloat coordinate = currentCoordinate + (shrinkingSize - constraintShrinkingSubview.minSize);
+	return coordinate > constraintGrowingSubview.maxSize ? constraintGrowingSubview.maxSize : coordinate;
 }
 
 //- (void)ntn_enumerateSubviewsByPriority:^(NSView *subview, BOOL *stop)
