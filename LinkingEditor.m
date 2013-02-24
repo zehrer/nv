@@ -665,7 +665,6 @@ CGFloat _perceptualColorDifference(NSColor *a, NSColor *b) {
 		[self setSelectedRange:selRange];
 		return YES;
 	}
-	return NO;
 }
 
 - (void)bold:(id)sender {

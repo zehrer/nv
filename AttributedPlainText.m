@@ -419,13 +419,17 @@ static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange)
 		alink = [self attribute:NSLinkAttributeName atIndex:startIndex effectiveRange:&linkRange];
 		startIndex++;
 	}
-	if (alink) {
-		range->location = linkRange.location;
-		range->length = linkRange.length;
-	} else {
-		range->location = NSNotFound;
-		range->length = 0;
+
+	if (range) {
+		if (alink) {
+			range->location = linkRange.location;
+			range->length = linkRange.length;
+		} else {
+			range->location = NSNotFound;
+			range->length = 0;
+		}
 	}
+
 	return alink;
 }
 

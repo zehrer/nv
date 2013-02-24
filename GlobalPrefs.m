@@ -824,7 +824,7 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
 }
 
 - (CFUUIDBytes)UUIDBytesOfLastSelectedNote {
-	CFUUIDBytes bytes;
+	CFUUIDBytes bytes = NULL;
 
 	NSString *uuidString = [defaults objectForKey:LastSelectedNoteUUIDBytesKey];
 	if (uuidString) bytes = [uuidString uuidBytes];
@@ -872,7 +872,6 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
 		[defaults setObject: bookmark forKey: NTNDirectoryBookmarkKey];
 		return bookmark;
 	}
-	return nil;
 }
 
 - (NSString *)displayNameForDefaultDirectoryReturningURL:(out NSURL **)outURL {
