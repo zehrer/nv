@@ -91,8 +91,10 @@ static CGFloat const NTNDefaultAnimationDuration = 0.2;
 	_lastValuesBeforeCollapse = calloc(sizeof(CGFloat), self.subviews.count);
 	_subviewStates = calloc(sizeof(BOOL), self.subviews.count);
 
-	for (NSUInteger k = 0; k < self.subviews.count; k++)
+	for (NSUInteger k = 0; k < self.subviews.count; k++) {
 		[_subviewContraints addObject:[[DMSubviewConstraint alloc] init]];
+		[self setPriority: self.subviews.count - 1 - k ofSubviewAtIndex: k];
+	}
 }
 
 - (id)init {
