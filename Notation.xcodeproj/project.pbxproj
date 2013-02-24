@@ -214,6 +214,9 @@
 		6C25173716B2F2E50088B37E /* NSString+UTType.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C25173616B2F2E50088B37E /* NSString+UTType.m */; };
 		6C25173A16B2F6EA0088B37E /* NoteCatalogEntry.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C25173916B2F6EA0088B37E /* NoteCatalogEntry.m */; };
 		6C3E591D16B5B3BE002E7E7A /* NSData+Notation.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C3E591C16B5B3BD002E7E7A /* NSData+Notation.m */; };
+		6C6520B516D9672A00686C35 /* NTNDualTextField.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C6520B416D9672A00686C35 /* NTNDualTextField.m */; };
+		6C6BAF8116D7F3EB00643FFA /* NTNMainWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C6BAF7F16D7F3EB00643FFA /* NTNMainWindowController.m */; };
+		6C6BAF8216D7F3EB00643FFA /* NTNMainWindowController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 6C6BAF8016D7F3EB00643FFA /* NTNMainWindowController.xib */; };
 		6C916D1D16B2645800416AB5 /* NSDate+Notation.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C916D1C16B2645700416AB5 /* NSDate+Notation.m */; };
 		6C916D2016B2681B00416AB5 /* NSURL+Notation.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C916D1F16B2681B00416AB5 /* NSURL+Notation.m */; };
 		6CC111E516D6D7AA0080B084 /* NTNSplitView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6CC111DE16D6D7AA0080B084 /* NTNSplitView.m */; };
@@ -664,6 +667,11 @@
 		6C25173916B2F6EA0088B37E /* NoteCatalogEntry.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NoteCatalogEntry.m; sourceTree = "<group>"; };
 		6C3E591B16B5B3BD002E7E7A /* NSData+Notation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSData+Notation.h"; sourceTree = "<group>"; };
 		6C3E591C16B5B3BD002E7E7A /* NSData+Notation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSData+Notation.m"; sourceTree = "<group>"; };
+		6C6520B316D9672900686C35 /* NTNDualTextField.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NTNDualTextField.h; sourceTree = "<group>"; };
+		6C6520B416D9672A00686C35 /* NTNDualTextField.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NTNDualTextField.m; sourceTree = "<group>"; };
+		6C6BAF7E16D7F3EB00643FFA /* NTNMainWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NTNMainWindowController.h; sourceTree = "<group>"; };
+		6C6BAF7F16D7F3EB00643FFA /* NTNMainWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NTNMainWindowController.m; sourceTree = "<group>"; };
+		6C6BAF8016D7F3EB00643FFA /* NTNMainWindowController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = NTNMainWindowController.xib; sourceTree = "<group>"; };
 		6C916D1B16B2645700416AB5 /* NSDate+Notation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSDate+Notation.h"; sourceTree = "<group>"; };
 		6C916D1C16B2645700416AB5 /* NSDate+Notation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSDate+Notation.m"; sourceTree = "<group>"; };
 		6C916D1E16B2681A00416AB5 /* NSURL+Notation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSURL+Notation.h"; sourceTree = "<group>"; };
@@ -741,6 +749,13 @@
 		080E96DDFE201D6D7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				6C6BAF7E16D7F3EB00643FFA /* NTNMainWindowController.h */,
+				6C6BAF7F16D7F3EB00643FFA /* NTNMainWindowController.m */,
+				6C6BAF8016D7F3EB00643FFA /* NTNMainWindowController.xib */,
+				6C6520B316D9672900686C35 /* NTNDualTextField.h */,
+				6C6520B416D9672A00686C35 /* NTNDualTextField.m */,
+				2114C11409575BD400614E74 /* AppController.h */,
+				2114C11509575BD400614E74 /* AppController.m */,
 				6CC111DC16D6D7960080B084 /* NTNSplitView */,
 				93B90E901386072E00BEC5FB /* TemporaryFileCachePreparer.h */,
 				93B90E911386072E00BEC5FB /* TemporaryFileCachePreparer.m */,
@@ -755,8 +770,6 @@
 				2191930609CFBED200586B15 /* View Classes */,
 				21D60126098FDB46007440DF /* GlobalPrefs.h */,
 				21D60127098FDB46007440DF /* GlobalPrefs.m */,
-				2114C11409575BD400614E74 /* AppController.h */,
-				2114C11509575BD400614E74 /* AppController.m */,
 				93B90E771386018200BEC5FB /* ExternalEditorListController.h */,
 				93B90E781386018200BEC5FB /* ExternalEditorListController.m */,
 				2191982009D607C600586B15 /* PrefsWindowController.h */,
@@ -1422,6 +1435,7 @@
 				6C0E12CA16CF36940073B77B /* statusError@2x.png in Resources */,
 				6C0E12CB16CF36940073B77B /* statusInProgress@2x.png in Resources */,
 				6C0E12CC16CF36940073B77B /* statusValidated@2x.png in Resources */,
+				6C6BAF8216D7F3EB00643FFA /* NTNMainWindowController.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1540,6 +1554,8 @@
 				6CC111E616D6D7AA0080B084 /* NTNSplitViewToolbar.m in Sources */,
 				6CC111E716D6D7AA0080B084 /* NTNSplitViewToolbarButton.m in Sources */,
 				6CC111E816D6D7AA0080B084 /* NTNSplitViewToolbarButtonCell.m in Sources */,
+				6C6BAF8116D7F3EB00643FFA /* NTNMainWindowController.m in Sources */,
+				6C6520B516D9672A00686C35 /* NTNDualTextField.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
