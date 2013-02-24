@@ -44,6 +44,7 @@
 #import <objc/message.h>
 #import "NSString_CustomTruncation.h"
 #import "NSError+Notation.h"
+#import "NTNMainWindowController.h"
 
 NSWindow *normalWindow;
 int ModFlagger;
@@ -222,6 +223,7 @@ void outletObjectAwoke(id sender) {
 
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNote {
+	self.viewController = [NTNMainWindowController new];
 
 	if ([[NSUserDefaults standardUserDefaults] boolForKey:@"ShowDockIcon"]) {
 		[[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyRegular];
@@ -375,6 +377,8 @@ void outletObjectAwoke(id sender) {
 			[wordCounter setHidden:YES];
 		}
 	});
+
+	[self.viewController showWindow: self];
 }
 
 - (void)handleGetURLEvent:(NSAppleEventDescriptor *)event withReplyEvent:(NSAppleEventDescriptor *)replyEvent {

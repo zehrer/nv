@@ -30,6 +30,7 @@
 @class DFView;
 @class PreviewController;
 @class WordCountToken;
+@class NTNMainWindowController;
 
 #ifndef MarkdownPreview
 #define MarkdownPreview 13371
@@ -112,6 +113,8 @@
 }
 
 extern void outletObjectAwoke(id sender);
+
+@property (strong, nonatomic) NTNMainWindowController *viewController;
 
 - (void)setNotationController:(NotationController *)newNotation;
 
