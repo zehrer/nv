@@ -176,20 +176,6 @@ static BOOL _StringWithRangeIsProbablyObjC(NSString *string, NSRange blockRange)
 	if (!changedRange.length)
 		return;
 
-	//lazily loads Adium's BSD-licensed Auto-Hyperlinks:
-	//http://trac.adium.im/wiki/AutoHyperlinksFramework
-
-	static Class AHHyperlinkScanner = Nil;
-	static Class AHMarkedHyperlink = Nil;
-	if (!AHHyperlinkScanner || !AHMarkedHyperlink) {
-		if (![[NSBundle bundleWithPath:[[[NSBundle mainBundle] privateFrameworksPath] stringByAppendingPathComponent:@"AutoHyperlinks.framework"]] load]) {
-			NSLog(@"Could not load AutoHyperlinks framework");
-			return;
-		}
-		AHHyperlinkScanner = NSClassFromString(@"AHHyperlinkScanner");
-		AHMarkedHyperlink = NSClassFromString(@"AHMarkedHyperlink");
-	}
-
 	id scanner = [AHHyperlinkScanner hyperlinkScannerWithString:[[self string] substringWithRange:changedRange]];
 	id markedLink = nil;
 	while ((markedLink = [scanner nextURI])) {
