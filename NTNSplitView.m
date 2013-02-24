@@ -62,16 +62,15 @@ static CGFloat const NTNDefaultAnimationDuration = 0.2;
 
 @interface NTNSplitView () {
 	NSMutableDictionary *_priorityIndexes;
-	NSMutableArray *_subviewContraints;
+	NSMutableArray *_subviewConstraints;
 	NSMutableDictionary *_viewsToCollapseByDivider;
 	CGFloat *_lastValuesBeforeCollapse;
 	BOOL *_subviewStates;
 
-	// override divider thickneess
+	// override divider thickness
 	CGFloat _ntn_dividerThickness;
-	BOOL _dividerThicknessOverriden;
+	BOOL _hasDividerThickness;
 
-	CGFloat _collapsedSubviewDimension;
 	BOOL _isAnimating; // an animation is in progress
 }
 @property(nonatomic, strong) NSView *toolbarContainer;
@@ -87,12 +86,12 @@ static CGFloat const NTNDefaultAnimationDuration = 0.2;
 
 	_priorityIndexes = [[NSMutableDictionary alloc] init];
 	_viewsToCollapseByDivider = [[NSMutableDictionary alloc] init];
-	_subviewContraints = [[NSMutableArray alloc] init];
+	_subviewConstraints = [[NSMutableArray alloc] init];
 	_lastValuesBeforeCollapse = calloc(sizeof(CGFloat), self.subviews.count);
 	_subviewStates = calloc(sizeof(BOOL), self.subviews.count);
 
 	for (NSUInteger k = 0; k < self.subviews.count; k++) {
-		[_subviewContraints addObject:[[DMSubviewConstraint alloc] init]];
+		[_subviewConstraints addObject:[[DMSubviewConstraint alloc] init]];
 		[self setPriority: self.subviews.count - 1 - k ofSubviewAtIndex: k];
 	}
 }
@@ -125,7 +124,7 @@ static CGFloat const NTNDefaultAnimationDuration = 0.2;
 #pragma mark - Toolbar management
 
 - (void)addToolbar:(NTNSplitViewToolbar *)theToolbar besidesSubviewAtIndex:(NSUInteger)theSubviewIndex onEdge:(NTNSplitViewToolbarEdge)theEdge {
-	/// via notification we inject a refernce to ourself into the toolbar
+	/// via notification we inject a reference to ourselves into the toolbar
 	[[NSNotificationCenter defaultCenter] postNotificationName:NTNSplitViewToolbarAddedNotification object:self];
 
 	self.anchoredView = self.subviews[theSubviewIndex];
@@ -210,14 +209,14 @@ static CGFloat const NTNDefaultAnimationDuration = 0.2;
 }
 
 - (CGFloat)dividerThickness {
-	if (_dividerThicknessOverriden)
+	if (_hasDividerThickness)
 		return _ntn_dividerThickness;
 	return [super dividerThickness];
 }
 
 - (void)setDividerThickness:(CGFloat)newDividerThickness {
 	_ntn_dividerThickness = newDividerThickness;
-	_dividerThicknessOverriden = YES;
+	_hasDividerThickness = YES;
 	[self setNeedsDisplay:YES];
 }
 
@@ -279,27 +278,27 @@ static CGFloat const NTNDefaultAnimationDuration = 0.2;
 }
 
 - (void)setMaxSize:(CGFloat)maxSize ofSubviewAtIndex:(NSUInteger)subviewIndex {
-	((DMSubviewConstraint *)_subviewContraints[subviewIndex]).maxSize = maxSize;
+	((DMSubviewConstraint *) _subviewConstraints[subviewIndex]).maxSize = maxSize;
 }
 
 - (void)setMinSize:(CGFloat)minSize ofSubviewAtIndex:(NSUInteger)subviewIndex {
-	((DMSubviewConstraint *) _subviewContraints[subviewIndex]).minSize = minSize;
+	((DMSubviewConstraint *) _subviewConstraints[subviewIndex]).minSize = minSize;
 }
 
 - (CGFloat)minSizeForSubviewAtIndex:(NSUInteger)subviewIndex {
-	return ((DMSubviewConstraint *) _subviewContraints[subviewIndex]).minSize;
+	return ((DMSubviewConstraint *) _subviewConstraints[subviewIndex]).minSize;
 }
 
 - (CGFloat)maxSizeForSubviewAtIndex:(NSUInteger)subviewIndex {
-	return ((DMSubviewConstraint *) _subviewContraints[subviewIndex]).maxSize;
+	return ((DMSubviewConstraint *) _subviewConstraints[subviewIndex]).maxSize;
 }
 
 - (void)setCanCollapse:(BOOL)canCollapse subviewAtIndex:(NSUInteger)subviewIndex {
-	((DMSubviewConstraint *) _subviewContraints[subviewIndex]).canCollapse = canCollapse;
+	((DMSubviewConstraint *) _subviewConstraints[subviewIndex]).canCollapse = canCollapse;
 }
 
 - (BOOL)canCollapseSubviewAtIndex:(NSUInteger)subviewIndex {
-	return ((DMSubviewConstraint *) _subviewContraints[subviewIndex]).canCollapse;
+	return ((DMSubviewConstraint *) _subviewConstraints[subviewIndex]).canCollapse;
 }
 
 - (void)setCollapseSubviewAtIndex:(NSUInteger)viewIndex forDoubleClickOnDividerAtIndex:(NSUInteger)dividerIndex {
@@ -314,7 +313,7 @@ static CGFloat const NTNDefaultAnimationDuration = 0.2;
 #pragma mark - Splitview delegate methods
 
 - (CGFloat)splitView:(NSSplitView *)splitView constrainMinCoordinate:(CGFloat)proposedMin ofSubviewAt:(NSInteger)viewIndex {
-	DMSubviewConstraint *subviewConstraint = _subviewContraints[viewIndex];
+	DMSubviewConstraint *subviewConstraint = _subviewConstraints[viewIndex];
 	if (!subviewConstraint.minSize) // no constraint set for this
 		return proposedMin;
 
@@ -325,8 +324,8 @@ static CGFloat const NTNDefaultAnimationDuration = 0.2;
 }
 
 - (CGFloat)splitView:(NSSplitView *)splitView constrainMaxCoordinate:(CGFloat)proposedMax ofSubviewAt:(NSInteger)offset {
-	DMSubviewConstraint *constraintGrowingSubview = _subviewContraints[offset];
-	DMSubviewConstraint *constraintShrinkingSubview = _subviewContraints[offset+1];
+	DMSubviewConstraint *constraintGrowingSubview = _subviewConstraints[offset];
+	DMSubviewConstraint *constraintShrinkingSubview = _subviewConstraints[offset+1];
 
 	NSView *growingSubview = self.subviews[offset];
 	NSView *shrinkingSubview = self.subviews[offset + 1];
@@ -354,7 +353,7 @@ static CGFloat const NTNDefaultAnimationDuration = 0.2;
 		if (index >= self.subviews.count) return;
 		NSView *view = self.subviews[index];
 		if ([self isSubviewCollapsed: view]) return;
-		DMSubviewConstraint *constraint = _subviewContraints[index];
+		DMSubviewConstraint *constraint = _subviewConstraints[index];
 		block(view, constraint.minSize, constraint.maxSize);
 	}];
 }
@@ -370,7 +369,7 @@ static CGFloat const NTNDefaultAnimationDuration = 0.2;
 		NSView *view = self.subviews[index];
 		if ([self isSubviewCollapsed: view]) return;
 
-		DMSubviewConstraint *constraint = _subviewContraints[index];
+		DMSubviewConstraint *constraint = _subviewConstraints[index];
 
 		[view setFrameSize: block(view.frame.size, constraint.minSize, constraint.maxSize)];
 	}];
@@ -426,7 +425,7 @@ static CGFloat const NTNDefaultAnimationDuration = 0.2;
 - (BOOL)splitView:(NSSplitView *)splitView canCollapseSubview:(NSView *)subview {
 	NSUInteger viewIndex = [self.subviews indexOfObject:subview];
 	if (viewIndex == NSNotFound) return NO;
-	return [_subviewContraints[viewIndex] canCollapse];
+	return [_subviewConstraints[viewIndex] canCollapse];
 }
 
 - (BOOL)splitView:(NSSplitView *)splitView shouldCollapseSubview:(NSView *)subview forDoubleClickOnDividerAtIndex:(NSInteger)dividerIndex {
@@ -511,7 +510,7 @@ static CGFloat const NTNDefaultAnimationDuration = 0.2;
 	}];
 }
 
-- (void)setPosition:(CGFloat)position ofDividerAtIndex:(NSInteger)dividerIndex animated:(BOOL)animated completitionBlock:(void (^)(BOOL isEnded))completition {
+- (void)setPosition:(CGFloat)position ofDividerAtIndex:(NSUInteger)dividerIndex animated:(BOOL)animated completitionBlock:(void (^)(BOOL isEnded))completition {
 	NSUInteger numberOfSubviews = self.subviews.count;
 	if (dividerIndex >= numberOfSubviews) return;
 	[self setPositionsOfDividersAtIndexes:@{@(dividerIndex) : @(position)} animated:animated completitionBlock:completition];
@@ -605,7 +604,7 @@ static CGFloat const NTNDefaultAnimationDuration = 0.2;
 
 #pragma mark - Working with subview's sizes
 
-- (void)setSize:(CGFloat)size ofSubviewAtIndex:(NSInteger)subviewIndex animated:(BOOL)animated completition:(void (^)(BOOL isEnded))completition {
+- (void)setSize:(CGFloat)size ofSubviewAtIndex:(NSUInteger)subviewIndex animated:(BOOL)animated completition:(void (^)(BOOL isEnded))completition {
 	NSView *subview = self.subviews[subviewIndex];
 	CGFloat frameOldSize = (self.isVertical ? NSWidth(subview.frame) : NSHeight(subview.frame));
 	CGFloat deltaValue = (size - frameOldSize); // if delta > 0 subview will grow, otherwise if delta < 0 subview will shrink
@@ -631,8 +630,8 @@ static CGFloat const NTNDefaultAnimationDuration = 0.2;
 		positions[@(rightDividerIndex)] = @(rightDividerPosition);
 	} else {
 		// We can shrink or grow only at one side because our index is the top left or the top right
-		NSInteger dividerIndex = (subviewIndex > 0 ? subviewIndex - 1 : subviewIndex);
-		NSInteger dividerPosition = [self positionOfDividerAtIndex:dividerIndex];
+		NSUInteger dividerIndex = (subviewIndex > 0 ? subviewIndex - 1 : subviewIndex);
+		CGFloat dividerPosition = [self positionOfDividerAtIndex: dividerIndex];
 		if (subviewIndex == 0) dividerPosition += deltaValue;
 		else dividerPosition -= deltaValue;
 		positions[@(dividerIndex)] = @(dividerPosition);

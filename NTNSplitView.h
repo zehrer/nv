@@ -187,21 +187,21 @@ extern CGFloat NTNSplitViewToolbarButtonImageToTextDistance;
 
 /** Set the new position of a divider at index.
  @param  position			the new divider position
- @param  dividerIndex		 target divider index in this splitview
+ @param  dividerIndex		target divider index in this split view
  @param	 animated			use animated transitions?
- @param  completition		 completition block handler
- @return					 YES if you can animate your transitions
+ @param  completion			completion block handler
+ @return					YES if you can animate your transitions
  */
-- (void)setPosition:(CGFloat)position ofDividerAtIndex:(NSInteger)dividerIndex animated:(BOOL)animated
-  completitionBlock:(void (^)(BOOL isEnded))completition;
+- (void)setPosition:(CGFloat)position ofDividerAtIndex:(NSUInteger)dividerIndex animated:(BOOL)animated
+  completitionBlock:(void (^)(BOOL isEnded))completion;
 
 /** Set more than one divider position at the same time
  @param  positionsByIndexes	a dictionary of positions with divider positions
  as keys
- @param  dividerIndexes		 divider indexes array (set of NSNumber)
- @param	 animated				YES to animate
- @param  completition		 completition block handler
- @return					 YES if you can animate your transitions
+ @param  dividerIndexes		divider indexes array (set of NSNumber)
+ @param	 animated			YES to animate
+ @param  completion			completion block handler
+ @return					YES if you can animate your transitions
  */
 - (void)setPositionsOfDividersAtIndexes:(NSDictionary *)positionsByIndexes animated:(BOOL)animated
 					  completitionBlock:(void (^)(BOOL isEnded))completition;
@@ -211,7 +211,7 @@ extern CGFloat NTNSplitViewToolbarButtonImageToTextDistance;
  @param  dividerIndex		 target divider index in this splitview
  @return					 target divider position
  */
-- (CGFloat)positionOfDividerAtIndex:(NSInteger)dividerIndex;
+- (CGFloat)positionOfDividerAtIndex:(NSUInteger)dividerIndex;
 
 #pragma mark - Working with subviews' sizes
 /** @name Working with subviews' sizes */
@@ -222,7 +222,7 @@ extern CGFloat NTNSplitViewToolbarButtonImageToTextDistance;
  @param	animated				YES to animate
  @param	completition		  completition block handler
  */
-- (void)setSize:(CGFloat)size ofSubviewAtIndex:(NSInteger)subviewIndex animated:(BOOL)animated
+- (void)setSize:(CGFloat)size ofSubviewAtIndex:(NSUInteger)subviewIndex animated:(BOOL)animated
    completition:(void (^)(BOOL isEnded))completition;
 
 @end
