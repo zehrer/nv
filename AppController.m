@@ -88,8 +88,6 @@ static const CGFloat kMaxNotesListDimension = 600.0f;
 		NSAppleEventManager *appleEventManager = [NSAppleEventManager sharedAppleEventManager];
 		[appleEventManager setEventHandler:self andSelector:@selector(handleGetURLEvent:withReplyEvent:) forEventClass:kInternetEventClass andEventID:kAEGetURL];
 
-		//	dividerShader = [[LinearDividerShader alloc] initWithStartColor:[NSColor colorWithCalibratedWhite:0.988 alpha:1.0]
-		//														   endColor:[NSColor colorWithCalibratedWhite:0.875 alpha:1.0]];
 		dividerShader = [[LinearDividerShader alloc] initWithBaseColors:self];
 		isCreatingANote = isFilteringFromTyping = typedStringIsCached = NO;
 		typedString = @"";
@@ -98,10 +96,6 @@ static const CGFloat kMaxNotesListDimension = 600.0f;
 }
 
 - (void)awakeFromNib {
-	if ([[NSUserDefaults standardUserDefaults] boolForKey:@"ShowDockIcon"]) {
-		[[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyRegular];
-	}
-
 	theFieldEditor = [[NSTextView alloc] initWithFrame:[window frame]];
 	[theFieldEditor setFieldEditor:YES];
 	[self updateFieldAttributes];
@@ -213,7 +207,6 @@ void outletObjectAwoke(id sender) {
 	static NSMutableSet *awokenOutlets = nil;
 	if (!awokenOutlets) awokenOutlets = [[NSMutableSet alloc] initWithCapacity:5];
 
-
 	[awokenOutlets addObject:sender];
 
 	AppController *appDelegate = (AppController *) [NSApp delegate];
@@ -227,62 +220,13 @@ void outletObjectAwoke(id sender) {
 	}
 }
 
-- (void)runDelayedUIActionsAfterLaunch {
-	[[prefsController bookmarksController] setDelegate:self];
-	[[prefsController bookmarksController] restoreWindowFromSave];
-	[[prefsController bookmarksController] updateBookmarksUI];
-	[self updateNoteMenus];
-	[textView setupFontMenu];
-	[prefsController registerAppActivationKeystrokeWithHandler:^{
-		[self toggleNVActivation];
-	}];
-	[notationController updateLabelConnectionsAfterDecoding];
-	[notationController checkIfNotationIsTrashed];
-	[[SecureTextEntryManager sharedInstance] checkForIncompatibleApps];
-
-	//connect sparkle programmatically to avoid loading its framework at nib awake;
-
-	if (!NSClassFromString(@"SUUpdater")) {
-		NSString *frameworkPath = [[[NSBundle bundleForClass:[self class]] privateFrameworksPath] stringByAppendingPathComponent:@"Sparkle.framework"];
-		if ([[NSBundle bundleWithPath:frameworkPath] load]) {
-			id updater = objc_msgSend(NSClassFromString(@"SUUpdater"), NSSelectorFromString(@"sharedUpdater"));
-			[sparkleUpdateItem setTarget:updater];
-			[sparkleUpdateItem setAction:NSSelectorFromString(@"checkForUpdates:")];
-			NSMenuItem *siSparkle = [statBarMenu itemWithTag:902];
-			[siSparkle setTarget:updater];
-			[siSparkle setAction:NSSelectorFromString(@"checkForUpdates:")];
-			if (![[prefsController notationPrefs] firstTimeUsed]) {
-				//don't do anything automatically on the first launch; afterwards, check every 4 days, as specified in Info.plist
-				objc_msgSend(updater, NSSelectorFromString(@"setAutomaticallyChecksForUpdates:"), YES);
-			}
-		} else {
-			NSLog(@"Could not load %@!", frameworkPath);
-		}
-	}
-	// add elasticthreads' menuitems
-	NSMenuItem *theMenuItem = [[NSMenuItem alloc] init];
-	[theMenuItem setTarget:self];
-	theMenuItem = [theMenuItem copy];
-
-	[fsMenuItem setEnabled:YES];
-	[fsMenuItem setHidden:NO];
-
-	[window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
-	[NSApp setPresentationOptions:NSApplicationPresentationFullScreen];
-
-	theMenuItem = [fsMenuItem copy];
-	[statBarMenu insertItem:theMenuItem atIndex:12];
-
-	if (![prefsController showWordCount]) {
-		[wordCounter setHidden:NO];
-	} else {
-		[wordCounter setHidden:YES];
-	}
-	//
-}
-
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNote {
+
+	if ([[NSUserDefaults standardUserDefaults] boolForKey:@"ShowDockIcon"]) {
+		[[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyRegular];
+	}
+
 	//on tiger dualfield is often not ready to add tracking tracks until this point:
 
 	[field setTrackingRect];
@@ -378,7 +322,59 @@ void outletObjectAwoke(id sender) {
 			@selector(setConfirmNoteDeletion:sender:),  //whether "delete note" should have an ellipsis
 			@selector(setAutoCompleteSearches:sender:), nil];   //when to tell notationcontroller to build its title-prefix connections
 
-	[self performSelector:@selector(runDelayedUIActionsAfterLaunch) withObject:nil afterDelay:0.0];
+	// Delay to the next runloop
+	dispatch_async(dispatch_get_main_queue(), ^{
+		[[prefsController bookmarksController] setDelegate:self];
+		[[prefsController bookmarksController] restoreWindowFromSave];
+		[[prefsController bookmarksController] updateBookmarksUI];
+		[self updateNoteMenus];
+		[textView setupFontMenu];
+		[prefsController registerAppActivationKeystrokeWithHandler:^{
+			[self toggleNVActivation];
+		}];
+		[notationController updateLabelConnectionsAfterDecoding];
+		[notationController checkIfNotationIsTrashed];
+		[[SecureTextEntryManager sharedInstance] checkForIncompatibleApps];
+
+		//connect sparkle programmatically to avoid loading its framework at nib awake;
+
+		if (!NSClassFromString(@"SUUpdater")) {
+			NSString *frameworkPath = [[[NSBundle bundleForClass:[self class]] privateFrameworksPath] stringByAppendingPathComponent:@"Sparkle.framework"];
+			if ([[NSBundle bundleWithPath:frameworkPath] load]) {
+				id updater = objc_msgSend(NSClassFromString(@"SUUpdater"), NSSelectorFromString(@"sharedUpdater"));
+				[sparkleUpdateItem setTarget:updater];
+				[sparkleUpdateItem setAction:NSSelectorFromString(@"checkForUpdates:")];
+				NSMenuItem *siSparkle = [statBarMenu itemWithTag:902];
+				[siSparkle setTarget:updater];
+				[siSparkle setAction:NSSelectorFromString(@"checkForUpdates:")];
+				if (![[prefsController notationPrefs] firstTimeUsed]) {
+					//don't do anything automatically on the first launch; afterwards, check every 4 days, as specified in Info.plist
+					objc_msgSend(updater, NSSelectorFromString(@"setAutomaticallyChecksForUpdates:"), YES);
+				}
+			} else {
+				NSLog(@"Could not load %@!", frameworkPath);
+			}
+		}
+		// add elasticthreads' menuitems
+		NSMenuItem *theMenuItem = [[NSMenuItem alloc] init];
+		[theMenuItem setTarget:self];
+		theMenuItem = [theMenuItem copy];
+
+		[fsMenuItem setEnabled:YES];
+		[fsMenuItem setHidden:NO];
+
+		[window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
+		[NSApp setPresentationOptions:NSApplicationPresentationFullScreen];
+
+		theMenuItem = [fsMenuItem copy];
+		[statBarMenu insertItem:theMenuItem atIndex:12];
+
+		if (![prefsController showWordCount]) {
+			[wordCounter setHidden:NO];
+		} else {
+			[wordCounter setHidden:YES];
+		}
+	});
 }
 
 - (void)handleGetURLEvent:(NSAppleEventDescriptor *)event withReplyEvent:(NSAppleEventDescriptor *)replyEvent {

@@ -119,8 +119,6 @@ extern void outletObjectAwoke(id sender);
 
 - (void)setupViewsAfterAppAwakened;
 
-- (void)runDelayedUIActionsAfterLaunch;
-
 - (void)updateNoteMenus;
 
 - (IBAction)renameNote:(id)sender;
