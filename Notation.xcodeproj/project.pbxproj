@@ -223,6 +223,7 @@
 		6CC111E616D6D7AA0080B084 /* NTNSplitViewToolbar.m in Sources */ = {isa = PBXBuildFile; fileRef = 6CC111E016D6D7AA0080B084 /* NTNSplitViewToolbar.m */; };
 		6CC111E716D6D7AA0080B084 /* NTNSplitViewToolbarButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 6CC111E216D6D7AA0080B084 /* NTNSplitViewToolbarButton.m */; };
 		6CC111E816D6D7AA0080B084 /* NTNSplitViewToolbarButtonCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 6CC111E416D6D7AA0080B084 /* NTNSplitViewToolbarButtonCell.m */; };
+		6CC80DC516DB34FB009982B9 /* NTNSnapbackButton.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 6CC80DC416DB34FB009982B9 /* NTNSnapbackButton.pdf */; };
 		6CCC107E16A47D9800A4E469 /* BufferUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 6CCC107D16A47D9800A4E469 /* BufferUtils.m */; };
 		6CCC108116A4801F00A4E469 /* Contact Information.nvhelp in Resources */ = {isa = PBXBuildFile; fileRef = 6CCC107F16A4801F00A4E469 /* Contact Information.nvhelp */; };
 		6CCC108616A480E800A4E469 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6CCC108516A480E800A4E469 /* QuartzCore.framework */; };
@@ -684,6 +685,7 @@
 		6CC111E216D6D7AA0080B084 /* NTNSplitViewToolbarButton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = NTNSplitViewToolbarButton.m; path = Notation/NTNSplitViewToolbarButton.m; sourceTree = "<group>"; };
 		6CC111E316D6D7AA0080B084 /* NTNSplitViewToolbarButtonCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NTNSplitViewToolbarButtonCell.h; path = Notation/NTNSplitViewToolbarButtonCell.h; sourceTree = "<group>"; };
 		6CC111E416D6D7AA0080B084 /* NTNSplitViewToolbarButtonCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = NTNSplitViewToolbarButtonCell.m; path = Notation/NTNSplitViewToolbarButtonCell.m; sourceTree = "<group>"; };
+		6CC80DC416DB34FB009982B9 /* NTNSnapbackButton.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = NTNSnapbackButton.pdf; sourceTree = "<group>"; };
 		6CCC107D16A47D9800A4E469 /* BufferUtils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = BufferUtils.m; path = Notation/BufferUtils.m; sourceTree = "<group>"; };
 		6CCC108016A4801F00A4E469 /* English */ = {isa = PBXFileReference; explicitFileType = text.rtf; name = English; path = "English.lproj/Contact Information.nvhelp"; sourceTree = "<group>"; };
 		6CCC108516A480E800A4E469 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
@@ -757,6 +759,8 @@
 				6C6BAF8016D7F3EB00643FFA /* NTNMainWindowController.xib */,
 				6C6520B316D9672900686C35 /* NTNDualTextField.h */,
 				6C6520B416D9672A00686C35 /* NTNDualTextField.m */,
+				219190EF09C4A60600586B15 /* DualField.h */,
+				219190F009C4A60700586B15 /* DualField.m */,
 				2114C11409575BD400614E74 /* AppController.h */,
 				2114C11509575BD400614E74 /* AppController.m */,
 				6CC111DC16D6D7960080B084 /* NTNSplitView */,
@@ -792,6 +796,10 @@
 				6CFF565116A5243E00E56664 /* NTNFileManager.h */,
 				2114C1440957733200614E74 /* NoteObject.h */,
 				2114C1450957733200614E74 /* NoteObject.m */,
+				2181171109F311110020A252 /* DeletedNoteObject.h */,
+				2181171209F311110020A252 /* DeletedNoteObject.m */,
+				2181193909FA9CF90020A252 /* SynchronizedNoteProtocol.h */,
+				21CF80F210FD33B90094AA90 /* SynchronizedNoteMixIns.h */,
 				2155DF42097C992800163A10 /* AttributedPlainText.h */,
 				2155DF43097C992800163A10 /* AttributedPlainText.m */,
 				217D4280096545A000E84749 /* LabelObject.h */,
@@ -812,12 +820,8 @@
 				6C3E591C16B5B3BD002E7E7A /* NSData+Notation.m */,
 				21B548F9112F307E00E163A1 /* NotationDirectoryManager.h */,
 				21B548F8112F307E00E163A1 /* NotationDirectoryManager.m */,
-				2181171109F311110020A252 /* DeletedNoteObject.h */,
-				2181171209F311110020A252 /* DeletedNoteObject.m */,
-				2181193909FA9CF90020A252 /* SynchronizedNoteProtocol.h */,
 				21DB3D0D12D4FBDD0057F52B /* SecureTextEntryManager.h */,
 				21DB3D0E12D4FBDD0057F52B /* SecureTextEntryManager.m */,
-				21CF80F210FD33B90094AA90 /* SynchronizedNoteMixIns.h */,
 				217CEBA109E9885500DF0E09 /* NotationFileManager.h */,
 				217CEBA209E9885500DF0E09 /* NotationFileManager.m */,
 				2155DEA4097B5F0300163A10 /* BufferUtils.h */,
@@ -967,8 +971,6 @@
 				219588D10961D7F200972B8C /* LinkingEditor.m */,
 				219FD3140B2CC655004E132B /* LinkingEditor_Indentation.h */,
 				219FD3150B2CC655004E132B /* LinkingEditor_Indentation.m */,
-				219190EF09C4A60600586B15 /* DualField.h */,
-				219190F009C4A60700586B15 /* DualField.m */,
 				219192D209CFBC8700586B15 /* NoteAttributeColumn.h */,
 				219192D309CFBC8700586B15 /* NoteAttributeColumn.m */,
 				2191930109CFBEBD00586B15 /* NotesTableView.h */,
@@ -1201,6 +1203,7 @@
 		6C0E12CD16CF369D0073B77B /* Retinized */ = {
 			isa = PBXGroup;
 			children = (
+				6CC80DC416DB34FB009982B9 /* NTNSnapbackButton.pdf */,
 				21B1C16E110764570004A7D0 /* statusValidated.png */,
 				6C0E12C916CF36940073B77B /* statusValidated@2x.png */,
 				21B1C16F110764570004A7D0 /* statusError.png */,
@@ -1451,6 +1454,7 @@
 				6CB73CF816DA7C5B00DFCE3F /* Comment ça marche.nvhelp in Resources */,
 				6CB73CF916DA7C5B00DFCE3F /* Contact.nvhelp in Resources */,
 				6CB73CFA16DA7C5B00DFCE3F /* Raccourcis incroyablement utiles.nvhelp in Resources */,
+				6CC80DC516DB34FB009982B9 /* NTNSnapbackButton.pdf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

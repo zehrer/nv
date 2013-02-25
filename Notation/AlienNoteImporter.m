@@ -264,6 +264,7 @@ static NSString *const NTVNoteImporterLinkTitleKey = @"NTVNoteImporterLinkTitle"
 			importedNotes = [self notesWithPaths: source]; break;
 		case NTVNoteImportTypeDirectory:
 			importedNotes = [self notesInDirectory: source]; break;
+		default: break;
 	}
 	return importedNotes;
 }

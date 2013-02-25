@@ -8,6 +8,11 @@
 
 #import <Cocoa/Cocoa.h>
 
-@interface NTNDualTextField : NSTextField
+@interface NTNDualTextFieldCell : NSSearchFieldCell
+
+@end
+
+
+@interface NTNDualTextField : NSSearchField
 
 @end
