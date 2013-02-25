@@ -256,15 +256,16 @@ static NSString *const NTVNoteImporterLinkTitleKey = @"NTVNoteImporterLinkTitle"
 }
 
 - (NSArray *)importedNotes {
+	NSArray *importedNotes = nil;
 	switch (self.importType) {
 		case NTVNoteImportTypeFile:
-			return [self notesInFile: source]; break;
+			importedNotes = [self notesInFile: source]; break;
 		case NTVNoteImportTypePaths:
-			return [self notesWithPaths: source]; break;
+			importedNotes = [self notesWithPaths: source]; break;
 		case NTVNoteImportTypeDirectory:
-			return [self notesInDirectory: source]; break;
-		case NTVNoteImportTypeNone: return nil; break;
+			importedNotes = [self notesInDirectory: source]; break;
 	}
+	return importedNotes;
 }
 
 - (NSArray *)notesWithPaths:(NSArray *)paths {

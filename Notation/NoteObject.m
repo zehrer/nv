@@ -164,8 +164,10 @@ typedef NSRange NSRange32;
 	return [self.labels caseInsensitiveCompare: other.labels];
 }
 
-NSInteger compareUniqueNoteIDBytes(id *a, id *b) {
-	return memcmp((&(*(NoteObject **) a)->uniqueNoteIDBytes), (&(*(NoteObject **) b)->uniqueNoteIDBytes), sizeof(CFUUIDBytes));
+NSInteger compareUniqueNoteIDBytes(__unsafe_unretained id *a, __unsafe_unretained id *b) {
+	NoteObject *aObj = *a;
+	NoteObject *bObj = *b;
+	return memcmp(&(aObj->uniqueNoteIDBytes), &(bObj->uniqueNoteIDBytes), sizeof(CFUUIDBytes));
 }
 
 - (NSComparisonResult)compareTitles:(NoteObject *)other {
@@ -174,8 +176,9 @@ NSInteger compareUniqueNoteIDBytes(id *a, id *b) {
 	if (result == NSOrderedSame) {
 		result = [self compareDateCreated: other];
 		if (!result) {
-			__weak id weakSelf = self;
-			result = compareUniqueNoteIDBytes(&weakSelf, &other);
+			__unsafe_unretained id weakSelf = self;
+			__unsafe_unretained id weakOther = other;
+			result = compareUniqueNoteIDBytes(&weakSelf, &weakOther);
 		}
 
 		if (result > 0)

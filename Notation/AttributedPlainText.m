@@ -338,7 +338,7 @@ NSString *NVHiddenBulletIndentAttributeName = @"NVBulletIndentTag";
 
 
 - (id)findNextLinkAtIndex:(NSUInteger)startIndex effectiveRange:(NSRange *)range {
-	NSRange linkRange;
+	NSRange linkRange = NSMakeRange(NSNotFound, 0);
 	id alink = nil;
 	while (!alink && startIndex < [self length]) {
 		alink = [self attribute:NSLinkAttributeName atIndex:startIndex effectiveRange:&linkRange];
