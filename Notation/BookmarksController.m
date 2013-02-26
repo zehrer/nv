@@ -114,7 +114,7 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 }
 
 - (NSUInteger)hash {
-	return (NSUInteger) noteObject;
+	return (NSUInteger)[noteObject hash];
 }
 
 @end

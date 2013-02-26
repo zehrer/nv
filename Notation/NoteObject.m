@@ -53,7 +53,7 @@ typedef NSRange NSRange32;
 #endif
 
 @interface NoteObject () {
-	NSMutableAttributedString *_contentString;
+	NSMutableAttributedString *_mutableContentString;
 
 	NSMutableSet *_labelSet;
 
@@ -192,7 +192,59 @@ NSInteger compareUniqueNoteIDBytes(__unsafe_unretained id *a, __unsafe_unretaine
 	return result;
 }
 
-#include "SynchronizedNoteMixIns.h"
+- (void)setSyncObjectAndKeyMD:(NSDictionary *) aDict forService:(NSString*)serviceName {
+	NSMutableDictionary *dict = syncServicesMD[serviceName];
+	if (!dict) {
+		dict = [[NSMutableDictionary alloc] initWithDictionary:aDict];
+		if (!syncServicesMD) syncServicesMD = [[NSMutableDictionary alloc] init];
+		syncServicesMD[serviceName] = dict;
+	} else {
+		[dict addEntriesFromDictionary:
+		 aDict];
+	}
+}
+
+- (void)removeAllSyncMDForService:(NSString *)serviceName {
+	[syncServicesMD removeObjectForKey: serviceName];
+}
+
+- (CFUUIDBytes *)uniqueNoteIDBytes {
+	return &uniqueNoteIDBytes;
+}
+
+- (NSDictionary*)syncServicesMD {
+	return syncServicesMD;
+}
+
+- (unsigned int)logSequenceNumber {
+	return logSequenceNumber;
+}
+
+- (void)incrementLSN {
+	logSequenceNumber++;
+}
+
+- (BOOL)youngerThanLogObject:(id < SynchronizedNote >)obj {
+	return [self logSequenceNumber] < [obj logSequenceNumber];
+}
+
+- (NSUInteger)hash {
+	//XOR successive native-WORDs of CFUUIDBytes
+	NSUInteger finalHash = 0;
+	NSUInteger i, *noteIDBytesPtr = (NSUInteger *) &uniqueNoteIDBytes;
+	for (i = 0; i<sizeof(CFUUIDBytes) / sizeof(NSUInteger); i++) {
+		finalHash ^= *noteIDBytesPtr++;
+	}
+	return finalHash;
+}
+
+- (BOOL)isEqual:(id)otherNote {
+	if ([otherNote conformsToProtocol: @protocol(SynchronizedNote)]) {
+		CFUUIDBytes *otherBytes = [(id <SynchronizedNote>) otherNote uniqueNoteIDBytes];
+		return memcmp(otherBytes, &uniqueNoteIDBytes, sizeof(CFUUIDBytes)) == 0;
+	}
+	return [super isEqual: otherNote];
+}
 
 - (id)tableTitleOfNote {
 	return self.tableTitleString ?: self.title;
@@ -422,13 +474,17 @@ NSInteger compareUniqueNoteIDBytes(__unsafe_unretained id *a, __unsafe_unretaine
 
 }
 
+- (NSAttributedString *)contentString {
+	return [_mutableContentString copy];
+}
+
 //assume any changes have been synchronized with undomanager
 - (void)setContentString:(NSAttributedString *)attributedString {
 	if (attributedString) {
-		if (!_contentString)
-			_contentString = [attributedString mutableCopy];
+		if (!_mutableContentString)
+			_mutableContentString = [attributedString mutableCopy];
 		else
-			[_contentString setAttributedString:attributedString];
+			[_mutableContentString setAttributedString:attributedString];
 
 		[self updateTablePreviewString];
 		contentCacheNeedsUpdate = YES;
@@ -621,14 +677,14 @@ NSInteger compareUniqueNoteIDBytes(__unsafe_unretained id *a, __unsafe_unretaine
 
 - (void)setForegroundTextColorOnly:(NSColor *)aColor {
 	//called when notationPrefs font doesn't match globalprefs font, or user changes the font
-	[_contentString removeAttribute:NSForegroundColorAttributeName range:NSMakeRange(0, self.contentString.length)];
+	[_mutableContentString removeAttribute:NSForegroundColorAttributeName range:NSMakeRange(0, self.contentString.length)];
 	if (aColor) {
-		[_contentString addAttribute:NSForegroundColorAttributeName value:aColor range:NSMakeRange(0, self.contentString.length)];
+		[_mutableContentString addAttribute:NSForegroundColorAttributeName value:aColor range:NSMakeRange(0, self.contentString.length)];
 	}
 }
 
 - (void)resanitizeContent {
-	[_contentString santizeForeignStylesForImporting];
+	[_mutableContentString santizeForeignStylesForImporting];
 
 	[self _setTitleString: [titleString ntn_normalizedString]];
 
@@ -641,7 +697,7 @@ NSInteger compareUniqueNoteIDBytes(__unsafe_unretained id *a, __unsafe_unretaine
 
 - (void)updateUnstyledTextWithBaseFont:(NSFont *)baseFont {
 
-	if ([_contentString restyleTextToFont:[[GlobalPrefs defaultPrefs] noteBodyFont] usingBaseFont:baseFont] > 0) {
+	if ([_mutableContentString restyleTextToFont:[[GlobalPrefs defaultPrefs] noteBodyFont] usingBaseFont:baseFont] > 0) {
 		[self.undoManager removeAllActions];
 
 		id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
@@ -1254,8 +1310,8 @@ NSInteger compareUniqueNoteIDBytes(__unsafe_unretained id *a, __unsafe_unretaine
 		return NO;
 	}
 
-	_contentString = attributedStringFromData;
-	[_contentString santizeForeignStylesForImporting];
+	_mutableContentString = attributedStringFromData;
+	[_mutableContentString santizeForeignStylesForImporting];
 
 	//[contentString setAttributedString:attributedStringFromData];
 	contentCacheNeedsUpdate = YES;

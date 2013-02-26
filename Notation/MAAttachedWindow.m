@@ -749,7 +749,7 @@
 }
 
 
-- (IBAction)performClose:(id)sender {
+- (void)performClose:(id)sender {
 	NSWindow *localWindow = _window;
 	if (localWindow) {
 		[localWindow performClose:sender];

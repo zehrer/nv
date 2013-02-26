@@ -51,13 +51,11 @@ static long (*GetGetScriptManagerVariablePointer())(short);
 
 @end
 
-@implementation LinkingEditor
+@implementation LinkingEditor {
+	NSString *beforeString;
+	NSString *afterString;
+}
 
-@synthesize beforeString;
-@synthesize afterString;
-@synthesize activeParagraph;
-@synthesize activeParagraphBeforeCursor;
-@synthesize activeParagraphPastCursor;
 
 CGFloat _perceptualDarkness(NSColor *a);
 
@@ -242,7 +240,7 @@ CGFloat _perceptualDarkness(NSColor *a);
 //    [self setBackgroundColor:bgColor];
 	[self setInsertionPointColor:[self _insertionPointColorForForegroundColor:fgColor backgroundColor:bgColor]];
 	[self setLinkTextAttributes:[self preferredLinkAttributes]];
-	[self setSelectedTextAttributes:@{NSBackgroundColorAttributeName : [self _selectionColorForForegroundColor:fgColor backgroundColor:bgColor]}];
+	[self setSelectedTextAttributes:@{NSBackgroundColorAttributeName : [self selectionColorForForegroundColor:fgColor backgroundColor:bgColor]}];
 	[self setTypingAttributes:[prefsController noteBodyAttributes]];
 	[[self enclosingScrollView] setNeedsDisplay:YES];
 	[[[self enclosingScrollView] contentView] setNeedsDisplay:YES];
@@ -305,7 +303,7 @@ CGFloat _perceptualColorDifference(NSColor *a, NSColor *b) {
 	return proposedLinkColor;
 }
 
-- (NSColor *)_selectionColorForForegroundColor:(NSColor *)fgColor backgroundColor:(NSColor *)bgColor {
+- (NSColor *)selectionColorForForegroundColor:(NSColor *)fgColor backgroundColor:(NSColor *)bgColor {
 	fgColor = [fgColor colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
 	bgColor = [bgColor colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
 
@@ -759,9 +757,11 @@ CGFloat _perceptualColorDifference(NSColor *a, NSColor *b) {
 	//if lengths of respective UTF8-string equivalents for contentString are the same, we should revert to cstring-based algorithm
 
 	CFStringRef quoteStr = CFSTR("\"");
+    CFStringRef cfTypedString = (__bridge CFStringRef)typedString;
+
 	NSRange firstRange = NSMakeRange(NSNotFound, 0);
-	CFRange quoteRange = CFStringFind((CFStringRef) typedString, quoteStr, 0);
-	CFArrayRef terms = CFStringCreateArrayBySeparatingStrings(NULL, (CFStringRef) typedString,
+	CFRange quoteRange = CFStringFind(cfTypedString, quoteStr, 0);
+	CFArrayRef terms = CFStringCreateArrayBySeparatingStrings(NULL, cfTypedString,
 			quoteRange.location == kCFNotFound ? CFSTR(" ") : quoteStr);
 	if (terms) {
 		CFIndex termIndex, rangeIndex;

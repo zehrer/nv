@@ -159,8 +159,8 @@ static void SleepCallBack(void *refcon, io_service_t y, natural_t messageType, v
 	id <SyncServiceSession> session = syncServiceSessions[serviceName];
 
 	//ensure that reachability is unscheduled if dealloc of session does not occur here
-	if ([session respondsToSelector:@selector(invalidateReachabilityRefs)])
-		[session performSelector:@selector(invalidateReachabilityRefs)];
+	if ([(SimplenoteSession *)session respondsToSelector:@selector(invalidateReachabilityRefs)])
+		[(SimplenoteSession *)session performSelector:@selector(invalidateReachabilityRefs)];
 
 	[session stop];
 	[session setDelegate:nil];

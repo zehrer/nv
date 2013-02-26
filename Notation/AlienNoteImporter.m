@@ -264,6 +264,7 @@ static NSString *const NTVNoteImporterLinkTitleKey = @"NTVNoteImporterLinkTitle"
 			importedNotes = [self notesWithPaths: source]; break;
 		case NTVNoteImportTypeDirectory:
 			importedNotes = [self notesInDirectory: source]; break;
+		case NTVNoteImportTypeNone:
 		default: break;
 	}
 	return importedNotes;
@@ -658,8 +659,8 @@ static NSString *const NTVNoteImporterLinkTitleKey = @"NTVNoteImporterLinkTitle"
 
 	CFAbsoluteTime creationTime = CFAbsoluteTimeGetCurrent();
 	CFAbsoluteTime modificationTime = creationTime;
-	if (creationDate) creationTime = CFDateGetAbsoluteTime((CFDateRef) creationDate);
-	if (modificationDate) modificationTime = CFDateGetAbsoluteTime((CFDateRef) modificationDate);
+	if (creationDate) creationTime = CFDateGetAbsoluteTime((__bridge CFDateRef) creationDate);
+	if (modificationDate) modificationTime = CFDateGetAbsoluteTime((__bridge CFDateRef) modificationDate);
 
 	//iterate over notes with blorenumerator and return array
 	BlorNoteEnumerator *enumerator = [[BlorNoteEnumerator alloc] initWithBlor:filename passwordHashData:keyData];

@@ -514,7 +514,7 @@ static Boolean SynchronizedNoteIsEqual(const void *o, const void *p) {
 					if (foundNote && ![foundNote youngerThanLogObject:obj])
 						continue;
 				}
-				CFDictionarySetValue(recoveredNotes, (const void *) objUUIDBytes, (const void *) obj);
+				CFDictionarySetValue(recoveredNotes, (const void *) objUUIDBytes, (__bridge const void *) obj);
 			} else {
 				NSLog(@"object of class %@ recovered that doesn't conform to SynchronizedNote protocol", [(NSObject *) obj className]);
 			}

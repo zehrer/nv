@@ -149,7 +149,7 @@ static NSError *NVTErrorForPOSIXError(int err, NSURL *URL) {
 		if ([segs count] >= 2 && [(NSString *) segs[1] length] > 1) {
 			return CFStringConvertEncodingToNSStringEncoding([segs[1] intValue]);
 		} else if ([(NSString *) segs[0] length] > 1) {
-			CFStringEncoding theCFEncoding = CFStringConvertIANACharSetNameToEncoding((CFStringRef) segs[0]);
+			CFStringEncoding theCFEncoding = CFStringConvertIANACharSetNameToEncoding((__bridge CFStringRef) segs[0]);
 			if (theCFEncoding == kCFStringEncodingInvalidId) {
 				NSLog(@"couldn't convert IANA charset");
 				return NO;

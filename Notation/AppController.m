@@ -17,13 +17,10 @@
 #import "NoteAttributeColumn.h"
 #import "NotationSyncServiceManager.h"
 #import "NotationDirectoryManager.h"
-#import "NotationFileManager.h"
 #import "NSString_NV.h"
-#import "NSFileManager_NV.h"
 #import "EncodingsManager.h"
 #import "ExporterManager.h"
 #import "ExternalEditorListController.h"
-#import "NSData_transformations.h"
 #import "LinkingEditor.h"
 #import "EmptyView.h"
 #import "DualField.h"
@@ -39,14 +36,13 @@
 #import "StatusItemView.h"
 #import "PreviewController.h"
 #import "ETClipView.h"
-#import "NSFileManager_NV.h"
 #import "WordCountToken.h"
 #import <objc/message.h>
 #import "NSString_CustomTruncation.h"
 #import "NSError+Notation.h"
 #import "NTNMainWindowController.h"
+#import "NotationFileManager.h"
 
-NSWindow *normalWindow;
 int ModFlagger;
 int popped;
 BOOL splitViewAwoke;
@@ -71,8 +67,7 @@ static const CGFloat kMaxNotesListDimension = 600.0f;
 @synthesize currentNote = currentNote;
 
 - (id)init {
-	self = [super init];
-	if (self) {
+	if ((self = [super init])) {
 		splitViewAwoke = NO;
 		windowUndoManager = [[NSUndoManager alloc] init];
 
@@ -463,7 +458,7 @@ void outletObjectAwoke(id sender) {
 	return NO;
 }
 
-- (NSToolbarItem *)toolbar:(NSToolbar *)toolbar itemForItemIdentifier:(NSString *)itemIdentifier willBeInsertedIntoToolbar:(BOOL)flag {
+- (NSToolbarItem *)toolbar:(NSToolbar *)theToolbar itemForItemIdentifier:(NSString *)itemIdentifier willBeInsertedIntoToolbar:(BOOL)flag {
 	return [itemIdentifier isEqualToString:@"DualField"] ? dualFieldItem : nil;
 }
 
@@ -683,7 +678,7 @@ void outletObjectAwoke(id sender) {
 			NSAlert *alert = [NSAlert alertWithMessageText:warnString defaultButton:NSLocalizedString(@"Delete", @"name of delete button") alternateButton:NSLocalizedString(@"Cancel", @"name of cancel button") otherButton:nil informativeTextWithFormat:NSLocalizedString(@"Press Command-Z to undo this action later.", @"informational delete-this-note? text")];
 			[alert setShowsSuppressionButton:YES];
 
-			[alert beginSheetModalForWindow:window modalDelegate:self didEndSelector:@selector(deleteAlertDidEnd:returnCode:contextInfo:) contextInfo:(void *) deleteObj];
+			[alert beginSheetModalForWindow:window modalDelegate:self didEndSelector:@selector(deleteAlertDidEnd:returnCode:contextInfo:) contextInfo:(__bridge void *) deleteObj];
 		} else {
 			//just delete the notes outright
 			SEL cmd = [indexes count] > 1 ? @selector(removeNotes:) : @selector(removeNote:);
@@ -1760,7 +1755,7 @@ void outletObjectAwoke(id sender) {
 	}
 }
 
-- (NSSize)windowWillResize:(NSWindow *)window toSize:(NSSize)proposedFrameSize {
+- (NSSize)windowWillResize:(NSWindow *)theWindow toSize:(NSSize)proposedFrameSize {
 	if ([prefsController horizontalLayout]) {
 		[notesTableView makeFirstPreviouslyVisibleRowVisibleIfNecessary];
 	}
@@ -2022,7 +2017,7 @@ void outletObjectAwoke(id sender) {
 	isEd = inBool;
 }
 
-- (void)tableView:(NSTableView *)aTableView willDisplayCell:(id)aCell forTableColumn:(NSTableColumn *)aTableColumn row:(int)rowIndex {
+- (void)tableView:(NSTableView *)aTableView willDisplayCell:(id)aCell forTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex {
 	//NSUInteger rowInt =  rowIndex;
 
 	if ([[notesTableView selectedRowIndexes] containsIndex:rowIndex]) {
@@ -2409,7 +2404,7 @@ void outletObjectAwoke(id sender) {
 	if (!backgrndColor) {
 		backgrndColor = [self backgrndColor];
 	}
-	fieldAttributes = @{NSBackgroundColorAttributeName : [textView _selectionColorForForegroundColor:foregrndColor backgroundColor:backgrndColor]};
+	fieldAttributes = @{NSBackgroundColorAttributeName : [textView selectionColorForForegroundColor:foregrndColor backgroundColor:backgrndColor]};
 
 	if (isEd) {
 		[theFieldEditor setDrawsBackground:NO];

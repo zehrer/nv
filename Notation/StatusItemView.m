@@ -9,29 +9,22 @@
 #import "StatusItemView.h"
 #import "AppController.h"
 
-@interface StatusItemView () {
-	NSImage *_menuDarkImage;
-	NSImage *_menuClickedImage;
-}
+@interface StatusItemView ()
 
-@property(weak, nonatomic, readonly) NSImage *menuDarkImage;
-@property(weak, nonatomic, readonly) NSImage *menuClickedImage;
+@property(strong, nonatomic, readonly) NSImage *menuDarkImage;
+@property(strong, nonatomic, readonly) NSImage *menuClickedImage;
 
 @end
 
 @implementation StatusItemView
 
+@synthesize menuClickedImage = _menuClickedImage, menuDarkImage = _menuDarkImage;
 
 - (id)initWithFrame:(NSRect)frame controller:(AppController *)ctrlr {
 	if ((self = [super initWithFrame:frame])) {
 		controller = ctrlr; // deliberately weak reference.
 	}
 	return self;
-}
-
-
-- (void)dealloc {
-	controller = nil;
 }
 
 - (NSImage *)menuClickedImage {

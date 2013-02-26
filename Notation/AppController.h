@@ -199,7 +199,7 @@ extern void outletObjectAwoke(id sender);
 - (void)setIsEditing:(BOOL)inBool;
 
 //- (void)focusOnCtrlFld:(id)sender;
-- (void)tableView:(NSTableView *)aTableView willDisplayCell:(id)aCell forTableColumn:(NSTableColumn *)aTableColumn row:(int)rowIndex;
+- (void)tableView:(NSTableView *)aTableView willDisplayCell:(id)aCell forTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex;
 
 - (NSMenu *)statBarMenu;
 

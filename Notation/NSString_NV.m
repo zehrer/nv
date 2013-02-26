@@ -141,7 +141,7 @@ static int dayFromAbsoluteTime(CFAbsoluteTime absTime) {
 		CFRelease(date);
 
 		//ints as pointers ints as pointers ints as pointers
-		CFDictionarySetValue(dateStringsCache, (const void *) minutesCount, (const void *) dateString);
+		CFDictionarySetValue(dateStringsCache, (const void *) minutesCount, (__bridge CFStringRef) dateString);
 	}
 
 	return dateString;
@@ -201,8 +201,10 @@ CFDateFormatterRef simplenoteDateFormatter(NSInteger lowPrecision) {
 
 - (CFArrayRef)copyRangesOfWordsInString:(NSString *)findString inRange:(NSRange)limitRange {
 	CFStringRef quoteStr = CFSTR("\"");
-	CFRange quoteRange = CFStringFind((CFStringRef) findString, quoteStr, 0);
-	CFArrayRef terms = CFStringCreateArrayBySeparatingStrings(NULL, (CFStringRef) findString,
+    CFStringRef cfFindString = (__bridge CFStringRef)findString;
+    CFStringRef cfSelf = (__bridge CFStringRef)self;
+	CFRange quoteRange = CFStringFind(cfFindString, quoteStr, 0);
+	CFArrayRef terms = CFStringCreateArrayBySeparatingStrings(NULL, cfFindString,
 			quoteRange.location == kCFNotFound ? CFSTR(" ") : quoteStr);
 	if (terms) {
 		CFIndex termIndex;
@@ -211,7 +213,7 @@ CFDateFormatterRef simplenoteDateFormatter(NSInteger lowPrecision) {
 		for (termIndex = 0; termIndex < CFArrayGetCount(terms); termIndex++) {
 			CFStringRef term = CFArrayGetValueAtIndex(terms, termIndex);
 			if (CFStringGetLength(term) > 0) {
-				CFArrayRef ranges = CFStringCreateArrayWithFindResults(NULL, (CFStringRef) self, term, CFRangeMake(limitRange.location, limitRange.length), kCFCompareCaseInsensitive);
+				CFArrayRef ranges = CFStringCreateArrayWithFindResults(NULL, cfSelf, term, CFRangeMake(limitRange.location, limitRange.length), kCFCompareCaseInsensitive);
 
 				if (ranges) {
 					if (!allRanges) {
@@ -463,7 +465,7 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, NSUInteger charIndex) 
 }
 
 - (NSString *)stringByReplacingPercentEscapes {
-	return (NSString *) CFBridgingRelease(CFURLCreateStringByReplacingPercentEscapes(NULL, (CFStringRef) self, CFSTR("")));
+	return (__bridge_transfer NSString *) CFURLCreateStringByReplacingPercentEscapes(NULL, (__bridge CFStringRef) self, CFSTR(""));
 }
 
 - (NSString *)stringWithPercentEscapes {
@@ -484,7 +486,7 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, NSUInteger charIndex) 
 }
 
 - (CFUUIDBytes)uuidBytes {
-	CFUUIDRef uuidRef = CFUUIDCreateFromString(NULL, (CFStringRef) self);
+	CFUUIDRef uuidRef = CFUUIDCreateFromString(NULL, (__bridge CFStringRef) self);
 	CFUUIDBytes bytes = CFUUIDGetUUIDBytes(uuidRef);
 	CFRelease(uuidRef);
 	return bytes;

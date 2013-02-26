@@ -14,9 +14,12 @@
 	[super editColumn:columnIndex row:rowIndex withEvent:theEvent select:flag];
 
 	//this is way easier and faster than a custom formatter! just change the title while we're editing!
-	SavedSearch *search = [(SavedSearchesController *)[
-	self
-	dataSource] savedSearchAtIndex:rowIndex];
+    SavedSearch *search = nil;
+    if ([[self dataSource] respondsToSelector:@selector(savedSearchAtIndex:)]) {
+        SavedSearchesController *controller = (id)[self dataSource];
+        search = [controller savedSearchAtIndex: rowIndex];
+    }
+
 	if (search) {
 		NSTextView *editor = (NSTextView *) [self currentEditor];
 		[editor setString:[search searchString]];
@@ -39,9 +42,10 @@
 			return;
 		}
 	} else if (keyChar == NSDeleteCharacter || keyChar == NSDeleteFunctionKey) {
-		[(SavedSearchesController *)[
-		self
-		dataSource] removeSearch:nil];
+        if ([[self dataSource] respondsToSelector:@selector(removeSearch:)]) {
+            SavedSearchesController *controller = (id)[self dataSource];
+            [controller removeSearch:nil];
+        }
 		return;
 	}
 

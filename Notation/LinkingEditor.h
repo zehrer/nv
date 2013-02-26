@@ -49,11 +49,7 @@
 @property(nonatomic, copy, readonly) NSString *activeParagraph;
 //@property (readonly) BOOL clipboardHasLink;
 
-- (NSColor *)_insertionPointColorForForegroundColor:(NSColor *)fgColor backgroundColor:(NSColor *)bgColor;
-
-- (NSColor *)_linkColorForForegroundColor:(NSColor *)fgColor backgroundColor:(NSColor *)bgColor;
-
-- (NSColor *)_selectionColorForForegroundColor:(NSColor *)fgColor backgroundColor:(NSColor *)bgColor;
+- (NSColor *)selectionColorForForegroundColor:(NSColor *)fgColor backgroundColor:(NSColor *)bgColor;
 
 - (NSDictionary *)preferredLinkAttributes;
 

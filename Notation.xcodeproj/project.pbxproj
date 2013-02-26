@@ -332,7 +332,6 @@
 		2143D3D810E987B100127EA6 /* Pencil.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = Pencil.png; path = Images/Pencil.png; sourceTree = "<group>"; };
 		214493E70ADB892C00E2A2B6 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = /System/Library/Frameworks/CoreServices.framework; sourceTree = "<absolute>"; };
 		214494F80ADC7C8D00E2A2B6 /* SecurityInterface.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SecurityInterface.framework; path = /System/Library/Frameworks/SecurityInterface.framework; sourceTree = "<absolute>"; };
-		214495040ADC7F4F00E2A2B6 /* SFPasswordAssistantInspectorController.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = SFPasswordAssistantInspectorController.h; path = Notation/SFPasswordAssistantInspectorController.h; sourceTree = "<group>"; };
 		2144950D0ADC883000E2A2B6 /* PasswordAssistantButton.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = PasswordAssistantButton.tif; path = Images/PasswordAssistantButton.tif; sourceTree = "<group>"; };
 		2144950E0ADC883000E2A2B6 /* PasswordAssistantButtonPressed.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = PasswordAssistantButtonPressed.tif; path = Images/PasswordAssistantButtonPressed.tif; sourceTree = "<group>"; };
 		214495110ADC8A6600E2A2B6 /* PassphrasePicker.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = PassphrasePicker.h; path = Notation/PassphrasePicker.h; sourceTree = "<group>"; };
@@ -438,7 +437,6 @@
 		21C737930B50C73E0048C08A /* MultiplePageView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; name = MultiplePageView.h; path = Notation/MultiplePageView.h; sourceTree = "<group>"; };
 		21C737940B50C73E0048C08A /* MultiplePageView.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; name = MultiplePageView.m; path = Notation/MultiplePageView.m; sourceTree = "<group>"; };
 		21CB29AD10EEE39400360118 /* SyncServiceSessionProtocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SyncServiceSessionProtocol.h; path = Notation/SyncServiceSessionProtocol.h; sourceTree = "<group>"; };
-		21CF80F210FD33B90094AA90 /* SynchronizedNoteMixIns.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SynchronizedNoteMixIns.h; path = Notation/SynchronizedNoteMixIns.h; sourceTree = "<group>"; };
 		21D5834D0B78F0CC00245E29 /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
 		21D60126098FDB46007440DF /* GlobalPrefs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GlobalPrefs.h; path = Notation/GlobalPrefs.h; sourceTree = "<group>"; };
 		21D60127098FDB46007440DF /* GlobalPrefs.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = GlobalPrefs.m; path = Notation/GlobalPrefs.m; sourceTree = "<group>"; };
@@ -753,7 +751,6 @@
 				21BD2ECF10DAF31500BA3DF6 /* LinearDividerShader.m */,
 				2114C23B095883A600614E74 /* NSData_transformations.h */,
 				2114C23C095883A600614E74 /* NSData_transformations.m */,
-				214495040ADC7F4F00E2A2B6 /* SFPasswordAssistantInspectorController.h */,
 				6C6BAF7E16D7F3EB00643FFA /* NTNMainWindowController.h */,
 				6C6BAF7F16D7F3EB00643FFA /* NTNMainWindowController.m */,
 				6C6BAF8016D7F3EB00643FFA /* NTNMainWindowController.xib */,
@@ -799,7 +796,6 @@
 				2181171109F311110020A252 /* DeletedNoteObject.h */,
 				2181171209F311110020A252 /* DeletedNoteObject.m */,
 				2181193909FA9CF90020A252 /* SynchronizedNoteProtocol.h */,
-				21CF80F210FD33B90094AA90 /* SynchronizedNoteMixIns.h */,
 				2155DF42097C992800163A10 /* AttributedPlainText.h */,
 				2155DF43097C992800163A10 /* AttributedPlainText.m */,
 				217D4280096545A000E84749 /* LabelObject.h */,

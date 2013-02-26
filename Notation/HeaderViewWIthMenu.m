@@ -52,14 +52,14 @@
 
 - (NSMenu *)menuForEvent:(NSEvent *)theEvent {
 
-	if ([[self tableView] respondsToSelector:@selector(menuForColumnConfiguration:)]) {
+	if ([(NotesTableView *)[self tableView] respondsToSelector:@selector(menuForColumnConfiguration:)]) {
 		NSPoint theClickPoint = [self convertPoint:[theEvent locationInWindow] fromView:NULL];
 		NSInteger theColumn = [self columnAtPoint:theClickPoint];
 		NSTableColumn *theTableColumn = nil;
 		if (theColumn > -1)
 			theTableColumn = [[self tableView] tableColumns][theColumn];
 
-		NSMenu *theMenu = [[self tableView] performSelector:@selector(menuForColumnConfiguration:) withObject:theTableColumn];
+		NSMenu *theMenu = [(NotesTableView *)[self tableView] performSelector:@selector(menuForColumnConfiguration:) withObject:theTableColumn];
 		return theMenu;
 	}
 

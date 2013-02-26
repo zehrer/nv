@@ -18,6 +18,8 @@
 
 #import "NotationSyncServiceManager.h"
 #import "SyncSessionController.h"
+#import "SyncServiceSessionProtocol.h"
+#import "SimplenoteSession.h"
 
 @implementation NotationController (NotationSyncServiceManager)
 
@@ -396,10 +398,11 @@
 			NSLog(@"User agreed to replace all notes with those from the server");
 
 			return NO;
+        default:
+            NSLog(@"%@: unhandled case (res: %ld)!", NSStringFromSelector(_cmd), res);
+            break;
 	}
-
-	NSLog(@"%@: unhandled case (res: %ld)!", NSStringFromSelector(_cmd), res);
-	return YES;
+    return YES;
 }
 
 @end

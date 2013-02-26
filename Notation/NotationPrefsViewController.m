@@ -425,6 +425,7 @@ enum {
 			verificationAttempted = YES;
 			[verifyStatusImageView setImage:[NSImage imageNamed:@"statusValidated"]];
 			break;
+        default: break;
 	}
 	[verifyStatusImageView setHidden:VERIFY_NOT_ATTEMPTED == status];
 	[verifyStatusField setStringValue:aString ? aString : @""];
@@ -513,7 +514,7 @@ enum {
 	[allowedTypesTable reloadData];
 }
 
-- (void)passphrasePicker:(PassphrasePicker *)picker choseAPassphrase:(BOOL)success {
+- (void)passphrasePicker:(PassphrasePicker *)thePicker choseAPassphrase:(BOOL)success {
 
 	[self setEncryptionControlsState:success];
 	[notationPrefs setDoesEncryption:success];
@@ -547,8 +548,7 @@ enum {
 
 		[picker showAroundWindow:[view window] resultDelegate:self];
 	} else {
-		NSString *formatStrings[] = {NSLocalizedString(@"(WHAT??)", @"user shouldn't see this"),
-				NSLocalizedString(@"plain text", nil), NSLocalizedString(@"rich text", nil), NSLocalizedString(@"HTML", nil)};
+		NSString *formatStrings[] = { @"", NSLocalizedString(@"plain text", nil), NSLocalizedString(@"rich text", nil), NSLocalizedString(@"HTML", nil)};
 		NSAlert *alert = [NSAlert alertWithMessageText:[NSString stringWithFormat:NSLocalizedString(@"Your notes are currently stored as %@ files on disk, but encryption requires a single database. Switch to a database format?", nil), formatStrings[format]]
 										 defaultButton:NSLocalizedString(@"Use a single database file", nil) alternateButton:NSLocalizedString(@"Cancel", nil) otherButton:nil informativeTextWithFormat:NSLocalizedString(@"Notational Velocity supports encryption only for notes stored in a database file.", nil)];
 

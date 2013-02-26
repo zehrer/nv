@@ -422,7 +422,7 @@
 }
 
 
-- (NSToolbarItem *)toolbar:(NSToolbar *)toolbar itemForItemIdentifier:(NSString *)itemIdentifier willBeInsertedIntoToolbar:(BOOL)flag {
+- (NSToolbarItem *)toolbar:(NSToolbar *)theToolbar itemForItemIdentifier:(NSString *)itemIdentifier willBeInsertedIntoToolbar:(BOOL)flag {
 	return items[itemIdentifier];
 }
 
@@ -434,7 +434,7 @@
 	return @[@"General", @"Notes", @"Editing", @"Fonts & Colors"];
 }
 
-- (NSArray *)toolbarSelectableItemIdentifiers:(NSToolbar *)toolbar {
+- (NSArray *)toolbarSelectableItemIdentifiers:(NSToolbar *)theToolbar {
 	//make all of them selectable. This puts that little grey outline thing around an item when you select it.
 	return [items allKeys];
 }

@@ -335,7 +335,7 @@
 	}
 
 	if (keys && values) {
-		CFDictionaryGetKeysAndValues((CFDictionaryRef) dict, (const void **) keys, (const void **) values);
+		CFDictionaryGetKeysAndValues((__bridge CFDictionaryRef) dict, (const void **) keys, (const void **) values);
 
 		for (i = 0; i < count; i++) {
 

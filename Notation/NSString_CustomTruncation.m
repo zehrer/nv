@@ -28,7 +28,7 @@ static const u_int32_t offsetsFromUTF8[6] = {
 #define isutf(c) (((c)&0xC0)!=0x80)
 
 /* reads the next utf-8 sequence out of a string, updating an index */
-static force_inline u_int32_t u8_nextchar(const char *s, size_t *i) {
+static force_inline u_int32_t u8_nextchar(const char *s, size_t *i)  {
 	u_int32_t ch = 0;
 	size_t sz = 0;
 
@@ -95,11 +95,11 @@ static NSDictionary *LineTruncAttributes();
 static size_t EstimatedCharCountForWidth(float upToWidth);
 
 - (NSString *)truncatedPreviewStringOfLength:(NSUInteger)bodyCharCount {
-
+	CFStringRef cfSelf = (__bridge CFStringRef)self;
 	//try to get the underlying C-string buffer and copy only part of it
 	//this won't be exact because chars != bytes, but that's alright because it is expected to be further truncated by an NSTextFieldCell
-	CFStringEncoding bodyPreviewEncoding = CFStringGetFastestEncoding((CFStringRef) self);
-	const char *cStrPtr = CFStringGetCStringPtr((CFStringRef) self, bodyPreviewEncoding);
+	CFStringEncoding bodyPreviewEncoding = CFStringGetFastestEncoding(cfSelf);
+	const char *cStrPtr = CFStringGetCStringPtr(cfSelf, bodyPreviewEncoding);
 	char *bodyPreviewBuffer = calloc(bodyCharCount + 1, sizeof(char));
 	CFIndex usedBufLen = bodyCharCount;
 
@@ -115,7 +115,7 @@ static size_t EstimatedCharCountForWidth(float upToWidth);
 				usedBufLen = bodyCharCount = strlen(fullUTF8String);
 				bodyPreviewBuffer = realloc(bodyPreviewBuffer, bodyCharCount + 1);
 				memcpy(bodyPreviewBuffer, fullUTF8String, bodyCharCount + 1);
-			} else if (!CFStringGetBytes((CFStringRef) self, CFRangeMake(0, bodyCharCount), bodyPreviewEncoding, ' ', FALSE,
+			} else if (!CFStringGetBytes(cfSelf, CFRangeMake(0, bodyCharCount), bodyPreviewEncoding, ' ', FALSE,
 										  (UInt8 *) bodyPreviewBuffer, bodyCharCount + 1, &usedBufLen)) {
 				NSLog(@"can't get utf8 string from '%@' (charcount: %lu)", self, (unsigned long) bodyCharCount);
 				free(bodyPreviewBuffer);
@@ -124,6 +124,8 @@ static size_t EstimatedCharCountForWidth(float upToWidth);
 			
 		}
 	}
+
+	
 	
 	//if bodyPreviewBuffer is a UTF-8 encoded string, then examine the string one UTF-8 sequence at a time to catch multi-byte breaks
 	if (bodyPreviewEncoding == kCFStringEncodingUTF8) {
@@ -132,11 +134,10 @@ static size_t EstimatedCharCountForWidth(float upToWidth);
 		replace_breaks(bodyPreviewBuffer, bodyCharCount);
 	}
 
-	NSString *truncatedBodyString = [[NSString alloc] initWithBytesNoCopy:bodyPreviewBuffer length:usedBufLen
-																 encoding:CFStringConvertEncodingToNSStringEncoding(bodyPreviewEncoding) freeWhenDone:YES];
+	NSString *truncatedBodyString = [[NSString alloc] initWithBytesNoCopy:bodyPreviewBuffer length:usedBufLen encoding:CFStringConvertEncodingToNSStringEncoding(bodyPreviewEncoding) freeWhenDone:YES];
 	if (!truncatedBodyString) {
 		free(bodyPreviewBuffer);
-		NSLog(@"can't create cfstring from '%@' (cstr lens: %lu/%ld) with encoding %u (fastest = %u)", self, (unsigned long) bodyCharCount, (long) usedBufLen, bodyPreviewEncoding, CFStringGetFastestEncoding((CFStringRef) self));
+		NSLog(@"can't create cfstring from '%@' (cstr lens: %lu/%ld) with encoding %u (fastest = %u)", self, (unsigned long) bodyCharCount, (long) usedBufLen, bodyPreviewEncoding, bodyPreviewEncoding);
 		return nil;
 	}
 	return truncatedBodyString;

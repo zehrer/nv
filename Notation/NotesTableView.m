@@ -1063,7 +1063,10 @@ enum {
 
 		NSCharacterSet *set = [NSCharacterSet labelSeparatorCharacterSet];
 		NSString *str = [aTextView string];
-#define CharIndexIsMember(__index) ([set characterIsMember:[str characterAtIndex:(__index)]])
+
+		BOOL(^CharIndexIsMember)(NSUInteger) = ^(NSUInteger idx){
+			return [set characterIsMember: [str characterAtIndex: idx]];
+		};
 
 		BOOL hasLChar = charRange.location > 0;
 		BOOL hasRChar = NSMaxRange(charRange) < [str length];
@@ -1201,7 +1204,10 @@ enum {
 	if (charRange.location != NSNotFound) {
 		NSCharacterSet *set = [NSCharacterSet labelSeparatorCharacterSet];
 		NSString *str = fieldString;
-#define CharIndexIsMember(__index) ([set characterIsMember:[str characterAtIndex:(__index)]])
+
+		BOOL(^CharIndexIsMember)(NSUInteger) = ^(NSUInteger idx){
+			return [set characterIsMember: [str characterAtIndex: idx]];
+		};
 
 		BOOL hasLChar = charRange.location > 0;
 		BOOL hasRChar = NSMaxRange(charRange) < [str length];

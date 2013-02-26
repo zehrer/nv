@@ -374,8 +374,7 @@
 }
 
 - (NSString *)urlEncodeValue:(NSString *)str {
-	NSString *result = (NSString *) CFBridgingRelease(CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, (CFStringRef) str, NULL, CFSTR("?=&+"), kCFStringEncodingUTF8));
-	return result;
+	return (__bridge_transfer NSString *)CFURLCreateStringByAddingPercentEscapes(NULL, (__bridge CFStringRef) str, NULL, CFSTR("?=&+"), kCFStringEncodingUTF8);
 }
 
 - (IBAction)makePreviewSticky:(id)sender {
