@@ -226,7 +226,7 @@
 	syncSessionController = [[SyncSessionController alloc] initWithSyncDelegate:self notationPrefs:notationPrefs];
 
 	//frozennotation will work out passwords, keychains, decryption, etc...
-	OSStatus err;
+	OSStatus err = noErr;
 	if (!(allNotes = [frozenNotation unpackedNotesReturningError:&err])) {
 		//notes could be nil because the user cancelled password authentication
 		//or because they were corrupted, or for some other reason

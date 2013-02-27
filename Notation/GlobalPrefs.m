@@ -864,7 +864,7 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
 	} else {
 		NSData *alias = [defaults dataForKey:DirectoryAliasKey];
 		NSData *bookmark = (__bridge_transfer NSData *)CFURLCreateBookmarkDataFromAliasRecord(NULL, (__bridge CFDataRef)alias);
-		[defaults removeObjectForKey: DirectoryAliasKey];
+		//[defaults removeObjectForKey: DirectoryAliasKey];
 		[defaults setObject: bookmark forKey: NTNDirectoryBookmarkKey];
 		return bookmark;
 	}

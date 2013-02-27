@@ -204,15 +204,17 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString *serv
 
 + (NSArray *)defaultTypeStringsForFormat:(NoteStorageFormat)formatID {
 	switch (formatID) {
+		case SingleDatabaseFormat:
+			return @[];
 		case PlainTextFormat:
-			return @[(id) CFBridgingRelease(UTCreateStringForOSType(TEXT_TYPE_ID)),
-					(id) CFBridgingRelease(UTCreateStringForOSType(UTXT_TYPE_ID))];
+			return @[(__bridge_transfer NSString *)UTCreateStringForOSType(TEXT_TYPE_ID),
+					(__bridge_transfer NSString *)UTCreateStringForOSType(UTXT_TYPE_ID)];
 		case RTFTextFormat:
-			return @[(id) CFBridgingRelease(UTCreateStringForOSType(RTF_TYPE_ID))];
+			return @[(__bridge_transfer NSString *)UTCreateStringForOSType(RTF_TYPE_ID)];
 		case HTMLFormat:
-			return @[(id) CFBridgingRelease(UTCreateStringForOSType(HTML_TYPE_ID))];
+			return @[(__bridge_transfer NSString *)UTCreateStringForOSType(HTML_TYPE_ID)];
 		case WordDocFormat:
-			return @[(id) CFBridgingRelease(UTCreateStringForOSType(WORD_DOC_TYPE_ID))];
+			return @[(__bridge_transfer NSString *)UTCreateStringForOSType(WORD_DOC_TYPE_ID)];
 		default:
 			NSLog(@"Unknown format ID: %ld", formatID);
 			return @[];
@@ -221,6 +223,8 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString *serv
 
 + (NSArray *)defaultPathExtensionsForFormat:(NoteStorageFormat)formatID {
 	switch (formatID) {
+		case SingleDatabaseFormat:
+			return @[];
 		case PlainTextFormat:
 			return @[@"txt", @"text", @"utf8", @"taskpaper"];
 		case RTFTextFormat:
