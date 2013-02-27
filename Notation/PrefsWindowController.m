@@ -243,7 +243,14 @@
 	if (!name)
 		name = NSLocalizedString(@"<Directory unknown>", nil);
 
-	NSImage *iconImage = [prefsController iconForDefaultDirectoryReturningURL: &targetURL];
+	const CGFloat heightToScaleTo = 16.0f;
+	NSImage *multiIconImage = [prefsController iconForDefaultDirectoryReturningURL: &targetURL];
+	NSSize scaledSize = NSMakeSize(heightToScaleTo, heightToScaleTo);
+	NSRect scaledRect = NSMakeRect(0, 0, heightToScaleTo, heightToScaleTo);
+
+	NSImageRep *scaledImageRep = [multiIconImage bestRepresentationForRect: scaledRect context: nil hints: nil];
+	NSImage *iconImage = [[NSImage alloc] initWithSize: scaledSize];
+	[iconImage addRepresentation: scaledImageRep];
 
 	NSMenuItem *theMenuItem = [[NSMenuItem alloc] initWithTitle:name action:nil keyEquivalent:@""];
 
