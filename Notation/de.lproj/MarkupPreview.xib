@@ -2,13 +2,13 @@
 <archive type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="8.00">
 	<data>
 		<int key="IBDocument.SystemTarget">1070</int>
-		<string key="IBDocument.SystemVersion">12C3006</string>
-		<string key="IBDocument.InterfaceBuilderVersion">2844</string>
-		<string key="IBDocument.AppKitVersion">1187.34</string>
-		<string key="IBDocument.HIToolboxVersion">625.00</string>
+		<string key="IBDocument.SystemVersion">12D68</string>
+		<string key="IBDocument.InterfaceBuilderVersion">3084</string>
+		<string key="IBDocument.AppKitVersion">1187.37</string>
+		<string key="IBDocument.HIToolboxVersion">626.00</string>
 		<dictionary class="NSMutableDictionary" key="IBDocument.PluginVersions">
-			<string key="com.apple.InterfaceBuilder.CocoaPlugin">2844</string>
-			<string key="com.apple.WebKitIBPlugin">1810</string>
+			<string key="com.apple.InterfaceBuilder.CocoaPlugin">3084</string>
+			<string key="com.apple.WebKitIBPlugin">2053</string>
 		</dictionary>
 		<array key="IBDocument.IntegratedClassDependencies">
 			<string>NSBox</string>
@@ -169,6 +169,7 @@
 							<string key="NSFrame">{{0, 31}, {445, 5}}</string>
 							<reference key="NSSuperview" ref="165883452"/>
 							<reference key="NSWindow"/>
+							<reference key="NSNextKeyView" ref="215874876"/>
 							<string key="NSReuseIdentifierKey">_NS:9</string>
 							<string key="NSOffsets">{0, 0}</string>
 							<object class="NSTextFieldCell" key="NSTitleCell">
@@ -375,7 +376,7 @@ AAEAAQAAAT0AAwAAAAEAAgAAAVIAAwAAAAEAAQAAAVMAAwAAAAIAAQABAAAAAA</bytes>
 														<string key="NSFrame">{{429, 1}, {15, 492}}</string>
 														<reference key="NSSuperview" ref="143856958"/>
 														<reference key="NSWindow"/>
-														<reference key="NSNextKeyView" ref="215874876"/>
+														<reference key="NSNextKeyView" ref="891066483"/>
 														<bool key="NSAllowsLogicalLayoutDirection">NO</bool>
 														<reference key="NSTarget" ref="143856958"/>
 														<string key="NSAction">_doScroller:</string>
@@ -435,22 +436,21 @@ AAEAAQAAAT0AAwAAAAEAAgAAAVIAAwAAAAEAAQAAAVMAAwAAAAIAAQABAAAAAA</bytes>
 							<string key="NSFrame">{{300, 7}, {28, 19}}</string>
 							<reference key="NSSuperview" ref="165883452"/>
 							<reference key="NSWindow"/>
-							<reference key="NSNextKeyView" ref="189330931"/>
 							<bool key="NSViewIsLayerTreeHost">YES</bool>
 							<double key="NSViewAlphaValue">0.80000000000000004</double>
 							<bool key="NSEnabled">YES</bool>
 							<object class="NSButtonCell" key="NSCell" id="460994794">
 								<int key="NSCellFlags">67108864</int>
 								<int key="NSCellFlags2">134217728</int>
-								<string key="NSContents"/>
+								<string type="base64-UTF8" key="NSContents">IA</string>
 								<object class="NSFont" key="NSSupport" id="29">
 									<string key="NSName">LucidaGrande-Bold</string>
 									<double key="NSSize">12</double>
 									<int key="NSfFlags">16</int>
 								</object>
 								<reference key="NSControlView" ref="367247162"/>
-								<int key="NSButtonFlags">-1228128256</int>
-								<int key="NSButtonFlags2">402653357</int>
+								<int key="NSButtonFlags">-1228652544</int>
+								<int key="NSButtonFlags2">402653229</int>
 								<object class="NSCustomResource" key="NSNormalImage">
 									<string key="NSClassName">NSImage</string>
 									<string key="NSResourceName">HUDIconLock</string>
@@ -479,7 +479,7 @@ AAEAAQAAAT0AAwAAAAEAAgAAAVIAAwAAAAEAAQAAAVMAAwAAAAIAAQABAAAAAA</bytes>
 								<reference key="NSSupport" ref="29"/>
 								<reference key="NSControlView" ref="172550003"/>
 								<int key="NSButtonFlags">-2033958912</int>
-								<int key="NSButtonFlags2">268435693</int>
+								<int key="NSButtonFlags2">268435501</int>
 								<object class="NSCustomResource" key="NSNormalImage">
 									<string key="NSClassName">NSImage</string>
 									<string key="NSResourceName">HUDIconSave</string>
@@ -498,7 +498,6 @@ AAEAAQAAAT0AAwAAAAEAAgAAAVIAAwAAAAEAAQAAAVMAAwAAAAIAAQABAAAAAA</bytes>
 							<string key="NSFrame">{{370, 7}, {28, 19}}</string>
 							<reference key="NSSuperview" ref="165883452"/>
 							<reference key="NSWindow"/>
-							<reference key="NSNextKeyView" ref="172550003"/>
 							<bool key="NSViewIsLayerTreeHost">YES</bool>
 							<double key="NSViewAlphaValue">0.80000000000000004</double>
 							<bool key="NSEnabled">YES</bool>
@@ -509,7 +508,7 @@ AAEAAQAAAT0AAwAAAAEAAgAAAVIAAwAAAAEAAQAAAVMAAwAAAAIAAQABAAAAAA</bytes>
 								<reference key="NSSupport" ref="29"/>
 								<reference key="NSControlView" ref="304107433"/>
 								<int key="NSButtonFlags">-2033958912</int>
-								<int key="NSButtonFlags2">173</int>
+								<int key="NSButtonFlags2">45</int>
 								<object class="NSCustomResource" key="NSNormalImage">
 									<string key="NSClassName">NSImage</string>
 									<string key="NSResourceName">HUDIconShare</string>
@@ -528,7 +527,6 @@ AAEAAQAAAT0AAwAAAAEAAgAAAVIAAwAAAAEAAQAAAVMAAwAAAAIAAQABAAAAAA</bytes>
 							<string key="NSFrame">{{334, 7}, {28, 19}}</string>
 							<reference key="NSSuperview" ref="165883452"/>
 							<reference key="NSWindow"/>
-							<reference key="NSNextKeyView" ref="304107433"/>
 							<bool key="NSViewIsLayerTreeHost">YES</bool>
 							<double key="NSViewAlphaValue">0.80000000000000004</double>
 							<bool key="NSEnabled">YES</bool>
@@ -539,7 +537,7 @@ AAEAAQAAAT0AAwAAAAEAAgAAAVIAAwAAAAEAAQAAAVMAAwAAAAIAAQABAAAAAA</bytes>
 								<reference key="NSSupport" ref="29"/>
 								<reference key="NSControlView" ref="189330931"/>
 								<int key="NSButtonFlags">-2033958912</int>
-								<int key="NSButtonFlags2">402653357</int>
+								<int key="NSButtonFlags2">402653229</int>
 								<object class="NSCustomResource" key="NSNormalImage">
 									<string key="NSClassName">NSImage</string>
 									<string key="NSResourceName">HUDIconPrint</string>
@@ -557,7 +555,6 @@ AAEAAQAAAT0AAwAAAAEAAgAAAVIAAwAAAAEAAQAAAVMAAwAAAAIAAQABAAAAAA</bytes>
 							<string key="NSFrame">{{10, 7}, {119, 19}}</string>
 							<reference key="NSSuperview" ref="165883452"/>
 							<reference key="NSWindow"/>
-							<reference key="NSNextKeyView" ref="367247162"/>
 							<bool key="NSEnabled">YES</bool>
 							<object class="NSButtonCell" key="NSCell" id="732709540">
 								<int key="NSCellFlags">-2080374784</int>
@@ -583,6 +580,7 @@ AAEAAQAAAT0AAwAAAAEAAgAAAVIAAwAAAAEAAQAAAVMAAwAAAAIAAQABAAAAAA</bytes>
 					<string key="NSFrameSize">{445, 528}</string>
 					<reference key="NSSuperview"/>
 					<reference key="NSWindow"/>
+					<reference key="NSNextKeyView" ref="426197502"/>
 				</object>
 				<string key="NSScreenRect">{{0, 0}, {1440, 878}}</string>
 				<string key="NSMinSize">{350, 416}</string>
@@ -1108,7 +1106,7 @@ AAEAAQAAAT0AAwAAAAEAAgAAAVIAAwAAAAEAAQAAAVMAAwAAAAIAAQABAAAAAA</bytes>
 			<nil key="activeLocalization"/>
 			<dictionary class="NSMutableDictionary" key="localizations"/>
 			<nil key="sourceID"/>
-			<int key="maxID">288</int>
+			<int key="maxID">290</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<array class="NSMutableArray" key="referencedPartialClassDescriptions">
@@ -1259,7 +1257,7 @@ AAEAAQAAAT0AAwAAAAEAAgAAAVIAAwAAAAEAAQAAAVMAAwAAAAIAAQABAAAAAA</bytes>
 		<bool key="IBDocument.PluginDeclaredDependenciesTrackSystemTargetVersion">YES</bool>
 		<int key="IBDocument.defaultPropertyAccessControl">3</int>
 		<dictionary class="NSMutableDictionary" key="IBDocument.LastKnownImageSizes">
-			<string key="HUDIconLock">{512, 512}</string>
+			<string key="HUDIconLock">{18, 18}</string>
 			<string key="HUDIconPrint">{512, 512}</string>
 			<string key="HUDIconSave">{512, 512}</string>
 			<string key="HUDIconShare">{512, 512}</string>
