@@ -144,7 +144,7 @@
 
 		@try {
 			if ([prefs doesEncryption]) {
-				BOOL keychainGood = YES;
+				BOOL keychainGood;
 				if (![prefs storesPasswordInKeychain] || !(keychainGood = [prefs canLoadPassphraseData:[prefs passwordDataFromKeychain]])) {
 
 					if (!keychainGood) {

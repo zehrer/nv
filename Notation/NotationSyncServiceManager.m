@@ -18,7 +18,6 @@
 
 #import "NotationSyncServiceManager.h"
 #import "SyncSessionController.h"
-#import "SyncServiceSessionProtocol.h"
 #import "SimplenoteSession.h"
 
 @implementation NotationController (NotationSyncServiceManager)
@@ -355,8 +354,7 @@
 
 	//if foundNotes == 0, use a slightly different message -- maybe
 
-	NSInteger res = NSAlertDefaultReturn;
-
+	NSInteger res;
 	if (!foundNotes) {
 		res = NSRunCriticalAlertPanel([NSString stringWithFormat:NSLocalizedString(@"The %@ server reports that no notes exist. Delete all %u notes in Notational Velocity to match it, or re-upload them now?", nil), serviceTitle, [allNotes count]],
 				[NSString stringWithFormat:NSLocalizedString(@"If your %@ account is different, you may prefer to create a new database in Notational Velocity instead.", nil), serviceTitle],
@@ -372,6 +370,7 @@
 				NSLocalizedString(@"Merge Notes", @"dialog button for uploading local notes"),
 				NSLocalizedString(@"Replace All Notes", @"dialog button for deleting all notes"));
 	}
+
 	switch (res) {
 		case NSAlertDefaultReturn:
 			[syncSessionController disableService:serviceName];

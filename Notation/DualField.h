@@ -42,7 +42,7 @@ enum {
 @interface DualField : NSTextField {
 	IBOutlet NSTableView *notesTable;
 	NSUInteger lastLengthReplaced;
-	NSString *snapbackString, *swappedOriginalString;
+	NSString *snapbackString;
 
 	NSToolTipTag docIconTag, textAreaTag, clearButtonTag;
 	NSTrackingRectTag docIconRectTag;
@@ -53,8 +53,6 @@ enum {
 	NSMutableArray *followedLinks;
 
 	NSCursor *IBeamCursor;
-
-	NSTimer *modifierTimer;
 }
 
 - (void)setTrackingRect;

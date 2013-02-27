@@ -18,7 +18,6 @@
 
 #import "NSString_CustomTruncation.h"
 #import "GlobalPrefs.h"
-#import "BufferUtils.h"
 
 static const u_int32_t offsetsFromUTF8[6] = {
 	0x00000000UL, 0x00003080UL, 0x000E2080UL,

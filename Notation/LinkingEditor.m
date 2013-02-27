@@ -51,11 +51,7 @@ static long (*GetGetScriptManagerVariablePointer())(short);
 
 @end
 
-@implementation LinkingEditor {
-	NSString *beforeString;
-	NSString *afterString;
-}
-
+@implementation LinkingEditor
 
 CGFloat _perceptualDarkness(NSColor *a);
 
@@ -652,7 +648,7 @@ CGFloat _perceptualColorDifference(NSColor *a, NSColor *b) {
 		[super insertText:syntaxBit replacementRange:insertRange];
 		insertRange.location += (selRange.length + syntaxLength);
 		[super insertText:syntaxBit replacementRange:insertRange];
-		insertRange.location += syntaxLength;
+		// insertRange.location += syntaxLength;
 		selRange.location += syntaxLength;
 		[self setSelectedRange:selRange];
 		return YES;
@@ -690,7 +686,6 @@ CGFloat _perceptualColorDifference(NSColor *a, NSColor *b) {
 
 	NSFont *font = nil;
 	NSMutableDictionary *attributes = nil;
-	BOOL hasTrait = NO;
 
 	if ([self selectedRange].length) {
 		NSRange limitRange, effectiveRange;
@@ -700,7 +695,7 @@ CGFloat _perceptualColorDifference(NSColor *a, NSColor *b) {
 		if ([self shouldChangeTextInRange:limitRange replacementString:nil]) {
 
 			NSDictionary *firstAttrs = [text attributesAtIndex:limitRange.location longestEffectiveRange:NULL inRange:limitRange];
-			hasTrait = [firstAttrs attributesHaveFontTrait:trait orAttribute:attrName];
+			BOOL hasTrait = [firstAttrs attributesHaveFontTrait:trait orAttribute:attrName];
 
 			[text beginEditing];
 			while (limitRange.length > 0) {
@@ -722,7 +717,7 @@ CGFloat _perceptualColorDifference(NSColor *a, NSColor *b) {
 		if (!attributes) attributes = [[prefsController noteBodyAttributes] mutableCopyWithZone:nil];
 		font = attributes[NSFontAttributeName];
 
-		hasTrait = [attributes attributesHaveFontTrait:trait orAttribute:attrName];
+		BOOL hasTrait = [attributes attributesHaveFontTrait:trait orAttribute:attrName];
 		[attributes applyStyleInverted:hasTrait trait:trait forFont:font alternateAttributeName:attrName alternateAttributeValue:value];
 		[self setTypingAttributes:attributes];
 
@@ -1598,13 +1593,13 @@ static long (*GetGetScriptManagerVariablePointer())(short) {
 	//call RevertTextEncodingToScriptInfo on ATSFontFamilyGetEncoding(ATSFontFamilyFindFromName(CFStringRef([bodyFont familyName]), kATSOptionFlagsDefault))
 	//because someone on a japanese-localized system could see their font changing around a lot if they didn't set their note body font to something suitable for their language
 
-	BOOL currentKeyboardInputIsSystemLanguage = NO;
+	BOOL currentKeyboardInputIsSystemLanguage;
 
 	TISInputSourceRef inputRef = TISCopyCurrentKeyboardInputSource();
 	NSArray *inputLangs = (__bridge NSArray *) TISGetInputSourceProperty(inputRef, kTISPropertyInputSourceLanguages);
 	CFRelease(inputRef);
 	NSString *preferredLang = [[NSLocale autoupdatingCurrentLocale] objectForKey:NSLocaleLanguageCode];
-	currentKeyboardInputIsSystemLanguage = nil != preferredLang && [inputLangs containsObject:preferredLang];
+	currentKeyboardInputIsSystemLanguage = (preferredLang && [inputLangs containsObject:preferredLang]);
 
 	if (currentKeyboardInputIsSystemLanguage) {
 		//only attempt to restore fonts (with styles of course) if the current script is system default--that is, not using an input method that would change the font
@@ -2085,36 +2080,6 @@ static long (*GetGetScriptManagerVariablePointer())(short) {
 	return @"";
 }
 
-- (NSString *)afterString {
-
-	NSRange selRange = [self selectedRange];
-	if (selRange.location == 0) {
-		return [self string];
-	} else if ((selRange.location + selRange.length) == [self string].length) {
-		return @"";
-	}
-	afterString = [[self string] substringFromIndex:[self selectedRange].location];
-	if (!afterString) {
-//        NSLog(@"afterstring is null");
-		afterString = @"";
-	}
-	return afterString;
-}
-
-- (NSString *)beforeString {
-	NSRange selRange = [self selectedRange];
-	if (selRange.location == [self string].length) {
-		return [self string];
-	} else if (selRange.location == 0) {
-		return @"";
-	}
-	beforeString = [[self string] substringToIndex:selRange.location];
-	if (!beforeString) {
-//        NSLog(@"beforeString is null");
-		return @"";
-	}
-	return beforeString;
-}
 
 #pragma mark ElasticThreads Lion Find... implementation
 - (void)prepareTextFinder {

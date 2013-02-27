@@ -13,8 +13,6 @@
 #import "EncodingsManager.h"
 #import "NoteObject.h"
 #import "NotationFileManager.h"
-#import "NSString_NV.h"
-#import "NSDate+Notation.h"
 
 @implementation EncodingsManager
 

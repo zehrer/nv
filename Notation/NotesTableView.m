@@ -303,9 +303,9 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 	NSInteger editedRow = [self editedRow];
 
 	NSRange rangeOfRows = [self rowsInRect:clipRect];
-	float yToDraw = -0.5;
-	float ySpacing = [self rowHeight] + [self intercellSpacing].height;
-	float rowRectOrigin = ySpacing * rangeOfRows.location;
+    CGFloat yToDraw;
+	CGFloat ySpacing = [self rowHeight] + [self intercellSpacing].height;
+    CGFloat rowRectOrigin = ySpacing * rangeOfRows.location;
 
 	for (i = rangeOfRows.location; i < rangeOfRows.location + rangeOfRows.length; i++) {
 		//don't draw this line if it's next to a selected row, or the row after it is being edited
@@ -442,7 +442,7 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 }
 
 - (void)editRowAtColumnWithIdentifier:(id)identifier {
-	NSInteger colIndex = -1;
+	NSInteger colIndex;
 	NSInteger selected = [self selectedRow];
 
 	if (selected < 0) {
@@ -1270,7 +1270,7 @@ enum {
 	if (![self dataSource]) {
 		NSSize size = [self bounds].size;
 
-		BOOL didRotate = NO;
+		BOOL didRotate;
 		NSPoint center = NSMakePoint(size.width / 2.0, size.height / 2.0);
 		if ((didRotate = loadStatusStringWidth + 10.0 > size.width)) {
 

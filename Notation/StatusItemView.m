@@ -9,10 +9,13 @@
 #import "StatusItemView.h"
 #import "AppController.h"
 
-@interface StatusItemView ()
+@interface StatusItemView () {
+	BOOL clicked;
 
-@property(strong, nonatomic, readonly) NSImage *menuDarkImage;
-@property(strong, nonatomic, readonly) NSImage *menuClickedImage;
+}
+
+@property (nonatomic, strong) NSImage *menuDarkImage;
+@property (nonatomic, strong) NSImage *menuClickedImage;
 
 @end
 
@@ -20,18 +23,11 @@
 
 @synthesize menuClickedImage = _menuClickedImage, menuDarkImage = _menuDarkImage;
 
-- (id)initWithFrame:(NSRect)frame controller:(AppController *)ctrlr {
-	if ((self = [super initWithFrame:frame])) {
-		controller = ctrlr; // deliberately weak reference.
-	}
-	return self;
-}
-
 - (NSImage *)menuClickedImage {
 	if (!_menuClickedImage) {
 		NSBundle *bundle = [NSBundle bundleForClass:[self class]];
 		NSString *path = [bundle pathForResource:@"nvMenuC" ofType:@"png"];
-		_menuClickedImage = [[NSImage alloc] initWithContentsOfFile:path];
+		self.menuClickedImage = [[NSImage alloc] initWithContentsOfFile:path];
 	}
 	return _menuClickedImage;
 }
@@ -40,7 +36,7 @@
 	if (!_menuDarkImage) {
 		NSBundle *bundle = [NSBundle bundleForClass:[self class]];
 		NSString *path = [bundle pathForResource:@"nvMenuDark" ofType:@"png"];
-		_menuDarkImage = [[NSImage alloc] initWithContentsOfFile:path];
+		self.menuDarkImage = [[NSImage alloc] initWithContentsOfFile:path];
 	}
 	return _menuDarkImage;
 }

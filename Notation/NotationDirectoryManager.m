@@ -16,16 +16,11 @@
      or promote products derived from this software without specific prior written permission. */
 
 #import "NotationDirectoryManager.h"
-#import "NSFileManager_NV.h"
 #import "GlobalPrefs.h"
 #import "NotationSyncServiceManager.h"
 #import "DeletionManager.h"
-#import "NSCollection_utils.h"
 #import "NotationFileManager.h"
 #import "NoteCatalogEntry.h"
-#import "NSDate+Notation.h"
-
-#define kMaxFileIteratorCount 100
 
 @implementation NotationController (NotationDirectoryManager)
 

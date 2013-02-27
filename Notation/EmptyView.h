@@ -14,7 +14,6 @@
 @interface EmptyView : NSView {
 	IBOutlet NSTextField *labelText;
 	NSInteger lastNotesNumber;
-	NSColor *bgCol;
 }
 
 - (void)setLabelStatus:(NSInteger)notesNumber;

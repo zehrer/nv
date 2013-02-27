@@ -13,9 +13,6 @@
 #import "PassphraseRetriever.h"
 #import "GlobalPrefs.h"
 #import "NotationPrefs.h"
-#import "NSData_transformations.h"
-#import "NSFileManager_NV.h"
-#import "NSURL+Notation.h"
 
 @implementation PassphraseRetriever
 
@@ -103,7 +100,7 @@
 
 		if ([rememberKeychainButton state])
 			[notationPrefs setKeychainData:passData];
-		[notationPrefs setStoresPasswordInKeychain:[rememberKeychainButton state]];
+		[notationPrefs setStoresPasswordInKeychain:[rememberKeychainButton state] ? YES : NO];
 
 		[NSApp stopModalWithCode:1];
 		[window close];

@@ -18,9 +18,7 @@
 #import "NSString_NV.h"
 #import "NSData_transformations.h"
 #import "NSFileManager_NV.h"
-#import "NoteObject.h"
 #import "GlobalPrefs.h"
-#import "NSURL+Notation.h"
 #import "NSData+Notation.h"
 
 @implementation NSString (NV)
@@ -452,12 +450,10 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, NSUInteger charIndex) 
 }
 
 - (BOOL)couldCopyLowercaseASCIIString {
-	const char *cStringPtr = NULL;
-
 	//here we are making assumptions (based on observations and CFString.c) about the implementation of CFStringGetCStringPtr:
 	//with a non-western language preference, kCFStringEncodingASCII or another Latin variant must be used instead of kCFStringEncodingMacRoman
-	if ((cStringPtr = CFStringGetCStringPtr((__bridge CFStringRef) self, kCFStringEncodingMacRoman)) ||
-			(cStringPtr = CFStringGetCStringPtr((__bridge CFStringRef) self, kCFStringEncodingASCII))) {
+	if (CFStringGetCStringPtr((__bridge CFStringRef) self, kCFStringEncodingMacRoman) ||
+			CFStringGetCStringPtr((__bridge CFStringRef) self, kCFStringEncodingASCII)) {
 		return YES;
 	}
 

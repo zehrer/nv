@@ -14,7 +14,6 @@
 #import "NoteObject.h"
 #import "NotationController.h"
 #import "NotationDirectoryManager.h"
-#import "NSCollection_utils.h"
 
 //class for managing notifications of external deletion of note files
 
@@ -148,19 +147,17 @@ void updateForVerifiedExistingNote(DeletionManager *self, NoteObject *goodNote) 
 }
 
 - (NSRect)windowSizeForNotesFromSender:(id)sender {
-	float oldHeight = 0.0;
-	float newHeight = 0.0;
 	NSRect newFrame = [sender frame];
 	NSSize intercellSpacing = [tableView intercellSpacing];
 
-	NSUInteger numRows = MIN(20, [tableView numberOfRows]);
-	newHeight = MAX(2, numRows) * ([tableView rowHeight] + intercellSpacing.height);
-	oldHeight = [[[tableView enclosingScrollView] contentView] frame].size.height;
+	NSInteger numRows = MIN(20, [tableView numberOfRows]);
+	CGFloat newHeight = MAX(2, numRows) * ([tableView rowHeight] + intercellSpacing.height);
+	CGFloat oldHeight = [[[tableView enclosingScrollView] contentView] frame].size.height;
 	newHeight = [sender frame].size.height - oldHeight + newHeight;
 
 	newFrame.origin.y = newFrame.origin.y + newFrame.size.height - newHeight;
-
 	newFrame.size.height = newHeight;
+
 	return newFrame;
 }
 

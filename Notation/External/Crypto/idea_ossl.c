@@ -303,7 +303,7 @@ void idea_cfb64_encrypt(const unsigned char *in, unsigned char *out,
 	unsigned long ti[2];
 	unsigned char *iv, c, cc;
 
-	iv = (unsigned char *) ivec;
+	iv = ivec;
 	if (encrypt) {
 		while (l--) {
 			if (n == 0) {
@@ -311,11 +311,11 @@ void idea_cfb64_encrypt(const unsigned char *in, unsigned char *out,
 				ti[0] = v0;
 				n2l(iv, v1);
 				ti[1] = v1;
-				idea_encrypt((unsigned long *) ti, schedule);
-				iv = (unsigned char *) ivec;
+				idea_encrypt(ti, schedule);
+				iv = ivec;
 				t = ti[0]; l2n(t, iv);
 				t = ti[1]; l2n(t, iv);
-				iv = (unsigned char *) ivec;
+				iv = ivec;
 			}
 			c = *(in++) ^ iv[n];
 			*(out++) = c;
@@ -330,11 +330,11 @@ void idea_cfb64_encrypt(const unsigned char *in, unsigned char *out,
 				ti[0] = v0;
 				n2l(iv, v1);
 				ti[1] = v1;
-				idea_encrypt((unsigned long *) ti, schedule);
-				iv = (unsigned char *) ivec;
+				idea_encrypt(ti, schedule);
+				iv = ivec;
 				t = ti[0]; l2n(t, iv);
 				t = ti[1]; l2n(t, iv);
-				iv = (unsigned char *) ivec;
+				iv = ivec;
 			}
 			cc = *(in++);
 			c = iv[n];
@@ -343,7 +343,7 @@ void idea_cfb64_encrypt(const unsigned char *in, unsigned char *out,
 			n = (n + 1) & 0x07;
 		}
 	}
-	ti[0] = ti[1] = t = c = cc = 0;
+	ti[0] = ti[1] = 0;
 	*num = n;
 }
 

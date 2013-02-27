@@ -8,16 +8,8 @@
 
 @class AppController;
 
-@interface StatusItemView : NSView {
-	__weak AppController *controller;
-	BOOL clicked;
-}
+@interface StatusItemView : NSView
 
-//@property (nonatomic,readwrite,assign) BOOL clicked;
-
-- (id)initWithFrame:(NSRect)frame controller:(AppController *)ctrlr;
-
-//- (void)setClicked:(BOOL)inBool;
 - (void)setInactiveIcon:(id)sender;
 
 - (void)setActiveIcon:(id)sender;

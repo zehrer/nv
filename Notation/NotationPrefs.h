@@ -99,7 +99,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString *serv
 
 - (BOOL)storesPasswordInKeychain;
 
-- (NSInteger)notesStorageFormat;
+- (NoteStorageFormat)notesStorageFormat;
 
 - (BOOL)confirmFileDeletion;
 

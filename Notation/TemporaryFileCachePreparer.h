@@ -31,9 +31,6 @@
 @end
 
 @interface TemporaryFileCachePreparer : NSObject {
-	NSString *cachePath;
-
-	NotationPrefs *notationPrefs;
 	BOOL startedPreparing;
 	NSTask *mountTask, *newfsTask, *attachTask;
 	NSString *deviceName, *preparedCachePath;

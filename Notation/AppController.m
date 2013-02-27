@@ -126,7 +126,7 @@ static const CGFloat kMaxNotesListDimension = 600.0f;
 		CGFloat height = [[NSStatusBar systemStatusBar] thickness];
 		NSRect viewFrame = NSMakeRect(0.0f, 0.0f, width, height);
 		statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:width];
-		cView = [[StatusItemView alloc] initWithFrame:viewFrame controller:self];
+		cView = [[StatusItemView alloc] initWithFrame:viewFrame];
 		[statusItem setView:cView];
 	}
 
@@ -352,10 +352,6 @@ void outletObjectAwoke(id sender) {
 				NSLog(@"Could not load %@!", frameworkPath);
 			}
 		}
-		// add elasticthreads' menuitems
-		NSMenuItem *theMenuItem = [[NSMenuItem alloc] init];
-		[theMenuItem setTarget:self];
-		theMenuItem = [theMenuItem copy];
 
 		[fsMenuItem setEnabled:YES];
 		[fsMenuItem setHidden:NO];
@@ -363,8 +359,7 @@ void outletObjectAwoke(id sender) {
 		[window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
 		[NSApp setPresentationOptions:NSApplicationPresentationFullScreen];
 
-		theMenuItem = [fsMenuItem copy];
-		[statBarMenu insertItem:theMenuItem atIndex:12];
+		[statBarMenu insertItem: [fsMenuItem copy] atIndex:12];
 
 		if (![prefsController showWordCount]) {
 			[wordCounter setHidden:NO];
@@ -670,10 +665,8 @@ void outletObjectAwoke(id sender) {
 		id deleteObj = [indexes count] > 1 ? (id) ([notationController notesAtIndexes:indexes]) : (id) ([notationController noteObjectAtFilteredIndex:[indexes firstIndex]]);
 
 		if ([prefsController confirmNoteDeletion]) {
-			NSString *warningSingleFormatString = NSLocalizedString(@"Delete the note titled quotemark%@quotemark?", @"alert title when asked to delete a note");
-			NSString *warningMultipleFormatString = NSLocalizedString(@"Delete %d notes?", @"alert title when asked to delete multiple notes");
-			NSString *warnString = currentNote ? [NSString stringWithFormat:warningSingleFormatString, currentNote.title] :
-					[NSString stringWithFormat:warningMultipleFormatString, [indexes count]];
+			NSString *warnString = currentNote ? [NSString stringWithFormat: NSLocalizedString(@"Delete the note titled quotemark%@quotemark?", @"alert title when asked to delete a note"), currentNote.title] :
+					[NSString stringWithFormat: NSLocalizedString(@"Delete %d notes?", @"alert title when asked to delete multiple notes"), [indexes count]];
 
 			NSAlert *alert = [NSAlert alertWithMessageText:warnString defaultButton:NSLocalizedString(@"Delete", @"name of delete button") alternateButton:NSLocalizedString(@"Cancel", @"name of cancel button") otherButton:nil informativeTextWithFormat:NSLocalizedString(@"Press Command-Z to undo this action later.", @"informational delete-this-note? text")];
 			[alert setShowsSuppressionButton:YES];
@@ -2132,7 +2125,6 @@ void outletObjectAwoke(id sender) {
 		NSMutableArray *finalTags = [[NSMutableArray alloc] init];
 		[finalTags addObjectsFromArray:theTags];
 		NSArray *existingTags = [existTagString componentsSeparatedByCharactersInSet:tagSeparators];
-		thisTag = nil;
 		for (thisTag in existingTags) {
 			if (([thisTag hasPrefix:@" "]) || ([thisTag hasSuffix:@" "])) {
 				thisTag = [thisTag stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];

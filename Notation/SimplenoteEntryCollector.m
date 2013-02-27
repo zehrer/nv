@@ -21,7 +21,6 @@
 #import "SyncResponseFetcher.h"
 #import "SimplenoteSession.h"
 #import "NSString_NV.h"
-#import "NoteObject.h"
 #import "DeletedNoteObject.h"
 #import <objc/message.h>
 

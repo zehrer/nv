@@ -38,10 +38,8 @@
 #import "DeletionManager.h"
 #import "NSBezierPath_NV.h"
 #import "LabelObject.h"
-#import "NSURL+Notation.h"
 #import "NSError+Notation.h"
 #import <objc/message.h>
-#import "NSFileManager_NV.h"
 
 @interface NotationController ()
 
@@ -66,7 +64,6 @@
 	deletionManager = [[DeletionManager alloc] initWithNotationController:self];
 
 	self.allLabels = [[NSCountedSet alloc] init];
-	self.filteredLabels = [[NSCountedSet alloc] init];
 
 	manglingString = currentFilterStr = NULL;
 	lastWordInFilterStr = 0;
@@ -696,7 +693,7 @@
 	NSUInteger j, i = 0, count = [allNotesAlpha count];
 	for (i = 0; i < count - 1; i++) {
 		NoteObject *shorterNote = allNotesAlpha[i];
-		BOOL isAPrefix = NO;
+		BOOL isAPrefix;
 		//scan all notes sorted beneath this one for matching prefixes
 		j = i + 1;
 		do {
@@ -1250,7 +1247,7 @@
 				selectedNoteIndex = i;
 				//this note matches, but what if there are other note-titles that are prefixes of both this one and the search string?
 				//find the first prefix-parent of which searchString is also a prefix
-				NSUInteger prefixParentIndex = NSNotFound;
+				NSUInteger prefixParentIndex;
 
 				for (NoteObject *obj in note.prefixParents) {
 					if (noteTitleHasPrefixOfUTF8String(obj, searchString, newLen) &&

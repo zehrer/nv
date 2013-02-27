@@ -22,7 +22,6 @@
 
 
 #import "GlobalPrefs.h"
-#import "NSData_transformations.h"
 #import "NotationPrefs.h"
 #import "BookmarksController.h"
 #import "AttributedPlainText.h"
@@ -30,7 +29,6 @@
 #import "NSString_NV.h"
 #import "AppController.h"
 #import "NotationController.h"
-#import "NSURL+Notation.h"
 #import <MASShortcut/MASShortcut.h>
 #import <MASShortcut/MASShortcut+UserDefaults.h>
 #import <objc/message.h>
@@ -97,9 +95,6 @@ NSString *NoteDateCreatedColumnString = @"Date Added";
 NSString *NotePreviewString = @"Note Preview";
 
 NSString *NVPTFPboardType = @"Notational Velocity Poor Text Format";
-
-NSString *HotKeyAppToFrontName = @"bring Notational Velocity to the foreground";
-
 
 @implementation GlobalPrefs
 

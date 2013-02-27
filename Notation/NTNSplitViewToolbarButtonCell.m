@@ -94,7 +94,7 @@ static CGFloat kDefaultImageFraction, kDefaultImageEnabledFraction, kDefaultImag
 - (void)drawImage:(NSImage*)image withFrame:(NSRect)frame inView:(NSView*)controlView
 {
 	NSSize imageSize = image.size;
-	NSRect imageRect = NSZeroRect;
+	NSRect imageRect;
 
 	if (![self.attributedTitle.string isEqualToString:@""]) {
 		switch (self.imagePosition) {

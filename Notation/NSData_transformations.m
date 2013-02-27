@@ -237,11 +237,11 @@
 	unichar *uptr = (unichar *) b;
 
 	if (*uptr == byteOrderMark) {
-		b = (unsigned char *) ++uptr;
+		b = (unsigned char *)(uptr + 1);
 		len -= sizeof(unichar);
 		foundBOM = YES;
 	} else if (*uptr == byteOrderMarkSwapped) {
-		b = (unsigned char *) ++uptr;
+		b = (unsigned char *)(uptr + 1);
 		len -= sizeof(unichar);
 		swapped = YES;
 		foundBOM = YES;

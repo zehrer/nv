@@ -22,14 +22,6 @@
 
 extern NSString *NotesDatabaseFileName;
 
-typedef union VolumeUUID {
-	u_int32_t value[2];
-	struct {
-		u_int32_t high;
-		u_int32_t low;
-	} v;
-} VolumeUUID;
-
 @interface NotationController (NotationFileManager) <NTNFileManager>
 
 - (void)initializeDiskUUIDIfNecessary;

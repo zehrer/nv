@@ -34,18 +34,13 @@
 	BOOL backgroundIsDark, mouseInside;
 
 	//ludicrous ivars used to hack NSTextFinder. just write your own, damnit!
-	NSRange selectedRangeDuringFind;
 	NSString *lastImportedFindString;
-	NSString *stringDuringFind;
-	NoteObject *noteDuringFind;
 
 	IMP defaultIBeamCursorIMP, whiteIBeamCursorIMP;
 }
 
 @property(nonatomic, copy, readonly) NSString *activeParagraphBeforeCursor;
 @property(nonatomic, copy, readonly) NSString *activeParagraphPastCursor;
-@property(nonatomic, copy, readonly) NSString *beforeString;
-@property(nonatomic, copy, readonly) NSString *afterString;
 @property(nonatomic, copy, readonly) NSString *activeParagraph;
 //@property (readonly) BOOL clipboardHasLink;
 

@@ -12,9 +12,6 @@
 #import <Rebel/Rebel.h>
 #import <libextobjc/EXTScope.h>
 
-#endif
-
-#define DebugPath(__p) (__p = ((!(__p)) ? __FILE__ : (__p)))
 #define _COMPILE_ASSERT_SYMBOL_INNER(line, msg) __COMPILE_ASSERT_ ## line ## __ ## msg
 #define _COMPILE_ASSERT_SYMBOL(line, msg) _COMPILE_ASSERT_SYMBOL_INNER(line, msg)
 #define COMPILE_ASSERT(test, msg) \
@@ -30,19 +27,15 @@ typedef char _COMPILE_ASSERT_SYMBOL(__LINE__, msg) [ ((test) ? 1 : -1) ]
 #define TEXT_TYPE_ID 0x54455854
 #define HTML_TYPE_ID 0x48544D4C
 #define RTF_TYPE_ID 0x52544620
-#define RTFD_TYPE_ID 0x52544644
 #define WORD_DOC_TYPE_ID 0x5738424E
-#define PDF_TYPE_ID 0x50444620
 
 //faux carbon errors
 #define kCoderErr -818
-#define kJournalingError -819
 #define kWriteJournalErr -820
 #define kNoAuthErr -821
 #define kCompressionErr -822
 #define kPassCanceledErr -823
 #define kDataFormattingErr -824
-#define kItemVerifyErr -825
 
 #define VERIFY_SALT "Salt for verifying master key in a single iteration"
 #define LOG_SESSION_SALT "Salt for encrypting a write-ahead-log session"
@@ -50,3 +43,4 @@ typedef char _COMPILE_ASSERT_SYMBOL(__LINE__, msg) [ ((test) ? 1 : -1) ]
 #define NOTES_MENU_ID 89
 #define VIEW_MENU_ID 99
 
+#endif

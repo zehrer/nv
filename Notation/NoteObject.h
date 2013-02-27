@@ -140,8 +140,6 @@ typedef struct _NoteFilterContext {
 @property (nonatomic, copy, readonly) NSString *dateCreatedString;
 @property (nonatomic, copy, readonly) NSString *dateModifiedString;
 
-id wordCountOfNote(NotesTableView *tv, NoteObject *note, NSInteger row);
-
 BOOL noteContainsUTF8String(NoteObject *note, NoteFilterContext *context);
 
 BOOL noteTitleHasPrefixOfUTF8String(NoteObject *note, const char *fullString, size_t stringLen);

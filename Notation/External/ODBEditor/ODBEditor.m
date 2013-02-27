@@ -207,19 +207,15 @@ NSString *const ODBEditorIsEditingString = @"ODBEditorIsEditingString";
 @implementation ODBEditor (Private)
 
 - (BOOL)_launchExternalEditor:(ExternalEditor *)ed {
-	BOOL success = NO;
-
 	NSString *editorBundleIdentifier = [ed bundleIdentifier];
 	NSArray *runningWithIdentifier = [NSRunningApplication runningApplicationsWithBundleIdentifier:editorBundleIdentifier];
 
 	if (!runningWithIdentifier.count) {
-		success = [[NSWorkspace sharedWorkspace] launchAppWithBundleIdentifier:editorBundleIdentifier options:NSWorkspaceLaunchDefault additionalEventParamDescriptor:nil launchIdentifier:NULL];
+		return [[NSWorkspace sharedWorkspace] launchAppWithBundleIdentifier:editorBundleIdentifier options:NSWorkspaceLaunchDefault additionalEventParamDescriptor:nil launchIdentifier:NULL];
 	} else {
 		NSRunningApplication *app = runningWithIdentifier[0];
-		success = [app activateWithOptions:0];
+		return [app activateWithOptions:0];
 	}
-
-	return success;
 }
 
 - (NSString *)_nonexistingTemporaryPathForFilename:(NSString *)filename {
@@ -255,7 +251,6 @@ NSString *const ODBEditorIsEditingString = @"ODBEditorIsEditingString";
 	// 10.2 fix- akm Nov 30 2004
 	path = [path stringByResolvingSymlinksInPath];
 
-	BOOL success = NO;
 	OSStatus status = noErr;
 	if (!ed) ed = [[ExternalEditorListController sharedInstance] defaultExternalEditor];
 	NSData *targetBundleID = [[ed bundleIdentifier] dataUsingEncoding:NSUTF8StringEncoding];
@@ -302,9 +297,7 @@ NSString *const ODBEditorIsEditingString = @"ODBEditorIsEditingString";
 		}
 	}
 
-	success = (status == noErr);
-
-	return success;
+	return (status == noErr);
 }
 
 - (void)handleModifiedFileEvent:(NSAppleEventDescriptor *)event withReplyEvent:(NSAppleEventDescriptor *)replyEvent {

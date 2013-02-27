@@ -66,11 +66,7 @@
 			[[self window] orderFront:self];
 		}
 
-		NSRect shCon = [[[self window] contentView] visibleRect];
-		shCon.origin.x += 20;
-		shCon.origin.y -= 2;
-		shCon.size.width = 99;
-		shCon.size.height = 28;
+		NSRect shCon;
 //        tabSwitcher = [[[ETTransparentButton alloc]initWithFrame:shCon] retain];
 //        shCon.origin.x = [[[self window] contentView]visibleRect].origin.x + [[[self window] contentView]visibleRect].size.width - 80;
 //        shCon.size.width = 56;

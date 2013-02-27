@@ -117,6 +117,8 @@
 		filename = [filename stringByDeletingPathExtension];
 		filename = [filename stringByAppendingPathExtension:[NotationPrefs pathExtensionForFormat:(NoteStorageFormat) [[formatSelectorPopup selectedItem] tag]]];
 
+		[savePanel setNameFieldStringValue: filename];
+
 		[savePanel beginSheetModalForWindow:window completionHandler:^(NSInteger result) {
 			completionHandler(savePanel, result);
 		}];

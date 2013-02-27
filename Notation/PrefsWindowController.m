@@ -13,8 +13,6 @@
 #import "PrefsWindowController.h"
 #import "NotationPrefsViewController.h"
 #import "ExternalEditorListController.h"
-#import "NSData_transformations.h"
-#import "NSFileManager_NV.h"
 #import "GlobalPrefs.h"
 #import "NSURL+Notation.h"
 #import <MASShortcut/MASShortcutView.h>

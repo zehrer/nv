@@ -245,7 +245,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString *serv
 	return storesPasswordInKeychain;
 }
 
-- (NSInteger)notesStorageFormat {
+- (NoteStorageFormat)notesStorageFormat {
 	return notesStorageFormat;
 }
 
@@ -441,7 +441,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString *serv
 
 - (void)setKeychainData:(NSData *)data {
 
-	OSStatus status = noErr;
+	OSStatus status;
 
 	SecKeychainItemRef itemRef = [self currentKeychainItem];
 	if (itemRef) {
@@ -759,14 +759,14 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString *serv
 
 				const SecKeychainAttributeList attributes = {sizeof(attrs) / sizeof(attrs[0]), attrs};
 
-				OSStatus status = noErr;
+				OSStatus status;
 				if (noErr != (status = SecKeychainItemModifyAttributesAndData(itemRef, &attributes, (UInt32) [passwordData length], [passwordData bytes]))) {
 					NSLog(@"Error modifying keychain data with different service password: %d", status);
 				}
 				CFRelease(itemRef);
 			} else {
 				//add new data; item does not exist
-				OSStatus status = noErr;
+				OSStatus status;
 				if (noErr != (status = SecKeychainAddGenericPassword(NULL, strlen(KEYCHAIN_SERVICENAME), KEYCHAIN_SERVICENAME,
 						(UInt32) strlen(kcSyncAccountName), kcSyncAccountName, (UInt32) [passwordData length], [passwordData bytes], NULL))) {
 					NSLog(@"Error adding new service password to keychain: %d", status);

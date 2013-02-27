@@ -345,7 +345,11 @@ enum {
 	//if we're changing to a database format from a non-database-format, ask to trash existing files
 	if ([notationPrefs shouldDisplaySheetForProposedFormat:notesStorageFormatInProgress]) {
 
-		NSAlert *alert = [NSAlert alertWithMessageText:NSLocalizedString(@"Individual files remain in the notes directory. Leave them alone or move them to the Trash?", nil) defaultButton:NSLocalizedString(@"Keep Files", @"button title for not discarding note files") alternateButton:NSLocalizedString(@"Cancel", nil) otherButton:NSLocalizedString(@"Move to Trash", @"button title for trashing notes") informativeTextWithFormat:NSLocalizedString(@"When notes are stored in a single database individual files become redundant.", nil)];
+		NSAlert *alert = [NSAlert alertWithMessageText: NSLocalizedString(@"Individual files remain in the notes directory. Leave them alone or move them to the Trash?", nil)
+										 defaultButton: NSLocalizedString(@"Keep Files", @"button title for not discarding note files")
+									   alternateButton: NSLocalizedString(@"Cancel", nil)
+										   otherButton: NSLocalizedString(@"Move to Trash", @"button title for trashing notes")
+							 informativeTextWithFormat: @"%@", NSLocalizedString(@"When notes are stored in a single database individual files become redundant.", nil)];
 
 		[alert beginSheetModalForWindow:[view window] modalDelegate:notationPrefs
 						 didEndSelector:@selector(noteFilesCleanupSheetDidEnd:returnCode:contextInfo:) contextInfo:(__bridge void *) (self)];
@@ -549,8 +553,11 @@ enum {
 		[picker showAroundWindow:[view window] resultDelegate:self];
 	} else {
 		NSString *formatStrings[] = { @"", NSLocalizedString(@"plain text", nil), NSLocalizedString(@"rich text", nil), NSLocalizedString(@"HTML", nil)};
-		NSAlert *alert = [NSAlert alertWithMessageText:[NSString stringWithFormat:NSLocalizedString(@"Your notes are currently stored as %@ files on disk, but encryption requires a single database. Switch to a database format?", nil), formatStrings[format]]
-										 defaultButton:NSLocalizedString(@"Use a single database file", nil) alternateButton:NSLocalizedString(@"Cancel", nil) otherButton:nil informativeTextWithFormat:NSLocalizedString(@"Notational Velocity supports encryption only for notes stored in a database file.", nil)];
+		NSAlert *alert = [NSAlert alertWithMessageText: [NSString stringWithFormat:NSLocalizedString(@"Your notes are currently stored as %@ files on disk, but encryption requires a single database. Switch to a database format?", nil), formatStrings[format]]
+										 defaultButton: NSLocalizedString(@"Use a single database file", nil)
+									   alternateButton: NSLocalizedString(@"Cancel", nil)
+										   otherButton: nil
+							 informativeTextWithFormat: @"%@", NSLocalizedString(@"Notational Velocity supports encryption only for notes stored in a database file.", nil)];
 
 		[alert beginSheetModalForWindow:[view window] modalDelegate:self
 						 didEndSelector:@selector(encryptionFormatMismatchSheetDidEnd:returnCode:contextInfo:) contextInfo:NULL];
@@ -574,7 +581,11 @@ enum {
 - (void)disableEncryptionWithWarning:(BOOL)warning {
 	if ([notationPrefs doesEncryption]) {
 		if (warning) {
-			NSAlert *alert = [NSAlert alertWithMessageText:NSLocalizedString(@"Disable note encryption now?", nil) defaultButton:NSLocalizedString(@"Disable Encryption", @"button title for disabling note encryption") alternateButton:NSLocalizedString(@"Cancel", nil) otherButton:nil informativeTextWithFormat:NSLocalizedString(@"Warning: Your notes will be written to disk in clear text.", nil)];
+			NSAlert *alert = [NSAlert alertWithMessageText: NSLocalizedString(@"Disable note encryption now?", nil)
+											 defaultButton: NSLocalizedString(@"Disable Encryption", @"button title for disabling note encryption")
+										   alternateButton: NSLocalizedString(@"Cancel", nil)
+											   otherButton: nil
+								 informativeTextWithFormat: @"%@", NSLocalizedString(@"Warning: Your notes will be written to disk in clear text.", nil)];
 
 			[alert beginSheetModalForWindow:[view window] modalDelegate:self
 							 didEndSelector:@selector(disableEncryptionWarningSheetDidEnd:returnCode:contextInfo:) contextInfo:NULL];

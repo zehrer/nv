@@ -94,7 +94,6 @@
 
 	GlobalPrefs *prefsController;
 
-	IBOutlet NSButton *addBookmarkButton;
 	IBOutlet NSButton *removeBookmarkButton;
 	IBOutlet NSTableView *bookmarksTableView;
 	IBOutlet NSPanel *window;

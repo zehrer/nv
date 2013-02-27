@@ -425,20 +425,17 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 }
 
 - (NSRect)windowWillUseStandardFrame:(NSWindow *)sender defaultFrame:(NSRect)defaultFrame {
-
-	float oldHeight = 0.0;
-	float newHeight = 0.0;
-	NSRect newFrame = [sender frame];
+	NSRect newFrame = sender.frame;
 	NSSize intercellSpacing = [bookmarksTableView intercellSpacing];
 
-	newHeight = MAX(1, [bookmarksTableView numberOfRows]) * ([bookmarksTableView rowHeight] + intercellSpacing.height);
-	oldHeight = [[[bookmarksTableView enclosingScrollView] contentView] frame].size.height;
-	newHeight = [sender frame].size.height - oldHeight + newHeight;
+	CGFloat newHeight = MAX(1, [bookmarksTableView numberOfRows]) * ([bookmarksTableView rowHeight] + intercellSpacing.height);
+	CGFloat oldHeight = [[[bookmarksTableView enclosingScrollView] contentView] frame].size.height;
+	newHeight = sender.frame.size.height - oldHeight + newHeight;
 
 	//adjust origin so the window sticks to the upper left
 	newFrame.origin.y = newFrame.origin.y + newFrame.size.height - newHeight;
-
 	newFrame.size.height = newHeight;
+
 	return newFrame;
 }
 

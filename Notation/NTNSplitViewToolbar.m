@@ -26,8 +26,6 @@
 //
 
 #import "NTNSplitView.h"
-#import "NTNSplitViewToolbar.h"
-#import "NTNSplitViewToolbarButtonCell.h"
 
 CGFloat NTNSplitViewToolbarButtonTextInset = 10.0;
 CGFloat NTNSplitViewToolbarButtonImageInset = 10.0;
@@ -116,7 +114,7 @@ NSString *const NTNSplitViewToolbarAddedNotification = @"InjectReferenceNotifica
 		_buttons = [[NSMutableArray alloc] init];
 
 	/// calculate or set the correct button width
-	NSSize buttonSize = NSZeroSize;
+	NSSize buttonSize;
 	NSSize imageSize = (aButton.image ? aButton.image.size : NSMakeSize(0, 0));
 	NSSize textSize = (aButton.attributedTitle ? aButton.attributedTitle.size : NSMakeSize(0, 0));
 

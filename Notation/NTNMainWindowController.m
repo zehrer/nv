@@ -7,7 +7,6 @@
 //
 
 #import "NTNMainWindowController.h"
-#import "NTNDualTextField.h"
 #import "NTNSplitView.h"
 
 @interface NTNMainWindowController () <NSWindowDelegate, NSToolbarDelegate, NSTextFieldDelegate, NTNSplitViewDelegate>

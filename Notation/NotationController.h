@@ -33,7 +33,6 @@
 @class NoteCatalogEntry;
 
 typedef NS_OPTIONS(NSInteger, NVNoteRevealOptions) {
-	NVDefaultReveal = 0,
 	NVDoNotChangeScrollPosition = 1,
 	NVOrderFrontWindow = 2,
 	NVEditNoteToReveal = 4
@@ -99,7 +98,7 @@ typedef NS_OPTIONS(NSInteger, NVNoteRevealOptions) {
 }
 
 @property(nonatomic, strong) NSMutableArray *filteredNotesList;
-@property(nonatomic, strong) NSCountedSet *allLabels, *filteredLabels;
+@property(nonatomic, strong) NSCountedSet *allLabels;
 
 @property (nonatomic, strong, readonly) NSFileManager *fileManager;
 

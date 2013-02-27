@@ -18,13 +18,10 @@
 
 #import "NotationFileManager.h"
 #import "NSString_NV.h"
-#import "NSFileManager_NV.h"
 #import "GlobalPrefs.h"
-#import "NSData_transformations.h"
 #import "NSURL+Notation.h"
 #import "NoteCatalogEntry.h"
 #import "NSDate+Notation.h"
-#import "NSFileManager_NV.h"
 
 #import <CommonCrypto/CommonCrypto.h>
 
@@ -226,7 +223,7 @@ static void uuid_create_md5_from_name(unsigned char result_uuid[16], const void 
 //whenever a note uses this method to change its filename, we will have to re-establish all the links to it
 - (NSString *)uniqueFilenameForTitle:(NSString *)title fromNote:(NoteObject *)note {
 	//generate a unique filename based on title, varying numbers
-	__block BOOL isUnique = YES;
+	__block BOOL isUnique;
 	__block NSString *uniqueFilename = title;
 
 	//remove illegal characters

@@ -433,8 +433,6 @@
 
 - (NSColor *)_backgroundColorPatternImage {
 	NSImage *bg = [[NSImage alloc] initWithSize:[self frame].size];
-	NSRect bgRect = NSZeroRect;
-	bgRect.size = [bg size];
 
 	[bg lockFocus];
 	NSBezierPath *bgPath = [self _backgroundPath];

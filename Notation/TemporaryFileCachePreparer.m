@@ -88,8 +88,6 @@ static NSString *TempDirectoryPathForEditing() {
 		return;
 	}
 
-	notationPrefs = prefs;
-
 	/*
 		single-DB with encryption: use a mounted RAM disk
 		single-DB without encryption: use temp directory

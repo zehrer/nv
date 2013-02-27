@@ -35,7 +35,6 @@
 @end
 
 @interface NotesTableView : NSTableView {
-	NSTimer *modifierTimer;
 	IBOutlet NSTextField *controlField;
 	NSMutableArray *allColumns;
 	NSMutableDictionary *allColsDict;
@@ -43,12 +42,11 @@
 	NSInteger firstRowIndexBeforeSplitResize;
 
 	BOOL viewMenusValid;
-	BOOL hadHighlightInForeground, hadHighlightInBackground;
+	BOOL hadHighlightInForeground;
 	BOOL shouldUseSecondaryHighlightColor, isActiveStyle;
 	BOOL lastEventActivatedTagEdit, wasDeleting, isAutocompleting;
 
 	GlobalPrefs *globalPrefs;
-	NSMenuItem *dummyItem;
 	HeaderViewWithMenu *headerView;
 	NSView *cornerView;
 	NSTextFieldCell *cachedCell;

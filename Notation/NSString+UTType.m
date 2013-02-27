@@ -7,7 +7,6 @@
 //
 
 #import "NSString+UTType.h"
-#import <CoreServices/CoreServices.h>
 
 @implementation NSString (UTType)
 
