@@ -129,16 +129,14 @@
 	return objects;
 }
 
-- (NSUInteger)indexOfNoteWithUUIDBytes:(CFUUIDBytes *)bytes {
-	NSUInteger i;
-	for (i = 0; i < [self count]; i++) {
-		NoteObject *note = self[i];
-		CFUUIDBytes *noteBytes = [note uniqueNoteIDBytes];
-		if (!memcmp(noteBytes, bytes, sizeof(CFUUIDBytes)))
-			return i;
-	}
-
-	return NSNotFound;
+- (NSUInteger)indexOfNoteWithUUID:(NSUUID *)UUID {
+	return [self indexOfObjectWithOptions: NSEnumerationConcurrent passingTest:^BOOL(NoteObject *obj, NSUInteger idx, BOOL *stop) {
+		if ([UUID isEqual: obj.uniqueNoteID]) {
+			*stop = YES;
+			return YES;
+		}
+		return NO;
+	}];
 }
 
 

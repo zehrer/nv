@@ -72,10 +72,6 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, NSUInteger charIndex);
 
 - (NSArray *)labelCompatibleWords;
 
-- (CFUUIDBytes)uuidBytes;
-
-+ (NSString *)uuidStringWithBytes:(CFUUIDBytes)bytes;
-
 - (NSData *)decodeBase64;
 
 @property(nonatomic, readonly) BOOL ntn_containsHighASCII;

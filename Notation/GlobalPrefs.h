@@ -200,7 +200,7 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2);
 
 - (double)scrollOffsetOfLastSelectedNote;
 
-- (CFUUIDBytes)UUIDBytesOfLastSelectedNote;
+- (NSUUID *)UUIDOfLastSelectedNote;
 
 - (NSString *)lastSearchString;
 

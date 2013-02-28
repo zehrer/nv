@@ -35,7 +35,8 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 	if ((self = [super init])) {
 		NSString *uuidString = aDict[BMNoteUUIDStringKey];
 		if (uuidString) {
-			if (!(self = [self initWithNoteUUIDBytes:[uuidString uuidBytes] searchString:aDict[BMSearchStringKey]])) return nil;
+			NSUUID *UUID = [[NSUUID alloc] initWithUUIDString: uuidString];
+			return [self initWithNoteUUID: UUID searchString:aDict[BMSearchStringKey]];
 		} else {
 			NSLog(@"NoteBookmark init: supplied nil uuidString");
 		}
@@ -43,9 +44,9 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 	return self;
 }
 
-- (id)initWithNoteUUIDBytes:(CFUUIDBytes)bytes searchString:(NSString *)aString {
+- (id)initWithNoteUUID:(NSUUID *)UUID searchString:(NSString *)aString {
 	if ((self = [super init])) {
-		uuidBytes = bytes;
+		_UUID = UUID;
 		searchString = [aString copy];
 	}
 
@@ -61,13 +62,7 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 	if ((self = [super init])) {
 		noteObject = aNote;
 		searchString = [aString copy];
-
-		CFUUIDBytes *bytes = [aNote uniqueNoteIDBytes];
-		if (!bytes) {
-			NSLog(@"NoteBookmark init: no cfuuidbytes pointer from note %@", aNote.title);
-			return nil;
-		}
-		uuidBytes = *bytes;
+		_UUID = aNote.uniqueNoteID;
 	}
 	return self;
 }
@@ -83,7 +78,7 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 
 	//if we already had a valid note and our uuidBytes don't resolve to the same note
 	//then use that new note from the delegate. in 100% of the cases newNote should be nil
-	if (noteObject && (newNote = [delegate noteWithUUIDBytes:uuidBytes]) != noteObject) {
+	if (noteObject && (newNote = [delegate noteWithUUID: self.UUID]) != noteObject) {
 		noteObject = newNote;
 	}
 }
@@ -91,14 +86,16 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 - (NoteObject *)noteObject {
 	if (!noteObject) {
 		id <NoteBookmarkDelegate> delegate = self.delegate;
-		noteObject = [delegate noteWithUUIDBytes:uuidBytes];
+		noteObject = [delegate noteWithUUID: self.UUID];
 	}
 	return noteObject;
 }
 
 - (NSDictionary *)dictionaryRep {
-	return @{BMSearchStringKey : searchString,
-			BMNoteUUIDStringKey : [NSString uuidStringWithBytes:uuidBytes]};
+	return @{
+		  BMSearchStringKey : searchString,
+		  BMNoteUUIDStringKey : self.UUID.UUIDString
+	};
 }
 
 - (NSString *)description {
@@ -110,11 +107,11 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 }
 
 - (BOOL)isEqual:(id)anObject {
-	return noteObject == [anObject noteObject];
+	return [noteObject isEqual: [anObject noteObject]];
 }
 
 - (NSUInteger)hash {
-	return (NSUInteger)[noteObject hash];
+	return noteObject.hash;
 }
 
 @end
@@ -188,9 +185,9 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 	[bookmarks makeObjectsPerformSelector:@selector(validateNoteObject)];
 }
 
-- (NoteObject *)noteWithUUIDBytes:(CFUUIDBytes)bytes {
+- (NoteObject *)noteWithUUID:(NSUUID *)UUID {
 	id <BookmarksControllerDataSource> dataSource = self.dataSource;
-	return [dataSource noteForUUIDBytes:&bytes];
+	return [dataSource noteForUUID: UUID];
 }
 
 - (void)removeBookmarkForNote:(NoteObject *)aNote {

@@ -88,11 +88,10 @@ typedef struct _NoteFilterContext {
 	//for storing in write-ahead-log
 	unsigned int logSequenceNumber;
 
-	//the first for syncing w/ NV server, as the ID cannot be encrypted
-	CFUUIDBytes uniqueNoteIDBytes;
-
 	NSMutableDictionary *syncServicesMD;
 }
+
+@property (nonatomic, strong, readonly) NSUUID *uniqueNoteID;
 
 - (NSComparisonResult)compareDateModified:(NoteObject *)other;
 
@@ -101,9 +100,6 @@ typedef struct _NoteFilterContext {
 - (NSComparisonResult)compareLabels:(NoteObject *)other;
 
 - (NSComparisonResult)compareTitles:(NoteObject *)other;
-
-//syncing w/ server and from journal
-- (CFUUIDBytes *)uniqueNoteIDBytes;
 
 - (NSDictionary *)syncServicesMD;
 

@@ -20,20 +20,15 @@
 
 @implementation DiskUUIDEntry
 
-@synthesize uuidRef = uuidRef, lastAccessed = lastAccessed;
+@synthesize lastAccessed = lastAccessed;
 
-- (id)initWithUUIDRef:(CFUUIDRef)aUUIDRef {
+- (id)initWithUUID:(NSUUID *)aUUID {
+	NSParameterAssert(aUUID);
 	if ((self = [super init])) {
-		NSAssert(aUUIDRef != nil, @"need a real UUID");
-		uuidRef = CFRetain(aUUIDRef);
+		_UUID = aUUID;
 		lastAccessed = [NSDate date];
 	}
 	return self;
-}
-
-- (void)dealloc {
-
-	CFRelease(uuidRef);
 }
 
 - (void)encodeWithCoder:(NSCoder *)coder {
@@ -41,25 +36,21 @@
 
 	[coder encodeObject:lastAccessed forKey:VAR_STR(lastAccessed)];
 
-	CFUUIDBytes bytes = CFUUIDGetUUIDBytes(uuidRef);
-	[coder encodeBytes:(const uint8_t *) &bytes length:sizeof(CFUUIDBytes) forKey:VAR_STR(uuidRef)];
-
+	uuid_t bytes;
+	[self.UUID getUUIDBytes: bytes];
+	[coder encodeBytes:(const uint8_t *) &bytes length:sizeof(uuid_t) forKey:VAR_STR(uuidRef)];
 }
 
 - (id)initWithCoder:(NSCoder *)decoder {
 	NSAssert([decoder allowsKeyedCoding], @"keyed-decoding only!");
-
 	if ((self = [super init])) {
 
 		lastAccessed = [decoder decodeObjectForKey:VAR_STR(lastAccessed)];
 
-		NSUInteger decodedByteCount = 0;
-		const uint8_t *bytes = [decoder decodeBytesForKey:VAR_STR(uuidRef) returnedLength:&decodedByteCount];
-		if (bytes && decodedByteCount) {
-			uuidRef = CFUUIDCreateFromUUIDBytes(NULL, *(CFUUIDBytes *) bytes);
-		}
-
-		if (!uuidRef) return nil;
+		NSUInteger decodedUUIDByteCount = 0;
+		const uint8_t *decodedUUIDBytesPtr = [decoder decodeBytesForKey:VAR_STR(uuidRef) returnedLength:&decodedUUIDByteCount];
+		if (decodedUUIDByteCount == sizeof(uuid_t)) _UUID = [[NSUUID alloc] initWithUUIDBytes: decodedUUIDBytesPtr];
+		else return nil;
 	}
 	return self;
 }
@@ -69,15 +60,15 @@
 }
 
 - (NSString *)description {
-	return [NSString stringWithFormat:@"DiskUUIDEntry(%@, %@)", lastAccessed, (id) CFBridgingRelease(CFUUIDCreateString(NULL, uuidRef))];
+	return [NSString stringWithFormat:@"DiskUUIDEntry(%@, %@)", lastAccessed, self.UUID.UUIDString];
 }
 
 - (NSUInteger)hash {
-	return CFHash(uuidRef);
+	return self.UUID.hash;
 }
 
 - (BOOL)isEqual:(id)otherEntry {
-	return CFEqual(uuidRef, [otherEntry uuidRef]);
+	return [self.UUID isEqual: [otherEntry UUID]];
 }
 
 @end

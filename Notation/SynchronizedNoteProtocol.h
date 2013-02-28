@@ -19,7 +19,7 @@
 
 @protocol SynchronizedNote <NSCoding, NSObject>
 
-- (CFUUIDBytes *)uniqueNoteIDBytes;
+- (NSUUID *)uniqueNoteID;
 
 - (NSDictionary *)syncServicesMD;
 

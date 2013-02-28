@@ -83,7 +83,7 @@ typedef NS_OPTIONS(NSInteger, NVNoteRevealOptions) {
 	NSUInteger lastCheckedDateInHours;
 	int lastLayoutStyleGenerated;
 	NSUInteger diskUUIDIndex;
-	CFUUIDRef diskUUID;
+	NSUUID *_diskUUID;
 	FSRef noteDirectoryRef;
 	OSStatus lastWriteError;
 	NSError *_lastWriteNSError;
@@ -118,8 +118,6 @@ typedef NS_OPTIONS(NSInteger, NVNoteRevealOptions) {
 - (NSData *)bookmarkDataForNoteDirectory;
 
 - (BOOL)_readAndInitializeSerializedNotesWithError:(out NSError **)outError;
-
-- (void)processRecoveredNotes:(NSDictionary *)dict;
 
 - (BOOL)initializeJournaling;
 

@@ -56,18 +56,18 @@ static void uuid_create_md5_from_name(unsigned char result_uuid[16], const void 
 }
 
 - (void)initializeDiskUUIDIfNecessary {
-	//create a CFUUIDRef that identifies the volume this database sits on
+	//create a NSUUID that identifies the volume this database sits on
 
 	//don't bother unless we will be reading notes as separate files; otherwise there's no need to track the source of the attr mod dates
 	//maybe disk UUIDs will be used in the future for something else; at that point this check should be altered
 
-	if (!diskUUID && [self currentNoteStorageFormat] != SingleDatabaseFormat) {
+	if (!_diskUUID && [self currentNoteStorageFormat] != SingleDatabaseFormat) {
 
 		id uuidString = nil;
 		[self.noteDirectoryURL getResourceValue: &uuidString forKey: NSURLVolumeUUIDStringKey error: NULL];
-		if (uuidString) diskUUID = CFUUIDCreateFromString(NULL, (__bridge CFStringRef)uuidString);
+		if (uuidString) _diskUUID = [[NSUUID alloc] initWithUUIDString: uuidString];
 
-		if (!diskUUID) {
+		if (!_diskUUID) {
 			// all other checks failed; just use the volume's creation date
 			NSDate *date = nil;
 			[self.noteDirectoryURL getResourceValue: &date forKey: NSURLVolumeCreationDateKey error: NULL];
@@ -79,17 +79,17 @@ static void uuid_create_md5_from_name(unsigned char result_uuid[16], const void 
 				dateTime.lowSeconds = CFSwapInt32HostToBig(dateTime.lowSeconds);
 				dateTime.fraction = CFSwapInt16HostToBig(dateTime.fraction);
 
-				CFUUIDBytes uuidBytes;
+				uuid_t uuidBytes;
 				uuid_create_md5_from_name((void *) &uuidBytes, (void *) &dateTime, sizeof(UTCDateTime));
-
-				diskUUID = CFUUIDCreateFromUUIDBytes(NULL, uuidBytes);
+				
+				_diskUUID = [[NSUUID alloc] initWithUUIDBytes: uuidBytes];
 			} else {
 				NSLog(@"can't even get the volume creation date -- what are you trying to do to me?");
 				return;
 			}
 		}
 
-		diskUUIDIndex = [notationPrefs tableIndexOfDiskUUID:diskUUID];
+		diskUUIDIndex = [notationPrefs tableIndexOfDiskUUID: _diskUUID];
 	}
 }
 

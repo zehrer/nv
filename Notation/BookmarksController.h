@@ -19,13 +19,12 @@
 
 @protocol NoteBookmarkDelegate <NSObject>
 
-- (NoteObject *)noteWithUUIDBytes:(CFUUIDBytes)bytes;
+- (NoteObject *)noteWithUUID:(NSUUID *)UUID;
 
 @end
 
 @interface NoteBookmark : NSObject {
 	NSString *searchString;
-	CFUUIDBytes uuidBytes;
 	NoteObject *noteObject;
 }
 
@@ -33,7 +32,9 @@
 
 - (id)initWithNoteObject:(NoteObject *)aNote searchString:(NSString *)aString;
 
-- (id)initWithNoteUUIDBytes:(CFUUIDBytes)bytes searchString:(NSString *)aString;
+- (id)initWithNoteUUID:(NSUUID *)UUID searchString:(NSString *)aString;
+
+@property (nonatomic, strong, readonly) NSUUID *UUID;
 
 - (NSString *)searchString;
 
@@ -82,7 +83,7 @@
 
 @protocol BookmarksControllerDataSource <NSObject>
 
-- (NoteObject *)noteForUUIDBytes:(CFUUIDBytes *)bytes;
+- (NoteObject *)noteForUUID:(NSUUID *)UUID;
 
 @end
 
@@ -106,8 +107,6 @@
 - (id)initWithBookmarks:(NSArray *)array;
 
 - (NSArray *)dictionaryReps;
-
-- (NoteObject *)noteWithUUIDBytes:(CFUUIDBytes)bytes;
 
 - (void)removeBookmarkForNote:(NoteObject *)aNote;
 

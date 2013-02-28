@@ -23,7 +23,6 @@
 
 @interface DeletedNoteObject : NSObject <NSCoding, SynchronizedNote> {
 	unsigned int logSequenceNumber;
-	CFUUIDBytes uniqueNoteIDBytes;
 	NSMutableDictionary *syncServicesMD;
 }
 
@@ -33,7 +32,7 @@
 
 @property (nonatomic, strong, readonly) id <SynchronizedNote> originalNote;
 
-- (CFUUIDBytes *)uniqueNoteIDBytes;
+@property (nonatomic, strong, readonly) NSUUID *uniqueNoteID;
 
 - (NSDictionary *)syncServicesMD;
 

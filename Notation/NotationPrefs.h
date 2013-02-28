@@ -187,7 +187,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString *serv
 
 - (void)setKeyLengthInBits:(unsigned int)newLength;
 
-- (NSUInteger)tableIndexOfDiskUUID:(CFUUIDRef)UUIDRef;
+- (NSUInteger)tableIndexOfDiskUUID:(NSUUID *)UUID;
 
 - (void)checkForKnownRedundantSyncConduitsAtPath:(NSString *)dbPath;
 

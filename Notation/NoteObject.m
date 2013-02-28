@@ -164,10 +164,14 @@ typedef NSRange NSRange32;
 	return [self.labels caseInsensitiveCompare: other.labels];
 }
 
-NSInteger compareUniqueNoteIDBytes(__unsafe_unretained id *a, __unsafe_unretained id *b) {
+NSInteger compareUniqueNoteIDs(__unsafe_unretained id *a, __unsafe_unretained id *b) {
 	NoteObject *aObj = *a;
 	NoteObject *bObj = *b;
-	return memcmp(&(aObj->uniqueNoteIDBytes), &(bObj->uniqueNoteIDBytes), sizeof(CFUUIDBytes));
+	uuid_t aBytes;
+	uuid_t bBytes;
+	[aObj.uniqueNoteID getUUIDBytes: aBytes];
+	[bObj.uniqueNoteID getUUIDBytes: bBytes];
+	return memcmp(&aBytes, &bBytes, sizeof(uuid_t));
 }
 
 - (NSComparisonResult)compareTitles:(NoteObject *)other {
@@ -178,7 +182,7 @@ NSInteger compareUniqueNoteIDBytes(__unsafe_unretained id *a, __unsafe_unretaine
 		if (!result) {
 			__unsafe_unretained id weakSelf = self;
 			__unsafe_unretained id weakOther = other;
-			result = compareUniqueNoteIDBytes(&weakSelf, &weakOther);
+			result = compareUniqueNoteIDs(&weakSelf, &weakOther);
 		}
 
 		if (result > 0)
@@ -208,10 +212,6 @@ NSInteger compareUniqueNoteIDBytes(__unsafe_unretained id *a, __unsafe_unretaine
 	[syncServicesMD removeObjectForKey: serviceName];
 }
 
-- (CFUUIDBytes *)uniqueNoteIDBytes {
-	return &uniqueNoteIDBytes;
-}
-
 - (NSDictionary*)syncServicesMD {
 	return syncServicesMD;
 }
@@ -229,19 +229,20 @@ NSInteger compareUniqueNoteIDBytes(__unsafe_unretained id *a, __unsafe_unretaine
 }
 
 - (NSUInteger)hash {
-	//XOR successive native-WORDs of CFUUIDBytes
+	//XOR successive native-WORDs of UUID bytes
 	NSUInteger finalHash = 0;
-	NSUInteger i, *noteIDBytesPtr = (NSUInteger *) &uniqueNoteIDBytes;
-	for (i = 0; i<sizeof(CFUUIDBytes) / sizeof(NSUInteger); i++) {
-		finalHash ^= *noteIDBytesPtr++;
+	uuid_t bytes;
+	[self.uniqueNoteID getUUIDBytes: bytes];
+	NSUInteger *noteIDBytes = (NSUInteger *)&bytes;
+	for (NSUInteger i = 0; i < sizeof(uuid_t) / sizeof(NSUInteger); i++) {
+		finalHash ^= noteIDBytes[i];
 	}
 	return finalHash;
 }
 
 - (BOOL)isEqual:(id)otherNote {
 	if ([otherNote conformsToProtocol: @protocol(SynchronizedNote)]) {
-		CFUUIDBytes *otherBytes = [(id <SynchronizedNote>) otherNote uniqueNoteIDBytes];
-		return memcmp(otherBytes, &uniqueNoteIDBytes, sizeof(CFUUIDBytes)) == 0;
+		return [[otherNote uniqueNoteID] isEqual: self.uniqueNoteID];
 	}
 	return [super isEqual: otherNote];
 }
@@ -338,8 +339,8 @@ NSInteger compareUniqueNoteIDBytes(__unsafe_unretained id *a, __unsafe_unretaine
 			fileEncoding = [decoder decodeIntegerForKey:VAR_STR(fileEncoding)];
 
 			NSUInteger decodedUUIDByteCount = 0;
-			const uint8_t *decodedUUIDBytes = [decoder decodeBytesForKey:VAR_STR(uniqueNoteIDBytes) returnedLength:&decodedUUIDByteCount];
-			if (decodedUUIDBytes) memcpy(&uniqueNoteIDBytes, decodedUUIDBytes, MIN(decodedUUIDByteCount, sizeof(CFUUIDBytes)));
+			const uint8_t *decodedUUIDBytesPtr = [decoder decodeBytesForKey:VAR_STR(uniqueNoteIDBytes) returnedLength:&decodedUUIDByteCount];
+			if (decodedUUIDByteCount == sizeof(uuid_t)) _uniqueNoteID = [[NSUUID alloc] initWithUUIDBytes: decodedUUIDBytesPtr];
 
 			syncServicesMD = [decoder decodeObjectForKey:VAR_STR(syncServicesMD)];
 
@@ -379,7 +380,10 @@ NSInteger compareUniqueNoteIDBytes(__unsafe_unretained id *a, __unsafe_unretaine
 
 		[coder encodeInteger:fileEncoding forKey:VAR_STR(fileEncoding)];
 
-		[coder encodeBytes:(const uint8_t *) &uniqueNoteIDBytes length:sizeof(CFUUIDBytes) forKey:VAR_STR(uniqueNoteIDBytes)];
+		uuid_t bytes;
+		[self.uniqueNoteID getUUIDBytes: bytes];
+		[coder encodeBytes: (const uint8_t *)&bytes length: sizeof(uuid_t) forKey: VAR_STR(uniqueNoteIDBytes)];
+		
 		[coder encodeObject:syncServicesMD forKey:VAR_STR(syncServicesMD)];
 
 		[coder encodeObject:titleString forKey:VAR_STR(titleString)];
@@ -414,9 +418,7 @@ NSInteger compareUniqueNoteIDBytes(__unsafe_unretained id *a, __unsafe_unretaine
 		currentFormatID = formatID;
 		filename = [localDelegate uniqueFilenameForTitle:titleString fromNote:nil];
 
-		CFUUIDRef uuidRef = CFUUIDCreate(kCFAllocatorDefault);
-		uniqueNoteIDBytes = CFUUIDGetUUIDBytes(uuidRef);
-		CFRelease(uuidRef);
+		_uniqueNoteID = [NSUUID UUID];
 
 		self.creationDate = self.modificationDate = [NSDate date];
 		self.dateModifiedString = [NSString relativeDateStringWithAbsoluteTime: self.modificationDate.timeIntervalSinceReferenceDate];
@@ -441,10 +443,7 @@ NSInteger compareUniqueNoteIDBytes(__unsafe_unretained id *a, __unsafe_unretaine
 		self.attributesModificationDate = entry.attributeModificationDate;
 		self.fileSize = entry.fileSize;
 		self.creationDate = entry.creationDate;
-
-		CFUUIDRef uuidRef = CFUUIDCreate(kCFAllocatorDefault);
-		uniqueNoteIDBytes = CFUUIDGetUUIDBytes(uuidRef);
-		CFRelease(uuidRef);
+		_uniqueNoteID = [NSUUID UUID];
 
 		if (![self _setTitleString:[filename stringByDeletingPathExtension]])
 			titleString = NSLocalizedString(@"Untitled Note", @"Title of a nameless note");
@@ -904,7 +903,10 @@ NSInteger compareUniqueNoteIDBytes(__unsafe_unretained id *a, __unsafe_unretaine
 		NSString *syncID = syncServicesMD[svcs[i]][[[SyncSessionController allServiceClasses][i] nameOfKeyElement]];
 		if (syncID) idsDict[svcs[i]] = syncID;
 	}
-	idsDict[@"NV"] = [[NSData dataWithBytes:&uniqueNoteIDBytes length:16] encodeBase64];
+
+	uuid_t uuid;
+	[self.uniqueNoteID getUUIDBytes: uuid];
+	idsDict[@"NV"] = [[NSData dataWithBytes:&uuid length: sizeof(uuid_t)] encodeBase64];
 
 	return [NSURL URLWithString:[@"nv://find/" stringByAppendingFormat:@"%@/?%@", [titleString stringWithPercentEscapes],
 																	   [idsDict URLEncodedString]]];

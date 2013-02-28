@@ -179,8 +179,11 @@
 
 			if ([idStr hasPrefix:@"NV="] && [idStr length] > 3) {
 				NSData *uuidData = [[[idStr substringFromIndex:3] stringByReplacingPercentEscapes] decodeBase64];
-				if ((foundNote = [notationController noteForUUIDBytes:(CFUUIDBytes *) [uuidData bytes]]))
-					goto handleFound;
+				if (uuidData.length == sizeof(uuid_t)) {
+					NSUUID *UUID = [[NSUUID alloc] initWithUUIDBytes: uuidData.bytes];
+					if ((foundNote = [notationController noteForUUID: UUID]))
+						goto handleFound;
+				}
 			}
 
 			for (j = 0; j < [svcs count]; j++) {

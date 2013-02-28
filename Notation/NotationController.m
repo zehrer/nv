@@ -268,8 +268,8 @@
 		if (walReader) {
 			BOOL databaseCouldNotBeFlushed = NO;
 			NSDictionary *recoveredNotes = [walReader recoveredNotes];
-			if ([recoveredNotes count] > 0) {
-				[self processRecoveredNotes:recoveredNotes];
+			if (recoveredNotes.count) {
+				[self ntn_processRecoveredNotes:recoveredNotes];
 
 				if (![self flushAllNoteChanges]) {
 					//we shouldn't continue because the journal is still the sole record of the unsaved notes, so we can't delete it
@@ -315,81 +315,52 @@
 }
 
 //stick the newest unique recovered notes into allNotes
-- (void)processRecoveredNotes:(NSDictionary *)dict {
-	if (!dict) return;
-	const unsigned int vListBufCount = 16;
-	void *keysBuffer[vListBufCount], *valuesBuffer[vListBufCount];
-	NSUInteger i, count = [dict count];
+- (void)ntn_processRecoveredNotes:(NSDictionary *)dict {
+	[dict enumerateKeysAndObjectsUsingBlock:^(NSUUID *UUID, id <SynchronizedNote> obj, BOOL *stop) {
+		NSUInteger existingNoteIndex = [allNotes indexOfNoteWithUUID: UUID];
 
-	void **keys = NULL, **values = NULL;
+		if ([obj isKindOfClass:[DeletedNoteObject class]]) {
 
-	if (count > vListBufCount) {
-		keys = keysBuffer;
-		values = valuesBuffer;
-	} else {
-		keys = malloc(sizeof(void *) * count);
-		values = malloc(sizeof(void *) * count);
-	}
+			if (existingNoteIndex != NSNotFound) {
 
-	if (keys && values) {
-		CFDictionaryGetKeysAndValues((__bridge CFDictionaryRef) dict, (const void **) keys, (const void **) values);
-
-		for (i = 0; i < count; i++) {
-
-			CFUUIDBytes *objUUIDBytes = (CFUUIDBytes *) keys[i];
-			id <SynchronizedNote> obj = (__bridge id) values[i];
-
-			NSUInteger existingNoteIndex = [allNotes indexOfNoteWithUUIDBytes:objUUIDBytes];
-
-			if ([obj isKindOfClass:[DeletedNoteObject class]]) {
-
-				if (existingNoteIndex != NSNotFound) {
-
-					NoteObject *existingNote = allNotes[existingNoteIndex];
-					if ([existingNote youngerThanLogObject:obj]) {
-						NSLog(@"got a newer deleted note %@", obj);
-						//except that normally the undomanager doesn't exist by this point
-						[self _registerDeletionUndoForNote:existingNote];
-						[allNotes removeObjectAtIndex:existingNoteIndex];
-						//try to use use the deleted note object instead of allowing _addDeletedNote: to make a new one, to preserve any changes to the syncMD
-						[self _addDeletedNote:obj];
-						notesChanged = YES;
-					} else {
-						NSLog(@"got an older deleted note %@", obj);
-					}
-				} else {
-					NSLog(@"got a deleted note with a UUID that doesn't match anything in allNotes, adding to deletedNotes only");
-					//must remember that this was deleted; b/c it could've been added+synced and then deleted before syncing the deletion
-					//and it might not be in allNotes because the WALreader would have already coalesced by UUID, and so the next sync might re-add the note
+				NoteObject *existingNote = allNotes[existingNoteIndex];
+				if ([existingNote youngerThanLogObject:obj]) {
+					NSLog(@"got a newer deleted note %@", obj);
+					//except that normally the undomanager doesn't exist by this point
+					[self _registerDeletionUndoForNote:existingNote];
+					[allNotes removeObjectAtIndex:existingNoteIndex];
+					//try to use use the deleted note object instead of allowing _addDeletedNote: to make a new one, to preserve any changes to the syncMD
 					[self _addDeletedNote:obj];
-				}
-			} else if (existingNoteIndex != NSNotFound) {
-
-				if ([allNotes[existingNoteIndex] youngerThanLogObject:obj]) {
-					// NSLog(@"replacing old note with new: %@", [[(NoteObject*)obj contentString] string]);
-
-					[(NoteObject *) obj setDelegate:self];
-					[(NoteObject *) obj updateLabelConnectionsAfterDecoding];
-					allNotes[existingNoteIndex] = obj;
 					notesChanged = YES;
 				} else {
-					// NSLog(@"note %@ is not being replaced because its LSN is %u, while the old note's LSN is %u",
-					//  [[(NoteObject*)obj contentString] string], [(NoteObject*)obj logSequenceNumber], [[allNotes objectAtIndex:existingNoteIndex] logSequenceNumber]);
+					NSLog(@"got an older deleted note %@", obj);
 				}
 			} else {
-				//NSLog(@"Found new note: %@", [(NoteObject*)obj contentString]);
-
-				[self _addNote:obj];
-				[(NoteObject *) obj updateLabelConnectionsAfterDecoding];
+				NSLog(@"got a deleted note with a UUID that doesn't match anything in allNotes, adding to deletedNotes only");
+				//must remember that this was deleted; b/c it could've been added+synced and then deleted before syncing the deletion
+				//and it might not be in allNotes because the WALreader would have already coalesced by UUID, and so the next sync might re-add the note
+				[self _addDeletedNote:obj];
 			}
+		} else if (existingNoteIndex != NSNotFound) {
+
+			if ([allNotes[existingNoteIndex] youngerThanLogObject:obj]) {
+				// NSLog(@"replacing old note with new: %@", [[(NoteObject*)obj contentString] string]);
+
+				[(NoteObject *) obj setDelegate:self];
+				[(NoteObject *) obj updateLabelConnectionsAfterDecoding];
+				allNotes[existingNoteIndex] = obj;
+				notesChanged = YES;
+			} else {
+				// NSLog(@"note %@ is not being replaced because its LSN is %u, while the old note's LSN is %u",
+				//  [[(NoteObject*)obj contentString] string], [(NoteObject*)obj logSequenceNumber], [[allNotes objectAtIndex:existingNoteIndex] logSequenceNumber]);
+			}
+		} else {
+			//NSLog(@"Found new note: %@", [(NoteObject*)obj contentString]);
+
+			[self _addNote:obj];
+			[(NoteObject *) obj updateLabelConnectionsAfterDecoding];
 		}
-	} else {
-		NSLog(@"_makeChangesInDictionary: Could not get values or keys!");
-	}
-
-	if (keys && keys != keysBuffer) free(keys);
-	if (values && values != valuesBuffer) free(values);
-
+	}];
 }
 
 - (void)closeJournal {
@@ -1119,10 +1090,8 @@
 	[notationPrefs setBaseBodyFont:[prefsController noteBodyFont]];
 }
 
-//used by BookmarksController
-
-- (NoteObject *)noteForUUIDBytes:(CFUUIDBytes *)bytes {
-	NSUInteger noteIndex = [allNotes indexOfNoteWithUUIDBytes:bytes];
+- (NoteObject *)noteForUUID:(NSUUID *)UUID {
+	NSUInteger noteIndex = [allNotes indexOfNoteWithUUID: UUID];
 	if (noteIndex != NSNotFound) return allNotes[noteIndex];
 	return nil;
 }

@@ -465,64 +465,41 @@
 	return object;
 }
 
-static CFStringRef SynchronizedNoteKeyDescription(const void *value) {
-
-	return value ? (__bridge CFStringRef) [NSString uuidStringWithBytes:*(CFUUIDBytes *) value] : NULL;
-}
-
-static CFHashCode SynchronizedNoteHash(const void *o) {
-	extern CFHashCode CFHashBytes(const void *bytes, CFIndex length);
-	return CFHashBytes(o, sizeof(CFUUIDBytes));
-}
-
-static Boolean SynchronizedNoteIsEqual(const void *o, const void *p) {
-
-	return (!memcmp((CFUUIDBytes *) o, (CFUUIDBytes *) p, sizeof(CFUUIDBytes)));
-}
-
 //we keep a table of the newest recovered notes, as any changed notes will almost certainly be written multiple times
 //throw away objects with LSNs lower than the current highest one for each UUID
 //and when recovery cannot progress any further, only the newest objects will be exchanged
 
 - (NSDictionary *)recoveredNotes {
 	id <SynchronizedNote> obj = nil;
-	CFUUIDBytes *objUUIDBytes = NULL;
+	NSUUID *objUUID = nil;
 
-	CFDictionaryKeyCallBacks keyCallbacks = kCFTypeDictionaryKeyCallBacks;
-	keyCallbacks.equal = SynchronizedNoteIsEqual;
-	keyCallbacks.hash = SynchronizedNoteHash;
-	keyCallbacks.copyDescription = SynchronizedNoteKeyDescription;
-	keyCallbacks.retain = NULL;
-	keyCallbacks.release = NULL;
-
-	CFMutableDictionaryRef recoveredNotes = CFDictionaryCreateMutable(kCFAllocatorDefault, 0, &keyCallbacks, &kCFTypeDictionaryValueCallBacks);
+	NSMutableDictionary *recoveredNotes = [NSMutableDictionary dictionary];
 
 	do {
 		if ((obj = [self recoverNextObject])) {
 
 			if ([obj conformsToProtocol:@protocol(SynchronizedNote)]) {
-				objUUIDBytes = [obj uniqueNoteIDBytes];
+				objUUID = obj.uniqueNoteID;
 				id <SynchronizedNote> foundNote = nil;
-				const void *outValue = NULL;
-
+				id outValue = nil;
 
 				//if the note already exists, then insert this note only if it's newer, and always insert it if it doesn't exist
-				if (CFDictionaryGetValueIfPresent(recoveredNotes, (const void *) objUUIDBytes, &outValue)) {
-					foundNote = (__bridge id) outValue;
+				if ((outValue = recoveredNotes[objUUID])) {
+					foundNote = outValue;
 
 					//note is already here, overwrite it only if our LSN is greater or equal
 					if (foundNote && ![foundNote youngerThanLogObject:obj])
 						continue;
 				}
-				CFDictionarySetValue(recoveredNotes, (const void *) objUUIDBytes, (__bridge const void *) obj);
+
+				recoveredNotes[objUUID] = obj;
 			} else {
 				NSLog(@"object of class %@ recovered that doesn't conform to SynchronizedNote protocol", [(NSObject *) obj className]);
 			}
 		}
 	} while (obj); //|| this note failed because of a deserialization problem, but everything else was fine
 
-
-	return (__bridge NSDictionary *) recoveredNotes;
+	return recoveredNotes;
 }
 
 @end

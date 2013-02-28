@@ -53,7 +53,7 @@
 //- (NSRange)nextRangeForString:(NSString*)string activeNote:(NoteObject*)startNote options:(NSStringCompareOptions)opts range:(NSRange)inRange;
 - (void)addMenuItemsForURLsInNotes:(NSMenu *)urlsMenu;
 
-- (NSUInteger)indexOfNoteWithUUIDBytes:(CFUUIDBytes *)bytes;
+- (NSUInteger)indexOfNoteWithUUID:(NSUUID *)UUID;
 
 - (NSArray *)objectsFromDictionariesForKey:(id)aKey;
 
