@@ -858,6 +858,9 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
 	} else {
 		NSData *alias = [defaults dataForKey:DirectoryAliasKey];
 		NSData *bookmark = (__bridge_transfer NSData *)CFURLCreateBookmarkDataFromAliasRecord(NULL, (__bridge CFDataRef)alias);
+		NSURL *homeFolder = [NSURL fileURLWithPath: NSHomeDirectory() isDirectory: YES];
+		NSURL *URL = [NSURL URLByResolvingBookmarkData: bookmark options: NSURLBookmarkResolutionWithoutUI | NSURLBookmarkResolutionWithoutMounting relativeToURL: homeFolder bookmarkDataIsStale: NULL error: NULL];
+		bookmark = [URL bookmarkDataWithOptions: 0 includingResourceValuesForKeys: nil relativeToURL: homeFolder error: NULL];
 		//[defaults removeObjectForKey: DirectoryAliasKey];
 		[defaults setObject: bookmark forKey: NTNDirectoryBookmarkKey];
 		return bookmark;
@@ -872,6 +875,7 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
 		if (!(bookmarkData = [self bookmarkDataForDefaultDirectory]))
 			return nil;
 
+		//resourceValuesForKeys:(NSArray *)keys fromBookmarkData
 		NSURL *homeFolder = [NSURL fileURLWithPath: NSHomeDirectory() isDirectory: YES];
 		URL = [NSURL URLByResolvingBookmarkData: bookmarkData options: NSURLBookmarkResolutionWithoutUI | NSURLBookmarkResolutionWithoutMounting relativeToURL: homeFolder bookmarkDataIsStale: NULL error: NULL];
 

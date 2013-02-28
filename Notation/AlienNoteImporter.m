@@ -657,10 +657,8 @@ static NSString *const NTVNoteImporterLinkTitleKey = @"NTVNoteImporterLinkTitle"
 	NSDate *creationDate = dbAttrs[NSFileCreationDate];
 	NSDate *modificationDate = dbAttrs[NSFileModificationDate];
 
-	CFAbsoluteTime creationTime = CFAbsoluteTimeGetCurrent();
-	CFAbsoluteTime modificationTime = creationTime;
-	if (creationDate) creationTime = CFDateGetAbsoluteTime((__bridge CFDateRef) creationDate);
-	if (modificationDate) modificationTime = CFDateGetAbsoluteTime((__bridge CFDateRef) modificationDate);
+	NSTimeInterval creationTime = creationDate ? [creationDate timeIntervalSinceReferenceDate] : [NSDate timeIntervalSinceReferenceDate];
+	NSTimeInterval modificationTime = modificationDate ? [modificationDate timeIntervalSinceReferenceDate] : [NSDate timeIntervalSinceReferenceDate];
 
 	//iterate over notes with blorenumerator and return array
 	BlorNoteEnumerator *enumerator = [[BlorNoteEnumerator alloc] initWithBlor:filename passwordHashData:keyData];

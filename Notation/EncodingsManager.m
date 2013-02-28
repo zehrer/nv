@@ -166,8 +166,7 @@ static const NSStringEncoding AllowedEncodings[] = {
 		if (currentEncoding == thisEncoding)
 			[menuItem setState:NSOnState];
 
-		NSString *noteString = (__bridge_transfer NSString *)CFStringCreateFromExternalRepresentation(NULL, (__bridge CFDataRef) noteData,
-				CFStringConvertNSStringEncodingToEncoding(thisEncoding));
+		NSString *noteString = [[NSString alloc] initWithData: noteData encoding: thisEncoding];
 		//make sure that the conversion works both ways
 		[menuItem setEnabled:(noteString != nil && [noteString canBeConvertedToEncoding:thisEncoding])];
 
@@ -200,7 +199,7 @@ static const NSStringEncoding AllowedEncodings[] = {
 
 - (BOOL)tryToUpdateTextForEncoding:(NSStringEncoding)encoding {
 
-	NSString *stringFromData = (__bridge_transfer NSString *)CFStringCreateFromExternalRepresentation(NULL, (__bridge CFDataRef) noteData, CFStringConvertNSStringEncodingToEncoding(encoding));
+	NSString *stringFromData = [[NSString alloc] initWithData: noteData encoding: encoding];
 
 	if (stringFromData) {
 		NSAttributedString *attributedStringFromData = [[NSAttributedString alloc] initWithString:stringFromData];

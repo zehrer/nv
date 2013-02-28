@@ -352,7 +352,7 @@ enum {
 							 informativeTextWithFormat: @"%@", NSLocalizedString(@"When notes are stored in a single database individual files become redundant.", nil)];
 
 		[alert beginSheetModalForWindow:[view window] modalDelegate:notationPrefs
-						 didEndSelector:@selector(noteFilesCleanupSheetDidEnd:returnCode:contextInfo:) contextInfo:(__bridge void *) (self)];
+						 didEndSelector:@selector(noteFilesCleanupSheetDidEnd:returnCode:contextInfo:) contextInfo:(__bridge void *)self];
 		//will ultimately call -notesStorageFormatDidChange
 	} else {
 		//just call setNotesStorageFormat straight-out

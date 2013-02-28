@@ -172,20 +172,7 @@ static void uuid_create_md5_from_name(unsigned char result_uuid[16], const void 
 
 		if ([openPanel runModal] == NSOKButton) {
 			NSURL *newURL = openPanel.URL;
-			
-			NSString *filename = newURL.path;
-			if (filename) {
-
-				FSRef newParentRef;
-				CFURLRef url = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, (__bridge CFStringRef) filename, kCFURLPOSIXPathStyle, true);
-				if (!url || !CFURLGetFSRef(url, &newParentRef)) {
-					NSRunAlertPanel(NSLocalizedString(@"Unable to create an FSRef from the chosen directory.", nil),
-							NSLocalizedString(@"Your notes were not moved.", nil), NSLocalizedString(@"OK", nil), NULL, NULL);
-					if (url) CFRelease(url);
-					continue;
-				}
-				CFRelease(url);
-
+			if (newURL) {
 				NSURL *oldURL = self.noteDirectoryURL;
 
 				NSError *err = nil;

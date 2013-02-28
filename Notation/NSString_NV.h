@@ -64,8 +64,6 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, NSUInteger charIndex);
 
 - (NSString *)stringWithPercentEscapes;
 
-- (NSString *)stringByReplacingPercentEscapes;
-
 - (BOOL)superficiallyResemblesAnHTTPURL;
 
 + (NSString *)reasonStringFromCarbonFSError:(OSStatus)err;

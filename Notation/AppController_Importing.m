@@ -178,7 +178,7 @@
 			NSString *idStr = params[i];
 
 			if ([idStr hasPrefix:@"NV="] && [idStr length] > 3) {
-				NSData *uuidData = [[[idStr substringFromIndex:3] stringByReplacingPercentEscapes] decodeBase64];
+				NSData *uuidData = [[[idStr substringFromIndex:3] stringByReplacingPercentEscapesUsingEncoding: NSUTF8StringEncoding] decodeBase64];
 				if (uuidData.length == sizeof(uuid_t)) {
 					NSUUID *UUID = [[NSUUID alloc] initWithUUIDBytes: uuidData.bytes];
 					if ((foundNote = [notationController noteForUUID: UUID]))
@@ -190,7 +190,7 @@
 				NSString *serviceName = svcs[j];
 				if ([idStr hasPrefix:[NSString stringWithFormat:@"%@=", serviceName]] && [idStr length] > [serviceName length] + 1) {
 					//lookup note with identical key for this service
-					NSString *key = [[idStr substringFromIndex:[serviceName length] + 1] stringByReplacingPercentEscapes];
+					NSString *key = [[idStr substringFromIndex:[serviceName length] + 1] stringByReplacingPercentEscapesUsingEncoding: NSUTF8StringEncoding];
 					if ((foundNote = [notationController noteForKey:key ofServiceClass:[SyncSessionController allServiceClasses][j]]))
 						goto handleFound;
 				}
@@ -213,15 +213,15 @@
 		for (i = 0; i < [params count]; i++) {
 			NSString *compStr = params[i];
 			if ([compStr hasPrefix:@"title="] && [compStr length] > 6) {
-				title = [[compStr substringFromIndex:6] stringByReplacingPercentEscapes];
+				title = [[compStr substringFromIndex:6] stringByReplacingPercentEscapesUsingEncoding: NSUTF8StringEncoding];
 			} else if ([compStr hasPrefix:@"txt="] && [compStr length] > 4) {
-				txtBody = [[compStr substringFromIndex:4] stringByReplacingPercentEscapes];
+				txtBody = [[compStr substringFromIndex:4] stringByReplacingPercentEscapesUsingEncoding: NSUTF8StringEncoding];
 			} else if ([compStr hasPrefix:@"html="] && [compStr length] > 5) {
-				htmlBody = [[compStr substringFromIndex:5] stringByReplacingPercentEscapes];
+				htmlBody = [[compStr substringFromIndex:5] stringByReplacingPercentEscapesUsingEncoding: NSUTF8StringEncoding];
 			} else if ([compStr hasPrefix:@"tags="] && [compStr length] > 5) {
-				tags = [[compStr substringFromIndex:5] stringByReplacingPercentEscapes];
+				tags = [[compStr substringFromIndex:5] stringByReplacingPercentEscapesUsingEncoding: NSUTF8StringEncoding];
 			} else if ([compStr hasPrefix:@"url="] && [compStr length] > 4) {
-				urlTxt = [[compStr substringFromIndex:4] stringByReplacingPercentEscapes];
+				urlTxt = [[compStr substringFromIndex:4] stringByReplacingPercentEscapesUsingEncoding: NSUTF8StringEncoding];
 				txtBody = nil;
 				htmlBody = nil;
 			}

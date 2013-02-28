@@ -131,7 +131,7 @@ static int dayFromAbsoluteTime(CFAbsoluteTime absTime) {
 		CFDateRef date = CFDateCreate(kCFAllocatorDefault, absTime);
 
 		if (day == NoSpecialDay) {
-			dateString = (NSString *) CFBridgingRelease(CFDateFormatterCreateStringWithDate(kCFAllocatorDefault, dateAndTimeFormatter, date));
+			dateString = (__bridge_transfer NSString *)CFDateFormatterCreateStringWithDate(NULL, dateAndTimeFormatter, date);
 		} else {
 			dateString = [NSString relativeTimeStringWithDate:date relativeDay:day];
 		}
@@ -260,8 +260,8 @@ CFDateFormatterRef simplenoteDateFormatter(NSInteger lowPrecision) {
 - (NSString *)fourCharTypeString {
 	if ([[self dataUsingEncoding:NSMacOSRomanStringEncoding allowLossyConversion:YES] length] >= 4) {
 		//only truncate; don't return a string containing null characters for the last few bytes
-		OSType type = UTGetOSTypeFromString((__bridge CFStringRef) self);
-		return (id) CFBridgingRelease(UTCreateStringForOSType(type));
+		OSType type = UTGetOSTypeFromString((__bridge CFStringRef)self);
+		return (__bridge_transfer NSString *)UTCreateStringForOSType(type);
 	}
 	return self;
 }
@@ -458,10 +458,6 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, NSUInteger charIndex) 
 	}
 
 	return NO;
-}
-
-- (NSString *)stringByReplacingPercentEscapes {
-	return (__bridge_transfer NSString *) CFURLCreateStringByReplacingPercentEscapes(NULL, (__bridge CFStringRef) self, CFSTR(""));
 }
 
 - (NSString *)stringWithPercentEscapes {

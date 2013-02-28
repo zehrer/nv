@@ -10,14 +10,6 @@
 
 @implementation NSURL (Notation)
 
-+ (NSURL *)URLWithFSRef:(const FSRef *)ref {
-	return (__bridge_transfer NSURL *)CFURLCreateFromFSRef(NULL, ref);
-}
-
-- (BOOL)getFSRef:(out FSRef *)outRef {
-	return CFURLGetFSRef((__bridge CFURLRef)self, outRef) != 0;
-}
-
 - (BOOL)isEqualToFileURL:(NSURL *)otherURL {
 	if (!self.isFileURL || !otherURL.isFileURL) return NO;
 
