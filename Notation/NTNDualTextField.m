@@ -34,8 +34,8 @@ static CGFloat const textLeftInset = 18.0f;
 
 - (NSRect)drawingRectForBounds:(NSRect)bounds {
 	NSRect someBounds = [super drawingRectForBounds: bounds];
-	someBounds.origin.x += textLeftInset;
-	someBounds.size.width -= textLeftInset;
+	//someBounds.origin.x += textLeftInset;
+	//someBounds.size.width -= textLeftInset;
 	return someBounds;
 }
 

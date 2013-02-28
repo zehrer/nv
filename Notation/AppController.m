@@ -219,6 +219,7 @@ void outletObjectAwoke(id sender) {
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNote {
 	self.viewController = [NTNMainWindowController new];
+	[self.viewController showWindow: self];
 
 	if ([[NSUserDefaults standardUserDefaults] boolForKey:@"ShowDockIcon"]) {
 		[[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyRegular];
@@ -367,8 +368,6 @@ void outletObjectAwoke(id sender) {
 			[wordCounter setHidden:YES];
 		}
 	});
-
-	[self.viewController showWindow: self];
 }
 
 - (void)handleGetURLEvent:(NSAppleEventDescriptor *)event withReplyEvent:(NSAppleEventDescriptor *)replyEvent {
@@ -1729,12 +1728,6 @@ void outletObjectAwoke(id sender) {
 	if ([view isEqual:notesScrollView] && splitView.window.inLiveResize) return NO;
 	return YES;
 }
-
-/* Given a divider index, return an additional rectangular area (in the coordinate system established by the split view's bounds) in which mouse clicks should also initiate divider dragging, or NSZeroRect to not add one. If a split view has no delegate, or if its delegate does not respond to this message, only mouse clicks within the effective frame of a divider initiate divider dragging.
- */
-/*- (NSRect)splitView:(NSSplitView *)splitView additionalEffectiveRectOfDividerAtIndex:(NSInteger)dividerIndex {
-	
-}*/
 
 #pragma mark -
 
