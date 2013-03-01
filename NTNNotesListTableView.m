@@ -8,7 +8,7 @@
 
 #import "NTNNotesListTableView.h"
 
-static CGFloat const NTNLoadingStringFontSize = 16.0f;
+static CGFloat const NTNLoadingStringFontSize = 18.0f;
 
 @interface NTNNotesListTableView ()
 
@@ -24,8 +24,8 @@ static CGFloat const NTNLoadingStringFontSize = 16.0f;
 
 	self.loadingString = NSLocalizedString(@"Loading Notes...", nil);
 	self.loadingStringAttributes = @{
-		NSFontAttributeName: [NSFont fontWithName:@"Helvetica Neue" size: NTNLoadingStringFontSize],
-		NSForegroundColorAttributeName: [NSColor colorWithCalibratedRed:0.0f green:0.0f blue:0.0f alpha:0.5f]
+		NSFontAttributeName: [NSFont fontWithName:@"Helvetica Neue Light" size: NTNLoadingStringFontSize],
+		NSForegroundColorAttributeName: [NSColor headerColor]
 	};
 	self.loadingStringWidth = [self.loadingString sizeWithAttributes: self.loadingStringAttributes].width;
 	

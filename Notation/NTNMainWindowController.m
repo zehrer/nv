@@ -8,6 +8,7 @@
 
 #import "NTNMainWindowController.h"
 #import "NTNSplitView.h"
+#import "NTNEditorStatusView.h"
 
 @interface NTNMainWindowController () <NSWindowDelegate, NSToolbarDelegate, NSTextFieldDelegate, NTNSplitViewDelegate>
 
@@ -38,13 +39,21 @@
 	[self.splitView setMaxSize:600 ofSubviewAtIndex:0];
 	[self.splitView setCanCollapse:YES subviewAtIndex:0];
 	[self.splitView setDividerThickness: 9.75];
+
 }
 
 - (void)windowDidLoad
 {
     [super windowDidLoad];
-    
+
+	self.editorStatusView.backgroundColor = [NSColor controlBackgroundColor];
     // Implement this method to handle any initialization after your window controller's window has been loaded from its nib file.
+}
+
+#pragma mark - Actions
+
+- (IBAction)focusOnSearchField:(id)sender {
+	
 }
 
 #pragma mark - NSWindowDelegate

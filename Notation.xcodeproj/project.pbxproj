@@ -182,6 +182,7 @@
 		6C25173A16B2F6EA0088B37E /* NoteCatalogEntry.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C25173916B2F6EA0088B37E /* NoteCatalogEntry.m */; };
 		6C32732316DE8BE000EFE126 /* NTNNotesListTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C32732216DE8BE000EFE126 /* NTNNotesListTableView.m */; };
 		6C3E591D16B5B3BE002E7E7A /* NSData+Notation.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C3E591C16B5B3BD002E7E7A /* NSData+Notation.m */; };
+		6C5AE12316E06FC000EAA681 /* NTNEditorStatusView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C5AE12216E06FBF00EAA681 /* NTNEditorStatusView.m */; };
 		6C6520B516D9672A00686C35 /* NTNDualTextField.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C6520B416D9672A00686C35 /* NTNDualTextField.m */; };
 		6C6BAF8116D7F3EB00643FFA /* NTNMainWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C6BAF7F16D7F3EB00643FFA /* NTNMainWindowController.m */; };
 		6C6BAF8216D7F3EB00643FFA /* NTNMainWindowController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 6C6BAF8016D7F3EB00643FFA /* NTNMainWindowController.xib */; };
@@ -579,6 +580,8 @@
 		6C32732216DE8BE000EFE126 /* NTNNotesListTableView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NTNNotesListTableView.m; sourceTree = "<group>"; };
 		6C3E591B16B5B3BD002E7E7A /* NSData+Notation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSData+Notation.h"; path = "Notation/NSData+Notation.h"; sourceTree = "<group>"; };
 		6C3E591C16B5B3BD002E7E7A /* NSData+Notation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSData+Notation.m"; path = "Notation/NSData+Notation.m"; sourceTree = "<group>"; };
+		6C5AE12116E06FBF00EAA681 /* NTNEditorStatusView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NTNEditorStatusView.h; sourceTree = "<group>"; };
+		6C5AE12216E06FBF00EAA681 /* NTNEditorStatusView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NTNEditorStatusView.m; sourceTree = "<group>"; };
 		6C6520B316D9672900686C35 /* NTNDualTextField.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NTNDualTextField.h; path = Notation/NTNDualTextField.h; sourceTree = "<group>"; };
 		6C6520B416D9672A00686C35 /* NTNDualTextField.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = NTNDualTextField.m; path = Notation/NTNDualTextField.m; sourceTree = "<group>"; };
 		6C6BAF7E16D7F3EB00643FFA /* NTNMainWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NTNMainWindowController.h; path = Notation/NTNMainWindowController.h; sourceTree = "<group>"; };
@@ -752,22 +755,15 @@
 		080E96DDFE201D6D7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				6C5AE12416E077D000EAA681 /* New UI */,
+				2114C11409575BD400614E74 /* AppController.h */,
+				2114C11509575BD400614E74 /* AppController.m */,
 				21BD2ED010DAF31500BA3DF6 /* LinearDividerShader.h */,
 				21BD2ECF10DAF31500BA3DF6 /* LinearDividerShader.m */,
 				2114C23B095883A600614E74 /* NSData_transformations.h */,
 				2114C23C095883A600614E74 /* NSData_transformations.m */,
-				6C6BAF7E16D7F3EB00643FFA /* NTNMainWindowController.h */,
-				6C6BAF7F16D7F3EB00643FFA /* NTNMainWindowController.m */,
-				6C6BAF8016D7F3EB00643FFA /* NTNMainWindowController.xib */,
-				6C6520B316D9672900686C35 /* NTNDualTextField.h */,
-				6C6520B416D9672A00686C35 /* NTNDualTextField.m */,
-				6C32732116DE8BE000EFE126 /* NTNNotesListTableView.h */,
-				6C32732216DE8BE000EFE126 /* NTNNotesListTableView.m */,
 				219190EF09C4A60600586B15 /* DualField.h */,
 				219190F009C4A60700586B15 /* DualField.m */,
-				2114C11409575BD400614E74 /* AppController.h */,
-				2114C11509575BD400614E74 /* AppController.m */,
-				6CC111DC16D6D7960080B084 /* NTNSplitView */,
 				93B90E901386072E00BEC5FB /* TemporaryFileCachePreparer.h */,
 				93B90E911386072E00BEC5FB /* TemporaryFileCachePreparer.m */,
 				5C96F713131C4A1B00A2E4AC /* UIElement Subclasses */,
@@ -1217,6 +1213,23 @@
 			name = Retinized;
 			sourceTree = "<group>";
 		};
+		6C5AE12416E077D000EAA681 /* New UI */ = {
+			isa = PBXGroup;
+			children = (
+				6C6BAF7E16D7F3EB00643FFA /* NTNMainWindowController.h */,
+				6C6BAF7F16D7F3EB00643FFA /* NTNMainWindowController.m */,
+				6C6BAF8016D7F3EB00643FFA /* NTNMainWindowController.xib */,
+				6C6520B316D9672900686C35 /* NTNDualTextField.h */,
+				6C6520B416D9672A00686C35 /* NTNDualTextField.m */,
+				6C32732116DE8BE000EFE126 /* NTNNotesListTableView.h */,
+				6C32732216DE8BE000EFE126 /* NTNNotesListTableView.m */,
+				6C5AE12116E06FBF00EAA681 /* NTNEditorStatusView.h */,
+				6C5AE12216E06FBF00EAA681 /* NTNEditorStatusView.m */,
+				6CC111DC16D6D7960080B084 /* NTNSplitView */,
+			);
+			name = "New UI";
+			sourceTree = "<group>";
+		};
 		6CB73CD616D9FCEB00DFCE3F /* Notation */ = {
 			isa = PBXGroup;
 			children = (
@@ -1581,6 +1594,7 @@
 				6C6BAF8116D7F3EB00643FFA /* NTNMainWindowController.m in Sources */,
 				6C6520B516D9672A00686C35 /* NTNDualTextField.m in Sources */,
 				6C32732316DE8BE000EFE126 /* NTNNotesListTableView.m in Sources */,
+				6C5AE12316E06FC000EAA681 /* NTNEditorStatusView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2049,7 +2063,6 @@
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN_OBJC_IMPLICIT_ATOMIC_PROPERTIES = YES;
-				CLANG_WARN_OBJC_RECEIVER_WEAK = YES;
 				COPY_PHASE_STRIP = NO;
 				DEAD_CODE_STRIPPING = NO;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -2087,7 +2100,6 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = nvALT;
-				RUN_CLANG_STATIC_ANALYZER = YES;
 				SDKROOT = macosx;
 				STRIP_INSTALLED_PRODUCT = NO;
 				VERSION_INFO_BUILDER = ElasticThreads;
@@ -2101,7 +2113,6 @@
 				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN_OBJC_IMPLICIT_ATOMIC_PROPERTIES = YES;
-				CLANG_WARN_OBJC_RECEIVER_WEAK = YES;
 				DEAD_CODE_STRIPPING = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -2136,7 +2147,6 @@
 				INFOPLIST_FILE = Info.plist;
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				PRODUCT_NAME = nvALT;
-				RUN_CLANG_STATIC_ANALYZER = YES;
 				SDKROOT = macosx;
 				VERSION_INFO_BUILDER = ElasticThreads;
 				WRAPPER_EXTENSION = app;
