@@ -21,6 +21,6 @@ enum {
 
 @interface NSError (Notation)
 
-+ (NSError *)ntn_errorWithCode:(NSInteger)code carbon:(BOOL)carbonOrNTN;
++ (NSError *)ntn_errorWithCode:(NSInteger)code;
 
 @end

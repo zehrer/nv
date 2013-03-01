@@ -12,7 +12,7 @@ NSString *const NTNErrorDomain = @"NTNErrorDomain";
 
 @implementation NSError (Notation)
 
-+ (NSError *)ntn_errorWithCode:(NSInteger)code carbon:(BOOL)carbonOrNTN {
++ (NSError *)ntn_errorWithCode:(NSInteger)code {
 	static NSDictionary *reasons = nil;
 	static dispatch_once_t onceToken;
 	dispatch_once(&onceToken, ^{
@@ -28,8 +28,7 @@ NSString *const NTNErrorDomain = @"NTNErrorDomain";
 		userInfo = @{NSLocalizedFailureReasonErrorKey: reason};
 	}
 
-	NSString *domain = carbonOrNTN ? NSOSStatusErrorDomain : NTNErrorDomain;
-	return [NSError errorWithDomain: domain code: code userInfo: userInfo];
+	return [NSError errorWithDomain: NTNErrorDomain code: code userInfo: userInfo];
 }
 
 @end

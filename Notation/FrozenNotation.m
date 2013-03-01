@@ -20,6 +20,7 @@
 #import "PassphraseRetriever.h"
 #import "NSData_transformations.h"
 #import "NotationPrefs.h"
+#import "NSError+Notation.h"
 
 @implementation FrozenNotation
 
@@ -98,17 +99,15 @@
 	return [NSKeyedArchiver archivedDataWithRootObject:frozenNotation];
 }
 
-- (NSMutableArray *)unpackedNotesWithPrefs:(NotationPrefs *)somePrefs returningError:(OSStatus *)err {
+- (NSMutableArray *)unpackedNotesWithPrefs:(NotationPrefs *)somePrefs error:(out NSError **)outError {
 
 	//decrypt notesData if necessary, then unarchive
-
-	*err = noErr;
 
 	@try {
 		if ([somePrefs doesEncryption]) {
 			if (![somePrefs decryptDataWithCurrentSettings:notesData]) {
 				NSLog(@"Error decrypting data!");
-				*err = kNoAuthErr;
+				if (outError) *outError = [NSError ntn_errorWithCode: NTNPermissionError];
 				return nil;
 			}
 		}
@@ -117,7 +116,7 @@
 		notesData = [oldNotesData uncompressedData];
 
 		if (!notesData) {
-			*err = kCompressionErr;
+			if (outError) *outError = [NSError ntn_errorWithCode: NTNCompressionError];
 			NSLog(@"Error decompressing data");
 			return nil;
 		}
@@ -125,7 +124,7 @@
 		allNotes = [unarchiver decodeObjectForKey:@"notes"];
 
 	} @catch (NSException *e) {
-		*err = kCoderErr;
+		if (outError) *outError = [NSError ntn_errorWithCode: NTNDeserializationError];
 		NSLog(@"(VERIFY) Error unarchiving notes from data (%@, %@)", [e name], [e reason]);
 		return nil;
 	}
@@ -133,13 +132,8 @@
 	return allNotes;
 }
 
-
-- (NSMutableArray *)unpackedNotesReturningError:(OSStatus *)err {
-
+- (NSMutableArray *)unpackedNotesWithError:(out NSError **)outError {
 	//decrypt notesData, grabbing password from from keychain or user as necessary, then unarchive
-
-	*err = noErr;
-
 	if (!allNotes) {
 
 		@try {
@@ -155,15 +149,15 @@
 
 					if (!result) {
 						//must have clicked cancel or equivalent
-						*err = kPassCanceledErr;
-						return (nil);
+						if (outError) *outError = [NSError ntn_errorWithCode: NTNPasswordEntryCanceledError];
+						return nil;
 					}
 					//if result is 1, passphrase should already be loaded
 				}
 				if (![prefs decryptDataWithCurrentSettings:notesData]) {
 					NSLog(@"Error decrypting data!");
-					*err = kNoAuthErr;
-					return (nil);
+					if (outError) *outError = [NSError ntn_errorWithCode: NTNPermissionError];
+					return nil;
 				}
 			}
 
@@ -171,7 +165,7 @@
 			notesData = [oldNotesData uncompressedData];
 
 			if (!notesData) {
-				*err = kCompressionErr;
+				if (outError) *outError = [NSError ntn_errorWithCode: NTNCompressionError];
 				NSLog(@"Error decompressing data");
 				return (nil);
 			}
@@ -185,7 +179,7 @@
 			if (keyedArchiveFailed)
 				allNotes = [NSUnarchiver unarchiveObjectWithData:notesData];
 		} @catch (NSException *e) {
-			*err = kCoderErr;
+			if (outError) *outError = [NSError ntn_errorWithCode: NTNDeserializationError];
 			NSLog(@"Error unarchiving notes from data (%@, %@)", [e name], [e reason]);
 			return (nil);
 		}

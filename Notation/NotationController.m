@@ -190,15 +190,15 @@
 }
 
 - (BOOL)_readAndInitializeSerializedNotesWithError:(out NSError **)outError {
-	NSError *nsErr = nil;
-	if (!(self.noteDatabaseURL = [self createFileWithNameIfNotPresentInNotesDirectory: NotesDatabaseFileName created: NULL error: &nsErr])) {
-		if (outError) *outError = nsErr;
+	NSError *error = nil;
+	if (!(self.noteDatabaseURL = [self createFileWithNameIfNotPresentInNotesDirectory: NotesDatabaseFileName created: NULL error: &error])) {
+		if (outError) *outError = error;
 		return NO;
 	}
 	
 	NSData *notesData = nil;
-	if (!(notesData = [NSData dataWithContentsOfURL: self.noteDatabaseURL options: NSDataReadingUncached | NSDataReadingMappedIfSafe error: &nsErr])) {
-		if (outError) *outError = nsErr;
+	if (!(notesData = [NSData dataWithContentsOfURL: self.noteDatabaseURL options: NSDataReadingUncached | NSDataReadingMappedIfSafe error: &error])) {
+		if (outError) *outError = error;
 		return NO;
 	}
 
@@ -226,12 +226,11 @@
 	syncSessionController = [[SyncSessionController alloc] initWithSyncDelegate:self notationPrefs:notationPrefs];
 
 	//frozennotation will work out passwords, keychains, decryption, etc...
-	OSStatus err = noErr;
-	if (!(allNotes = [frozenNotation unpackedNotesReturningError:&err])) {
+	if (!(allNotes = [frozenNotation unpackedNotesWithError: &error])) {
 		//notes could be nil because the user cancelled password authentication
 		//or because they were corrupted, or for some other reason
-		if (err != noErr) {
-			if (outError) *outError = [NSError errorWithDomain: NTNErrorDomain code: err userInfo: nil];
+		if (error) {
+			if (outError) *outError = error;
 			return NO;
 		}
 
@@ -432,15 +431,14 @@
 			}
 			@catch (NSException *e) {
 				NSLog(@"(VERIFY) Error unarchiving notes and preferences from data (%@, %@)", [e name], [e reason]);
-				if (outError) *outError = [NSError ntn_errorWithCode: NTNDeserializationError carbon: NO];
+				if (outError) *outError = [NSError ntn_errorWithCode: NTNDeserializationError];
 				return NO;
 			}
 
 			//unpack notes using the current NotationPrefs instance (not the just-unarchived one), with which we presumably just used to encrypt it
-			OSStatus err;
-			NSMutableArray *notesToVerify = [frozenNotation unpackedNotesWithPrefs:notationPrefs returningError:&err];
-			if (noErr != err) {
-				if (outError) *outError = [NSError ntn_errorWithCode: err carbon: YES];
+			NSMutableArray *notesToVerify = [frozenNotation unpackedNotesWithPrefs:notationPrefs error: &error];
+			if (!notesToVerify) {
+				if (outError) *outError = error;
 				return NO;
 			}
 
@@ -448,14 +446,14 @@
 			if (!notesToVerify || [notesToVerify count] != [allNotes count] || [[frozenNotation deletedNotes] count] != [deletedNotes count] ||
 				[[frozenNotation notationPrefs] notesStorageFormat] != [notationPrefs notesStorageFormat] ||
 				[[frozenNotation notationPrefs] hashIterationCount] != [notationPrefs hashIterationCount]) {
-				if (outError) *outError = [NSError ntn_errorWithCode: NTNItemVerificationError carbon: NO];
+				if (outError) *outError = [NSError ntn_errorWithCode: NTNItemVerificationError];
 				return NO;
 			}
 
 			__block BOOL result = YES;
 			[notesToVerify enumerateObjectsUsingBlock:^(NoteObject *note, NSUInteger idx, BOOL *stop) {
 				if (note.contentString.length != [[allNotes[idx] contentString] length]) {
-					if (outError) *outError = [NSError ntn_errorWithCode: NTNItemVerificationError carbon: NO];
+					if (outError) *outError = [NSError ntn_errorWithCode: NTNItemVerificationError];
 					result = NO;
 					*stop = YES;
 				}
