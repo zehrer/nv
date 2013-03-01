@@ -430,7 +430,7 @@ NSInteger compareUniqueNoteIDs(__unsafe_unretained id *a, __unsafe_unretained id
 	return self;
 }
 
-//only get the fsrefs until we absolutely need them
+//only get the URLs until we absolutely need them
 - (id)initWithCatalogEntry:(NoteCatalogEntry *)entry delegate:(id<NoteObjectDelegate,NTNFileManager>)aDelegate {
 	NSParameterAssert(aDelegate);
 
@@ -596,7 +596,7 @@ NSInteger compareUniqueNoteIDs(__unsafe_unretained id *a, __unsafe_unretained id
 - (void)setTitleString:(NSString *)aNewTitle {
 	if ([self _setTitleString:aNewTitle]) {
 		//do you really want to do this when the format is a single DB and the file on disk hasn't been removed?
-		//the filename could get out of sync if we lose the fsref and we could end up with a second file after note is rewritten
+		//the filename could get out of sync if we lose the URL and we could end up with a second file after note is rewritten
 
 		//solution: don't change the name in that case and allow its new name to be generated
 		//when the format is changed and the file rewritten?
@@ -1072,7 +1072,7 @@ NSInteger compareUniqueNoteIDs(__unsafe_unretained id *a, __unsafe_unretained id
 	// if this method is called anywhere else, then use [delegate
 	// refreshFileURLIfNecessary: self.noteFileURL withName:filename
 	// charsBuffer:chars]; instead, for now, it is not called in any situations
-	// where the fsref might accidentally point to a moved file
+	// where the URL might accidentally point to a moved file
 	NSError *error = nil;
 	do {
 		if (error || !self.noteFileURL) {

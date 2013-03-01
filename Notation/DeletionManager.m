@@ -98,7 +98,7 @@
 			[self _updatePanelForNotes];
 		}
 
-		//clear fsref to ensure that files are re-created if they are restored
+		//clear URL to ensure that files are re-created if they are restored
 		//if they are to be deleted, we don't care about them, anyway--they should already be gone
 		[aNote invalidateURL];
 	}

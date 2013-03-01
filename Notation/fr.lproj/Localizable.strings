@@ -561,7 +561,7 @@
 "Turn On Note Encryption..." = "Activer le chiffrement…";
 
 /* No comment provided by engineer. */
-"Unable to create an FSRef from the chosen directory." = "Impossible de créer un FSRef à partir du dossier choisi.";
+"Unable to create a URL from the chosen directory." = "Impossible de créer une URL à partir du dossier choisi.";
 
 /* No comment provided by engineer. */
 "Unable to create or access the Interim Note-Changes file. Is another copy of Notational Velocity currently running?" = "Impossible de créer ou d'accéder au fichier Interim Note-Changes. Une autre copie de Notational Velocity est-elle exécutée ?";

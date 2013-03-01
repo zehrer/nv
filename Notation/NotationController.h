@@ -84,7 +84,6 @@ typedef NS_OPTIONS(NSInteger, NVNoteRevealOptions) {
 	int lastLayoutStyleGenerated;
 	NSUInteger diskUUIDIndex;
 	NSUUID *_diskUUID;
-	FSRef noteDirectoryRef;
 	OSStatus lastWriteError;
 	NSError *_lastWriteNSError;
 

@@ -57,9 +57,8 @@
 			NSURL *URL = sheet.URL;
 			NSString *filename = URL.lastPathComponent;
 			BOOL overwriteNotes = NO;
-			FSRef directoryRef;
 
-			if (!URL || !CFURLGetFSRef((__bridge CFURLRef) URL, &directoryRef)) {
+			if (!URL || ![URL checkResourceIsReachableAndReturnError: NULL]) {
 				NSRunAlertPanel([NSString stringWithFormat:NSLocalizedString(@"The notes couldn't be exported because the directory \"%@\" couldn't be accessed.", nil),
 														   URL.URLByDeletingLastPathComponent.path.stringByAbbreviatingWithTildeInPath], @"", NSLocalizedString(@"OK", nil), nil, nil);
 				return;
