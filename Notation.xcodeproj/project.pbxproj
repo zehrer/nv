@@ -180,6 +180,7 @@
 		6C25173416B2E8DA0088B37E /* NSError+Notation.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C25173316B2E8DA0088B37E /* NSError+Notation.m */; };
 		6C25173716B2F2E50088B37E /* NSString+UTType.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C25173616B2F2E50088B37E /* NSString+UTType.m */; };
 		6C25173A16B2F6EA0088B37E /* NoteCatalogEntry.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C25173916B2F6EA0088B37E /* NoteCatalogEntry.m */; };
+		6C26EC3C16E44BB800B717EB /* NTNEditorView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C26EC3B16E44BB800B717EB /* NTNEditorView.m */; };
 		6C32732316DE8BE000EFE126 /* NTNNotesListTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C32732216DE8BE000EFE126 /* NTNNotesListTableView.m */; };
 		6C3E591D16B5B3BE002E7E7A /* NSData+Notation.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C3E591C16B5B3BD002E7E7A /* NSData+Notation.m */; };
 		6C5AE12316E06FC000EAA681 /* NTNEditorStatusView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C5AE12216E06FBF00EAA681 /* NTNEditorStatusView.m */; };
@@ -576,6 +577,8 @@
 		6C25173616B2F2E50088B37E /* NSString+UTType.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSString+UTType.m"; path = "Notation/NSString+UTType.m"; sourceTree = "<group>"; };
 		6C25173816B2F6EA0088B37E /* NoteCatalogEntry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NoteCatalogEntry.h; path = Notation/NoteCatalogEntry.h; sourceTree = "<group>"; };
 		6C25173916B2F6EA0088B37E /* NoteCatalogEntry.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = NoteCatalogEntry.m; path = Notation/NoteCatalogEntry.m; sourceTree = "<group>"; };
+		6C26EC3A16E44BB800B717EB /* NTNEditorView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NTNEditorView.h; sourceTree = "<group>"; };
+		6C26EC3B16E44BB800B717EB /* NTNEditorView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NTNEditorView.m; sourceTree = "<group>"; };
 		6C32732116DE8BE000EFE126 /* NTNNotesListTableView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NTNNotesListTableView.h; sourceTree = "<group>"; };
 		6C32732216DE8BE000EFE126 /* NTNNotesListTableView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NTNNotesListTableView.m; sourceTree = "<group>"; };
 		6C3E591B16B5B3BD002E7E7A /* NSData+Notation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSData+Notation.h"; path = "Notation/NSData+Notation.h"; sourceTree = "<group>"; };
@@ -1225,6 +1228,8 @@
 				6C32732216DE8BE000EFE126 /* NTNNotesListTableView.m */,
 				6C5AE12116E06FBF00EAA681 /* NTNEditorStatusView.h */,
 				6C5AE12216E06FBF00EAA681 /* NTNEditorStatusView.m */,
+				6C26EC3A16E44BB800B717EB /* NTNEditorView.h */,
+				6C26EC3B16E44BB800B717EB /* NTNEditorView.m */,
 				6CC111DC16D6D7960080B084 /* NTNSplitView */,
 			);
 			name = "New UI";
@@ -1595,6 +1600,7 @@
 				6C6520B516D9672A00686C35 /* NTNDualTextField.m in Sources */,
 				6C32732316DE8BE000EFE126 /* NTNNotesListTableView.m in Sources */,
 				6C5AE12316E06FC000EAA681 /* NTNEditorStatusView.m in Sources */,
+				6C26EC3C16E44BB800B717EB /* NTNEditorView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

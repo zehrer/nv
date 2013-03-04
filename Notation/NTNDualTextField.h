@@ -12,7 +12,8 @@
 
 @end
 
-
 @interface NTNDualTextField : NSSearchField
+
+@property (nonatomic, strong) IBOutlet NSTableView *notesListTableView;
 
 @end

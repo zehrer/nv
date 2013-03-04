@@ -6,8 +6,12 @@
 //  Copyright (c) 2013 elasticthreads. All rights reserved.
 //
 
-#import <Cocoa/Cocoa.h>
+@class NTNEditorView;
+@class NTNDualTextField;
 
 @interface NTNNotesListTableView : NSTableView
+
+@property (nonatomic, unsafe_unretained) IBOutlet NTNEditorView *editorView;
+@property (nonatomic, weak) IBOutlet NTNDualTextField *dualField;
 
 @end
