@@ -1,7 +1,7 @@
 ALWAYS_SEARCH_USER_PATHS = YES
-OTHER_LDFLAGS = -ObjC -framework AppKit -framework Carbon
 HEADER_SEARCH_PATHS = ${PODS_HEADERS_SEARCH_PATHS}
-PODS_ROOT = ${SRCROOT}/Pods
+OTHER_LDFLAGS = -ObjC -framework AppKit -framework Carbon
 PODS_BUILD_HEADERS_SEARCH_PATHS = "${PODS_ROOT}/BuildHeaders" "${PODS_ROOT}/BuildHeaders/MASShortcut" "${PODS_ROOT}/BuildHeaders/Rebel" "${PODS_ROOT}/BuildHeaders/libextobjc"
-PODS_PUBLIC_HEADERS_SEARCH_PATHS = "${PODS_ROOT}/Headers" "${PODS_ROOT}/Headers/MASShortcut" "${PODS_ROOT}/Headers/Rebel" "${PODS_ROOT}/Headers/libextobjc"
 PODS_HEADERS_SEARCH_PATHS = ${PODS_PUBLIC_HEADERS_SEARCH_PATHS}
+PODS_PUBLIC_HEADERS_SEARCH_PATHS = "${PODS_ROOT}/Headers" "${PODS_ROOT}/Headers/MASShortcut" "${PODS_ROOT}/Headers/Rebel" "${PODS_ROOT}/Headers/libextobjc"
+PODS_ROOT = ${SRCROOT}/Pods

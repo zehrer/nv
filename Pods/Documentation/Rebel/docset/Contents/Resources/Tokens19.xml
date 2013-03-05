@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Tokens version="1.0">
+	<File path="Categories/NSView+RBLAnimationAdditions.html">
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/cat/NSView(RBLAnimationAdditions)</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>NSView+RBLAnimationAdditions.h</DeclaredIn>
+			
+			<NodeRef refid="19"/>
+		</Token>
+		
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/intfm/NSView(RBLAnimationAdditions)/rbl_animate:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>NSView+RBLAnimationAdditions.h</DeclaredIn>			
+			
+			<Declaration>+ (void)rbl_animate:(void ( ^ ) ( void ))animations</Declaration>
+			
+			
+			<Anchor>//api/name/rbl_animate:</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/intfm/NSView(RBLAnimationAdditions)/rbl_animate:completion:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>NSView+RBLAnimationAdditions.h</DeclaredIn>			
+			
+			<Declaration>+ (void)rbl_animate:(void ( ^ ) ( void ))animations completion:(void ( ^ ) ( void ))completion</Declaration>
+			
+			
+			<Anchor>//api/name/rbl_animate:completion:</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/intfm/NSView(RBLAnimationAdditions)/rbl_animateWithDuration:animations:completion:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>NSView+RBLAnimationAdditions.h</DeclaredIn>			
+			
+			<Declaration>+ (void)rbl_animateWithDuration:(NSTimeInterval)duration animations:(void ( ^ ) ( void ))animations completion:(void ( ^ ) ( void ))completion</Declaration>
+			
+			
+			<Anchor>//api/name/rbl_animateWithDuration:animations:completion:</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/intfm/NSView(RBLAnimationAdditions)/rbl_isInAnimationContext</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>NSView+RBLAnimationAdditions.h</DeclaredIn>			
+			
+			<Declaration>+ (BOOL)rbl_isInAnimationContext</Declaration>
+			
+			
+			<Anchor>//api/name/rbl_isInAnimationContext</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/intfm/NSView(RBLAnimationAdditions)/rbl_animator</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>NSView+RBLAnimationAdditions.h</DeclaredIn>			
+			
+			<Declaration>- (instancetype)rbl_animator</Declaration>
+			
+			
+			<Anchor>//api/name/rbl_animator</Anchor>
+		</Token>
+		
+	</File>
+</Tokens>

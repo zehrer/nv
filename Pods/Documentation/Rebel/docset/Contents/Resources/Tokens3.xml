@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Tokens version="1.0">
+	<File path="Classes/RBLPopoverBackgroundView.html">
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/cl/RBLPopoverBackgroundView</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>
+			
+			<NodeRef refid="3"/>
+		</Token>
+		
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/clm/RBLPopoverBackgroundView/sizeForBackgroundViewWithContentSize:popoverEdge:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>			
+			
+			<Declaration>+ (CGSize)sizeForBackgroundViewWithContentSize:(CGSize)contentSize popoverEdge:(CGRectEdge)popoverEdge</Declaration>
+			
+			
+			<Anchor>//api/name/sizeForBackgroundViewWithContentSize:popoverEdge:</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/clm/RBLPopoverBackgroundView/contentViewFrameForBackgroundFrame:popoverEdge:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>			
+			
+			<Declaration>+ (CGRect)contentViewFrameForBackgroundFrame:(CGRect)frame popoverEdge:(CGRectEdge)popoverEdge</Declaration>
+			
+			
+			<Anchor>//api/name/contentViewFrameForBackgroundFrame:popoverEdge:</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/RBLPopoverBackgroundView/initWithFrame:popoverEdge:originScreenRect:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>			
+			
+			<Declaration>- (instancetype)initWithFrame:(CGRect)frame popoverEdge:(CGRectEdge)popoverEdge originScreenRect:(CGRect)originScreenRect</Declaration>
+			
+			
+			<Anchor>//api/name/initWithFrame:popoverEdge:originScreenRect:</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/RBLPopoverBackgroundView/newPopoverPathForEdge:inFrame:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>			
+			
+			<Declaration>- (CGPathRef)newPopoverPathForEdge:(CGRectEdge)popoverEdge inFrame:(CGRect)frame</Declaration>
+			
+			
+			<Anchor>//api/name/newPopoverPathForEdge:inFrame:</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/RBLPopoverBackgroundView/setPopoverEdge:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic) CGRectEdge popoverEdge</Declaration>
+			
+			
+			<Anchor>//api/name/popoverEdge</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/RBLPopoverBackgroundView/popoverEdge</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic) CGRectEdge popoverEdge</Declaration>
+			
+			
+			<Anchor>//api/name/popoverEdge</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/RBLPopoverBackgroundView/setFillColor:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, strong) NSColor *fillColor</Declaration>
+			
+			
+			<Anchor>//api/name/fillColor</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/RBLPopoverBackgroundView/fillColor</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, strong) NSColor *fillColor</Declaration>
+			
+			
+			<Anchor>//api/name/fillColor</Anchor>
+		</Token>
+		
+	</File>
+</Tokens>

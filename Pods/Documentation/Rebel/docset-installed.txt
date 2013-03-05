@@ -1,0 +1,4 @@
+Documentation set was installed to Xcode!
+
+Path: /Users/zwaldowski/Library/Developer/Shared/Documentation/DocSets/org.cocoapods.Rebel-0.2.docset
+Time: 2013-03-05 00:40:32 +0000

@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Tokens version="1.0">
+	<File path="Classes/RBLView.html">
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/cl/RBLView</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLView.h</DeclaredIn>
+			
+			<NodeRef refid="8"/>
+		</Token>
+		
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/RBLView/setBackgroundColor:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLView.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, strong) NSColor *backgroundColor</Declaration>
+			
+			
+			<Anchor>//api/name/backgroundColor</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/RBLView/backgroundColor</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLView.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, strong) NSColor *backgroundColor</Declaration>
+			
+			
+			<Anchor>//api/name/backgroundColor</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/RBLView/setClipsToBounds:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLView.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, assign) BOOL clipsToBounds</Declaration>
+			
+			
+			<Anchor>//api/name/clipsToBounds</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/RBLView/clipsToBounds</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLView.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, assign) BOOL clipsToBounds</Declaration>
+			
+			
+			<Anchor>//api/name/clipsToBounds</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/RBLView/setCornerRadius:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLView.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, assign) CGFloat cornerRadius</Declaration>
+			
+			
+			<Anchor>//api/name/cornerRadius</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/RBLView/cornerRadius</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLView.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, assign) CGFloat cornerRadius</Declaration>
+			
+			
+			<Anchor>//api/name/cornerRadius</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/RBLView/setOpaque:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLView.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, assign, getter=isOpaque) BOOL opaque</Declaration>
+			
+			
+			<Anchor>//api/name/opaque</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/RBLView/opaque</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLView.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, assign, getter=isOpaque) BOOL opaque</Declaration>
+			
+			
+			<Anchor>//api/name/opaque</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/RBLView/setFlipped:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLView.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, assign, getter=isFlipped) BOOL flipped</Declaration>
+			
+			
+			<Anchor>//api/name/flipped</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/RBLView/flipped</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLView.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, assign, getter=isFlipped) BOOL flipped</Declaration>
+			
+			
+			<Anchor>//api/name/flipped</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/RBLView/setClearsContextBeforeDrawing:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLView.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, assign) BOOL clearsContextBeforeDrawing</Declaration>
+			
+			
+			<Anchor>//api/name/clearsContextBeforeDrawing</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/RBLView/clearsContextBeforeDrawing</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLView.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, assign) BOOL clearsContextBeforeDrawing</Declaration>
+			
+			
+			<Anchor>//api/name/clearsContextBeforeDrawing</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/RBLView/setLayerContentsRedrawPolicy:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLView.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, assign) NSViewLayerContentsRedrawPolicy layerContentsRedrawPolicy</Declaration>
+			
+			
+			<Anchor>//api/name/layerContentsRedrawPolicy</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/RBLView/layerContentsRedrawPolicy</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLView.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, assign) NSViewLayerContentsRedrawPolicy layerContentsRedrawPolicy</Declaration>
+			
+			
+			<Anchor>//api/name/layerContentsRedrawPolicy</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/RBLView/setContents:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLView.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, strong) NSImage *contents</Declaration>
+			
+			
+			<Anchor>//api/name/contents</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/RBLView/contents</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLView.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, strong) NSImage *contents</Declaration>
+			
+			
+			<Anchor>//api/name/contents</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/RBLView/drawRect:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLView.h</DeclaredIn>			
+			
+			<Declaration>- (void)drawRect:(NSRect)rect</Declaration>
+			
+			
+			<Anchor>//api/name/drawRect:</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/RBLView/layout</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLView.h</DeclaredIn>			
+			
+			<Declaration>- (void)layout</Declaration>
+			
+			
+			<Anchor>//api/name/layout</Anchor>
+		</Token>
+		
+	</File>
+</Tokens>

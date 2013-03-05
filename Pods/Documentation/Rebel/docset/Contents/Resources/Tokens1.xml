@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Tokens version="1.0">
+	<File path="Classes/RBLClipView.html">
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/cl/RBLClipView</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLClipView.h</DeclaredIn>
+			
+			<NodeRef refid="1"/>
+		</Token>
+		
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/RBLClipView/setLayer:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLClipView.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, strong) CAScrollLayer *layer</Declaration>
+			
+			
+			<Anchor>//api/name/layer</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/RBLClipView/layer</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLClipView.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, strong) CAScrollLayer *layer</Declaration>
+			
+			
+			<Anchor>//api/name/layer</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/RBLClipView/setOpaque:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLClipView.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, getter=isOpaque) BOOL opaque</Declaration>
+			
+			
+			<Anchor>//api/name/opaque</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/RBLClipView/opaque</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLClipView.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, getter=isOpaque) BOOL opaque</Declaration>
+			
+			
+			<Anchor>//api/name/opaque</Anchor>
+		</Token>
+		
+	</File>
+</Tokens>

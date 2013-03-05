@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Tokens version="1.0">
+	<File path="Categories/NSView+NSView_RBLViewControllerAdditions.html">
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/cat/NSView(NSView_RBLViewControllerAdditions)</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>NSView+RBLViewControllerAdditions.h</DeclaredIn>
+			
+			<NodeRef refid="18"/>
+		</Token>
+		
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/intfm/NSView(NSView_RBLViewControllerAdditions)/setRbl_viewController:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>NSView+RBLViewControllerAdditions.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, assign) IBOutlet NSViewController *rbl_viewController</Declaration>
+			
+			
+			<Anchor>//api/name/rbl_viewController</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/intfp/NSView(NSView_RBLViewControllerAdditions)/rbl_viewController</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>NSView+RBLViewControllerAdditions.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, assign) IBOutlet NSViewController *rbl_viewController</Declaration>
+			
+			
+			<Anchor>//api/name/rbl_viewController</Anchor>
+		</Token>
+		
+	</File>
+</Tokens>

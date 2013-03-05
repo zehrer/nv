@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DocSetNodes version="1.0">
+    <TOC>
+        <Node type="folder">
+            <Name>Rebel 0.2</Name>
+            <Path>index.html</Path>
+			<Subnodes>
+                
+				
+				<Node type="folder">
+					<Name>Classes</Name>
+					<Path>index.html</Path>
+					<Subnodes>
+						<NodeRef refid="1"/>
+						<NodeRef refid="2"/>
+						<NodeRef refid="3"/>
+						<NodeRef refid="4"/>
+						<NodeRef refid="5"/>
+						<NodeRef refid="6"/>
+						<NodeRef refid="7"/>
+						<NodeRef refid="8"/>
+						<NodeRef refid="9"/>
+						
+					</Subnodes>
+				</Node>
+				
+				
+				<Node type="folder">
+					<Name>Categories</Name>
+					<Path>index.html</Path>
+					<Subnodes>
+						<NodeRef refid="10"/>
+						<NodeRef refid="11"/>
+						<NodeRef refid="12"/>
+						<NodeRef refid="13"/>
+						<NodeRef refid="14"/>
+						<NodeRef refid="15"/>
+						<NodeRef refid="16"/>
+						<NodeRef refid="17"/>
+						<NodeRef refid="18"/>
+						<NodeRef refid="19"/>
+						
+					</Subnodes>
+				</Node>
+				
+				
+			</Subnodes>
+        </Node>
+    </TOC>
+	<Library>
+		
+		<Node id="1">
+			<Name>RBLClipView</Name>
+			<Path>Classes/RBLClipView.html</Path>
+		</Node>
+		<Node id="2">
+			<Name>RBLPopover</Name>
+			<Path>Classes/RBLPopover.html</Path>
+		</Node>
+		<Node id="3">
+			<Name>RBLPopoverBackgroundView</Name>
+			<Path>Classes/RBLPopoverBackgroundView.html</Path>
+		</Node>
+		<Node id="4">
+			<Name>RBLResizableImage</Name>
+			<Path>Classes/RBLResizableImage.html</Path>
+		</Node>
+		<Node id="5">
+			<Name>RBLScrollView</Name>
+			<Path>Classes/RBLScrollView.html</Path>
+		</Node>
+		<Node id="6">
+			<Name>RBLShadowedTextFieldCell</Name>
+			<Path>Classes/RBLShadowedTextFieldCell.html</Path>
+		</Node>
+		<Node id="7">
+			<Name>RBLTableCellView</Name>
+			<Path>Classes/RBLTableCellView.html</Path>
+		</Node>
+		<Node id="8">
+			<Name>RBLView</Name>
+			<Path>Classes/RBLView.html</Path>
+		</Node>
+		<Node id="9">
+			<Name>RBLViewController</Name>
+			<Path>Classes/RBLViewController.html</Path>
+		</Node>
+		
+		<Node id="10">
+			<Name>CAAnimation(RBLBlockAdditions)</Name>
+			<Path>Categories/CAAnimation+RBLBlockAdditions.html</Path>
+		</Node>
+		<Node id="11">
+			<Name>NSApplication(RBLBlockAdditions)</Name>
+			<Path>Categories/NSApplication+RBLBlockAdditions.html</Path>
+		</Node>
+		<Node id="12">
+			<Name>NSAttributedString(RBLHTMLAdditions)</Name>
+			<Path>Categories/NSAttributedString+RBLHTMLAdditions.html</Path>
+		</Node>
+		<Node id="13">
+			<Name>NSColor(RBLCGColorAdditions)</Name>
+			<Path>Categories/NSColor+RBLCGColorAdditions.html</Path>
+		</Node>
+		<Node id="14">
+			<Name>NSFont(RBLFallbackAdditions)</Name>
+			<Path>Categories/NSFont+RBLFallbackAdditions.html</Path>
+		</Node>
+		<Node id="15">
+			<Name>NSImage(RBLResizableImageAdditions)</Name>
+			<Path>Categories/NSImage+RBLResizableImageAdditions.html</Path>
+		</Node>
+		<Node id="16">
+			<Name>NSObject(NSObjectSizzlingAdditions)</Name>
+			<Path>Categories/NSObject+NSObjectSizzlingAdditions.html</Path>
+		</Node>
+		<Node id="17">
+			<Name>NSTextView(RBLAntialiasingAdditions)</Name>
+			<Path>Categories/NSTextView+RBLAntialiasingAdditions.html</Path>
+		</Node>
+		<Node id="18">
+			<Name>NSView(NSView_RBLViewControllerAdditions)</Name>
+			<Path>Categories/NSView+NSView_RBLViewControllerAdditions.html</Path>
+		</Node>
+		<Node id="19">
+			<Name>NSView(RBLAnimationAdditions)</Name>
+			<Path>Categories/NSView+RBLAnimationAdditions.html</Path>
+		</Node>
+		
+		
+	</Library>
+</DocSetNodes>

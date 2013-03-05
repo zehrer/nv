@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Tokens version="1.0">
+	<File path="Categories/NSColor+RBLCGColorAdditions.html">
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/cat/NSColor(RBLCGColorAdditions)</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>NSColor+RBLCGColorAdditions.h</DeclaredIn>
+			
+			<NodeRef refid="13"/>
+		</Token>
+		
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/intfm/NSColor(RBLCGColorAdditions)/setRbl_CGColor:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>NSColor+RBLCGColorAdditions.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, readonly) CGColorRef rbl_CGColor</Declaration>
+			
+			
+			<Anchor>//api/name/rbl_CGColor</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/intfp/NSColor(RBLCGColorAdditions)/rbl_CGColor</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>NSColor+RBLCGColorAdditions.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, readonly) CGColorRef rbl_CGColor</Declaration>
+			
+			
+			<Anchor>//api/name/rbl_CGColor</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/intfm/NSColor(RBLCGColorAdditions)/rbl_colorWithCGColor:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>NSColor+RBLCGColorAdditions.h</DeclaredIn>			
+			
+			<Declaration>+ (NSColor *)rbl_colorWithCGColor:(CGColorRef)color</Declaration>
+			
+			
+			<Anchor>//api/name/rbl_colorWithCGColor:</Anchor>
+		</Token>
+		
+	</File>
+</Tokens>

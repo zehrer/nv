@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Tokens version="1.0">
+	<File path="Classes/RBLPopover.html">
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/cl/RBLPopover</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>
+			
+			<NodeRef refid="2"/>
+		</Token>
+		
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/RBLPopover/setContentViewController:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, strong) NSViewController *contentViewController</Declaration>
+			
+			
+			<Anchor>//api/name/contentViewController</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/RBLPopover/contentViewController</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, strong) NSViewController *contentViewController</Declaration>
+			
+			
+			<Anchor>//api/name/contentViewController</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/RBLPopover/setBackgroundViewClass:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, strong) Class backgroundViewClass</Declaration>
+			
+			
+			<Anchor>//api/name/backgroundViewClass</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/RBLPopover/backgroundViewClass</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, strong) Class backgroundViewClass</Declaration>
+			
+			
+			<Anchor>//api/name/backgroundViewClass</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/RBLPopover/setBackgroundView:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, readonly, strong) RBLPopoverBackgroundView *backgroundView</Declaration>
+			
+			
+			<Anchor>//api/name/backgroundView</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/RBLPopover/backgroundView</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, readonly, strong) RBLPopoverBackgroundView *backgroundView</Declaration>
+			
+			
+			<Anchor>//api/name/backgroundView</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/RBLPopover/setContentSize:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic) CGSize contentSize</Declaration>
+			
+			
+			<Anchor>//api/name/contentSize</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/RBLPopover/contentSize</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic) CGSize contentSize</Declaration>
+			
+			
+			<Anchor>//api/name/contentSize</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/RBLPopover/setAnimates:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic) BOOL animates</Declaration>
+			
+			
+			<Anchor>//api/name/animates</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/RBLPopover/animates</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic) BOOL animates</Declaration>
+			
+			
+			<Anchor>//api/name/animates</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/RBLPopover/setBehavior:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic) RBLPopoverViewControllerBehavior behavior</Declaration>
+			
+			
+			<Anchor>//api/name/behavior</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/RBLPopover/behavior</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic) RBLPopoverViewControllerBehavior behavior</Declaration>
+			
+			
+			<Anchor>//api/name/behavior</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/RBLPopover/setShown:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, readonly, getter=isShown) BOOL shown</Declaration>
+			
+			
+			<Anchor>//api/name/shown</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/RBLPopover/shown</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, readonly, getter=isShown) BOOL shown</Declaration>
+			
+			
+			<Anchor>//api/name/shown</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/RBLPopover/setWillCloseBlock:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, copy) RBLPopoverDelegateBlock willCloseBlock</Declaration>
+			
+			
+			<Anchor>//api/name/willCloseBlock</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/RBLPopover/willCloseBlock</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, copy) RBLPopoverDelegateBlock willCloseBlock</Declaration>
+			
+			
+			<Anchor>//api/name/willCloseBlock</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/RBLPopover/setDidCloseBlock:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, copy) RBLPopoverDelegateBlock didCloseBlock</Declaration>
+			
+			
+			<Anchor>//api/name/didCloseBlock</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/RBLPopover/didCloseBlock</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, copy) RBLPopoverDelegateBlock didCloseBlock</Declaration>
+			
+			
+			<Anchor>//api/name/didCloseBlock</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/RBLPopover/setWillShowBlock:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, copy) RBLPopoverDelegateBlock willShowBlock</Declaration>
+			
+			
+			<Anchor>//api/name/willShowBlock</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/RBLPopover/willShowBlock</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, copy) RBLPopoverDelegateBlock willShowBlock</Declaration>
+			
+			
+			<Anchor>//api/name/willShowBlock</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/RBLPopover/setDidShowBlock:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, copy) RBLPopoverDelegateBlock didShowBlock</Declaration>
+			
+			
+			<Anchor>//api/name/didShowBlock</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/RBLPopover/didShowBlock</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, copy) RBLPopoverDelegateBlock didShowBlock</Declaration>
+			
+			
+			<Anchor>//api/name/didShowBlock</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/RBLPopover/setFadeDuration:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, assign) NSTimeInterval fadeDuration</Declaration>
+			
+			
+			<Anchor>//api/name/fadeDuration</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instp/RBLPopover/fadeDuration</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>			
+			
+			<Declaration>@property (nonatomic, assign) NSTimeInterval fadeDuration</Declaration>
+			
+			
+			<Anchor>//api/name/fadeDuration</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/RBLPopover/initWithContentViewController:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>			
+			
+			<Declaration>- (instancetype)initWithContentViewController:(NSViewController *)viewController</Declaration>
+			
+			
+			<Anchor>//api/name/initWithContentViewController:</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/RBLPopover/showRelativeToRect:ofView:preferredEdge:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>			
+			
+			<Declaration>- (void)showRelativeToRect:(CGRect)positioningRect ofView:(NSView *)positioningView preferredEdge:(CGRectEdge)preferredEdge</Declaration>
+			
+			
+			<Anchor>//api/name/showRelativeToRect:ofView:preferredEdge:</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/RBLPopover/close</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>			
+			
+			<Declaration>- (void)close</Declaration>
+			
+			
+			<Anchor>//api/name/close</Anchor>
+		</Token>
+		
+		<Token>
+			<TokenIdentifier>//apple_ref/occ/instm/RBLPopover/performClose:</TokenIdentifier>
+			<Abstract type="html"></Abstract>
+			<DeclaredIn>RBLPopover.h</DeclaredIn>			
+			
+			<Declaration>- (IBAction)performClose:(id)sender</Declaration>
+			
+			
+			<Anchor>//api/name/performClose:</Anchor>
+		</Token>
+		
+	</File>
+</Tokens>

@@ -3,8 +3,11 @@ PODS:
 - MASShortcut (1.1)
 - Rebel (0.2):
   - libextobjc/EXTKeyPathCoding
-- libextobjc/EXTKeyPathCoding (0.2.3)
-- libextobjc/EXTScope (0.2.3)
+- libextobjc/EXTKeyPathCoding (0.2.5):
+  - libextobjc/RuntimeExtensions
+- libextobjc/EXTScope (0.2.5):
+  - libextobjc/RuntimeExtensions
+- libextobjc/RuntimeExtensions (0.2.5)
 
 DEPENDENCIES:
 - MASShortcut
@@ -19,7 +22,8 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   MASShortcut: e9da47253933a4784813d5feb5f5bc5f7da721ca
   Rebel: 7dd395631ad52e763fc84d3a34647330e7bf15a6
-  libextobjc/EXTKeyPathCoding: 7dcd66faf065d3b7fcb5f85a1646efaed28bcadf
-  libextobjc/EXTScope: 7dcd66faf065d3b7fcb5f85a1646efaed28bcadf
+  libextobjc/EXTKeyPathCoding: 2cbc74caf8bdc74a86fdf24673f773c83424ea98
+  libextobjc/EXTScope: 2cbc74caf8bdc74a86fdf24673f773c83424ea98
+  libextobjc/RuntimeExtensions: 2cbc74caf8bdc74a86fdf24673f773c83424ea98
 
-COCOAPODS: 0.16.0
+COCOAPODS: 0.16.4
