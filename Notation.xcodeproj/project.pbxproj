@@ -174,6 +174,8 @@
 		5CF96E04132EA29D0079B3FD /* CarbonErrorStrings.plist in Resources */ = {isa = PBXBuildFile; fileRef = 212850860B56E549005F6E34 /* CarbonErrorStrings.plist */; };
 		5CF96E0B132EA29D0079B3FD /* Preferences.xib in Resources */ = {isa = PBXBuildFile; fileRef = 219195E409D3A20F00586B15 /* Preferences.xib */; };
 		65B51C71EE5044B8871EBAED /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F92A68021D124CE3B4EEC88F /* libPods.a */; };
+		6C08896316E6E083000228DE /* readability.pyc in Resources */ = {isa = PBXBuildFile; fileRef = 6C08896216E6E083000228DE /* readability.pyc */; };
+		6C08896516E6E0C1000228DE /* html2text.pyc in Resources */ = {isa = PBXBuildFile; fileRef = 6C08896416E6E0C1000228DE /* html2text.pyc */; };
 		6C0E12CA16CF36940073B77B /* statusError@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6C0E12C716CF36940073B77B /* statusError@2x.png */; };
 		6C0E12CB16CF36940073B77B /* statusInProgress@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6C0E12C816CF36940073B77B /* statusInProgress@2x.png */; };
 		6C0E12CC16CF36940073B77B /* statusValidated@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6C0E12C916CF36940073B77B /* statusValidated@2x.png */; };
@@ -568,6 +570,8 @@
 		5CFF810713A52EE2008A93A3 /* it */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = it; path = it.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		5CFF810813A53625008A93A3 /* it */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = it; path = it.lproj/TagEditingManager.xib; sourceTree = "<group>"; };
 		5CFF810913A536F7008A93A3 /* it */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = it; path = it.lproj/Preferences.xib; sourceTree = "<group>"; };
+		6C08896216E6E083000228DE /* readability.pyc */ = {isa = PBXFileReference; lastKnownFileType = file; path = readability.pyc; sourceTree = "<group>"; };
+		6C08896416E6E0C1000228DE /* html2text.pyc */ = {isa = PBXFileReference; lastKnownFileType = file; path = html2text.pyc; sourceTree = "<group>"; };
 		6C0E12C716CF36940073B77B /* statusError@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "statusError@2x.png"; sourceTree = "<group>"; };
 		6C0E12C816CF36940073B77B /* statusInProgress@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "statusInProgress@2x.png"; sourceTree = "<group>"; };
 		6C0E12C916CF36940073B77B /* statusValidated@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "statusValidated@2x.png"; sourceTree = "<group>"; };
@@ -1185,9 +1189,11 @@
 				5CA10FFC131C2A7600DE1F91 /* BeautifulSoup.py */,
 				5CA10FFD131C2A7600DE1F91 /* BeautifulSoup.pyc */,
 				5CA10FFE131C2A7600DE1F91 /* html2text.py */,
+				6C08896416E6E0C1000228DE /* html2text.pyc */,
 				5CA10FFF131C2A7600DE1F91 /* page_parser.py */,
 				5CA11000131C2A7600DE1F91 /* page_parser.pyc */,
 				5CA11001131C2A7600DE1F91 /* readability.py */,
+				6C08896216E6E083000228DE /* readability.pyc */,
 				5CA11002131C2A7600DE1F91 /* url_helpers.py */,
 				5CA11003131C2A7600DE1F91 /* url_helpers.pyc */,
 			);
@@ -1480,6 +1486,8 @@
 				6CB2757D16DDD56D00F5525A /* HUDIconSave@2x.png in Resources */,
 				6CB2757E16DDD56D00F5525A /* HUDIconShare.png in Resources */,
 				6CB2757F16DDD56D00F5525A /* HUDIconShare@2x.png in Resources */,
+				6C08896316E6E083000228DE /* readability.pyc in Resources */,
+				6C08896516E6E0C1000228DE /* html2text.pyc in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

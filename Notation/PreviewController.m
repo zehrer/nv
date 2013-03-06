@@ -325,7 +325,7 @@
 	[outputString replaceOccurrencesOfString:@"{%style%}" withString:cssString options:0 range:NSMakeRange(0, [outputString length])];
 
 	[[preview mainFrame] loadHTMLString:outputString baseURL:nil];
-	preview.window.title = noteTitle;
+	self.window.title = noteTitle;
 	[sourceView replaceCharactersInRange:NSMakeRange(0, sourceView.string.length) withString:processedString];
 	self.isPreviewOutdated = NO;
 }
