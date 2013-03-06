@@ -68,9 +68,7 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 		headerView = [[HeaderViewWithMenu alloc] init];
 		[headerView setTableView:self];
 		[headerView setFrame:[[self headerView] frame]];
-		//	cornerView = [[self cornerView] retain];
-		[self setCornerView:nil];
-		//cornerView =[[[NotesTableCornerView alloc] initWithFrame:[[self cornerView] bounds]] retain];
+		
 		NSArray *columnsToDisplay = [globalPrefs visibleTableColumns];
 		allColumns = [[NSMutableArray alloc] initWithCapacity:4];
 		allColsDict = [[NSMutableDictionary alloc] initWithCapacity:4];

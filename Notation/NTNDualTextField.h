@@ -16,4 +16,6 @@
 
 @property (nonatomic, strong) IBOutlet NSTableView *notesListTableView;
 
+@property (nonatomic, copy) NSString *snapbackText;
+
 @end

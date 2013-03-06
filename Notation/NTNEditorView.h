@@ -14,4 +14,12 @@
 @property (nonatomic, weak) IBOutlet NTNNotesListTableView *notesListTableView;
 @property (nonatomic, weak) IBOutlet NTNDualTextField *dualField;
 
+- (void)setAutomaticallySelectedRange:(NSRange)newRange;
+- (NSRange)getSelectedRangeWasAutomatic:(BOOL *)wasAutomatic;
+
+- (void)highlightRangesTemporarily:(CFArrayRef)ranges;
+- (NSRange)highlightTermsTemporarilyReturningFirstRange:(NSString *)typedString avoidHighlight:(BOOL)noHighlight;
+
+@property (nonatomic, readonly) BOOL didRenderFully;
+
 @end

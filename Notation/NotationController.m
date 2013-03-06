@@ -1563,4 +1563,8 @@
 	
 }
 
+- (NSMutableArray *)notesList {
+	return allNotes;
+}
+
 @end

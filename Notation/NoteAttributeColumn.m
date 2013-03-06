@@ -12,15 +12,6 @@
 
 #import "NoteAttributeColumn.h"
 
-/*
-@implementation NoteTableHeaderCell
-
-- (NSRect)drawingRectForBounds:(NSRect)theRect {
-	return NSInsetRect(theRect, 6.0f, 0.0);
-}
-
-@end
-*/
 @implementation NoteAttributeColumn
 
 - (id)initWithIdentifier:(id)anObject {

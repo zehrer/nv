@@ -407,6 +407,7 @@ void outletObjectAwoke(id sender) {
 		[notationController setSortColumn:[notesTableView noteAttributeColumnForIdentifier:[prefsController sortedTableColumnKey]]];
 		[notesTableView setDataSource:notationController];
 		[notesTableView setLabelsListSource:notationController];
+		self.viewController.notationController = notationController;
 		[notationController setDelegate:self];
 
 		//allow resolution of UUIDs to NoteObjects from saved searches

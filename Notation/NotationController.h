@@ -96,6 +96,7 @@ typedef NS_OPTIONS(NSInteger, NVNoteRevealOptions) {
 	NSURL *_noteDirectoryURL;
 }
 
+@property(nonatomic, strong, readonly) NSMutableArray *notesList;
 @property(nonatomic, strong) NSMutableArray *filteredNotesList;
 @property(nonatomic, strong) NSCountedSet *allLabels;
 

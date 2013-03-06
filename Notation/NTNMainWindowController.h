@@ -6,10 +6,14 @@
 //  Copyright (c) 2013 elasticthreads. All rights reserved.
 //
 
+extern NSString *const NTNTextFindContextDidChangeNotification;
+extern NSString *const NTNTextEditorDidChangeContentsNotification;
+
 @class NTNDualTextField;
 @class NTNSplitView;
 @class NTNEditorStatusView;
 @class NTNEditorView;
+@class NotationController;
 
 @interface NTNMainWindowController : NSWindowController
 
@@ -20,10 +24,14 @@
 
 @property (nonatomic, weak) IBOutlet RBLScrollView *notesListScrollView;
 @property (nonatomic, weak) IBOutlet NSTableView *notesListTableView;
+@property (nonatomic, strong) IBOutlet NSArrayController *notesListController;
+@property (nonatomic, weak) IBOutlet NTNEditorStatusView *notesListStatusView;
 
 @property (nonatomic, weak) IBOutlet RBLScrollView *editorScrollView;
 @property (nonatomic, unsafe_unretained) IBOutlet NTNEditorView *editorView;
 @property (nonatomic, weak) IBOutlet NTNEditorStatusView *editorStatusView;
+
+@property (nonatomic, strong) IBOutlet NotationController *notationController;
 
 - (IBAction)focusOnSearchField:(id)sender;
 
