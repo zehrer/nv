@@ -25,7 +25,7 @@ typedef struct _PerDiskInfo {
 	UInt32 diskIDIndex;
 
 	//catalog node ID of a file - UNUSED
-	UInt32 nodeID__unused;
+	UInt32 nodeID;
 
 	//the attribute modification time of a file
 	UTCDateTime attrTime;

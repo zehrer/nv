@@ -18,6 +18,7 @@
 
 
 #include "BufferUtils.h"
+#import "NSDate+Notation.h"
 
 char *replaceString(char *oldString, const char *newString) {
 	size_t newLen = strlen(newString) + 1;
@@ -49,6 +50,7 @@ void CopyPerDiskInfoGroupsToOrder(PerDiskInfo **flippedGroups, NSUInteger *exist
 			newGroups[i].attrTime.highSeconds = CFSwapInt16BigToHost(group.attrTime.highSeconds);
 			newGroups[i].attrTime.lowSeconds = CFSwapInt32BigToHost(group.attrTime.lowSeconds);
 			newGroups[i].attrTime.fraction = CFSwapInt16BigToHost(group.attrTime.fraction);
+			newGroups[i].nodeID = CFSwapInt32BigToHost(group.nodeID);
 			newGroups[i].diskIDIndex = CFSwapInt32BigToHost(group.diskIDIndex);
 		}
 	} else {
@@ -57,6 +59,7 @@ void CopyPerDiskInfoGroupsToOrder(PerDiskInfo **flippedGroups, NSUInteger *exist
 			newGroups[i].attrTime.highSeconds = CFSwapInt16HostToBig(group.attrTime.highSeconds);
 			newGroups[i].attrTime.lowSeconds = CFSwapInt32HostToBig(group.attrTime.lowSeconds);
 			newGroups[i].attrTime.fraction = CFSwapInt16HostToBig(group.attrTime.fraction);
+			newGroups[i].nodeID = CFSwapInt32HostToBig(group.nodeID);
 			newGroups[i].diskIDIndex = CFSwapInt32HostToBig(group.diskIDIndex);
 		}
 	}

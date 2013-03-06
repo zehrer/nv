@@ -42,16 +42,6 @@
 #import "NoteCatalogEntry.h"
 #import "NSError+Notation.h"
 
-#if __LP64__
-// Needed for compatability with data created by 32bit app
-typedef struct NSRange32 {
-	unsigned int location;
-	unsigned int length;
-} NSRange32;
-#else
-typedef NSRange NSRange32;
-#endif
-
 @interface NoteObject () {
 	NSMutableAttributedString *_mutableContentString;
 
@@ -78,7 +68,6 @@ typedef NSRange NSRange32;
 
 @property (nonatomic, copy, readwrite) NSString *dateCreatedString;
 @property (nonatomic, copy, readwrite) NSString *dateModifiedString;
-
 
 @end
 
@@ -129,18 +118,19 @@ typedef NSRange NSRange32;
 	if (!_attributesModificationDate) {
 		if (perDiskInfoGroupCount) {
 			id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
-			if (!localDelegate) return nil;
+			if (localDelegate) {
+				//init from delegate based on disk table index
+				NSUInteger i, tableIndex = [localDelegate diskUUIDIndex];
 
-			//init from delegate based on disk table index
-			NSUInteger i, tableIndex = [localDelegate diskUUIDIndex];
-
-			for (i = 0; i < perDiskInfoGroupCount; i++) {
-				//check if this date has actually been initialized; this entry could be here only because -setFileNoteID: was called
-				if (perDiskInfoGroups[i].diskIDIndex == tableIndex && !UTCDateTimeIsEmpty(perDiskInfoGroups[i].attrTime)) {
-					UTCDateTime time = perDiskInfoGroups[i].attrTime;
-					_attributesModificationDate = [NSDate dateWithUTCDateTime: &time];
-					break;
+				for (i = 0; i < perDiskInfoGroupCount; i++) {
+					//check if this date has actually been initialized; this entry could be here only because -setFileNoteID: was called
+					if (perDiskInfoGroups[i].diskIDIndex == tableIndex && !UTCDateTimeIsEmpty(perDiskInfoGroups[i].attrTime)) {
+						UTCDateTime time = perDiskInfoGroups[i].attrTime;
+						_attributesModificationDate = [NSDate dateWithUTCDateTime: &time];
+						break;
+					}
 				}
+
 			}
 		}
 
@@ -360,38 +350,41 @@ NSInteger compareUniqueNoteIDs(__unsafe_unretained id *a, __unsafe_unretained id
 }
 
 - (void)encodeWithCoder:(NSCoder *)coder {
+	// nvALT duplicates
+	[coder encodeDouble: self.modificationDate.timeIntervalSinceReferenceDate forKey: @"modifiedDate"];
+	[coder encodeDouble: self.creationDate.timeIntervalSinceReferenceDate forKey: @"createdDate"];
 
-	if ([coder allowsKeyedCoding]) {
+	[coder encodeObject: self.modificationDate forKey: VAR_STR(modificationDate)];
+	[coder encodeObject: self.creationDate forKey: VAR_STR(creationDate)];
+	[coder encodeInteger: self.selectedRange.location forKey:@"selectionRangeLocation"];
+	[coder encodeInteger: self.selectedRange.length forKey:@"selectionRangeLength"];
+	[coder encodeBool:contentsWere7Bit forKey:VAR_STR(contentsWere7Bit)];
 
-		[coder encodeObject: self.modificationDate forKey: VAR_STR(modificationDate)];
-		[coder encodeObject: self.creationDate forKey: VAR_STR(creationDate)];
-		[coder encodeInteger: self.selectedRange.location forKey:@"selectionRangeLocation"];
-		[coder encodeInteger: self.selectedRange.length forKey:@"selectionRangeLength"];
-		[coder encodeBool:contentsWere7Bit forKey:VAR_STR(contentsWere7Bit)];
+	[coder encodeInt32:logSequenceNumber forKey:VAR_STR(logSequenceNumber)];
 
-		[coder encodeInt32:logSequenceNumber forKey:VAR_STR(logSequenceNumber)];
+	[coder encodeInt32:currentFormatID forKey:VAR_STR(currentFormatID)];
 
-		[coder encodeInt32:currentFormatID forKey:VAR_STR(currentFormatID)];
+	[coder encodeInteger: self.fileSize forKey:VAR_STR(logicalSize)];
 
-		[coder encodeInteger: self.fileSize forKey:VAR_STR(logicalSize)];
+	[coder encodeObject: self.contentModificationDate forKey: VAR_STR(contentModificationDate)];
+	[coder encodeObject: self.attributesModificationDate forKey: VAR_STR(attributesModificationDate)];
 
-		[coder encodeObject: self.contentModificationDate forKey: VAR_STR(contentModificationDate)];
-		[coder encodeObject: self.attributesModificationDate forKey: VAR_STR(attributesModificationDate)];
+	[coder encodeInteger:fileEncoding forKey:VAR_STR(fileEncoding)];
 
-		[coder encodeInteger:fileEncoding forKey:VAR_STR(fileEncoding)];
+	uuid_t bytes;
+	[self.uniqueNoteID getUUIDBytes: bytes];
+	[coder encodeBytes: (const uint8_t *)&bytes length: sizeof(uuid_t) forKey: VAR_STR(uniqueNoteIDBytes)];
+	
+	[coder encodeObject:syncServicesMD forKey:VAR_STR(syncServicesMD)];
 
-		uuid_t bytes;
-		[self.uniqueNoteID getUUIDBytes: bytes];
-		[coder encodeBytes: (const uint8_t *)&bytes length: sizeof(uuid_t) forKey: VAR_STR(uniqueNoteIDBytes)];
-		
-		[coder encodeObject:syncServicesMD forKey:VAR_STR(syncServicesMD)];
+	[coder encodeObject:titleString forKey:VAR_STR(titleString)];
+	[coder encodeObject:labelString forKey:VAR_STR(labelString)];
+	[coder encodeObject:self.contentString forKey:VAR_STR(contentString)];
+	[coder encodeObject:filename forKey:VAR_STR(filename)];
 
-		[coder encodeObject:titleString forKey:VAR_STR(titleString)];
-		[coder encodeObject:labelString forKey:VAR_STR(labelString)];
-		[coder encodeObject:self.contentString forKey:VAR_STR(contentString)];
-		[coder encodeObject:filename forKey:VAR_STR(filename)];
-
-	}
+	UTCDateTime time;
+	[self.contentModificationDate getUTCDateTime: &time];
+	[coder encodeInt64:*(int64_t*)&time forKey:VAR_STR(fileModifiedDate)];
 }
 
 - (id)initWithNoteBody:(NSAttributedString *)bodyText title:(NSString *)aNoteTitle delegate:(id <NoteObjectDelegate, NTNFileManager>)aDelegate format:(NoteStorageFormat)formatID labels:(NSString *)aLabelString {
