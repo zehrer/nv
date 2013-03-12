@@ -65,7 +65,6 @@ NSString *const NTNTextEditorDidChangeContentsNotification = @"NTNTextEditorDidC
 	[self.splitView setMinSize:200 ofSubviewAtIndex:1];
 	[self.splitView setMaxSize:600 ofSubviewAtIndex:0];
 	[self.splitView setCanCollapse:YES subviewAtIndex:0];
-	[self.splitView setDividerThickness: 9.75];
 
 	[[GlobalPrefs defaultPrefs] registerWithTarget: self forChangesInSettings: @selector(setHorizontalLayout:sender:), nil];
 }

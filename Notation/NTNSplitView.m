@@ -249,10 +249,10 @@ static CGFloat const NTNDefaultAnimationDuration = 0.2;
 
 #pragma mark - Appearance Drawing Routines
 
-- (void)drawDividerInRect:(NSRect)aRect {
+- (void)drawDividerInRect:(NSRect)rect {
 	if (self.shouldDrawDivider) {
 		[self.dividerColor set];
-		[NSBezierPath fillRect: aRect];
+		[NSBezierPath fillRect: rect];
 
 		if (self.dividerStyle != NSSplitViewDividerStyleThin && self.shouldDrawDividerHandle) {
 			NSColor *tempDividerColor = self.dividerColor;
@@ -261,13 +261,13 @@ static CGFloat const NTNDefaultAnimationDuration = 0.2;
 			self.dividerColor = [NSColor clearColor];
 			self.dividerStyle = NSSplitViewDividerStyleThick;
 
-			[super drawDividerInRect:aRect];
+			[super drawDividerInRect: rect];
 
 			self.dividerStyle = tempStyle;
 			self.dividerColor = tempDividerColor;
 		}
 	} else { // OS's standard handler
-		[super drawDividerInRect:aRect];
+		[super drawDividerInRect: rect];
 	}
 }
 
@@ -319,8 +319,7 @@ static CGFloat const NTNDefaultAnimationDuration = 0.2;
 
 	NSView *targetSubview = splitView.subviews[viewIndex];
 	CGFloat subviewOrigin = (splitView.isVertical ? targetSubview.frame.origin.x : targetSubview.frame.origin.y);
-	CGFloat finalCoordinate = subviewOrigin + subviewConstraint.minSize;
-	return finalCoordinate;
+	return subviewOrigin + subviewConstraint.minSize;
 }
 
 - (CGFloat)splitView:(NSSplitView *)splitView constrainMaxCoordinate:(CGFloat)proposedMax ofSubviewAt:(NSInteger)offset {
@@ -345,7 +344,7 @@ static CGFloat const NTNDefaultAnimationDuration = 0.2;
 	return coordinate > constraintGrowingSubview.maxSize ? constraintGrowingSubview.maxSize : coordinate;
 }
 
-- (void)ntn_enumerateSubviewsByPriorityUsingBlock:(void (^)(NSView *subview, CGFloat minSize, CGFloat maxSize))block {
+- (void)ntn_enumerateSubviewsByPriorityUsingBlock:(void (^)(NSView *subview, NSUInteger idx, CGFloat minSize, CGFloat maxSize))block {
 	if (!block) return;
 	[[_priorityIndexes.allKeys sortedArrayUsingSelector: @selector(compare:)] enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
 		NSNumber *subviewIndex = _priorityIndexes[obj];
@@ -354,12 +353,25 @@ static CGFloat const NTNDefaultAnimationDuration = 0.2;
 		NSView *view = self.subviews[index];
 		if ([self isSubviewCollapsed: view]) return;
 		DMSubviewConstraint *constraint = _subviewConstraints[index];
-		block(view, constraint.minSize, constraint.maxSize);
+		block(view, index, constraint.minSize, constraint.maxSize);
 	}];
 }
 
-- (void)ntn_setSubviewFramesByPriorityUsingBlock:(NSSize(^)(NSSize size, CGFloat minSize, CGFloat maxSize))block {
+- (void)ntn_enumerateSubviewIndexesByPriorityUsingBlock:(void (^)(NSUInteger idx, CGFloat minSize, CGFloat maxSize))block {
 	if (!block) return;
+	[[_priorityIndexes.allKeys sortedArrayUsingSelector: @selector(compare:)] enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+		NSNumber *subviewIndex = _priorityIndexes[obj];
+		NSUInteger index = subviewIndex.unsignedIntegerValue;
+		if (index >= self.subviews.count) return;
+		if ([self isSubviewCollapsed: self.subviews[index]]) return;
+		DMSubviewConstraint *constraint = _subviewConstraints[index];
+		block(index, constraint.minSize, constraint.maxSize);
+	}];
+}
+
+- (void)ntn_setSubviewFramesByPriorityUsingBlock:(NSRect(^)(NSRect size, CGFloat minSize, CGFloat maxSize))block {
+	if (!block) return;
+
 	[[_priorityIndexes.allKeys sortedArrayUsingSelector: @selector(compare:)] enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
 		NSNumber *subviewIndex = _priorityIndexes[obj];
 		NSUInteger index = subviewIndex.unsignedIntegerValue;
@@ -371,7 +383,7 @@ static CGFloat const NTNDefaultAnimationDuration = 0.2;
 
 		DMSubviewConstraint *constraint = _subviewConstraints[index];
 
-		[view setFrameSize: block(view.frame.size, constraint.minSize, constraint.maxSize)];
+		view.frame = block(view.frame, constraint.minSize, constraint.maxSize);
 	}];
 }
 
@@ -381,44 +393,50 @@ static CGFloat const NTNDefaultAnimationDuration = 0.2;
 		return; // relayout constraint does not happend while animating... we don't want to interfere with animation.
 	}
 
-	__block CGFloat deltaValue = (self.isVertical ? (self.bounds.size.width-oldSize.width) : (self.bounds.size.height-oldSize.height));
+	BOOL isVertical = self.isVertical;
+	NSSize size = self.bounds.size;
+	__block CGFloat maxDim, deltaDim, otherDim;
+	if (isVertical) {
+		maxDim = size.width;
+		deltaDim = maxDim - oldSize.width;
+		otherDim = size.height;
+	} else {
+		maxDim = size.height;
+		deltaDim = maxDim - oldSize.height;
+		otherDim = size.width;
+	}
 
-	CGFloat otherDim = self.isVertical ? self.bounds.size.height : self.bounds.size.width;
+	const CGFloat roundedDivider = ceil(self.dividerThickness);
 
-	[self ntn_setSubviewFramesByPriorityUsingBlock:^NSSize(NSSize frameSize, CGFloat minValue, CGFloat maxValue) {
-		if (self.isVertical) {
-			frameSize.height = otherDim;
-			if (deltaValue > 0.0f || frameSize.width + deltaValue >= minValue) {
-				CGFloat new = frameSize.width + deltaValue;
-				if (maxValue && new > maxValue) {
-					deltaValue = new - maxValue;
-					frameSize.width = maxValue;
+	// this is essentially going through the subviews backwards
+	[self ntn_enumerateSubviewsByPriorityUsingBlock:^(NSView *subview, NSUInteger idx, CGFloat minValue, CGFloat maxValue) {
+		CGFloat newDim;
+		if (idx != 0) {
+			newDim = isVertical ? subview.frame.size.width : subview.frame.size.height;
+			if (deltaDim > 0 || newDim + deltaDim >= minValue) {
+				newDim += deltaDim;
+				if (maxValue && newDim > maxValue) {
+					deltaDim = newDim - maxValue;
+					newDim = maxValue;
 				} else {
-					frameSize.width = new;
-					deltaValue = 0.0f;
+					deltaDim = 0.0f;
 				}
-			} else if (deltaValue < 0.0f) {
-				deltaValue += frameSize.width-minValue;
-				frameSize.width = minValue;
+			} else if (deltaDim < 0.0f) {
+				deltaDim += newDim - minValue;
+				newDim = minValue;
 			}
 		} else {
-			frameSize.width = otherDim;
-			if (deltaValue > 0.0f || frameSize.height + deltaValue >= minValue) {
-				CGFloat new = frameSize.height + deltaValue;
-				if (maxValue && new > maxValue) {
-					deltaValue = new - maxValue;
-					frameSize.height = maxValue;
-				} else {
-					frameSize.height = new;
-					deltaValue = 0.0f;
-				}
-			} else if (deltaValue < 0.0f) {
-				deltaValue += frameSize.height - minValue;
-				frameSize.height = minValue;
-			}
+			newDim = maxDim;
 		}
 
-		return frameSize;
+		NSRect newFrame = isVertical ? NSMakeRect(maxDim - newDim, 0, newDim, otherDim) : NSMakeRect(0, maxDim - newDim, otherDim, newDim);
+		NSRect alignedFrame = NSIntegralRect(newFrame);
+
+		maxDim = isVertical ? NSMinX(alignedFrame) : NSMinY(alignedFrame);
+
+		subview.frame = alignedFrame;
+		
+		if (idx != 0) maxDim -= roundedDivider;
 	}];
 }
 
@@ -457,6 +475,8 @@ static CGFloat const NTNDefaultAnimationDuration = 0.2;
 	for (NSUInteger i = 0; i < self.subviews.count; i++)
 		newRects[i] = [NSValue valueWithRect: [self.subviews[i] frame]];
 
+	CGFloat otherDim = self.isVertical ? self.bounds.size.height : self.bounds.size.width;
+
 	[positionsByIndexes enumerateKeysAndObjectsUsingBlock:^(NSNumber *indexObject, NSNumber *positionObject, BOOL *stop) {
 		NSUInteger index = [indexObject unsignedIntegerValue];
 		CGFloat newPosition = [positionObject doubleValue];
@@ -470,11 +490,13 @@ static CGFloat const NTNDefaultAnimationDuration = 0.2;
 		if (self.isVertical) {
 			CGFloat oldMaxXOfRightHandView = NSMaxX(nextRect);
 			thisRect.size.width = newPosition - NSMinX(thisRect);
+			thisRect.size.height = otherDim;
 			CGFloat dividerAdjustment = (newPosition < NSWidth(self.bounds)) ? dividerTkn : 0.0;
 			nextRect.origin.x = newPosition + dividerAdjustment;
 			nextRect.size.width = oldMaxXOfRightHandView - newPosition - dividerAdjustment;
 		} else {
 			CGFloat oldMaxYOfBottomView = NSMaxY(nextRect);
+			thisRect.size.width = otherDim;
 			thisRect.size.height = newPosition - NSMinY(thisRect);
 			CGFloat dividerAdjustment = (newPosition < NSHeight(self.bounds)) ? dividerTkn : 0.0;
 			nextRect.origin.y = newPosition + dividerAdjustment;
