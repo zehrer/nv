@@ -2,7 +2,7 @@
 <archive type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="8.00">
 	<data>
 		<int key="IBDocument.SystemTarget">1080</int>
-		<string key="IBDocument.SystemVersion">12D76</string>
+		<string key="IBDocument.SystemVersion">12D78</string>
 		<string key="IBDocument.InterfaceBuilderVersion">3084</string>
 		<string key="IBDocument.AppKitVersion">1187.37</string>
 		<string key="IBDocument.HIToolboxVersion">626.00</string>
@@ -95,6 +95,7 @@
 												<int key="NSvFlags">266</int>
 												<string key="NSFrameSize">{380, 24}</string>
 												<reference key="NSSuperview" ref="957820119"/>
+												<reference key="NSNextKeyView"/>
 												<string key="NSReuseIdentifierKey">_NS:9</string>
 												<bool key="NSEnabled">YES</bool>
 												<object class="NSSearchFieldCell" key="NSCell" id="686796651">
@@ -331,7 +332,7 @@
 																		<int key="NSCellFlags">337641536</int>
 																		<int key="NSCellFlags2">2048</int>
 																		<string key="NSContents">Text Cell</string>
-																		<object class="NSFont" key="NSSupport">
+																		<object class="NSFont" key="NSSupport" id="1016908007">
 																			<string key="NSName">LucidaGrande</string>
 																			<double key="NSSize">13</double>
 																			<int key="NSfFlags">1044</int>
@@ -666,6 +667,36 @@
 				<int key="NSWindowCollectionBehavior">128</int>
 				<bool key="NSWindowIsRestorable">YES</bool>
 			</object>
+			<object class="NSTableCellView" id="906106064">
+				<reference key="NSNextResponder"/>
+				<int key="NSvFlags">274</int>
+				<array class="NSMutableArray" key="NSSubviews">
+					<object class="NSTextField" id="428009004">
+						<reference key="NSNextResponder" ref="906106064"/>
+						<int key="NSvFlags">266</int>
+						<string key="NSFrameSize">{101, 17}</string>
+						<reference key="NSSuperview" ref="906106064"/>
+						<reference key="NSWindow"/>
+						<reference key="NSNextKeyView"/>
+						<string key="NSAntiCompressionPriority">{250, 750}</string>
+						<bool key="NSEnabled">YES</bool>
+						<object class="NSTextFieldCell" key="NSCell" id="180599253">
+							<int key="NSCellFlags">67108928</int>
+							<int key="NSCellFlags2">272631808</int>
+							<string key="NSContents">Table View Cell</string>
+							<reference key="NSSupport" ref="1016908007"/>
+							<reference key="NSControlView" ref="428009004"/>
+							<reference key="NSBackgroundColor" ref="100936130"/>
+							<reference key="NSTextColor" ref="557470041"/>
+						</object>
+						<bool key="NSAllowsLogicalLayoutDirection">NO</bool>
+					</object>
+				</array>
+				<string key="NSFrameSize">{100, 17}</string>
+				<reference key="NSSuperview"/>
+				<reference key="NSWindow"/>
+				<reference key="NSNextKeyView" ref="428009004"/>
+			</object>
 		</array>
 		<object class="IBObjectContainer" key="IBDocument.Objects">
 			<array class="NSMutableArray" key="connectionRecords">
@@ -952,17 +983,20 @@
 								<object class="NSTextField" id="647015989">
 									<reference key="NSNextResponder" ref="533552676"/>
 									<int key="NSvFlags">266</int>
-									<string key="NSFrame">{{0, 27}, {149, 17}}</string>
+									<string key="NSFrame">{{3.5, 23}, {141, 24}}</string>
 									<reference key="NSSuperview" ref="533552676"/>
 									<reference key="NSNextKeyView" ref="587321243"/>
-									<bool key="NSViewIsLayerTreeHost">YES</bool>
 									<string key="NSAntiCompressionPriority">{250, 750}</string>
 									<bool key="NSEnabled">YES</bool>
 									<object class="NSTextFieldCell" key="NSCell" id="692581556">
 										<int key="NSCellFlags">337641537</int>
-										<int key="NSCellFlags2">272631808</int>
+										<int key="NSCellFlags2">4327424</int>
 										<string key="NSContents">Note Title</string>
-										<reference key="NSSupport" ref="26"/>
+										<object class="NSFont" key="NSSupport">
+											<string key="NSName">HelveticaNeue-Bold</string>
+											<double key="NSSize">12</double>
+											<int key="NSfFlags">16</int>
+										</object>
 										<reference key="NSControlView" ref="647015989"/>
 										<reference key="NSBackgroundColor" ref="100936130"/>
 										<reference key="NSTextColor" ref="557470041"/>
@@ -972,7 +1006,6 @@
 							</array>
 							<string key="NSFrame">{{1, 1}, {149, 44}}</string>
 							<reference key="NSNextKeyView" ref="647015989"/>
-							<bool key="NSViewIsLayerTreeHost">YES</bool>
 						</object>
 						<reference key="destination" ref="647015989"/>
 					</object>
@@ -993,6 +1026,22 @@
 						</object>
 					</object>
 					<int key="connectionID">142</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBBindingConnection" key="connection">
+						<string key="label">font: tableTitleFont</string>
+						<reference key="source" ref="647015989"/>
+						<reference key="destination" ref="1001"/>
+						<object class="NSNibBindingConnector" key="connector">
+							<reference key="NSSource" ref="647015989"/>
+							<reference key="NSDestination" ref="1001"/>
+							<string key="NSLabel">font: tableTitleFont</string>
+							<string key="NSBinding">font</string>
+							<string key="NSKeyPath">tableTitleFont</string>
+							<int key="NSNibBindingConnectorVersion">2</int>
+						</object>
+					</object>
+					<int key="connectionID">171</int>
 				</object>
 				<object class="IBConnectionRecord">
 					<object class="IBBindingConnection" key="connection">
@@ -1025,6 +1074,14 @@
 						<reference key="destination" ref="263693745"/>
 					</object>
 					<int key="connectionID">149</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBOutletConnection" key="connection">
+						<string key="label">textField</string>
+						<reference key="source" ref="906106064"/>
+						<reference key="destination" ref="428009004"/>
+					</object>
+					<int key="connectionID">163</int>
 				</object>
 			</array>
 			<object class="IBMutableOrderedSet" key="objectRecords">
@@ -1269,6 +1326,27 @@
 						<reference key="object" ref="16339957"/>
 						<reference key="parent" ref="613758951"/>
 					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">160</int>
+						<reference key="object" ref="906106064"/>
+						<array class="NSMutableArray" key="children">
+							<reference ref="428009004"/>
+						</array>
+						<reference key="parent" ref="0"/>
+					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">161</int>
+						<reference key="object" ref="428009004"/>
+						<array class="NSMutableArray" key="children">
+							<reference ref="180599253"/>
+						</array>
+						<reference key="parent" ref="906106064"/>
+					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">162</int>
+						<reference key="object" ref="180599253"/>
+						<reference key="parent" ref="428009004"/>
+					</object>
 				</array>
 			</object>
 			<dictionary class="NSMutableDictionary" key="flattenedProperties">
@@ -1286,6 +1364,7 @@
 					<reference ref="533552676"/>
 				</array>
 				<string key="131.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
+				<string key="132.CustomClassName">NTNDetailedNoteCellView</string>
 				<string key="132.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
 				<string key="133.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
 				<string key="134.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
@@ -1296,6 +1375,11 @@
 				<string key="146.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
 				<string key="147.CustomClassName">NTNEditorStatusViewCell</string>
 				<string key="147.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
+				<string key="160.CustomClassName">NTNSimpleNoteCellView</string>
+				<string key="160.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
+				<string key="160.userInterfaceItemIdentifier">NTNSimpleNoteCellView</string>
+				<string key="161.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
+				<string key="162.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
 				<string key="2.CustomClassName">RBLView</string>
 				<string key="2.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
 				<string key="35.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
@@ -1333,7 +1417,7 @@
 			<nil key="activeLocalization"/>
 			<dictionary class="NSMutableDictionary" key="localizations"/>
 			<nil key="sourceID"/>
-			<int key="maxID">155</int>
+			<int key="maxID">171</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<array class="NSMutableArray" key="referencedPartialClassDescriptions">
@@ -1353,6 +1437,14 @@
 					<object class="IBClassDescriptionSource" key="sourceIdentifier">
 						<string key="majorKey">IBProjectSource</string>
 						<string key="minorKey">./Classes/NSView.h</string>
+					</object>
+				</object>
+				<object class="IBPartialClassDescription">
+					<string key="className">NTNDetailedNoteCellView</string>
+					<string key="superclassName">NTNNoteCellView</string>
+					<object class="IBClassDescriptionSource" key="sourceIdentifier">
+						<string key="majorKey">IBProjectSource</string>
+						<string key="minorKey">./Classes/NTNDetailedNoteCellView.h</string>
 					</object>
 				</object>
 				<object class="IBPartialClassDescription">
@@ -1510,6 +1602,14 @@
 					</object>
 				</object>
 				<object class="IBPartialClassDescription">
+					<string key="className">NTNNoteCellView</string>
+					<string key="superclassName">NSTableCellView</string>
+					<object class="IBClassDescriptionSource" key="sourceIdentifier">
+						<string key="majorKey">IBProjectSource</string>
+						<string key="minorKey">./Classes/NTNNoteCellView.h</string>
+					</object>
+				</object>
+				<object class="IBPartialClassDescription">
 					<string key="className">NTNNotesListTableView</string>
 					<string key="superclassName">NSTableView</string>
 					<dictionary class="NSMutableDictionary" key="outlets">
@@ -1537,6 +1637,14 @@
 					<object class="IBClassDescriptionSource" key="sourceIdentifier">
 						<string key="majorKey">IBProjectSource</string>
 						<string key="minorKey">./Classes/NTNScrollView.h</string>
+					</object>
+				</object>
+				<object class="IBPartialClassDescription">
+					<string key="className">NTNSimpleNoteCellView</string>
+					<string key="superclassName">NTNNoteCellView</string>
+					<object class="IBClassDescriptionSource" key="sourceIdentifier">
+						<string key="majorKey">IBProjectSource</string>
+						<string key="minorKey">./Classes/NTNSimpleNoteCellView.h</string>
 					</object>
 				</object>
 				<object class="IBPartialClassDescription">

@@ -89,7 +89,7 @@ NSString *const NTNTextEditorDidChangeContentsNotification = @"NTNTextEditorDidC
 }
 
 - (void)ntn_configureDividerForCurrentLayout {
-	BOOL horiz = [[GlobalPrefs defaultPrefs] horizontalLayout];
+	BOOL horiz = self.prefs.horizontalLayout;
 
 	if (self.notesListIsCollapsed) {
 		self.notesListScrollView.hidden = NO;
@@ -103,8 +103,8 @@ NSString *const NTNTextEditorDidChangeContentsNotification = @"NTNTextEditorDidC
 		}*/
 	}
 
-	self.notesListTableView.gridStyleMask = [[GlobalPrefs defaultPrefs] showGrid] ? NSTableViewSolidHorizontalGridLineMask : NSTableViewGridNone;
-	self.notesListTableView.usesAlternatingRowBackgroundColors = [[GlobalPrefs defaultPrefs] alternatingRows];
+	self.notesListTableView.gridStyleMask = self.prefs.showGrid ? NSTableViewSolidHorizontalGridLineMask : NSTableViewGridNone;
+	self.notesListTableView.usesAlternatingRowBackgroundColors = self.prefs.alternatingRows;
 }
 
 - (void)ntn_editorViewUpdate {
@@ -154,7 +154,6 @@ NSString *const NTNTextEditorDidChangeContentsNotification = @"NTNTextEditorDidC
 	
 	// actually load the new note
 	self.currentNote = note;
-
 
 	NSRange firstFoundTermRange = NSMakeRange(NSNotFound, 0);
 	NSRange noteSelectionRange = self.currentNote.selectedRange;
@@ -430,6 +429,20 @@ NSString *const NTNTextEditorDidChangeContentsNotification = @"NTNTextEditorDidC
 	}
 
 	[self ntn_processChangedSelectionForTableView: tableView];
+}
+
+#pragma mark - Binding Helpers
+
+- (GlobalPrefs *)prefs {
+	return [GlobalPrefs defaultPrefs];
+}
+
+- (NSFont *)tableFont {
+	return [[NSFontManager sharedFontManager] fontWithFamily: @"Helvetica Neue" traits: 0 weight: 7 size: self.prefs.tableFontSize];
+}
+
+- (NSFont *)tableTitleFont {
+	return [[NSFontManager sharedFontManager] fontWithFamily: @"Helvetica Neue" traits: NSBoldFontMask weight: 7 size: self.prefs.tableFontSize];
 }
 
 @end

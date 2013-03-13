@@ -242,6 +242,9 @@
 		6CCC108116A4801F00A4E469 /* Contact Information.nvhelp in Resources */ = {isa = PBXBuildFile; fileRef = 6CCC107F16A4801F00A4E469 /* Contact Information.nvhelp */; };
 		6CCC108616A480E800A4E469 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6CCC108516A480E800A4E469 /* QuartzCore.framework */; };
 		6CCC108816A480FD00A4E469 /* Quartz.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6CCC108716A480FD00A4E469 /* Quartz.framework */; };
+		6CDB3A5316F0D1800053ED4D /* NTNDetailedNoteCellView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6CDB3A5216F0D1800053ED4D /* NTNDetailedNoteCellView.m */; };
+		6CDB3A5616F0D2410053ED4D /* NTNSimpleNoteCellView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6CDB3A5516F0D2410053ED4D /* NTNSimpleNoteCellView.m */; };
+		6CDB3A5916F0D24A0053ED4D /* NTNNoteCellView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6CDB3A5816F0D24A0053ED4D /* NTNNoteCellView.m */; };
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
@@ -714,6 +717,12 @@
 		6CCC108016A4801F00A4E469 /* English */ = {isa = PBXFileReference; explicitFileType = text.rtf; name = English; path = "English.lproj/Contact Information.nvhelp"; sourceTree = "<group>"; };
 		6CCC108516A480E800A4E469 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		6CCC108716A480FD00A4E469 /* Quartz.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Quartz.framework; path = System/Library/Frameworks/Quartz.framework; sourceTree = SDKROOT; };
+		6CDB3A5116F0D1800053ED4D /* NTNDetailedNoteCellView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NTNDetailedNoteCellView.h; sourceTree = "<group>"; };
+		6CDB3A5216F0D1800053ED4D /* NTNDetailedNoteCellView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NTNDetailedNoteCellView.m; sourceTree = "<group>"; };
+		6CDB3A5416F0D2410053ED4D /* NTNSimpleNoteCellView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NTNSimpleNoteCellView.h; sourceTree = "<group>"; };
+		6CDB3A5516F0D2410053ED4D /* NTNSimpleNoteCellView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NTNSimpleNoteCellView.m; sourceTree = "<group>"; };
+		6CDB3A5716F0D24A0053ED4D /* NTNNoteCellView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NTNNoteCellView.h; sourceTree = "<group>"; };
+		6CDB3A5816F0D24A0053ED4D /* NTNNoteCellView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NTNNoteCellView.m; sourceTree = "<group>"; };
 		6CFF565116A5243E00E56664 /* NTNFileManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NTNFileManager.h; path = Notation/NTNFileManager.h; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Notation/Info.plist; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* nvALT.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = nvALT.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1245,6 +1254,12 @@
 				6C5AE12216E06FBF00EAA681 /* NTNEditorStatusView.m */,
 				6C26EC3A16E44BB800B717EB /* NTNEditorView.h */,
 				6C26EC3B16E44BB800B717EB /* NTNEditorView.m */,
+				6CDB3A5716F0D24A0053ED4D /* NTNNoteCellView.h */,
+				6CDB3A5816F0D24A0053ED4D /* NTNNoteCellView.m */,
+				6CDB3A5116F0D1800053ED4D /* NTNDetailedNoteCellView.h */,
+				6CDB3A5216F0D1800053ED4D /* NTNDetailedNoteCellView.m */,
+				6CDB3A5416F0D2410053ED4D /* NTNSimpleNoteCellView.h */,
+				6CDB3A5516F0D2410053ED4D /* NTNSimpleNoteCellView.m */,
 				6CC111DC16D6D7960080B084 /* NTNSplitView */,
 				6C2FAF9116EE30AE007D9E24 /* NTNScrollView.h */,
 				6C2FAF9216EE30AE007D9E24 /* NTNScrollView.m */,
@@ -1623,6 +1638,9 @@
 				6C5AE12316E06FC000EAA681 /* NTNEditorStatusView.m in Sources */,
 				6C26EC3C16E44BB800B717EB /* NTNEditorView.m in Sources */,
 				6C2FAF9316EE30AE007D9E24 /* NTNScrollView.m in Sources */,
+				6CDB3A5316F0D1800053ED4D /* NTNDetailedNoteCellView.m in Sources */,
+				6CDB3A5616F0D2410053ED4D /* NTNSimpleNoteCellView.m in Sources */,
+				6CDB3A5916F0D24A0053ED4D /* NTNNoteCellView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

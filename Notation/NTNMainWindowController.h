@@ -14,6 +14,7 @@ extern NSString *const NTNTextEditorDidChangeContentsNotification;
 @class NTNEditorStatusView;
 @class NTNEditorView;
 @class NotationController;
+@class GlobalPrefs;
 
 @interface NTNMainWindowController : NSWindowController
 
@@ -32,6 +33,11 @@ extern NSString *const NTNTextEditorDidChangeContentsNotification;
 @property (nonatomic, weak) IBOutlet NTNEditorStatusView *editorStatusView;
 
 @property (nonatomic, strong) IBOutlet NotationController *notationController;
+
+@property (nonatomic, readonly) GlobalPrefs *prefs;
+
+@property (nonatomic, readonly) NSFont *tableTitleFont;
+@property (nonatomic, readonly) NSFont *tableFont;
 
 - (IBAction)focusOnSearchField:(id)sender;
 
