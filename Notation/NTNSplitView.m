@@ -61,7 +61,6 @@ static CGFloat const NTNDefaultAnimationDuration = 0.2;
 #pragma mark - NTNSplitView Implementation
 
 @interface NTNSplitView () {
-	NSMutableDictionary *_priorityIndexes;
 	NSMutableArray *_subviewConstraints;
 	NSMutableDictionary *_viewsToCollapseByDivider;
 	CGFloat *_lastValuesBeforeCollapse;
@@ -84,15 +83,13 @@ static CGFloat const NTNDefaultAnimationDuration = 0.2;
 	[super setDelegate:self];
 	self.dividerColor = NTNDefaultDividerColor();
 
-	_priorityIndexes = [[NSMutableDictionary alloc] init];
 	_viewsToCollapseByDivider = [[NSMutableDictionary alloc] init];
 	_subviewConstraints = [[NSMutableArray alloc] init];
 	_lastValuesBeforeCollapse = calloc(sizeof(CGFloat), self.subviews.count);
 	_subviewStates = calloc(sizeof(BOOL), self.subviews.count);
 
 	for (NSUInteger k = 0; k < self.subviews.count; k++) {
-		[_subviewConstraints addObject:[[DMSubviewConstraint alloc] init]];
-		[self setPriority: self.subviews.count - 1 - k ofSubviewAtIndex: k];
+		[_subviewConstraints addObject: [[DMSubviewConstraint alloc] init]];
 	}
 }
 
@@ -273,10 +270,6 @@ static CGFloat const NTNDefaultAnimationDuration = 0.2;
 
 #pragma mark - Behavior Properties Set
 
-- (void)setPriority:(NSInteger)priorityIndex ofSubviewAtIndex:(NSInteger)subviewIndex {
-	_priorityIndexes[@(priorityIndex)] = @(subviewIndex);
-}
-
 - (void)setMaxSize:(CGFloat)maxSize ofSubviewAtIndex:(NSUInteger)subviewIndex {
 	((DMSubviewConstraint *) _subviewConstraints[subviewIndex]).maxSize = maxSize;
 }
@@ -344,49 +337,6 @@ static CGFloat const NTNDefaultAnimationDuration = 0.2;
 	return coordinate > constraintGrowingSubview.maxSize ? constraintGrowingSubview.maxSize : coordinate;
 }
 
-- (void)ntn_enumerateSubviewsByPriorityUsingBlock:(void (^)(NSView *subview, NSUInteger idx, CGFloat minSize, CGFloat maxSize))block {
-	if (!block) return;
-	[[_priorityIndexes.allKeys sortedArrayUsingSelector: @selector(compare:)] enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-		NSNumber *subviewIndex = _priorityIndexes[obj];
-		NSUInteger index = subviewIndex.unsignedIntegerValue;
-		if (index >= self.subviews.count) return;
-		NSView *view = self.subviews[index];
-		if ([self isSubviewCollapsed: view]) return;
-		DMSubviewConstraint *constraint = _subviewConstraints[index];
-		block(view, index, constraint.minSize, constraint.maxSize);
-	}];
-}
-
-- (void)ntn_enumerateSubviewIndexesByPriorityUsingBlock:(void (^)(NSUInteger idx, CGFloat minSize, CGFloat maxSize))block {
-	if (!block) return;
-	[[_priorityIndexes.allKeys sortedArrayUsingSelector: @selector(compare:)] enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-		NSNumber *subviewIndex = _priorityIndexes[obj];
-		NSUInteger index = subviewIndex.unsignedIntegerValue;
-		if (index >= self.subviews.count) return;
-		if ([self isSubviewCollapsed: self.subviews[index]]) return;
-		DMSubviewConstraint *constraint = _subviewConstraints[index];
-		block(index, constraint.minSize, constraint.maxSize);
-	}];
-}
-
-- (void)ntn_setSubviewFramesByPriorityUsingBlock:(NSRect(^)(NSRect size, CGFloat minSize, CGFloat maxSize))block {
-	if (!block) return;
-
-	[[_priorityIndexes.allKeys sortedArrayUsingSelector: @selector(compare:)] enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-		NSNumber *subviewIndex = _priorityIndexes[obj];
-		NSUInteger index = subviewIndex.unsignedIntegerValue;
-
-		if (index >= self.subviews.count) return;
-
-		NSView *view = self.subviews[index];
-		if ([self isSubviewCollapsed: view]) return;
-
-		DMSubviewConstraint *constraint = _subviewConstraints[index];
-
-		view.frame = block(view.frame, constraint.minSize, constraint.maxSize);
-	}];
-}
-
 - (void)splitView:(NSSplitView *)splitView resizeSubviewsWithOldSize:(NSSize)oldSize {
 	if (_isAnimating) { // if we are inside an animated session we want to redraw correctly NSSplitView elements (as like the moving divider)
 		[self setNeedsDisplay:YES];
@@ -408,9 +358,13 @@ static CGFloat const NTNDefaultAnimationDuration = 0.2;
 
 	const CGFloat roundedDivider = ceil(self.dividerThickness);
 
-	// this is essentially going through the subviews backwards
-	[self ntn_enumerateSubviewsByPriorityUsingBlock:^(NSView *subview, NSUInteger idx, CGFloat minValue, CGFloat maxValue) {
-		CGFloat newDim;
+
+	[self.subviews enumerateObjectsWithOptions: NSEnumerationReverse usingBlock:^(NSView *subview, NSUInteger idx, BOOL *stop) {
+		if ([self isSubviewCollapsed: subview]) return;
+		
+		DMSubviewConstraint *constraint = _subviewConstraints[idx];
+		CGFloat minValue = constraint.minSize, maxValue = constraint.maxSize, newDim = 0;
+		
 		if (idx != 0) {
 			newDim = isVertical ? subview.frame.size.width : subview.frame.size.height;
 			if (deltaDim > 0 || newDim + deltaDim >= minValue) {
@@ -435,7 +389,7 @@ static CGFloat const NTNDefaultAnimationDuration = 0.2;
 		maxDim = isVertical ? NSMinX(alignedFrame) : NSMinY(alignedFrame);
 
 		subview.frame = alignedFrame;
-		
+
 		if (idx != 0) maxDim -= roundedDivider;
 	}];
 }

@@ -60,25 +60,27 @@ extern CGFloat NTNSplitViewToolbarButtonTextInset;
 extern CGFloat NTNSplitViewToolbarButtonImageInset;
 extern CGFloat NTNSplitViewToolbarButtonImageToTextDistance;
 
-/** NTNSplitView is a revisited version of the standard OSX's NSSplitView control.
- The e problem with NSSplitView is that some things which should be simple require implementing unintuitive delegate methods, which gets to be pretty annoying.
- NTNSplitView offer a powerful control over some important settings of NSSplitView such like:
+/** NTNSplitView is a streamlined version of the standard NSSplitView control.
  
- - subview's size and constraint (Specificy uniform, proportional, or priority-based resizing, min/max sizes for subviews)
- - dividers positions
- - collapsible subviews (specify whether a subview can collapse)
+ NTNSplitView implements the NSSplitView delegate method and provides intelligent
+ defaults for resizing subviews. It also offers powerful control over:
+ 
+ - subview size and constraints with minima and maxima
+ - divider positions
+ - subviews collapsibility (specify whether a subview can collapse)
  - animatable transitions (both on dividers and subview's sizes)
  - control over divider thickness and style
- - save/restore state of dividers (using standard's OS X autosave feature)
+ - state restoration of dividers (using standard's OS X autosave feature)
  
- Special thanks:
+ Special thanks to:
  
- - CocoaWithLove blog for it's work on priority based NSSplitView implementation (http://www.cocoawithlove.com/2009/09/nssplitview-delegate-for-priority-based.html)
- - Seth Willits for it's AGNSSplitView implementation (https://github.com/swillits/AGNSSplitView).
+ - Frank Gregor, CMSplitView - https://github.com/malcommac/DMSplitView
+ - Daniele Margutti, DMSplitView - https://github.com/malcommac/DMSplitView
+ - Matt Gallagher, a priority-based NSSplitView - http://www.cocoawithlove.com/2009/09/nssplitview-delegate-for-priority-based.html
+ - Seth Willits, AGNSSplitView - https://github.com/swillits/AGNSSplitView-
  
  */
-@interface NTNSplitView : NSSplitView <NSSplitViewDelegate> {
-}
+@interface NTNSplitView : NSSplitView <NSSplitViewDelegate>
 
 /** @name Behavior properties */
 #pragma mark Behavior Properties
@@ -110,15 +112,6 @@ extern CGFloat NTNSplitViewToolbarButtonImageToTextDistance;
 @property(nonatomic) NSRectEdge dividerRectEdge;
 /** should draw divider handle */
 @property(nonatomic) BOOL shouldDrawDividerHandle;
-
-#pragma mark - Working with priorities
-/** @name Priorities */
-
-/** Set prirority of subview at index. Priority-based resizing nominates 1 view as the most important. This is normally the window's "main" view. This highest priority view is the only view that grows in size as the window grows.
- @param	 priority		priority value
- @param	 subviewIndex    target subview index
- */
-- (void)setPriority:(NSInteger)priorityIndex ofSubviewAtIndex:(NSInteger)subviewIndex;
 
 #pragma mark - Working with constraints
 /** @name Working with constraints*/
