@@ -1,5 +1,5 @@
 //
-//  NTNSplitViewToolBarButtonCell.m
+//  NTNSplitView.h
 //  Notation
 //
 //  Derived from DMSplitView.
