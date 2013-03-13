@@ -2,7 +2,7 @@
 <archive type="com.apple.InterfaceBuilder3.Cocoa.XIB" version="8.00">
 	<data>
 		<int key="IBDocument.SystemTarget">1080</int>
-		<string key="IBDocument.SystemVersion">12D74</string>
+		<string key="IBDocument.SystemVersion">12D76</string>
 		<string key="IBDocument.InterfaceBuilderVersion">3084</string>
 		<string key="IBDocument.AppKitVersion">1187.37</string>
 		<string key="IBDocument.HIToolboxVersion">626.00</string>
@@ -229,11 +229,11 @@
 							<array class="NSMutableArray" key="NSSubviews">
 								<object class="NSCustomView" id="831590234">
 									<reference key="NSNextResponder" ref="724695683"/>
-									<int key="NSvFlags">256</int>
+									<int key="NSvFlags">268</int>
 									<array class="NSMutableArray" key="NSSubviews">
 										<object class="NSCustomView" id="62469132">
 											<reference key="NSNextResponder" ref="831590234"/>
-											<int key="NSvFlags">319</int>
+											<int key="NSvFlags">274</int>
 											<array class="NSMutableArray" key="NSSubviews">
 												<object class="NSTextField" id="613758951">
 													<reference key="NSNextResponder" ref="62469132"/>
@@ -283,7 +283,7 @@
 										</object>
 										<object class="NSScrollView" id="497894653">
 											<reference key="NSNextResponder" ref="831590234"/>
-											<int key="NSvFlags">319</int>
+											<int key="NSvFlags">274</int>
 											<array class="NSMutableArray" key="NSSubviews">
 												<object class="NSClipView" id="640592161">
 													<reference key="NSNextResponder" ref="497894653"/>
@@ -434,11 +434,11 @@
 								</object>
 								<object class="NSCustomView" id="742899481">
 									<reference key="NSNextResponder" ref="724695683"/>
-									<int key="NSvFlags">256</int>
+									<int key="NSvFlags">268</int>
 									<array class="NSMutableArray" key="NSSubviews">
 										<object class="NSCustomView" id="961300839">
 											<reference key="NSNextResponder" ref="742899481"/>
-											<int key="NSvFlags">319</int>
+											<int key="NSvFlags">274</int>
 											<array class="NSMutableArray" key="NSSubviews">
 												<object class="NSTextField" id="118511567">
 													<reference key="NSNextResponder" ref="961300839"/>
@@ -470,7 +470,7 @@
 										</object>
 										<object class="NSScrollView" id="869878786">
 											<reference key="NSNextResponder" ref="742899481"/>
-											<int key="NSvFlags">319</int>
+											<int key="NSvFlags">283</int>
 											<array class="NSMutableArray" key="NSSubviews">
 												<object class="NSClipView" id="763162663">
 													<reference key="NSNextResponder" ref="869878786"/>
@@ -501,7 +501,7 @@
 															<string key="NSFrameSize">{320, 320}</string>
 															<reference key="NSSuperview" ref="763162663"/>
 															<reference key="NSWindow"/>
-															<reference key="NSNextKeyView" ref="390144470"/>
+															<reference key="NSNextKeyView" ref="150672874"/>
 															<string key="NSReuseIdentifierKey">_NS:13</string>
 															<object class="NSTextContainer" key="NSTextContainer" id="1000997739">
 																<object class="NSLayoutManager" key="NSLayoutManager">
@@ -522,7 +522,7 @@
 																<int key="NSTCFlags">1</int>
 															</object>
 															<object class="NSTextViewSharedData" key="NSSharedData">
-																<int key="NSFlags">67120867</int>
+																<int key="NSFlags">67121123</int>
 																<int key="NSTextCheckingTypes">0</int>
 																<nil key="NSMarkedAttributes"/>
 																<reference key="NSBackgroundColor" ref="665704616"/>
@@ -587,12 +587,11 @@
 															</object>
 														</object>
 													</object>
-													<int key="NScvFlags">2</int>
 												</object>
 												<object class="NSScroller" id="390144470">
 													<reference key="NSNextResponder" ref="869878786"/>
-													<int key="NSvFlags">-2147483392</int>
-													<string key="NSFrame">{{294, 0}, {16, 320}}</string>
+													<int key="NSvFlags">256</int>
+													<string key="NSFrame">{{304, 0}, {16, 320}}</string>
 													<reference key="NSSuperview" ref="869878786"/>
 													<reference key="NSWindow"/>
 													<reference key="NSNextKeyView" ref="961300839"/>
@@ -605,11 +604,11 @@
 												</object>
 												<object class="NSScroller" id="150672874">
 													<reference key="NSNextResponder" ref="869878786"/>
-													<int key="NSvFlags">-2147483392</int>
-													<string key="NSFrame">{{-100, -100}, {310, 16}}</string>
+													<int key="NSvFlags">256</int>
+													<string key="NSFrame">{{0, 304}, {320, 16}}</string>
 													<reference key="NSSuperview" ref="869878786"/>
 													<reference key="NSWindow"/>
-													<reference key="NSNextKeyView" ref="763162663"/>
+													<reference key="NSNextKeyView" ref="390144470"/>
 													<string key="NSReuseIdentifierKey">_NS:33</string>
 													<bool key="NSAllowsLogicalLayoutDirection">NO</bool>
 													<int key="NSsFlags">1</int>
@@ -622,9 +621,9 @@
 											<string key="NSFrameSize">{320, 320}</string>
 											<reference key="NSSuperview" ref="742899481"/>
 											<reference key="NSWindow"/>
-											<reference key="NSNextKeyView" ref="150672874"/>
+											<reference key="NSNextKeyView" ref="763162663"/>
 											<string key="NSReuseIdentifierKey">_NS:9</string>
-											<int key="NSsFlags">199184</int>
+											<int key="NSsFlags">239664</int>
 											<reference key="NSVScroller" ref="390144470"/>
 											<reference key="NSHScroller" ref="150672874"/>
 											<reference key="NSContentView" ref="763162663"/>
@@ -953,6 +952,7 @@
 									<string key="NSFrame">{{0, 27}, {147, 17}}</string>
 									<reference key="NSSuperview" ref="533552676"/>
 									<reference key="NSNextKeyView" ref="587321243"/>
+									<bool key="NSViewIsLayerTreeHost">YES</bool>
 									<string key="NSAntiCompressionPriority">{250, 750}</string>
 									<bool key="NSEnabled">YES</bool>
 									<object class="NSTextFieldCell" key="NSCell" id="692581556">
@@ -969,6 +969,7 @@
 							</array>
 							<string key="NSFrame">{{1, 1}, {147, 44}}</string>
 							<reference key="NSNextKeyView" ref="647015989"/>
+							<bool key="NSViewIsLayerTreeHost">YES</bool>
 						</object>
 						<reference key="destination" ref="647015989"/>
 					</object>
@@ -1307,7 +1308,7 @@
 				<boolean value="YES" key="57.ibExternalAutomaticallyCalculatesRowSizeFromViewHeight"/>
 				<string key="58.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
 				<string key="60.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
-				<string key="65.CustomClassName">RBLScrollView</string>
+				<string key="65.CustomClassName">NTNScrollView</string>
 				<string key="65.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
 				<string key="66.CustomClassName">NTNEditorView</string>
 				<string key="66.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
@@ -1525,6 +1526,14 @@
 					<object class="IBClassDescriptionSource" key="sourceIdentifier">
 						<string key="majorKey">IBProjectSource</string>
 						<string key="minorKey">./Classes/NTNNotesListTableView.h</string>
+					</object>
+				</object>
+				<object class="IBPartialClassDescription">
+					<string key="className">NTNScrollView</string>
+					<string key="superclassName">RBLScrollView</string>
+					<object class="IBClassDescriptionSource" key="sourceIdentifier">
+						<string key="majorKey">IBProjectSource</string>
+						<string key="minorKey">./Classes/NTNScrollView.h</string>
 					</object>
 				</object>
 				<object class="IBPartialClassDescription">

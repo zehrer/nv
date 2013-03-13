@@ -183,7 +183,10 @@
 		6C25173716B2F2E50088B37E /* NSString+UTType.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C25173616B2F2E50088B37E /* NSString+UTType.m */; };
 		6C25173A16B2F6EA0088B37E /* NoteCatalogEntry.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C25173916B2F6EA0088B37E /* NoteCatalogEntry.m */; };
 		6C26EC3C16E44BB800B717EB /* NTNEditorView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C26EC3B16E44BB800B717EB /* NTNEditorView.m */; };
+		6C2FAF9316EE30AE007D9E24 /* NTNScrollView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C2FAF9216EE30AE007D9E24 /* NTNScrollView.m */; };
 		6C32732316DE8BE000EFE126 /* NTNNotesListTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C32732216DE8BE000EFE126 /* NTNNotesListTableView.m */; };
+		6C35EF5116EE48E3005D231E /* NTNLightScrollViewTexturedBackground.png in Resources */ = {isa = PBXBuildFile; fileRef = 6C35EF4F16EE48E3005D231E /* NTNLightScrollViewTexturedBackground.png */; };
+		6C35EF5216EE48E3005D231E /* NTNLightScrollViewTexturedBackground@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 6C35EF5016EE48E3005D231E /* NTNLightScrollViewTexturedBackground@2x.png */; };
 		6C3E591D16B5B3BE002E7E7A /* NSData+Notation.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C3E591C16B5B3BD002E7E7A /* NSData+Notation.m */; };
 		6C5AE12316E06FC000EAA681 /* NTNEditorStatusView.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C5AE12216E06FBF00EAA681 /* NTNEditorStatusView.m */; };
 		6C6520B516D9672A00686C35 /* NTNDualTextField.m in Sources */ = {isa = PBXBuildFile; fileRef = 6C6520B416D9672A00686C35 /* NTNDualTextField.m */; };
@@ -583,8 +586,12 @@
 		6C25173916B2F6EA0088B37E /* NoteCatalogEntry.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = NoteCatalogEntry.m; path = Notation/NoteCatalogEntry.m; sourceTree = "<group>"; };
 		6C26EC3A16E44BB800B717EB /* NTNEditorView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NTNEditorView.h; path = Notation/NTNEditorView.h; sourceTree = "<group>"; };
 		6C26EC3B16E44BB800B717EB /* NTNEditorView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = NTNEditorView.m; path = Notation/NTNEditorView.m; sourceTree = "<group>"; };
+		6C2FAF9116EE30AE007D9E24 /* NTNScrollView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NTNScrollView.h; sourceTree = "<group>"; };
+		6C2FAF9216EE30AE007D9E24 /* NTNScrollView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NTNScrollView.m; sourceTree = "<group>"; };
 		6C32732116DE8BE000EFE126 /* NTNNotesListTableView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NTNNotesListTableView.h; path = Notation/NTNNotesListTableView.h; sourceTree = "<group>"; };
 		6C32732216DE8BE000EFE126 /* NTNNotesListTableView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = NTNNotesListTableView.m; path = Notation/NTNNotesListTableView.m; sourceTree = "<group>"; };
+		6C35EF4F16EE48E3005D231E /* NTNLightScrollViewTexturedBackground.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = NTNLightScrollViewTexturedBackground.png; sourceTree = "<group>"; };
+		6C35EF5016EE48E3005D231E /* NTNLightScrollViewTexturedBackground@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "NTNLightScrollViewTexturedBackground@2x.png"; sourceTree = "<group>"; };
 		6C3E591B16B5B3BD002E7E7A /* NSData+Notation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSData+Notation.h"; path = "Notation/NSData+Notation.h"; sourceTree = "<group>"; };
 		6C3E591C16B5B3BD002E7E7A /* NSData+Notation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSData+Notation.m"; path = "Notation/NSData+Notation.m"; sourceTree = "<group>"; };
 		6C5AE12116E06FBF00EAA681 /* NTNEditorStatusView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NTNEditorStatusView.h; path = Notation/NTNEditorStatusView.h; sourceTree = "<group>"; };
@@ -1218,6 +1225,8 @@
 				6C0E12C716CF36940073B77B /* statusError@2x.png */,
 				21B1C170110764570004A7D0 /* statusInProgress.png */,
 				6C0E12C816CF36940073B77B /* statusInProgress@2x.png */,
+				6C35EF4F16EE48E3005D231E /* NTNLightScrollViewTexturedBackground.png */,
+				6C35EF5016EE48E3005D231E /* NTNLightScrollViewTexturedBackground@2x.png */,
 			);
 			name = Retinized;
 			sourceTree = "<group>";
@@ -1237,6 +1246,8 @@
 				6C26EC3A16E44BB800B717EB /* NTNEditorView.h */,
 				6C26EC3B16E44BB800B717EB /* NTNEditorView.m */,
 				6CC111DC16D6D7960080B084 /* NTNSplitView */,
+				6C2FAF9116EE30AE007D9E24 /* NTNScrollView.h */,
+				6C2FAF9216EE30AE007D9E24 /* NTNScrollView.m */,
 			);
 			name = "New UI";
 			sourceTree = "<group>";
@@ -1488,6 +1499,8 @@
 				6CB2757F16DDD56D00F5525A /* HUDIconShare@2x.png in Resources */,
 				6C08896316E6E083000228DE /* readability.pyc in Resources */,
 				6C08896516E6E0C1000228DE /* html2text.pyc in Resources */,
+				6C35EF5116EE48E3005D231E /* NTNLightScrollViewTexturedBackground.png in Resources */,
+				6C35EF5216EE48E3005D231E /* NTNLightScrollViewTexturedBackground@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1609,6 +1622,7 @@
 				6C32732316DE8BE000EFE126 /* NTNNotesListTableView.m in Sources */,
 				6C5AE12316E06FC000EAA681 /* NTNEditorStatusView.m in Sources */,
 				6C26EC3C16E44BB800B717EB /* NTNEditorView.m in Sources */,
+				6C2FAF9316EE30AE007D9E24 /* NTNScrollView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
