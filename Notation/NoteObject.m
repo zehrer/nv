@@ -414,7 +414,7 @@ NSInteger compareUniqueNoteIDs(__unsafe_unretained id *a, __unsafe_unretained id
 		_uniqueNoteID = [NSUUID UUID];
 
 		self.creationDate = self.modificationDate = [NSDate date];
-		self.dateModifiedString = [NSString relativeDateStringWithAbsoluteTime: self.modificationDate.timeIntervalSinceReferenceDate];
+		self.dateModifiedString = [NSString ntn_relativeDateStringWithDate: self.modificationDate];
 		self.contentModificationDate = self.modificationDate;
 
 		if (localDelegate) [self updateTablePreviewString];
@@ -456,7 +456,7 @@ NSInteger compareUniqueNoteIDs(__unsafe_unretained id *a, __unsafe_unretained id
 		}
 		if (!self.modificationDate || !self.creationDate) {
 			self.modificationDate = self.creationDate = [NSDate date];
-			self.dateModifiedString = [NSString relativeDateStringWithAbsoluteTime: self.modificationDate.timeIntervalSinceReferenceDate];
+			self.dateModifiedString = [NSString ntn_relativeDateStringWithDate: self.modificationDate];
 		}
 	}
 
@@ -678,7 +678,7 @@ NSInteger compareUniqueNoteIDs(__unsafe_unretained id *a, __unsafe_unretained id
 - (void)resanitizeContent {
 	[_mutableContentString santizeForeignStylesForImporting];
 
-	[self _setTitleString: [titleString ntn_normalizedString]];
+	[self _setTitleString: titleString.precomposedStringWithCanonicalMapping];
 
 	id <NoteObjectDelegate, NTNFileManager> localDelegate = self.delegate;
 	if (localDelegate && [localDelegate currentNoteStorageFormat] == RTFTextFormat)
@@ -699,18 +699,18 @@ NSInteger compareUniqueNoteIDs(__unsafe_unretained id *a, __unsafe_unretained id
 }
 
 - (void)updateDateStrings {
-	self.dateCreatedString = [NSString relativeDateStringWithAbsoluteTime: self.creationDate.timeIntervalSinceReferenceDate];
-	self.dateModifiedString = [NSString relativeDateStringWithAbsoluteTime: self.modificationDate.timeIntervalSinceReferenceDate];
+	self.dateCreatedString = [NSString ntn_relativeDateStringWithDate: self.creationDate];
+	self.dateModifiedString = [NSString ntn_relativeDateStringWithDate: self.modificationDate];
 }
 
 - (void)setCreationDate:(NSDate *)creationDate {
 	_creationDate = creationDate;
-	self.dateCreatedString = [NSString relativeDateStringWithAbsoluteTime: self.creationDate.timeIntervalSinceReferenceDate];
+	self.dateCreatedString = [NSString ntn_relativeDateStringWithDate: self.creationDate];
 }
 
 - (void)setModificationDate:(NSDate *)modificationDate {
 	_modificationDate = modificationDate;
-	self.dateModifiedString = [NSString relativeDateStringWithAbsoluteTime: self.modificationDate.timeIntervalSinceReferenceDate];
+	self.dateModifiedString = [NSString ntn_relativeDateStringWithDate: self.modificationDate];
 }
 
 

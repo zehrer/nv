@@ -19,13 +19,9 @@
 
 @interface NSString (NV)
 
-unsigned int hoursFromAbsoluteTime(CFAbsoluteTime absTime);
-
 extern void resetCurrentDayTime();
 
-+ (NSString *)relativeTimeStringWithDate:(CFDateRef)date relativeDay:(NSInteger)day;
-
-+ (NSString *)relativeDateStringWithAbsoluteTime:(CFAbsoluteTime)absTime;
++ (NSString *)ntn_relativeDateStringWithDate:(NSDate *)date;
 
 CFDateFormatterRef simplenoteDateFormatter(NSInteger lowPrecision);
 
@@ -79,7 +75,7 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, NSUInteger charIndex);
 
 + (NSString *)ntn_stringWithRandomizedFileName;
 
-- (NSString *)ntn_normalizedString;
+- (void)ntn_enumerateRangesOfString:(NSString *)aString options:(NSStringCompareOptions)opts range:(NSRange)searchRange usingBlock:(void (^)(NSRange, BOOL *))block;
 
 @end
 

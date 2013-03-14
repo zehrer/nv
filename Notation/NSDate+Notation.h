@@ -13,4 +13,6 @@
 + (NSDate *)dateWithUTCDateTime:(const UTCDateTime *)utc;
 - (void)getUTCDateTime:(out UTCDateTime *)utc;
 
+@property (nonatomic, readonly, getter = ntn_hoursSinceReferenceDate) NSUInteger hoursSinceReferenceDate;
+
 @end

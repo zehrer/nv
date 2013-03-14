@@ -30,4 +30,8 @@ static NSDate *NTNCarbonReferenceDate() {
 	*(unsigned long long *)utc = [self timeIntervalSinceDate: NTNCarbonReferenceDate()] * 65536.0;
 }
 
+- (NSUInteger)ntn_hoursSinceReferenceDate {
+		return floor(self.timeIntervalSinceReferenceDate / 3600.0);
+}
+
 @end

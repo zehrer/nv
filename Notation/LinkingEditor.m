@@ -20,6 +20,7 @@
 #import "NSString_NV.h"
 #import "NVPasswordGenerator.h"
 #import "ETClipView.h"
+#import "NSString_NV.h"
 
 #import <Carbon/Carbon.h>
 
@@ -750,49 +751,37 @@ CGFloat _perceptualColorDifference(NSColor *a, NSColor *b) {
 - (NSRange)highlightTermsTemporarilyReturningFirstRange:(NSString *)typedString avoidHighlight:(BOOL)noHighlight {
 
 	//if lengths of respective UTF8-string equivalents for contentString are the same, we should revert to cstring-based algorithm
-
-	CFStringRef quoteStr = CFSTR("\"");
-    CFStringRef cfTypedString = (__bridge CFStringRef)typedString;
-
-	NSRange firstRange = NSMakeRange(NSNotFound, 0);
-	CFRange quoteRange = CFStringFind(cfTypedString, quoteStr, 0);
-	CFArrayRef terms = CFStringCreateArrayBySeparatingStrings(NULL, cfTypedString,
-			quoteRange.location == kCFNotFound ? CFSTR(" ") : quoteStr);
-	if (terms) {
-		CFIndex termIndex, rangeIndex;
-		CFStringRef bodyString = (__bridge CFStringRef) [self string];
+	NSString *const quote = @"\"";
+	__block NSRange firstRange = NSMakeRange(NSNotFound, 0);
+	NSRange quoteRange = [typedString rangeOfString: quote];
+	NSArray *terms = [typedString componentsSeparatedByString: quoteRange.location == NSNotFound ? @" " : quote];
+	if (terms.count) {
+		NSUInteger rangeIndex;
+		NSString *bodyString = self.string;
 		NSDictionary *highlightDict = [prefsController searchTermHighlightAttributes];
 
-		for (termIndex = 0; termIndex < CFArrayGetCount(terms); termIndex++) {
-			CFStringRef term = CFArrayGetValueAtIndex(terms, termIndex);
-			if (CFStringGetLength(term) > 0) {
-				CFArrayRef ranges = CFStringCreateArrayWithFindResults(NULL, bodyString, term, CFRangeMake(0, CFStringGetLength(bodyString)),
-						kCFCompareCaseInsensitive);
-				if (!ranges)
-					continue;
-				for (rangeIndex = 0; rangeIndex < CFArrayGetCount(ranges); rangeIndex++) {
-					CFRange *range = (CFRange *) CFArrayGetValueAtIndex(ranges, rangeIndex);
+		[terms enumerateObjectsUsingBlock:^(NSString *term, NSUInteger termIndex, BOOL *stop) {
+			if (!term.length) return;
 
-					if (range && range->length > 0 && range->location + range->length <= CFStringGetLength(bodyString)) {
-						if (firstRange.location > (NSUInteger) range->location) {
-							firstRange = *(NSRange *) range;
-							if (noHighlight) {
-								CFRelease(ranges);
-								goto returnEarly;
-							}
+			NSUInteger bodyLength = bodyString.length;
+			[bodyString ntn_enumerateRangesOfString: term options: NSCaseInsensitiveSearch range: NSMakeRange(0, bodyLength) usingBlock:^(NSRange range, BOOL *iStop) {
+				if (range.length && range.location + range.length <= bodyLength) {
+					if (firstRange.location > range.location) {
+						firstRange = range;
+						if (!noHighlight) {
+							*iStop = YES;
+							*stop = YES;
+							return;
 						}
-						[[self layoutManager] addTemporaryAttributes:highlightDict forCharacterRange:*(NSRange *) range];
-					} else {
-						NSLog(@"highlightTermsTemporarily: Invalid range (%@)", range ? NSStringFromRange(*(NSRange *) range) : @"?");
 					}
+					[self.layoutManager addTemporaryAttributes: highlightDict forCharacterRange: range];
+				} else {
+					NSLog(@"highlightTermsTemporarily: Invalid range (%@)", NSStringFromRange(range));
 				}
-				CFRelease(ranges);
-			}
-		}
-		returnEarly:
-				CFRelease(terms);
+			}];
+		}];
 	}
-	return (firstRange);
+	return firstRange;
 }
 
 - (NSRange)selectionRangeForProposedRange:(NSRange)proposedSelRange granularity:(NSSelectionGranularity)granularity {

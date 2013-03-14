@@ -21,23 +21,28 @@
 #import "GlobalPrefs.h"
 #import "NSData+Notation.h"
 
+typedef NS_ENUM(NSInteger, NTNRelativeDay) {
+	NTNRelativeDayNotSpecial = -1,
+	NTNRelativeDayToday = 0,
+	NTNRelativeDayTomorrow = 1,
+	NTNRelativeDayYesterday = 2
+};
+
 @implementation NSString (NV)
 
-static int dayFromAbsoluteTime(CFAbsoluteTime absTime);
-
-enum {
-	NoSpecialDay = -1, ThisDay = 0, NextDay = 1, PriorDay = 2
-};
++ (NSMutableDictionary *)ntn_dateStringsCache {
+	static dispatch_once_t onceToken;
+	static NSMutableDictionary *dateStringsCache = nil;
+	dispatch_once(&onceToken, ^{
+		dateStringsCache = [NSMutableDictionary dictionary];
+	});
+	return dateStringsCache;
+}
 
 static const double dayInSeconds = 86400.0;
 static CFTimeInterval secondsAfterGMT = 0.0;
 static int currentDay = 0;
-static CFMutableDictionaryRef dateStringsCache = NULL;
-static CFDateFormatterRef dateAndTimeFormatter = NULL;
-
-unsigned int hoursFromAbsoluteTime(CFAbsoluteTime absTime) {
-	return (unsigned int) floor(absTime / 3600.0);
-}
+static NSDateFormatter *dateFormatter = NULL;
 
 //should be called after midnight, and then all the notes should have their date-strings recomputed
 void resetCurrentDayTime() {
@@ -48,56 +53,73 @@ void resetCurrentDayTime() {
 
 	currentDay = (int) floor((current + secondsAfterGMT) / dayInSeconds); // * dayInSeconds - secondsAfterGMT;
 
-	if (dateStringsCache)
-		CFDictionaryRemoveAllValues(dateStringsCache);
+	[[NSString ntn_dateStringsCache] removeAllObjects];
 
-	if (dateAndTimeFormatter) {
-		CFRelease(dateAndTimeFormatter);
-		dateAndTimeFormatter = NULL;
+	if (dateFormatter) {
+		dateFormatter = nil;
 	}
 
 	CFRelease(timeZone);
 }
 //the epoch is defined at midnight GMT, so we have to convert from GMT to find the days
 
-static int dayFromAbsoluteTime(CFAbsoluteTime absTime) {
-	if (currentDay == 0)
-		resetCurrentDayTime();
+static NTNRelativeDay NTNDayFromDate(NSDate *date) {
+	NSCalendar *cal = [NSCalendar currentCalendar];
+	NSUInteger dateComponentsWanted = NSYearCalendarUnit| NSMonthCalendarUnit | NSDayCalendarUnit | NSWeekCalendarUnit |  NSHourCalendarUnit | NSMinuteCalendarUnit | NSSecondCalendarUnit | NSWeekdayCalendarUnit | NSWeekdayOrdinalCalendarUnit;
 
-	int timeDay = (int) floor((absTime + secondsAfterGMT) / dayInSeconds); // * dayInSeconds - secondsAfterGMT;
-	if (timeDay == currentDay) {
-		return ThisDay;
-	} else if (timeDay == currentDay + 1 /*dayInSeconds*/) {
-		return NextDay;
-	} else if (timeDay == currentDay - 1 /*dayInSeconds*/) {
-		return PriorDay;
+	NSDateComponents *dateComponents = [cal components: dateComponentsWanted fromDate: date];
+
+	BOOL(^isEqualToDateIgnoringTime)(NSDate *) = ^BOOL(NSDate *otherDate){
+		NSDateComponents *otherDateComponents = [cal components: dateComponentsWanted fromDate: otherDate];
+		return ((dateComponents.year == otherDateComponents.year) &&
+				(dateComponents.month == otherDateComponents.month) &&
+				(dateComponents.day == otherDateComponents.day));
+	};
+
+	NSDate *(^dateByAddingDays)(NSDate *, NSUInteger) = ^(NSDate *originalDate, NSUInteger dDays){
+		static NSTimeInterval const kDay = 86400;
+		NSTimeInterval aTimeInterval = originalDate.timeIntervalSinceReferenceDate + (kDay * dDays);
+		NSDate *newDate = [NSDate dateWithTimeIntervalSinceReferenceDate:aTimeInterval];
+		return newDate;
+	};
+
+	NSDate *today = [NSDate date];
+
+	if (isEqualToDateIgnoringTime(today)) {
+		return NTNRelativeDayToday;
+	} else {
+		NSDate *tomorrow = dateByAddingDays(today, 1);
+		if (isEqualToDateIgnoringTime(tomorrow)) return NTNRelativeDayTomorrow;
+
+		NSDate *yesterday = dateByAddingDays(today, -1);
+		if (isEqualToDateIgnoringTime(yesterday)) return NTNRelativeDayYesterday;
 	}
-
-	return NoSpecialDay;
+	return NTNRelativeDayNotSpecial;
 }
 
-+ (NSString *)relativeTimeStringWithDate:(CFDateRef)date relativeDay:(NSInteger)day {
-	static CFDateFormatterRef timeOnlyFormatter = nil;
++ (NSString *)ntn_relativeTimeStringWithDate:(NSDate *)date relativeDay:(NTNRelativeDay)day {
+	static NSDateFormatter *timeOnlyFormatter = nil;
 	static NSString *days[3] = {NULL};
 
 	if (!timeOnlyFormatter) {
-		CFLocaleRef locale = CFLocaleCopyCurrent();
-		timeOnlyFormatter = CFDateFormatterCreate(kCFAllocatorDefault, locale, kCFDateFormatterNoStyle, kCFDateFormatterShortStyle);
-		CFRelease(locale);
+		timeOnlyFormatter = [NSDateFormatter new];
+		timeOnlyFormatter.dateStyle = NSDateFormatterNoStyle;
+		timeOnlyFormatter.timeStyle = NSDateFormatterShortStyle;
 	}
 
-	if (!days[ThisDay]) {
-		days[ThisDay] = NSLocalizedString(@"Today", nil);
-		days[NextDay] = NSLocalizedString(@"Tomorrow", nil);
-		days[PriorDay] = NSLocalizedString(@"Yesterday", nil);
+	if (!days[NTNRelativeDayToday]) {
+		days[NTNRelativeDayToday] = NSLocalizedString(@"Today", nil);
+		days[NTNRelativeDayTomorrow] = NSLocalizedString(@"Tomorrow", nil);
+		days[NTNRelativeDayYesterday] = NSLocalizedString(@"Yesterday", nil);
 	}
 
-	NSString *dateString = (NSString *) CFBridgingRelease(CFDateFormatterCreateStringWithDate(kCFAllocatorDefault, timeOnlyFormatter, date));
+	NSString *dateString = [timeOnlyFormatter stringFromDate: date];
 
 	if ([[GlobalPrefs defaultPrefs] horizontalLayout]) {
-		//if today, return the time only; otherwise say "Yesterday", etc.; and this method shouldn't be called unless day != NoSpecialDay
-		if (day == PriorDay || day == NextDay)
-			return days[day];
+		// if today, return the time only; otherwise say "Yesterday", etc.
+		// This shouldn't be called unless day != NTNRelativeDayNotSpecial
+		if (day == NTNRelativeDayYesterday || day == NTNRelativeDayTomorrow)
+			return days[day]; 
 		return dateString;
 	}
 
@@ -106,43 +128,34 @@ static int dayFromAbsoluteTime(CFAbsoluteTime absTime) {
 
 //take into account yesterday/today thing
 //this method _will_ affect application launch time
-+ (NSString *)relativeDateStringWithAbsoluteTime:(CFAbsoluteTime)absTime {
-	if (!dateStringsCache) {
-		CFDictionaryKeyCallBacks keyCallbacks = {kCFTypeDictionaryKeyCallBacks.version, (CFDictionaryRetainCallBack) NULL, (CFDictionaryReleaseCallBack) NULL,
-				(CFDictionaryCopyDescriptionCallBack) NULL, (CFDictionaryEqualCallBack) NULL, (CFDictionaryHashCallBack) NULL};
-		dateStringsCache = CFDictionaryCreateMutable(kCFAllocatorDefault, 0, &keyCallbacks, &kCFTypeDictionaryValueCallBacks);
-	}
-	NSInteger minutesCount = (NSInteger) ((NSInteger) absTime / 60);
-
-	NSString *dateString = (NSString *) CFDictionaryGetValue(dateStringsCache, (const void *) minutesCount);
++ (NSString *)ntn_relativeDateStringWithDate:(NSDate *)date {
+	NSTimeInterval absTime = date.timeIntervalSinceReferenceDate;
+	
+	NSMutableDictionary *cache = [self ntn_dateStringsCache];
+	NSNumber *key = @((NSInteger) absTime / 60);
+	NSString *dateString = cache[key];
 
 	if (!dateString) {
-		int day = dayFromAbsoluteTime(absTime);
+		NTNRelativeDay day = NTNDayFromDate(date);
 
-		if (!dateAndTimeFormatter) {
+		if (!dateFormatter) {
 			BOOL horiz = [[GlobalPrefs defaultPrefs] horizontalLayout];
-			CFLocaleRef locale = CFLocaleCopyCurrent();
-			dateAndTimeFormatter = CFDateFormatterCreate(kCFAllocatorDefault, locale,
-					horiz ? kCFDateFormatterShortStyle : kCFDateFormatterMediumStyle,
-					horiz ? kCFDateFormatterNoStyle : kCFDateFormatterShortStyle);
-			CFRelease(locale);
+			dateFormatter = [NSDateFormatter new];
+			dateFormatter.dateStyle = horiz ? NSDateFormatterShortStyle : NSDateFormatterMediumStyle;
+			dateFormatter.timeStyle = horiz ? NSDateFormatterNoStyle : NSDateFormatterShortStyle;
 		}
 
-		CFDateRef date = CFDateCreate(kCFAllocatorDefault, absTime);
-
-		if (day == NoSpecialDay) {
-			dateString = (__bridge_transfer NSString *)CFDateFormatterCreateStringWithDate(NULL, dateAndTimeFormatter, date);
+		if (day == NTNRelativeDayNotSpecial) {
+			dateString = [dateFormatter stringFromDate: date];
 		} else {
-			dateString = [NSString relativeTimeStringWithDate:date relativeDay:day];
+			dateString = [NSString ntn_relativeTimeStringWithDate:date relativeDay:day];
 		}
-
-		CFRelease(date);
 
 		//ints as pointers ints as pointers ints as pointers
-		CFDictionarySetValue(dateStringsCache, (const void *) minutesCount, (__bridge CFStringRef) dateString);
+		cache[key] = dateString;
 	}
 
-	return dateString;
+	return dateString;	
 }
 
 // TODO: possibly obsolete? SN api2 formats dates as doubles from start of unix epoch
@@ -224,8 +237,7 @@ CFDateFormatterRef simplenoteDateFormatter(NSInteger lowPrecision) {
 				}
 			}
 		}
-		//should sort them all now by location
-		//CFArraySortValues(allRanges, CFRangeMake(0, CFArrayGetCount(allRanges)), <#CFComparatorFunction comparator#>,<#void * context#>);
+
 		CFRelease(terms);
 		return allRanges;
 	}
@@ -501,10 +513,20 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, NSUInteger charIndex) 
 	return [NSString stringWithFormat: @"%d-%d-%d", psn, date, sequence];
 }
 
-- (NSString *)ntn_normalizedString {
-	NSMutableString *normalizedString = [self mutableCopy];
-	CFStringNormalize((__bridge CFMutableStringRef)normalizedString, kCFStringNormalizationFormC);
-	return [normalizedString copy];
+- (void)ntn_enumerateRangesOfString:(NSString *)aString options:(NSStringCompareOptions)opts range:(NSRange)searchRange usingBlock:(void (^)(NSRange, BOOL *))block {
+	NSUInteger max = NSMaxRange(searchRange);
+    NSRange uncheckedRange = searchRange;
+	for (;;) {
+		NSRange foundAtRange = [self rangeOfString: aString options: opts range: uncheckedRange];
+		if (foundAtRange.location == NSNotFound) break;
+
+		BOOL stop = NO;
+		block(foundAtRange, &stop);
+		if (stop) return;
+
+		NSUInteger newLocation = NSMaxRange(foundAtRange);
+		uncheckedRange = NSMakeRange(newLocation, max - newLocation);
+	}
 }
 
 @end

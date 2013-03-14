@@ -39,6 +39,7 @@
 #import "NSBezierPath_NV.h"
 #import "LabelObject.h"
 #import "NSError+Notation.h"
+#import "NSDate+Notation.h"
 #import <objc/message.h>
 
 @interface NotationController ()
@@ -70,7 +71,7 @@
 	selectedNoteIndex = NSNotFound;
 
 	lastLayoutStyleGenerated = -1;
-	lastCheckedDateInHours = hoursFromAbsoluteTime(CFAbsoluteTimeGetCurrent());
+	lastCheckedDateInHours = [[NSDate date] ntn_hoursSinceReferenceDate];
 
 	unwrittenNotes = [[NSMutableSet alloc] init];
 }
@@ -1039,8 +1040,7 @@
 }
 
 - (void)updateDateStringsIfNecessary {
-
-	unsigned int currentHours = hoursFromAbsoluteTime(CFAbsoluteTimeGetCurrent());
+	NSUInteger currentHours = [[NSDate date] ntn_hoursSinceReferenceDate];
 	BOOL isHorizontalLayout = [prefsController horizontalLayout];
 
 	if (currentHours != lastCheckedDateInHours || isHorizontalLayout != lastLayoutStyleGenerated) {

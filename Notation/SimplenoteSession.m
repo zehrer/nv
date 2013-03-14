@@ -62,23 +62,6 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkCon
 	return [NSURL URLWithString:[NSString stringWithFormat:@"https://simple-note.appspot.com%@%@", path, queryStr]];
 }
 
-#if 0
-+ (NSString*)localizedNetworkDiagnosticMessage {
-	
-	CFNetDiagnosticRef networkDiagnosticRef = CFNetDiagnosticCreateWithURL(kCFAllocatorDefault, (CFURLRef)[self servletURLWithPath:@"/" parameters:nil]);
-	if (networkDiagnosticRef) {
-		
-		CFStringRef localizedDiagnosticString = NULL;
-		(void)CFNetDiagnosticCopyNetworkStatusPassively(networkDiagnosticRef, &localizedDiagnosticString);
-		CFRelease(networkDiagnosticRef);
-		
-		return [(id)localizedDiagnosticString autorelease];
-	}
-	return nil;
-}
-#endif
-
-
 + (SCNetworkReachabilityRef)createReachabilityRefWithCallback:(SCNetworkReachabilityCallBack)callout target:(id)aTarget {
 	SCNetworkReachabilityRef reachableRef = NULL;
 
@@ -332,7 +315,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef target, SCNetworkCon
 
 	} else if (lastSyncedTime > 0.0) {
 		return [NSLocalizedString(@"Last sync: ", @"label to prefix last sync time in the status menu")
-				stringByAppendingString:[NSString relativeDateStringWithAbsoluteTime:lastSyncedTime]];
+				stringByAppendingString: [NSString ntn_relativeDateStringWithDate: [NSDate dateWithTimeIntervalSinceReferenceDate: lastSyncedTime]]];
 	} else if ([collectorsInProgress count]) {
 		//probably won't display this very often
 		return [NSString stringWithFormat:NSLocalizedString(@"%u update(s) in progress", nil), [collectorsInProgress count]];
