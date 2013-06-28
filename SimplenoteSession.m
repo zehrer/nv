@@ -263,7 +263,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		reachabilityFailed = NO;
 
 		if (![(emailAddress = [aUserString retain]) length]) {
-			NSLog(@"%s: empty email address", _cmd);
+			NSLog(@"%@: empty email address", NSStringFromSelector(_cmd));
 			return nil;
 		}
 		if (![(password = [aPassString retain]) length]) {
@@ -470,7 +470,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 	if ([unsyncedServiceNotes count] > 0) {
 		
 		if ([listFetcher isRunning] || [changesFetcher isRunning]) {
-			NSLog(@"%s: not pushing because a full sync index is in progress", _cmd);
+			NSLog(@"%@: not pushing because a full sync index is in progress", NSStringFromSelector(_cmd));
 			return NO;
 		}
 		
@@ -756,7 +756,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 	//because there could be many notes missing
 	//although notes that encountered errors normally (entriesInError w/o stopping) will potentially be duplicated anyway.
 	if ([collector collectionStoppedPrematurely]) {
-		NSLog(@"%s: not merging notes because collection was cancelled", _cmd);
+		NSLog(@"%@: not merging notes because collection was cancelled", NSStringFromSelector(_cmd));
 		return;
 	}
 	NSMutableArray *entries = [NSMutableArray arrayWithCapacity:[[collector entriesCollected] count]];
@@ -827,15 +827,15 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 	}
 		
 	if ([downloadedNotesToKeep count]) {
-		NSLog(@"%s: found %u genuinely new notes on the server",_cmd, [downloadedNotesToKeep count]);
+		NSLog(@"%@: found %u genuinely new notes on the server", NSStringFromSelector(_cmd), [downloadedNotesToKeep count]);
 		[delegate syncSession:self receivedAddedNotes:downloadedNotesToKeep];
 	}
 	if ([notesToReportModified count]) {
-		NSLog(@"%s: found %u duplicate notes on the server",_cmd, [notesToReportModified count]);
+		NSLog(@"%@: found %u duplicate notes on the server", NSStringFromSelector(_cmd), [notesToReportModified count]);
 		[delegate syncSession:self didModifyNotes:notesToReportModified];
 	}
 	if ([localNotesToUpload count] && ![collector collectionStoppedPrematurely]) {
-		NSLog(@"%s: found %u locally unique notes",_cmd, [localNotesToUpload count]);
+		NSLog(@"%@: found %u locally unique notes", NSStringFromSelector(_cmd), [localNotesToUpload count]);
 		//automatically upload the rest of the unique notes using -startCreatingNotes:
 		[self startCreatingNotes:[localNotesToUpload allObjects]];
 	}
