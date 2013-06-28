@@ -45,7 +45,7 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 @implementation AlienNoteImporter
 
 - (id)init {
-	if ([super init]) {
+	if ((self = [super init])) {
 		shouldGrabCreationDates = NO;
 		documentSettings = [[NSMutableDictionary alloc] init];
 	}

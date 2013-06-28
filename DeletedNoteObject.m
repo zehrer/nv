@@ -26,7 +26,7 @@
 }
 
 - (id)initWithExistingObject:(id<SynchronizedNote>)note {
-    if ([super init]) {
+    if ((self = [super init])) {
 		CFUUIDBytes *bytes = [note uniqueNoteIDBytes];
 		uniqueNoteIDBytes = *bytes;
 		syncServicesMD = [[note syncServicesMD] mutableCopy];
@@ -38,8 +38,7 @@
 }
 
 - (id)initWithCoder:(NSCoder*)decoder {
-    if ([super init]) {
-		
+    if ((self = [super init])) {
 		if ([decoder allowsKeyedCoding]) {
 			NSUInteger decodedByteCount;
 			const uint8_t *decodedBytes = [decoder decodeBytesForKey:VAR_STR(uniqueNoteIDBytes) returnedLength:&decodedByteCount];

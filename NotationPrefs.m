@@ -52,7 +52,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 }
 
 - (id)init {
-    if ([super init]) {
+    if ((self = [super init])) {
 		allowedTypes = NULL;
 		
 		unsigned int i;

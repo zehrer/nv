@@ -44,7 +44,7 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 }
 
 - (id)initWithNoteUUIDBytes:(CFUUIDBytes)bytes searchString:(NSString*)aString {
-	if ([super init]) {
+	if ((self = [super init])) {
 		uuidBytes = bytes;
 		searchString = [aString copy];
 	}
@@ -53,8 +53,12 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 }
 
 - (id)initWithNoteObject:(NoteObject*)aNote searchString:(NSString*)aString {
-	
-	if ([super init] && aNote) {
+	if (!aNote) {
+		NSLog(@"NoteBookmark init: supplied nil note");
+		return nil;
+	}
+    
+	if ((self = [super init])) {
 		noteObject = [aNote retain];
 		searchString = [aString copy];
 		
@@ -64,9 +68,6 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 			return nil;
 		}
 		uuidBytes = *bytes;
-	} else {
-		NSLog(@"NoteBookmark init: supplied nil note");
-		return nil;
 	}
 	return self;
 }
@@ -133,7 +134,7 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 @implementation BookmarksController
 
 - (id)init {
-	if ([super init]) {
+	if ((self = [super init])) {
 		bookmarks = [[NSMutableArray alloc] init];
 		isSelectingProgrammatically = isRestoringSearch = NO;
 		
@@ -166,7 +167,7 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 }
 
 - (id)initWithBookmarks:(NSArray*)array {
-	if ([self init]) {
+	if ((self = [self init])) {
 		unsigned int i;
 		for (i=0; i<[array count]; i++) {
 			NSDictionary *dict = [array objectAtIndex:i];

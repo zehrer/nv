@@ -31,7 +31,7 @@ NSString *SyncSessionsChangedVisibleStatusNotification = @"SSCVSN";
 static void SleepCallBack(void *refcon, io_service_t y, natural_t messageType, void * messageArgument);
 
 - (id)initWithSyncDelegate:(id)aSyncDelegate notationPrefs:(NotationPrefs*)prefs {
-	if ([super init]) {
+	if ((self = [super init])) {
 		if (!(syncDelegate = aSyncDelegate)) {
 			NSLog(@"%s: need syncDelegate!", _cmd);
 			return nil;

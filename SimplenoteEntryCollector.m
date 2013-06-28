@@ -32,7 +32,7 @@
 //instances this short-lived class are intended to be started only once, and then deallocated
 
 - (id)initWithEntriesToCollect:(NSArray*)wantedEntries simperiumToken:(NSString*)aSimperiumToken {
-	if ([super init]) {
+	if ((self = [super init])) {
 		simperiumToken = [aSimperiumToken retain];
 		entriesToCollect = [wantedEntries retain];
 		entriesCollected = [[NSMutableArray alloc] init];
@@ -234,7 +234,7 @@
 //and to ensure we know what the time was for the next time we compare dates
 
 - (id)initWithEntries:(NSArray*)wantedEntries operation:(SEL)opSEL simperiumToken:(NSString *)aSimperiumToken {
-	if ([super initWithEntriesToCollect:wantedEntries simperiumToken:aSimperiumToken]) {
+	if ((self = [super initWithEntriesToCollect:wantedEntries simperiumToken:aSimperiumToken])) {
 		//set creation and modification date when creating
 		//set modification date when updating
 		//need to check for success when deleting

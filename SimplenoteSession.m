@@ -243,9 +243,11 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		NSLog(@"notationPrefs says this service is disabled--stop it!");
 		return nil;
 	}
+    
+    NSString *syncAccount = [[prefs syncAccountForServiceName:SimplenoteServiceName] objectForKey:@"username"];
+    NSString *syncPassword = [prefs syncPasswordForServiceName:SimplenoteServiceName];
 	
-	if ([self initWithUsername:[[prefs syncAccountForServiceName:SimplenoteServiceName] objectForKey:@"username"] 
-				   andPassword:[prefs syncPasswordForServiceName:SimplenoteServiceName]]) {
+	if ((self = [self initWithUsername:syncAccount andPassword:syncPassword])) {
 		
 		//create a reachability ref to trigger a sync upon network reestablishment
 		reachableRef = [[self class] createReachabilityRefWithCallback:SNReachabilityCallback target:self];
@@ -256,8 +258,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 }
 
 - (id)initWithUsername:(NSString*)aUserString andPassword:(NSString*)aPassString {
-	
-	if ([super init]) {
+	if ((self = [super init])) {
 		lastSyncedTime = 0.0;
 		reachabilityFailed = NO;
 

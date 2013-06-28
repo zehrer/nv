@@ -19,20 +19,21 @@
 @implementation KeyDerivationManager
 
 - (id)initWithNotationPrefs:(NotationPrefs*)prefs {
-	notationPrefs = [prefs retain];
-	
-	//compute initial test duration for the current iteration number
-	crapData = [[@"random crap" dataUsingEncoding:NSASCIIStringEncoding] retain];
-	crapSalt = [[NSData randomDataOfLength:256] retain];
-	
-	lastHashIterationCount = [notationPrefs hashIterationCount];
-	lastHashDuration = [self delayForHashIterations:lastHashIterationCount];
-	
-	if (![self init]) {
-		[self release];
-		return nil;
-	}
-		
+    if ((self = [self init])) {
+        notationPrefs = [prefs retain];
+        
+        //compute initial test duration for the current iteration number
+        crapData = [[@"random crap" dataUsingEncoding:NSASCIIStringEncoding] retain];
+        crapSalt = [[NSData randomDataOfLength:256] retain];
+        
+        lastHashIterationCount = [notationPrefs hashIterationCount];
+        lastHashDuration = [self delayForHashIterations:lastHashIterationCount];
+        
+        if (![self init]) {
+            [self release];
+            return nil;
+        }
+    }
 	return self;
 }
 
@@ -49,7 +50,7 @@
 }
 
 - (id)init {
-	if ([super init]) {
+	if ((self = [super init])) {
 		if (!view) {
 			if (![NSBundle loadNibNamed:@"KeyDerivationManager" owner:self])  {
 				NSLog(@"Failed to load KeyDerivationManager.nib");

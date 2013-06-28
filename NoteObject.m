@@ -60,7 +60,7 @@ static void setAttrModifiedDate(NoteObject *note, UTCDateTime *dateTime);
 static void setCatalogNodeID(NoteObject *note, UInt32 cnid);
 
 - (id)init {
-    if ([super init]) {
+    if (self = [super init]) {
 	
 		perDiskInfoGroups = calloc(1, sizeof(PerDiskInfo));
 		perDiskInfoGroups[0].diskIDIndex = -1;
@@ -324,7 +324,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 #define DECODE_INDIVIDUALLY 1
 
 - (id)initWithCoder:(NSCoder*)decoder {
-	if ([self init]) {
+	if (self = [self init]) {
 		
 		if ([decoder allowsKeyedCoding]) {
 			//(hopefully?) no versioning necessary here
@@ -508,7 +508,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 
 - (id)initWithNoteBody:(NSAttributedString*)bodyText title:(NSString*)aNoteTitle delegate:(id)aDelegate format:(int)formatID labels:(NSString*)aLabelString {
 	//delegate optional here
-    if ([self init]) {
+    if ((self = [self init])) {
 		
 		if (!bodyText || !aNoteTitle) {
 			return nil;
@@ -552,7 +552,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 
 - (id)initWithCatalogEntry:(NoteCatalogEntry*)entry delegate:(id)aDelegate {
 	NSAssert(aDelegate != nil, @"must supply a delegate");
-    if ([self init]) {
+    if ((self = [self init])) {
 		delegate = aDelegate;
 		filename = [(NSString*)entry->filename copy];
 		currentFormatID = [delegate currentNoteStorageFormat];

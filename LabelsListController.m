@@ -32,7 +32,7 @@
 @implementation LabelsListController
 
 - (id)init {
-	if ([super init]) {
+	if ((self = [super init])) {
 	    
 	    allLabels = [[NSCountedSet alloc] init]; //authoritative
 	    //for faster(?) filtering during search

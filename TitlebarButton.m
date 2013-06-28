@@ -133,7 +133,7 @@
 }
 
 - (id)initWithFrame:(NSRect)frameRect pullsDown:(BOOL)flag {
-	if ([super initWithFrame:NSMakeRect(frameRect.origin.x, frameRect.origin.y, 17.0, 17.0) pullsDown:flag]) {
+	if ((self = [super initWithFrame:NSMakeRect(frameRect.origin.x, frameRect.origin.y, 17.0, 17.0) pullsDown:flag])) {
 		
 		TitlebarButtonCell *buttonCell = [[[TitlebarButtonCell alloc] initTextCell:@"" pullsDown:flag] autorelease];
 		[buttonCell setAction:[[self cell] action]];
