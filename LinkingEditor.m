@@ -65,8 +65,6 @@ static long (*GetGetScriptManagerVariablePointer())(short);
 @synthesize activeParagraphPastCursor;
 @synthesize managesTextWidth;
 
-CGFloat _perceptualDarkness(NSColor*a);
-
 - (void)awakeFromNib {
 	
     prefsController = [GlobalPrefs defaultPrefs];
@@ -225,8 +223,10 @@ CGFloat _perceptualDarkness(NSColor*a);
     [self setNeedsDisplay:YES];
 }
 
-#define _CM(__ch) ((__ch) * 255.0)
-CGFloat _perceptualDarkness(NSColor*a) {
+static inline CGFloat _CM(CGFloat ch) {
+    return ch * 255.0f;
+}
+static CGFloat _perceptualDarkness(NSColor*a) {
 	//0 to 1; the higher the darker
 	
 	CGFloat aRed, aGreen, aBlue;
@@ -234,7 +234,7 @@ CGFloat _perceptualDarkness(NSColor*a) {
 
 	return 1 - (0.299 * _CM(aRed) + 0.587 * _CM(aGreen) + 0.114 * _CM(aBlue))/255;
 }
-CGFloat _perceptualColorDifference(NSColor*a, NSColor*b) {
+static CGFloat _perceptualColorDifference(NSColor*a, NSColor*b) {
 	//acceptable: 500
 	CGFloat aRed, aGreen, aBlue, bRed, bGreen, bBlue;
 	[a getRed:&aRed green:&aGreen blue:&aBlue alpha:NULL];

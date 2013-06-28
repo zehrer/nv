@@ -146,7 +146,7 @@ CFUUIDRef CopyHFSVolumeUUIDForMount(const char *mntonname) {
 	return CFUUIDCreateFromUUIDBytes(NULL, uuidBytes);
 }
 
-CFUUIDRef CopySyntheticUUIDForVolumeCreationDate(FSRef *fsRef) {
+static CFUUIDRef CopySyntheticUUIDForVolumeCreationDate(FSRef *fsRef) {
 	
 	FSCatalogInfo fileInfo;
 	if (FSGetCatalogInfo(fsRef, kFSCatInfoVolume, &fileInfo, NULL, NULL, NULL) == noErr) {

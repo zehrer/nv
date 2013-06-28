@@ -18,10 +18,10 @@
 
 #import <Cocoa/Cocoa.h>
 
-@interface NSString (CustomTruncation)
+extern void ResetFontRelatedTableAttributes(void);
+extern NSDictionary *LineTruncAttributesForTitle(void);
 
-void ResetFontRelatedTableAttributes();
-NSDictionary *LineTruncAttributesForTitle();
+@interface NSString (CustomTruncation)
 
 - (NSString*)truncatedPreviewStringOfLength:(NSUInteger)bodyCharCount;
 - (NSAttributedString*)attributedSingleLinePreviewFromBodyText:(NSAttributedString*)bodyText upToWidth:(float)width;

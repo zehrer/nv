@@ -83,7 +83,7 @@ NSInteger compareCatalogValueFileSize(id *a, id *b) {
 }
 
 
-void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t num_events, void* event_paths, 
+static void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t num_events, void* event_paths,
 					  const FSEventStreamEventFlags flags[],
                       const FSEventStreamEventId event_ids[]) {
 	NotationController* self = (NotationController*)info;

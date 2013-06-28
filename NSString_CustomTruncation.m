@@ -28,8 +28,6 @@ static NSDictionary *GrayTextAttributes();
 static NSDictionary *LineTruncAttributes();
 static size_t EstimatedCharCountForWidth(float upToWidth);
 
-
-
 - (NSString*)truncatedPreviewStringOfLength:(NSUInteger)bodyCharCount {
 	
 	//try to get the underlying C-string buffer and copy only part of it
