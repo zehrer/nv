@@ -26,6 +26,7 @@
 #import "SimplenoteSession.h"
 #import "PassphrasePicker.h"
 #import "PassphraseChanger.h"
+#import "NSDictionary+BSJSONAdditions.h"
 //#import "AppController.h"
 
 @implementation FileKindListView 

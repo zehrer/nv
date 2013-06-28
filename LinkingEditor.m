@@ -2317,6 +2317,7 @@ static long (*GetGetScriptManagerVariablePointer())(short) {
 }
 
 #pragma mark - ElasticThreads Lion Find... implementation
+
 - (void)prepareTextFinder{        
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
     if (IsLionOrLater) {
@@ -2336,10 +2337,15 @@ static long (*GetGetScriptManagerVariablePointer())(short) {
         [dc addObserver:self selector:@selector(textFinderShouldResetContext:) name:@"TextFindContextShouldReset" object:nil];
          [dc addObserver:self selector:@selector(hideTextFinderIfNecessary:) name:@"TextFinderShouldHide" object:nil];
         return;       
-    }
+    } else {
 #endif
     [self prepareTextFinderPreLion];
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
+    }
+#endif
 }
+
+#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_7
 
 - (void)prepareTextFinderPreLion{
     [self setUsesFindPanel:YES];
@@ -2358,6 +2364,8 @@ static long (*GetGetScriptManagerVariablePointer())(short) {
     [[textFinder findPanel:YES] update];
 }
 
+
+#endif
 
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
 - (void)textFinderShouldResetContext:(NSNotification *)aNotification{
@@ -2481,7 +2489,7 @@ static long (*GetGetScriptManagerVariablePointer())(short) {
         [newSender release];
         return;
     }
-#endif
+#else
     //not lion do it the old, hacky way
     if([sender tag]==1){
         if(lastImportedFindString&&(lastImportedFindString.length>0)&&([textFinder respondsToSelector:@selector(loadFindStringFromPasteboard)])){                
@@ -2493,7 +2501,8 @@ static long (*GetGetScriptManagerVariablePointer())(short) {
 //            NSLog(@"Apple changed NSTextFinder (loadFindStringFromPasteboard)");
 //        }	
     }
-    [super performFindPanelAction:sender];    
+#endif
+    [super performFindPanelAction:sender];
 }
 
 - (IBAction)toggleLayoutOrientation:(id)sender {
