@@ -602,7 +602,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 		[self updateOSTypesArray];
 		
 		if ([delegate respondsToSelector:@selector(databaseSettingsChangedFromOldFormat:)])
-			[delegate databaseSettingsChangedFromOldFormat:oldFormat];
+			[(NotationController *)delegate databaseSettingsChangedFromOldFormat:oldFormat];
 		
 		//should notationprefs need to do this?
 		if ([delegate respondsToSelector:@selector(flushEverything)])

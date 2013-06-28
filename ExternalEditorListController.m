@@ -32,6 +32,10 @@ static NSString *UserEEIdentifiersKey = @"UserEEIdentifiers";
 static NSString *DefaultEEIdentifierKey = @"DefaultEEIdentifier";
 NSString *ExternalEditorsChangedNotification = @"ExternalEditorsChanged";
 
+@interface ExternalEditorListController () <NSMenuDelegate>
+
+@end
+
 @implementation ExternalEditor
 
 - (id)initWithBundleID:(NSString*)aBundleIdentifier resolvedURL:(NSURL*)aURL {

@@ -287,10 +287,8 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 	CGFloat rectHeight = [self rowHeight] + [self intercellSpacing].height;
 	CGFloat rowRectOrigin = rectHeight * rangeOfRows.location;
     //    BOOL horiz = [globalPrefs horizontalLayout];
-	
     
-    NSInteger row;
-    for (row = rangeOfRows.location; row < maxRow; row++) {
+    for (NSUInteger row = rangeOfRows.location; row < maxRow; row++) {
         rowRectOrigin += rectHeight;
         [line moveToPoint:NSMakePoint(0.0, rowRectOrigin)];
         [line lineToPoint:NSMakePoint(rectWidth, rowRectOrigin)];

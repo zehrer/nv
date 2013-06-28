@@ -13,6 +13,10 @@
 #import "URLGetter.h"
 #import "GlobalPrefs.h"
 
+@interface URLGetter () <NSURLDownloadDelegate>
+
+@end
+
 @implementation URLGetter
 
 - (id)initWithURL:(NSURL*)aUrl delegate:(id)aDelegate userData:(id)someObj {

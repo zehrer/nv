@@ -10,7 +10,7 @@
 #import "PTKeyCombo.h"
 #import <Carbon/Carbon.h>
 
-NSString* PTKeyBroadcasterKeyEvent = @"PTKeyBroadcasterKeyEvent";
+NSString *const PTKeyBroadcasterKeyEvent = @"PTKeyBroadcasterKeyEvent";
 
 @implementation PTKeyBroadcaster
 

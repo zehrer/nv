@@ -1127,7 +1127,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 			return;
 		}
 		lastIndexAuthFailed = NO;
-		NSMutableArray *entries = [NSMutableArray arrayWithCapacity:[rawEntries count]];
+		entries = [NSMutableArray arrayWithCapacity:[rawEntries count]];
 		NSMutableArray *removedEntries = [NSMutableArray arrayWithCapacity:[rawEntries count]];
 		NSMutableDictionary *entriesDict = [NSMutableDictionary dictionaryWithCapacity:[rawEntries count]];
 

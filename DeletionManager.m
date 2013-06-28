@@ -20,6 +20,10 @@
 
 //class for managing notifications of external deletion of note files
 
+@interface DeletionManager () <NSWindowDelegate>
+
+@end
+
 @implementation DeletionManager
 
 - (id)init {

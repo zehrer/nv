@@ -77,7 +77,6 @@ static NSString	*ShowDockIcon = @"ShowDockIcon";
 static NSString	*KeepsMaxTextWidth = @"KeepsMaxTextWidth";
 static NSString	*NoteBodyMaxWidth = @"NoteBodyMaxWidth";
 static NSString	*ColorScheme = @"ColorScheme";
-static NSString	*TextEditor = @"TextEditor";
 static NSString *UseMarkdownImportKey = @"UseMarkdownImport";
 static NSString *UseReadabilityKey = @"UseReadability";
 static NSString *ShowGridKey = @"ShowGrid";
@@ -876,7 +875,7 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
 }
 
 - (CFUUIDBytes)UUIDBytesOfLastSelectedNote {
-	CFUUIDBytes bytes = {0};
+	CFUUIDBytes bytes = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 	
 	NSString *uuidString = [defaults objectForKey:LastSelectedNoteUUIDBytesKey];
 	if (uuidString) bytes = [uuidString uuidBytes];

@@ -492,7 +492,7 @@ static CFStringRef SynchronizedNoteKeyDescription(const void *value) {
 static CFHashCode SynchronizedNoteHash(const void * o) {
 	
     //CFUUIDBytes
-	return CFHashBytes(o, sizeof(CFUUIDBytes));
+	return CFHashBytes((UInt8 *)o, sizeof(CFUUIDBytes));
 }
 static Boolean SynchronizedNoteIsEqual(const void *o, const void *p) {
 	

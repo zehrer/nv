@@ -32,7 +32,7 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 // These class methods get and set the cursor used for each type.
 // Pass in nil to reset to the default cursor for that type.
 + (NSCursor*)cursor:(RBSVCursorType)type {
-	if ((type>=0)&&(type<RBSVCursorTypeCount)) {
+	if (type && (type<RBSVCursorTypeCount)) {
 		NSCursor* result = cursors[type];
 		if (result) {
 			return result;
@@ -54,7 +54,7 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 }
 
 + (void)setCursor:(RBSVCursorType)type toCursor:(NSCursor*)cursor {
-	if ((type>=0)&&(type<RBSVCursorTypeCount)) {
+	if (type && (type<RBSVCursorTypeCount)) {
 		[cursors[type] release];
 		cursors[type] = [cursor retain];
 	}
