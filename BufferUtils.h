@@ -51,9 +51,9 @@ NSInteger genericSortContextFirst(int (*context) (void*, void*), void* one, void
 NSInteger genericSortContextLast(void* one, void* two, int (*context) (void*, void*));
 void QuickSortBuffer(void **buffer, unsigned int objCount, int (*compar)(const void *, const void *));
 
-void RemovePerDiskInfoWithTableIndex(UInt32 diskIndex, PerDiskInfo **perDiskGroups, unsigned int *groupCount);
+void RemovePerDiskInfoWithTableIndex(UInt32 diskIndex, PerDiskInfo **perDiskGroups, NSUInteger *groupCount);
 NSUInteger SetPerDiskInfoWithTableIndex(UTCDateTime *dateTime, UInt32 *nodeID, UInt32 diskIndex, PerDiskInfo **perDiskGroups, NSUInteger *groupCount);
-void CopyPerDiskInfoGroupsToOrder(PerDiskInfo **flippedGroups, unsigned int *existingCount, PerDiskInfo *perDiskGroups, size_t bufferSize, int toHostOrder);
+void CopyPerDiskInfoGroupsToOrder(PerDiskInfo **flippedGroups, NSUInteger *existingCount, PerDiskInfo *perDiskGroups, size_t bufferSize, int toHostOrder);
 
 CFStringRef CreateRandomizedFileName(void);
 OSStatus FSCreateFileIfNotPresentInDirectory(FSRef *directoryRef, FSRef *childRef, CFStringRef filename, Boolean *created);

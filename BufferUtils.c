@@ -292,7 +292,7 @@ CFStringRef GetRelativeDateStringFromTimeAndLocaleInfo(CFAbsoluteTime time, CFSt
 //these two methods manipulate notes' perdiskinfo groups, changing the buffers in place
 //on return, groupCount will be set to the number of perdiskinfo structs currently in the buffer
 
-void RemovePerDiskInfoWithTableIndex(UInt32 diskIndex, PerDiskInfo **perDiskGroups, unsigned int *groupCount) {
+void RemovePerDiskInfoWithTableIndex(UInt32 diskIndex, PerDiskInfo **perDiskGroups, NSUInteger *groupCount) {
 	//used to periodically clean out attr-mod-times for disks that have not been seen in a while
 	
 	//if an entry exists, push everything below it upward and resize the buffer (or just copy to a new buffer)
@@ -350,7 +350,7 @@ NSUInteger SetPerDiskInfoWithTableIndex(UTCDateTime *dateTime, UInt32 *nodeID, U
 
 COMPILE_ASSERT(sizeof(PerDiskInfo) == 16, PER_DISK_INFO_MUST_BE_16_BYTES);
 
-void CopyPerDiskInfoGroupsToOrder(PerDiskInfo **flippedGroups, unsigned int *existingCount, PerDiskInfo *perDiskGroups, size_t bufferSize, int toHostOrder) {
+void CopyPerDiskInfoGroupsToOrder(PerDiskInfo **flippedGroups, NSUInteger *existingCount, PerDiskInfo *perDiskGroups, size_t bufferSize, int toHostOrder) {
 	//for decoding and encoding an array of PerDiskInfo structs as a single buffer
 	//swap between host order and big endian
 	//resizes flippedPairs if it is too small (based on *existingCount)

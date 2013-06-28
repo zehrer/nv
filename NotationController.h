@@ -58,7 +58,7 @@ typedef struct _NoteCatalogEntry {
 	NoteAttributeColumn* sortColumn;
 	
     NoteObject **allNotesBuffer;
-	unsigned int allNotesBufferSize;
+	NSUInteger allNotesBufferSize;
     
     NSUInteger selectedNoteIndex;
     char *currentFilterStr, *manglingString;

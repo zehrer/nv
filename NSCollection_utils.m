@@ -230,8 +230,8 @@
 	[self sortUsingFunction:(NSInteger (*)(id, id, void *))genericSortContextLast context:compare];
 }
 
-- (void)sortStableUsingFunction:(NSInteger (*)(id *, id *))compare usingBuffer:(id **)buffer ofSize:(unsigned int*)bufSize {
-	CFIndex count = CFArrayGetCount((CFArrayRef)self);
+- (void)sortStableUsingFunction:(NSInteger ( *)(id *, id *))compare usingBuffer:(id **)buffer ofSize:(NSUInteger *)bufSize {
+    NSUInteger count = [self count];
 	
 	ResizeArray(buffer, count, bufSize);
 	
