@@ -426,11 +426,11 @@
 	}
 	//check IV and key lengths
 	if ((int)[iv length] != EVP_CIPHER_CTX_iv_length(&cipherContext)) {
-		NSLog(@"initialization vector length was wrong size: %u", [iv length]);
+		NSLog(@"initialization vector length was wrong size: %lu", (unsigned long)[iv length]);
 		return NO;
 	}
 	if ((int)[key length] != EVP_CIPHER_CTX_key_length(&cipherContext)) {
-		NSLog(@"encryption key length was wrong size: %u", [key length]);
+		NSLog(@"encryption key length was wrong size: %lu", (unsigned long)[key length]);
 		return NO;
 	}
 	
@@ -476,11 +476,11 @@
 	}
 	//check IV and key lengths
 	if ((int)[iv length] != EVP_CIPHER_CTX_iv_length(&cipherContext)) {
-		NSLog(@"initialization vector length was wrong size: %u", [iv length]);
+		NSLog(@"initialization vector length was wrong size: %lu", (unsigned long)[iv length]);
 		return NO;
 	}
 	if ((int)[key length] != EVP_CIPHER_CTX_key_length(&cipherContext)) {
-		NSLog(@"decryption key length was wrong size: %u", [key length]);
+		NSLog(@"decryption key length was wrong size: %lu", (unsigned long)[key length]);
 		return NO;
 	}
 	

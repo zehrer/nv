@@ -483,7 +483,7 @@
 	NSData * responseData = [NSURLConnection sendSynchronousRequest:request returningResponse:&response error:&error];
 	NSString * responseString = [[[NSString alloc] initWithData:responseData encoding:NSASCIIStringEncoding] autorelease];
 	NSLog(@"RESPONSE STRING: %@", responseString);
-	NSLog(@"%d",response.statusCode);
+	NSLog(@"%ld",(long)response.statusCode);
 	shareURL = [[NSString stringWithString:responseString] retain];
 	if (response.statusCode == 200) {
 		[self showShareURL:[NSString stringWithFormat:@"View %@",shareURL] isError:NO];
@@ -508,7 +508,7 @@
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection
 {
-    NSLog(@"Succeeded! Received %d bytes of data",[receivedData length]);
+    NSLog(@"Succeeded! Received %lu bytes of data",(unsigned long)[receivedData length]);
 
 	NSString * responseString = [[[NSString alloc] initWithData:receivedData encoding:NSASCIIStringEncoding] autorelease];
 	NSLog(@"RESPONSE STRING: %@", responseString);

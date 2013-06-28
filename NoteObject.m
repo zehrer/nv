@@ -1203,7 +1203,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 			//our links will always be to filenames, so hopefully we shouldn't have to change anything
 			break;
 		default:
-			NSLog(@"Attempted to write using unknown format ID: %d", formatID);
+			NSLog(@"Attempted to write using unknown format ID: %ld", (long)formatID);
 			//return NO;
     }
     
@@ -1255,7 +1255,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		
     } else {
 		[delegate noteDidNotWrite:self errorCode:kDataFormattingErr];
-		NSLog(@"Unable to convert note contents into format %d", formatID);
+		NSLog(@"Unable to convert note contents into format %ld", (long)formatID);
 		return NO;
     }
     
@@ -1504,11 +1504,11 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		
 	    break;
 	default:
-	    NSLog(@"%@: Unknown format: %d", NSStringFromSelector(_cmd), fmt);
+	    NSLog(@"%@: Unknown format: %ld", NSStringFromSelector(_cmd), (long)fmt);
     }
     
     if (!attributedStringFromData) {
-		NSLog(@"Couldn't make string out of data for note %@ with format %d", titleString, fmt);
+		NSLog(@"Couldn't make string out of data for note %@ with format %ld", titleString, (long)fmt);
 		return NO;
     }
     
@@ -1659,7 +1659,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 																					 forKey:NSDocumentTypeDocumentAttribute] error:&error];
 			break;
 		default:
-			NSLog(@"Attempted to export using unknown format ID: %d", storageFormat);
+			NSLog(@"Attempted to export using unknown format ID: %ld", (long)storageFormat);
     }
 	if (!formattedData)
 		return kDataFormattingErr;
