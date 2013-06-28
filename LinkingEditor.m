@@ -55,6 +55,9 @@ static long (*GetGetScriptManagerVariablePointer())(short);
 
 @end
 
+@interface LinkingEditor () <NSTextFinderClient>
+
+@end
 
 @implementation LinkingEditor
 
@@ -597,24 +600,6 @@ copyRTFType:
 
 - (void)removeHighlightedTerms {
 	[[self layoutManager] removeTemporaryAttribute:NSBackgroundColorAttributeName forCharacterRange:NSMakeRange(0, [[self string] length])];
-}
-
-
-//use with rangesOfWordsInString:(NSString*)findString earliestRange:(NSRange*)aRange inRange:
-- (void)highlightRangesTemporarily:(CFArrayRef)ranges {
-	CFIndex rangeIndex;
-	NSUInteger bodyLength = [[self string] length];
-	NSDictionary *highlightDict = [prefsController searchTermHighlightAttributes];
-	
-	for (rangeIndex = 0; rangeIndex < CFArrayGetCount(ranges); rangeIndex++) {
-		CFRange *range = (CFRange *)CFArrayGetValueAtIndex(ranges, rangeIndex);
-		
-		if (range && range->length > 0 && range->location + range->length <= bodyLength) {
-			[[self layoutManager] addTemporaryAttributes:highlightDict forCharacterRange:*(NSRange*)range];
-		} else {
-			NSLog(@"highlightRangesTemporarily: Invalid range (%@)", range ? NSStringFromRange(*(NSRange*)range) : @"null");
-		}
-	}
 }
 
 - (NSRange)highlightTermsTemporarilyReturningFirstRange:(NSString*)typedString avoidHighlight:(BOOL)noHighlight {
@@ -2319,53 +2304,20 @@ static long (*GetGetScriptManagerVariablePointer())(short) {
 #pragma mark - ElasticThreads Lion Find... implementation
 
 - (void)prepareTextFinder{        
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
-    if (IsLionOrLater) {
-        
-        
-        [self setUsesFindBar:YES];
-        
-        [self setIncrementalSearchingEnabled:YES];
-        textFinder=[[[NSTextFinder alloc]init]retain];
-        [textFinder setClient:self];
-        
-        [textFinder setIncrementalSearchingEnabled:YES];
-//        [textFinder setIncrementalSearchingShouldDimContentView:NO];
-        NSNotificationCenter *dc=[NSNotificationCenter defaultCenter];
-        [dc addObserver:self selector:@selector(textFinderShouldUpdateContext:) name:@"TextFindContextShouldUpdate" object:nil];
-        [dc addObserver:self selector:@selector(textFinderShouldNoteChanges:) name:@"TextFindContextShouldNoteChanges" object:nil];
-        [dc addObserver:self selector:@selector(textFinderShouldResetContext:) name:@"TextFindContextShouldReset" object:nil];
-         [dc addObserver:self selector:@selector(hideTextFinderIfNecessary:) name:@"TextFinderShouldHide" object:nil];
-        return;       
-    } else {
-#endif
-    [self prepareTextFinderPreLion];
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
-    }
-#endif
+    [self setUsesFindBar:YES];
+
+    [self setIncrementalSearchingEnabled:YES];
+    textFinder=[[[NSTextFinder alloc]init]retain];
+    [textFinder setClient:self];
+
+    [textFinder setIncrementalSearchingEnabled:YES];
+    //        [textFinder setIncrementalSearchingShouldDimContentView:NO];
+    NSNotificationCenter *dc=[NSNotificationCenter defaultCenter];
+    [dc addObserver:self selector:@selector(textFinderShouldUpdateContext:) name:@"TextFindContextShouldUpdate" object:nil];
+    [dc addObserver:self selector:@selector(textFinderShouldNoteChanges:) name:@"TextFindContextShouldNoteChanges" object:nil];
+    [dc addObserver:self selector:@selector(textFinderShouldResetContext:) name:@"TextFindContextShouldReset" object:nil];
+    [dc addObserver:self selector:@selector(hideTextFinderIfNecessary:) name:@"TextFinderShouldHide" object:nil];
 }
-
-#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_7
-
-- (void)prepareTextFinderPreLion{
-    [self setUsesFindPanel:YES];
-    textFinder=[NSClassFromString(@"NSTextFinder")sharedTextFinder];
-    [[textFinder findPanel:YES] setDelegate:self];
-    NSArray *sViews = [[[textFinder findPanel:YES] contentView] subviews];
-    for (id thing in sViews){
-        if ([[thing className] isEqualToString:@"NSButton"]) {
-            NSButton *aBut = thing;
-            //            if (![aBut target]==nil) {
-            [aBut setTarget:self];
-            [aBut setAction:@selector(performFindPanelAction:)];
-            //            }
-        }
-    }    
-    [[textFinder findPanel:YES] update];
-}
-
-
-#endif
 
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
 - (void)textFinderShouldResetContext:(NSNotification *)aNotification{

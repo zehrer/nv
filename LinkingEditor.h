@@ -71,7 +71,6 @@
 - (NSRange)selectedRangeWasAutomatic:(BOOL*)automatic;
 - (void)setAutomaticallySelectedRange:(NSRange)newRange;
 - (void)removeHighlightedTerms;
-- (void)highlightRangesTemporarily:(CFArrayRef)ranges;
 - (NSRange)highlightTermsTemporarilyReturningFirstRange:(NSString*)typedString avoidHighlight:(BOOL)noHighlight;
 - (void)defaultStyle:(id)sender;
 - (void)strikethroughNV:(id)sender;
@@ -114,7 +113,6 @@
 - (void)updateTextColors;
 - (IBAction)insertLink:(id)sender;
 - (void)prepareTextFinder;
-- (void)prepareTextFinderPreLion;
 - (BOOL)textFinderIsVisible;
 - (IBAction)pasteMarkdownLink:(id)sender;
 - (void)insertStringAtStartOfSelectedParagraphs:(NSString *)insertString;
