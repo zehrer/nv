@@ -314,7 +314,7 @@ CFDateFormatterRef simplenoteDateFormatter(int lowPrecision) {
 	//find the first line, whitespace or no whitespace
 	
 	NSCharacterSet *titleDelimiters = [NSCharacterSet characterSetWithCharactersInString:
-											  [NSString stringWithFormat:@"\n\r\t%C%C", NSLineSeparatorCharacter, NSParagraphSeparatorCharacter]];
+											  [NSString stringWithFormat:@"\n\r\t%C%C", (unichar)NSLineSeparatorCharacter, (unichar)NSParagraphSeparatorCharacter]];
 	
 	NSScanner *scanner = [NSScanner scannerWithString:self];
 	[scanner setCharactersToBeSkipped:[[[NSMutableCharacterSet alloc] init] autorelease]];
@@ -798,7 +798,7 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, unsigned charIndex) {
 + (NSCharacterSet*)listBulletsCharacterSet {
 	static NSCharacterSet *charSet = nil;
 	if (!charSet) {
-		charSet = [[NSCharacterSet characterSetWithCharactersInString:[NSString stringWithFormat:@"-+*!%C%C%C", 0x2022, 0x2014, 0x2013]] retain];
+		charSet = [[NSCharacterSet characterSetWithCharactersInString:[NSString stringWithFormat:@"-+*!%C%C%C", (unichar)0x2022, (unichar)0x2014, (unichar)0x2013]] retain];
 	}
 	
 	return charSet;

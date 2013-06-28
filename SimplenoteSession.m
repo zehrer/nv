@@ -278,7 +278,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 }
 
 - (NSString*)description {
-	return [NSString stringWithFormat:@"SimplenoteSession<%@,%X>", emailAddress, self];
+	return [NSString stringWithFormat:@"<%@: %p (%@)>", NSStringFromClass([self class]), (__unsafe_unretained void *)self, emailAddress];
 }
 
 - (id)copyWithZone:(NSZone *)zone {

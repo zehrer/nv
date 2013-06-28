@@ -223,7 +223,7 @@
 
 #define ASSERT_CAN_READ_BYTE_COUNT(n) do { \
 	if (!((n) + currentByteOffset <= [blorData length])) { \
-		NSLog(@"Attempted to read %d bytes past the length of the blor!", ((n) + currentByteOffset) - [blorData length]);\
+		NSLog(@"Attempted to read %lu bytes past the length of the blor!", ((n) + currentByteOffset) - [blorData length]);\
 		return nil;\
 	} \
 } while (0)

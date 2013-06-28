@@ -106,7 +106,7 @@
 				NSLog(@"decompression failed: %s", zError(zlibError));
 				newData = nil;
 			} else if (originalSize != outSize)
-				NSLog(@"error decompressing: extracted size %u does not match original of %u", outSize, originalSize);
+				NSLog(@"error decompressing: extracted size %lu does not match original of %u", outSize, originalSize);
 		} else
 			NSLog(@"error allocating memory while decompressing");
 	} else

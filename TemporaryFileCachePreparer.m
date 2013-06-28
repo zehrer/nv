@@ -35,7 +35,7 @@ static NSString *RAMDiskMountPath();
 static NSString *TempDirectoryPathForEditing();
 
 - (id)init {
-	if ([super init]) {
+	if ((self = [super init])) {
 		
 		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(taskTerminated:) 
 													 name:NSTaskDidTerminateNotification object:nil];
@@ -132,7 +132,7 @@ static NSString *TempDirectoryPathForEditing() {
 
 	[self retain];
 	[(attachTask = [NSTask new]) setLaunchPath:@"/usr/bin/hdiutil"];
-	[attachTask setArguments:[NSArray arrayWithObjects:@"attach", @"-nomount", @"-nobrowse", [NSString stringWithFormat:@"ram://%u", (2 * 1024 * numberOfMegabytes)], nil]];
+	[attachTask setArguments:[NSArray arrayWithObjects:@"attach", @"-nomount", @"-nobrowse", [NSString stringWithFormat:@"ram://%lu", (2 * 1024 * numberOfMegabytes)], nil]];
 	[attachTask setStandardOutput:[NSPipe pipe]];
 	[attachTask launch];
 }
