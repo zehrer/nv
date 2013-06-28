@@ -17,7 +17,7 @@
 
 
 #import "NSFileManager_NV.h"
-
+#include <sys/xattr.h>
 
 @implementation NSFileManager (NV)
 

@@ -27,6 +27,8 @@
 #import "NSCollection_utils.h"
 #import "NSString_NV.h"
 
+extern CFHashCode CFHashBytes(UInt8 *bytes, CFIndex length) DEPRECATED_ATTRIBUTE;
+
 //file descriptor based for lower level access
 
 //also used as an ad-hoc lock file;
@@ -489,6 +491,7 @@ static CFStringRef SynchronizedNoteKeyDescription(const void *value) {
 }
 static CFHashCode SynchronizedNoteHash(const void * o) {
 	
+    //CFUUIDBytes
 	return CFHashBytes(o, sizeof(CFUUIDBytes));
 }
 static Boolean SynchronizedNoteIsEqual(const void *o, const void *p) {

@@ -21,8 +21,7 @@
 #import "SyncServiceSessionProtocol.h"
 #import "NotationDirectoryManager.h"
 #import "SimplenoteSession.h"
-
-//#import <IOKit/IOMessage.h>
+#import <IOKit/pwr_mgt/IOPMLib.h>
 
 NSString *SyncSessionsChangedVisibleStatusNotification = @"SSCVSN";
 
