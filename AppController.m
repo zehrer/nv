@@ -1291,7 +1291,7 @@ void outletObjectAwoke(id sender) {
 			[aTextView deleteWordBackward:nil];
 			return YES;
 		}
-		if (command == @selector(noop:)) {
+		if (command == NSSelectorFromString(@"noop:")) {
 			//control-U is not set to anything by default, so we have to check the event itself for noops
 			NSEvent *event = [window currentEvent];
 			if ([event modifierFlags] & NSControlKeyMask) {
@@ -1780,8 +1780,6 @@ void outletObjectAwoke(id sender) {
 - (NSMenu *)textView:(NSTextView *)view menu:(NSMenu *)menu forEvent:(NSEvent *)event atIndex:(NSUInteger)charIndex {
     //    NSLog(@"textview menu for event");
 	NSInteger idx;
-	if ((idx = [menu indexOfItemWithTarget:nil andAction:@selector(_removeLinkFromMenu:)]) > -1)
-		[menu removeItemAtIndex:idx];
 	if ((idx = [menu indexOfItemWithTarget:nil andAction:@selector(orderFrontLinkPanel:)]) > -1)
 		[menu removeItemAtIndex:idx];
 	return menu;

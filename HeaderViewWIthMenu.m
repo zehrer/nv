@@ -12,6 +12,7 @@
 
 #import "HeaderViewWIthMenu.h"
 #import "NoteAttributeColumn.h"
+#import "NotesTableView.h"
 
 @implementation HeaderViewWithMenu
 

@@ -26,6 +26,7 @@
 #import "NotationController.h"
 #import "NotationPrefs.h"
 #import "NSBezierPath_NV.h"
+#import "AppController.h"
 
 static NSString *UserEEIdentifiersKey = @"UserEEIdentifiers";
 static NSString *DefaultEEIdentifierKey = @"DefaultEEIdentifier";
@@ -341,9 +342,14 @@ static ExternalEditorListController* sharedInstance = nil;
 }
 
 - (void)menusChanged {
-
-	[editNotesMenus makeObjectsPerformSelector:@selector(_updateMenuForEEListController:) withObject:self];
-	[editorPrefsMenus makeObjectsPerformSelector:@selector(_updateMenuForEEListController:) withObject:self];	
+    for (NSMenu *menu in editNotesMenus) {
+        [self _updateMenu:menu];
+    }
+    
+    for (NSMenu *menu in editorPrefsMenus) {
+        [self _updateMenu:menu];
+    }
+    
 	[[NSNotificationCenter defaultCenter] postNotification:[NSNotification notificationWithName:ExternalEditorsChangedNotification object:self]];
 }
 
@@ -432,17 +438,4 @@ static ExternalEditorListController* sharedInstance = nil;
 	}
 }
 
-@end
-
-
-//this category exists because I want to use -makeObjectsPerformSelector: in -menusChanged
-
-@interface NSMenu (ExternalEditorListMenu)
-- (void)_updateMenuForEEListController:(ExternalEditorListController*)controller;
-@end
-
-@implementation NSMenu (ExternalEditorListMenu)
-- (void)_updateMenuForEEListController:(ExternalEditorListController*)controller {
-	[controller _updateMenu:self];
-}
 @end

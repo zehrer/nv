@@ -29,6 +29,7 @@
 #import "NotationPrefs.h"
 #import "NotationController.h"
 #import "NoteObject.h"
+#import <Quartz/Quartz.h>
 
 NSString *PasswordWasRetrievedFromKeychainKey = @"PasswordRetrievedFromKeychain";
 NSString *RetrievedPasswordKey = @"RetrievedPassword";
@@ -366,25 +367,19 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 	} else if (fileType == PDF_TYPE_ID || [extension isEqualToString:@"pdf"]) {
 		//try PDFKit loading lazily
 		@try {
-			Class PdfDocClass = [[self class] PDFDocClass];
-			if (PdfDocClass != Nil) {
-				id doc = [[PdfDocClass alloc] initWithURL:[NSURL fileURLWithPath:filename]];
-				if (doc) {
-					//this method reliably crashes in 64-bit Leopard, and sometimes elsewhere as well
-					id sel = [doc performSelector:@selector(selectionForEntireDocument)];
-					if (sel) {
-						attributedStringFromData = [[NSMutableAttributedString alloc] initWithAttributedString:[sel attributedString]];
-						//maybe we could check pages and boundsForPage: to try to determine where a line was soft-wrapped in the document?
-					} else {
-						NSLog(@"Couldn't get entire doc selection for PDF");
-					}
-					[doc autorelease];
-				} else {
-					NSLog(@"Couldn't parse data into PDF");
-				}
-			} else {
-				NSLog(@"No PDFDocument!");
-			}
+            PDFDocument *doc = [[PDFDocument alloc] initWithURL:[NSURL fileURLWithPath:filename]];
+            if (doc) {
+                PDFSelection *sel = [doc selectionForEntireDocument];
+                if (sel) {
+                    attributedStringFromData = [[NSMutableAttributedString alloc] initWithAttributedString:[sel attributedString]];
+                    //maybe we could check pages and boundsForPage: to try to determine where a line was soft-wrapped in the document?
+                } else {
+                    NSLog(@"Couldn't get entire doc selection for PDF");
+                }
+                [doc autorelease];
+            } else {
+                NSLog(@"Couldn't parse data into PDF");
+            }
 		} @catch (NSException *e) {
 			NSLog(@"Error importing PDF %@ (%@, %@)", filename, [e name], [e reason]);
 		}

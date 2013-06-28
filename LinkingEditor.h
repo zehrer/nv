@@ -24,7 +24,7 @@
 <NSLayoutManagerDelegate>
 #endif
 {	
-    id textFinder;
+    NSTextFinder *textFinder;
     IBOutlet NSTextField *controlField;
     IBOutlet NotesTableView *notesTableView;
 	
