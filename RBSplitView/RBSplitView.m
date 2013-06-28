@@ -1698,6 +1698,7 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 				DIM(newframe.size) += remain;
 				[last RB___setFrameSize:newframe.size withFraction:[last RB___fraction]-remain];
                 // And we loop back over the rightmost dividers (if any) to adjust their offsets.
+                if (!dividers) break;
 				while ((i>0)&&(last!=[subviews objectAtIndex:i])) {
 					DIM(dividers[--i].origin) += remain;
 				}

@@ -383,7 +383,7 @@ extern CFHashCode CFHashBytes(UInt8 *bytes, CFIndex length) DEPRECATED_ATTRIBUTE
 
 //log enumerating method
 - (id <SynchronizedNote>)recoverNextObject {
-    WALRecordHeader record = {{0}};
+    WALRecordHeader record = {{0, 0, 0, {NULL}}};
     
     //attempt to read size of log record and checksum
     //if it's smaller than the remaining bytes to read

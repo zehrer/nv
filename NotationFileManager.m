@@ -661,7 +661,7 @@ terminate:
 				origLen = 245;
 			
 			FSRef duplicateFile;
-			err = FSMakeFSRefUnicode(&folder, name.length, name.unicode, kTextEncodingUnknown, &duplicateFile);
+			FSMakeFSRefUnicode(&folder, name.length, name.unicode, kTextEncodingUnknown, &duplicateFile);
 			int i = 1, j;
 			while (1) {
 				i++;

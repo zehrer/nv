@@ -1376,13 +1376,12 @@ enum { kNext_Tag = 'j', kPrev_Tag = 'k' };
     [NSGraphicsContext saveGraphicsState];
     [[NSGraphicsContext currentContext] setShouldAntialias:NO];
     
-    NSIndexSet *set=[self selectedRowIndexes];
 	CGFloat rectHeight = [self rowHeight] + [self intercellSpacing].height;
     CGFloat maxY=NSMaxY([self visibleRect]);
     NSInteger row=[self rowsInRect:clipRect].location;
     NSRect highlightRect=NSMakeRect(0.0, (rectHeight * (CGFloat)row),NSMaxX(clipRect), rectHeight);
     
-    for (row; highlightRect.origin.y < maxY; row++) {
+    for (; highlightRect.origin.y < maxY; row++) {
        
         NSColor *rowColor = (0 == row % 2) ? evenColor : oddColor;
         [rowColor setFill];

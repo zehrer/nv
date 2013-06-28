@@ -354,7 +354,6 @@ void idea_cfb64_encrypt(const unsigned char *in, unsigned char *out,
 			n=(n+1)&0x07;
 		}
 	}
-	v0=v1=ti[0]=ti[1]=t=c=cc=0;
 	*num=n;
 }
 

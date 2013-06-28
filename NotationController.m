@@ -1592,7 +1592,7 @@ returnResult:
         NSString *bundleName =
         [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleIdentifier"];
         path = [[paths objectAtIndex:0] stringByAppendingPathComponent:bundleName];
-        NSError *theError;
+        NSError *theError = nil;
         if ((path)&&([[NSFileManager defaultManager]createDirectoryAtPath:path withIntermediateDirectories:YES attributes:nil error:&theError])) {
 //           NSLog(@"cache folder :>%@<",path);
             return path;

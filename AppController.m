@@ -1141,7 +1141,7 @@ void outletObjectAwoke(id sender) {
 - (void)applicationWillBecomeActive:(NSNotification *)aNotification {
 	
 	if (IsLeopardOrLater) {
-		SpaceSwitchingContext thisSpaceSwitchCtx;
+		SpaceSwitchingContext thisSpaceSwitchCtx = {0, 0, {0, 0}};
         if ([window windowNumber]!=-1) {
             CurrentContextForWindowNumber([window windowNumber], &thisSpaceSwitchCtx);
             
