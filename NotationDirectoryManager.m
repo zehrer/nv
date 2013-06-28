@@ -151,61 +151,17 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t nu
 - (void)startFileNotifications {
 	eventStreamStarted = YES;
 	
-#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5				
-	if (IsZeros(&noteDirSubscription, sizeof(FNSubscriptionRef))) {
-		
-		OSStatus err = FNSubscribe(&noteDirectoryRef, subscriptionCallback, self, kFNNoImplicitAllSubscription | kFNNotifyInBackground, &noteDirSubscription);
-		if (err != noErr) {
-			NSLog(@"Could not subscribe to changes in notes directory!");
-			//just check modification time of directory?
-		}
-	}
-#endif
-	if (IsLeopardOrLater) {
-		[self _configureDirEventStream];
-	}
+    [self _configureDirEventStream];
 }
 
 - (void)stopFileNotifications {
 	
 	if (!eventStreamStarted) return;
 	
-#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
-	OSStatus err = noErr;
-    if (!IsZeros(&noteDirSubscription, sizeof(FNSubscriptionRef))) {
-		
-		if ((err = FNUnsubscribe(noteDirSubscription)) != noErr) {
-			NSLog(@"Could not unsubscribe from note changes callback: %d", err);
-		} else {
-			bzero(&noteDirSubscription, sizeof(FNSubscriptionRef));
-		}
-		
-		[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(synchronizeNotesFromDirectory) object:nil];
-    }
-#endif
-    
-	if (IsLeopardOrLater) {
-		[self _destroyDirEventStream];
-	}
+    [self _destroyDirEventStream];
 	
 	eventStreamStarted = NO;
 }
-
-#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
-void NotesDirFNSubscriptionProc(FNMessage message, OptionBits flags, void * refcon, FNSubscriptionRef subscription) {
-    //this only works for the Finder and perhaps the navigation manager right now
-	if (kFNDirectoryModifiedMessage == message) {
-		//NSLog(@"note directory changed");
-		if (refcon) {
-			[NSObject cancelPreviousPerformRequestsWithTarget:(id)refcon selector:@selector(synchronizeNotesFromDirectory) object:nil];
-			[(id)refcon performSelector:@selector(synchronizeNotesFromDirectory) withObject:nil afterDelay:0.0];
-		}
-		
-    } else {
-		NSLog(@"we received an FNSubscr. callback and the directory didn't actually change?");
-    }
-}
-#endif
 
 - (BOOL)synchronizeNotesFromDirectory {
     if ([self currentNoteStorageFormat] == SingleDatabaseFormat) {

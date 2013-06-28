@@ -27,11 +27,7 @@
 
 - (id)init {
 	if ((self = [super init])) {
-
-		//should be handled by NSParagraphStyle in our string, as it is more complex than this
-//		[self setLineBreakMode:NSLineBreakByTruncatingTail];
-		if (IsLeopardOrLater)
-			[self setTruncatesLastVisibleLine:YES];
+		[self setTruncatesLastVisibleLine:YES];
 		[self setEditable:YES];
 	}
 	return self;
@@ -40,27 +36,6 @@
 - (void)dealloc {
 	[super dealloc];
 }
-
-#if 0
-//changes will hereafter affect all field editors for the window; do not want
-- (NSText *)setUpFieldEditorAttributes:(NSText *)textObj {
-	NSTextView *tv = (NSTextView *)[super setUpFieldEditorAttributes:textObj];
-	
-	[tv setTextContainerInset:NSMakeSize(-2,-2)];
-	
-	NSTextContainer *tc = [tv textContainer];
-	[tc setContainerSize:NSMakeSize(1.0e7, 1.0e7)];
-	[tc setWidthTracksTextView:NO];
-	[tc setHeightTracksTextView:NO];
-	
-	[tv setMinSize:[tv frame].size];
-    [tv setMaxSize:NSMakeSize(1.0e7, [tv frame].size.height)];
-    [tv setHorizontallyResizable:YES];
-    [tv setVerticallyResizable:NO];
-    [tv setAutoresizingMask:NSViewNotSizable];
-	return tv;
-}
-#endif
 
 - (void)selectWithFrame:(NSRect)aRect inView:(NSView *)controlView editor:(NSText *)textObj 
 			   delegate:(id)anObject start:(NSInteger)selStart length:(NSInteger)selLength {
@@ -179,7 +154,7 @@ NSAttributedString *AttributedStringForSelection(NSAttributedString *str, BOOL w
 	//draw note date and tags
 
 	NSMutableDictionary *baseAttrs = [self baseTextAttributes];
-	BOOL isActive = (IsLeopardOrLater && [tv selectionHighlightStyle] == NSTableViewSelectionHighlightStyleSourceList) ? YES : [tv isActiveStyle];
+	BOOL isActive = ([tv selectionHighlightStyle] == NSTableViewSelectionHighlightStyleSourceList) ? YES : [tv isActiveStyle];
 	
 	NSColor *textColor = ([self isHighlighted] && isActive) ? [NSColor whiteColor] : (![self isHighlighted] ? [[self class] dateColorForTint]/*[NSColor grayColor]*/ : nil);
 	if (textColor)

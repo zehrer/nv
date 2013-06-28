@@ -19,6 +19,7 @@
 
 #include <Carbon/Carbon.h>
 #import <MacTypes.h>
+#import <Foundation/Foundation.h>
 
 #define ResizeArray(__DirectBuffer, __objCount, __bufObjCount)	_ResizeBuffer((void***)(__DirectBuffer), (__objCount), (__bufObjCount), sizeof(typeof(**(__DirectBuffer))))
 

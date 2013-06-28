@@ -199,31 +199,12 @@
 
 
 - (void)mouseDown:(NSEvent *)theEvent {
-		
 	NSRect frame = [[self window] frame];
     _initialDragPoint = [[self window] convertBaseToScreen:[theEvent locationInWindow]];
     _initialDragPoint.x -= frame.origin.x;
     _initialDragPoint.y -= frame.origin.y;
 	
-	//on 10.4 prevent the menu from appearing until mouse-up
-	
-	if (IsLeopardOrLater) {
-		[super mouseDown:theEvent];
-		return;
-	}
-    while (1) {
-        theEvent = [[self window] nextEventMatchingMask: NSLeftMouseUpMask | NSLeftMouseDraggedMask | 
-					NSRightMouseUpMask | NSRightMouseDragged];
-		NSEventType type = [theEvent type];
-		
-		if (type == NSLeftMouseUp || type == NSRightMouseUp) {
-			
-			if ([self mouse:[self convertPoint:[theEvent locationInWindow] fromView:nil] inRect:[self bounds]]) {
-				[[self cell] performClickWithFrame:[self bounds] inView:self];
-			}
-			break;
-		}		
-    }	
+    [super mouseDown:theEvent];
 }
 
 - (BOOL)mouseDownCanMoveWindow {

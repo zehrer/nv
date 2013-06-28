@@ -191,13 +191,8 @@ CFDateFormatterRef simplenoteDateFormatter(int lowPrecision) {
 }
 
 - (NSArray*)labelCompatibleWords {
-	NSArray *array = nil;
-	if (IsLeopardOrLater) {
-		array = [self componentsSeparatedByCharactersInSet:[NSCharacterSet labelSeparatorCharacterSet]];
-	} else {
-		BOOL lacksSpace = [self rangeOfString:@" " options:NSLiteralSearch].location == NSNotFound;
-		array = [self componentsSeparatedByString: lacksSpace ? @"," : @" "];
-	}
+	NSArray *array = [self componentsSeparatedByCharactersInSet:[NSCharacterSet labelSeparatorCharacterSet]];
+
     if (array&&([array count]>0)) {
         NSMutableArray *titles = [[NSMutableArray alloc]initWithCapacity:[array count]];
         for (NSString *aWord in array) {
@@ -272,16 +267,6 @@ CFDateFormatterRef simplenoteDateFormatter(int lowPrecision) {
 	[self hasPrefix:@"@import "] || [self hasPrefix:@"<?php"] || [self hasPrefix:@"bplist0"]; 
 	
 }
-
-#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
-- (NSString*)stringByReplacingOccurrencesOfString:(NSString*)stringToReplace withString:(NSString*)replacementString {
-	//NSLog(@"NSString_NV: %s", _cmd);
-	NSMutableString *sanitizedName = [[self mutableCopy] autorelease];
-	[sanitizedName replaceOccurrencesOfString:stringToReplace withString:replacementString options:NSLiteralSearch range:NSMakeRange(0, [sanitizedName length])];
-
-	return sanitizedName;
-}
-#endif
 
 - (NSString*)fourCharTypeString {
 	if ([[self dataUsingEncoding:NSMacOSRomanStringEncoding allowLossyConversion:YES] length] >= 4) {
@@ -809,12 +794,6 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, unsigned charIndex) {
 	return charSet;
 	
 }
-
-#if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
-+ (id)newlineCharacterSet {
-	return [NSCharacterSet characterSetWithCharactersInString:[NSString stringWithFormat:@"%C%C%C",0x000A,0x000D,0x0085]];
-}
-#endif
 
 @end
 

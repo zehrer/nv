@@ -15,7 +15,6 @@
 #import "AppController.h"
 #import "AppController_Importing.h"
 #import "NotesTableView.h"
-#import "NSTextFinder.h"
 #import "LinkingEditor_Indentation.h"
 #import "NSCollection_utils.h"
 #import "AttributedPlainText.h"
@@ -24,11 +23,8 @@
 #import "ETClipView.h"
 //#import "NVTextFinderAdditions.h"
 
-
 #include <CoreServices/CoreServices.h>
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
 #include <Carbon/Carbon.h>
-#endif
 
 #define PASSWORD_SUGGESTIONS 0
 
@@ -96,10 +92,8 @@ static long (*GetGetScriptManagerVariablePointer())(short);
     [self prepareTextFinder];
     
 	[[self window] setAcceptsMouseMovedEvents:YES];
-	if (IsLeopardOrLater) {
-		defaultIBeamCursorIMP = method_getImplementation(class_getClassMethod([NSCursor class], @selector(IBeamCursor)));
-		whiteIBeamCursorIMP = method_getImplementation(class_getClassMethod([NSCursor class], @selector(whiteIBeamCursor)));
-	}
+    defaultIBeamCursorIMP = method_getImplementation(class_getClassMethod([NSCursor class], @selector(IBeamCursor)));
+    whiteIBeamCursorIMP = method_getImplementation(class_getClassMethod([NSCursor class], @selector(whiteIBeamCursor)));
 	
 	didRenderFully = NO;
 	[[self layoutManager] setDelegate:self];
@@ -176,9 +170,7 @@ static long (*GetGetScriptManagerVariablePointer())(short);
 }
 
 - (void)indicateRange:(NSValue*)rangeValue {
-	if (IsLeopardOrLater) {
-		[self showFindIndicatorForRange:[rangeValue rangeValue]];
-	}
+    [self showFindIndicatorForRange:[rangeValue rangeValue]];
 }
 
 - (BOOL)resignFirstResponder {
@@ -1078,8 +1070,7 @@ copyRTFType:
 }
 
 - (void)fixCursorForBackgroundUpdatingMouseInside:(BOOL)checkMouseLoc {
-	
-	if (IsLeopardOrLater && whiteIBeamCursorIMP && defaultIBeamCursorIMP) {
+	if (whiteIBeamCursorIMP && defaultIBeamCursorIMP) {
         if (checkMouseLoc) {
             mouseInside=[self mouseIsHere];
         }
@@ -1407,15 +1398,11 @@ static long (*GetGetScriptManagerVariablePointer())(short) {
 	
 	BOOL currentKeyboardInputIsSystemLanguage = NO;
 	
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_5
     TISInputSourceRef inputRef = TISCopyCurrentKeyboardInputSource();
     NSArray* inputLangs = [[(NSArray*)TISGetInputSourceProperty(inputRef, kTISPropertyInputSourceLanguages) retain] autorelease];
     CFRelease(inputRef);
     NSString *preferredLang = [[NSLocale autoupdatingCurrentLocale] objectForKey:NSLocaleLanguageCode];
     currentKeyboardInputIsSystemLanguage = nil != preferredLang && [inputLangs containsObject:preferredLang];
-#else
-	currentKeyboardInputIsSystemLanguage = GetScriptManagerVariable(smSysScript) == GetScriptManagerVariable(smKeyScript);
-#endif
 	
 	if (currentKeyboardInputIsSystemLanguage) {
 		//only attempt to restore fonts (with styles of course) if the current script is system default--that is, not using an input method that would change the font
@@ -1466,13 +1453,7 @@ static long (*GetGetScriptManagerVariablePointer())(short) {
 		
 		//sometimes the temporary attributes are split across juxtaposing characters for some reason, so longest-effective-range is necessary
 		//unfortunately there is no such method on Tiger, and I'm not about to emulate its coalescing behavior here
-		if (IsLeopardOrLater) {
-			bulletIndicator = [[self layoutManager] temporaryAttribute:NVHiddenBulletIndentAttributeName atCharacterIndex:NSMaxRange(effectiveRange) 
-												 longestEffectiveRange:&effectiveRange inRange:aRange];
-		} else {
-			NSDictionary *dict = [[self layoutManager] temporaryAttributesAtCharacterIndex:NSMaxRange(effectiveRange) effectiveRange:&effectiveRange];
-			bulletIndicator = [dict objectForKey:NVHiddenBulletIndentAttributeName];
-		}
+        bulletIndicator = [[self layoutManager] temporaryAttribute:NVHiddenBulletIndentAttributeName atCharacterIndex:NSMaxRange(effectiveRange) longestEffectiveRange:&effectiveRange inRange:aRange];
 		if (bulletIndicator && NSEqualRanges(effectiveRange, aRange)) {
 			return YES;
 		}
@@ -1575,12 +1556,11 @@ static long (*GetGetScriptManagerVariablePointer())(short) {
 - (void)setupFontMenu {
 	NSMenu *theMenu = [[[NSMenu alloc] initWithTitle:@"NVFontMenu"] autorelease];
 	NSMenuItem *theMenuItem;
-	if(IsLeopardOrLater){
-        
-        theMenuItem = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Enter Full Screen",@"menu item title for entering fullscreen") action:@selector(switchFullScreen:) keyEquivalent:@""] autorelease];
-        [theMenuItem setTarget:[NSApp delegate]];
-        [theMenu addItem:theMenuItem];         
-	}
+
+    theMenuItem = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Enter Full Screen",@"menu item title for entering fullscreen") action:@selector(switchFullScreen:) keyEquivalent:@""] autorelease];
+    [theMenuItem setTarget:[NSApp delegate]];
+    [theMenu addItem:theMenuItem];         
+
     theMenuItem = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Insert Link",@"insert link menu item title") action:@selector(insertLink:) keyEquivalent:@""] autorelease];
 	[theMenuItem setTarget:self];
 	[theMenu addItem:theMenuItem];
