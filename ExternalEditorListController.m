@@ -264,25 +264,31 @@ static ExternalEditorListController* sharedInstance = nil;
     [openPanel setAllowsMultipleSelection:NO];
     
     if ([openPanel runModalForDirectory:@"/Applications" file:nil types:[NSArray arrayWithObject:@"app"]] == NSOKButton) {
-		if (![openPanel filename]) goto errorReturn;
+		if (![openPanel filename]) {
+            NSBeep();
+            NSLog(@"Unable to add external editor");
+        }
+        
 		NSURL *appURL = [NSURL fileURLWithPath:[openPanel filename]];
-		if (!appURL) goto errorReturn;
+		if (!appURL) {
+            NSBeep();
+            NSLog(@"Unable to add external editor");
+        }
 		
 		ExternalEditor *ed = [[ExternalEditor alloc] initWithBundleID:nil resolvedURL:appURL];
-		if (!ed) goto errorReturn;
-
-		//check against lists of all known editors, installed or not
-		if (![self editorIsMember:ed]) {
-			[userEditorList addObject:ed];
-			[[NSUserDefaults standardUserDefaults] setObject:[self userEditorIdentifiers] forKey:UserEEIdentifiersKey];
-		}
-		
-		[self setDefaultEditor:ed];
+        if (ed) {
+            //check against lists of all known editors, installed or not
+            if (![self editorIsMember:ed]) {
+                [userEditorList addObject:ed];
+                [[NSUserDefaults standardUserDefaults] setObject:[self userEditorIdentifiers] forKey:UserEEIdentifiersKey];
+            }
+            
+            [self setDefaultEditor:[ed autorelease]];
+        } else {
+            NSBeep();
+            NSLog(@"Unable to add external editor");
+        }
     }
-	return;
-errorReturn:
-	NSBeep();
-	NSLog(@"Unable to add external editor");
 }
 
 - (void)resetUserEditors:(id)sender {

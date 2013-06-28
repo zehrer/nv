@@ -344,7 +344,7 @@ returnResult:
 - (BOOL)initializeJournaling {
     
     const UInt32 maxPathSize = 8 * 1024;
-    UInt8 *convertedPath = (UInt8*)malloc(maxPathSize * sizeof(UInt8));
+    const char *convertedPath = (char *)malloc(maxPathSize * sizeof(char));
     OSStatus err = noErr;
 	NSData *walSessionKey = [notationPrefs WALSessionKey];
     
@@ -352,15 +352,20 @@ returnResult:
 #if kUseCachesFolderForInterimNoteChanges
     NSString *cPath=[self createCachesFolder];
     if (cPath) {
-        convertedPath=[cPath UTF8String];
+        free((void *)convertedPath);
+        convertedPath = [cPath UTF8String];
 #else
     if ((err = FSRefMakePath(&noteDirectoryRef, convertedPath, maxPathSize)) == noErr) {
 #endif
 		//initialize the journal if necessary
-		if (!(walWriter = [[WALStorageController alloc] initWithParentFSRep:(char*)convertedPath encryptionKey:walSessionKey])) {
+		if (!(walWriter = [[WALStorageController alloc] initWithParentFSRep:convertedPath encryptionKey:walSessionKey])) {
 			//journal file probably already exists, so try to recover it
-			WALRecoveryController *walReader = [[[WALRecoveryController alloc] initWithParentFSRep:(char*)convertedPath encryptionKey:walSessionKey] autorelease];
+			WALRecoveryController *walReader = [[[WALRecoveryController alloc] initWithParentFSRep:convertedPath encryptionKey:walSessionKey] autorelease];
 			if (walReader) {
+                
+#if !kUseCachesFolderForInterimNoteChanges
+                free((void *)convertedPath); convertedPath = NULL;
+#endif
 				
 				BOOL databaseCouldNotBeFlushed = NO;
 				NSDictionary *recoveredNotes = [walReader recoveredNotes];
@@ -384,14 +389,14 @@ returnResult:
 				if (![walReader destroyLogFile]) {
 					//couldn't delete the log file, so we can't create a new one
 					NSLog(@"Unable to delete the old write-ahead-log file");
-					goto bail;
+                    return NO;
 				}
 				
 				if (!(walWriter = [[WALStorageController alloc] initWithParentFSRep:(char*)convertedPath encryptionKey:walSessionKey])) {
 					//couldn't create a journal after recovering the old one
 					//if databaseCouldNotBeFlushed is true here, then we've potentially lost notes; perhaps exchangeobjects would be better here?
 					NSLog(@"Unable to create a new write-ahead-log after deleting the old one");
-					goto bail;
+					return NO;
 				}
 				
 				if ([recoveredNotes count] > 0) {
@@ -407,7 +412,8 @@ returnResult:
 			} else {
 				NSLog(@"Unable to recover unsaved notes from write-ahead-log");
 				//1) should we let the user attempt to remove it without recovery?
-				goto bail;
+                free((void *)convertedPath); convertedPath = NULL;
+                return NO;
 			}
 		}
 		[walWriter setDelegate:self];
@@ -415,12 +421,9 @@ returnResult:
 		return YES;
     } else {
 		NSLog(@"FSRefMakePath error: %d", err);
-		goto bail;
+        free((void *)convertedPath); convertedPath = NULL;
+		return NO;
     }
-    
-bail:
-		free(convertedPath);	
-    return NO;
 }
 
 //stick the newest unique recovered notes into allNotes
@@ -433,7 +436,7 @@ bail:
     void **values = (count <= vListBufCount) ? valuesBuffer : (void **)malloc(sizeof(void*) * count);
     
     if (keys && values && dict) {
-	CFDictionaryGetKeysAndValues((CFDictionaryRef)dict, (const void **)keys, (const void **)values);
+        CFDictionaryGetKeysAndValues((CFDictionaryRef)dict, (const void **)keys, (const void **)values);
 	
 		for (i=0; i<count; i++) {
 			
@@ -484,15 +487,14 @@ bail:
 				[(NoteObject*)obj updateLabelConnectionsAfterDecoding];
 			}
 		}
-		
-	if (keys != keysBuffer)
-	    free(keys);
-	if (values != valuesBuffer)
-	    free(values);
-	
     } else {
-	NSLog(@"_makeChangesInDictionary: Could not get values or keys!");
+        NSLog(@"_makeChangesInDictionary: Could not get values or keys!");
     }
+    
+    if (keys && keys != keysBuffer)
+        free(keys);
+    if (values && values != valuesBuffer)
+        free(values);
 }
 
 - (void)closeJournal {

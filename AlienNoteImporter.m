@@ -516,15 +516,16 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
     file = [rpipe fileHandleForReading];
 	
     [task launch];
+    [task waitUntilExit];
+    [task release];
 	
-    NSData *data;
-    data = [file readDataToEndOfFile];
+    NSData *data = [file readDataToEndOfFile];
 	
     NSString *string;
     string = [[NSString alloc] initWithData: data
 								   encoding: NSUTF8StringEncoding];
 
-	return [self markdownFromSource:string];
+	return [self markdownFromSource:[string autorelease]];
 }
 
 - (NSString *) markdownFromHTMLFile: (NSString *)htmlFile
@@ -548,15 +549,16 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
     file = [rpipe fileHandleForReading];
 	
     [task launch];
+    [task waitUntilExit];
+    [task release];
 	
-    NSData *data;
-    data = [file readDataToEndOfFile];
+    NSData *data = [file readDataToEndOfFile];
 	
     NSString *string;
     string = [[NSString alloc] initWithData: data
 								   encoding: NSUTF8StringEncoding];
 	
-	return string;
+	return [string autorelease];
 }
 
 - (NSString *) markdownFromSource: (NSString *)htmlString

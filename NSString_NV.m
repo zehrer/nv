@@ -80,7 +80,9 @@ static int dayFromAbsoluteTime(CFAbsoluteTime absTime) {
     static NSString *days[3] = { NULL };
     
     if (!timeOnlyFormatter) {
-		timeOnlyFormatter = CFDateFormatterCreate(kCFAllocatorDefault, CFLocaleCopyCurrent(), kCFDateFormatterNoStyle, kCFDateFormatterShortStyle);
+        CFLocaleRef locale = CFLocaleCopyCurrent();
+		timeOnlyFormatter = CFDateFormatterCreate(kCFAllocatorDefault, locale, kCFDateFormatterNoStyle, kCFDateFormatterShortStyle);
+        CFRelease(locale);
     }
     
     if (!days[ThisDay]) {
@@ -93,8 +95,10 @@ static int dayFromAbsoluteTime(CFAbsoluteTime absTime) {
 	
 	if ([[GlobalPrefs defaultPrefs] horizontalLayout]) {
 		//if today, return the time only; otherwise say "Yesterday", etc.; and this method shouldn't be called unless day != NoSpecialDay
-		if (day == PriorDay || day == NextDay)
+		if (day == PriorDay || day == NextDay) {
+            CFRelease(dateString);
 			return days[day];
+        }
 		return [(id)dateString autorelease];
 	}
     
@@ -123,9 +127,11 @@ static int dayFromAbsoluteTime(CFAbsoluteTime absTime) {
 		
 		if (!dateAndTimeFormatter) {
 			BOOL horiz = [[GlobalPrefs defaultPrefs] horizontalLayout];
-			dateAndTimeFormatter = CFDateFormatterCreate(kCFAllocatorDefault, CFLocaleCopyCurrent(), 
+            CFLocaleRef locale = CFLocaleCopyCurrent();
+			dateAndTimeFormatter = CFDateFormatterCreate(NULL, locale,
 														 horiz ? kCFDateFormatterShortStyle : kCFDateFormatterMediumStyle, 
 														 horiz ? kCFDateFormatterNoStyle : kCFDateFormatterShortStyle);
+            CFRelease(locale);
 		}
 		
 		CFDateRef date = CFDateCreate(kCFAllocatorDefault, absTime);

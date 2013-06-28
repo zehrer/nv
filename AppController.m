@@ -480,14 +480,21 @@ void outletObjectAwoke(id sender) {
 		showOpenPanel:
 			if (![prefsWindowController getNewNotesRefFromOpenPanel:&notesDirectoryRef returnedPath:&location]) {
 				//they cancelled the open panel, or it was unable to get the path/FSRef of the file
-				goto terminateApp;
-			} else if ((newNotation = [[NotationController alloc] initWithDirectoryRef:&notesDirectoryRef error:&err])) {
-				//have to make sure alias data is saved from setNotationController
-				[newNotation setAliasNeedsUpdating:YES];
-				break;
-			}
+                [newNotation release];
+                [NSApp terminate:self];
+                return;
+			} else {
+                [newNotation release];
+                if ((newNotation = [[NotationController alloc] initWithDirectoryRef:&notesDirectoryRef error:&err])) {
+                    //have to make sure alias data is saved from setNotationController
+                    [newNotation setAliasNeedsUpdating:YES];
+                    break;
+                }
+            }
 	    } else {
-			goto terminateApp;
+            [newNotation release];
+            [NSApp terminate:self];
+            return;
 	    }
 	}
 	
@@ -527,12 +534,6 @@ void outletObjectAwoke(id sender) {
 	 @selector(setAutoCompleteSearches:sender:),@selector(setUseETScrollbarsOnLion:sender:), nil];   //when to tell notationcontroller to build its title-prefix connections
 	
 	[self performSelector:@selector(runDelayedUIActionsAfterLaunch) withObject:nil afterDelay:0.0];
-    
-	
-    
-	return;
-terminateApp:
-	[NSApp terminate:self];
 }
 
 - (void)handleGetURLEvent:(NSAppleEventDescriptor *)event withReplyEvent:(NSAppleEventDescriptor *)replyEvent {

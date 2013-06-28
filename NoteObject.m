@@ -623,10 +623,6 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		
 		int len = strlen(cContents);
 		contentsWere7Bit = !(ContainsHighAscii(cContents, len));
-		
-		//could cache dumbwordcount here for faster launch, but string creation takes more time, anyway
-		//if (wordCountString) CFRelease((CFStringRef*)wordCountString); //this is CFString, so bridge will just call back to CFRelease, anyway
-		//wordCountString = (NSString*)CFStringFromBase10Integer(DumbWordCount(cContents, len));
 	}
 }
 
@@ -645,9 +641,6 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		
 		contentsWere7Bit = cContents ? !(ContainsHighAscii(cContents, (len = strlen(cContents)))) : NO;
 	}
-	
-	//if (len < 0) len = strlen(cContents);
-	//wordCountString = (NSString*)CFStringFromBase10Integer(DumbWordCount(cContents, len));
 	
 	contentCacheNeedsUpdate = NO;
 }
@@ -930,6 +923,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		NSMutableSet *newLabelSet = [self labelSetFromCurrentString];
 		
 		if (!oldLabelSet) {
+            [oldLabelSet release];
 			oldLabelSet = labelSet = [[NSMutableSet alloc] initWithCapacity:[newLabelSet count]];
 		}
 		
@@ -949,6 +943,8 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		//these end up calling replaceMatchingLabel*
 		[delegate note:self didRemoveLabelSet:oldLabels];
 		[delegate note:self didAddLabelSet:newLabels];
+        
+        [oldLabels release];
 	}
 }
 
