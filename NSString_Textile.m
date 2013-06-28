@@ -46,7 +46,7 @@
 
 +(NSString*)documentWithProcessedTextile:(NSString*)inputString
 {
-    AppController *app = [[NSApplication sharedApplication] delegate];
+    AppController *app = (AppController *)[[NSApplication sharedApplication] delegate];
     NSString *processedString = [self processTextile:inputString];
 	NSString *htmlString = [[PreviewController class] html];
 	NSString *cssString = [[PreviewController class] css];
@@ -65,7 +65,7 @@
 
 +(NSString*)xhtmlWithProcessedTextile:(NSString*)inputString
 {
-	AppController *app = [[NSApplication sharedApplication] delegate];
+	AppController *app = (AppController *)[[NSApplication sharedApplication] delegate];
 	NSString *noteTitle =  ([app selectedNoteObject]) ? [NSString stringWithFormat:@"%@",titleOfNote([app selectedNoteObject])] : @"";
 	NSString *processedString = [self processTextile:inputString];
 	return [NSString stringWithFormat:@"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\"\n	\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n\n<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">\n<head>\n	<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/>\n\n	<title>%@</title>\n	\n</head>\n\n<body>\n%@\n\n</body>\n</html>\n",noteTitle,processedString];

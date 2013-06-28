@@ -517,7 +517,7 @@
 - (void)savePanelDidEnd:(NSSavePanel *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo {
 	if (returnCode == NSFileHandlingPanelOKButton) {
 
-		AppController *app = [[NSApplication sharedApplication] delegate];
+		AppController *app = (AppController *)[[NSApplication sharedApplication] delegate];
 		NSString *rawString = [app noteContent];
 		NSString *processedString = [[[NSString alloc] init] autorelease];
 
