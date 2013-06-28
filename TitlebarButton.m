@@ -21,7 +21,7 @@
 @implementation TitlebarButtonCell
 
 - (id)initTextCell:(NSString *)stringValue pullsDown:(BOOL)pullDown {
-	if ([super initTextCell:stringValue pullsDown:pullDown]) {
+	if ((self = [super initTextCell:stringValue pullsDown:pullDown])) {
 		[self setBordered:NO];
 		[self setArrowPosition:NSPopUpNoArrow];
 	}

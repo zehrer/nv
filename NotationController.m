@@ -115,7 +115,7 @@
     OSStatus anErr = noErr;
     if ((anErr = [NotationController getDefaultNotesDirectoryRef:&targetRef]) == noErr) {
 		
-		if ([self initWithDirectoryRef:&targetRef error:&anErr]) {
+		if ((self = [self initWithDirectoryRef:&targetRef error:&anErr])) {
 			*err = noErr;
 			return self;
 		}

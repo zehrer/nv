@@ -32,15 +32,14 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 	if (aDict) {
 		NSString *uuidString = [aDict objectForKey:BMNoteUUIDStringKey];
 		if (uuidString) {
-			[self initWithNoteUUIDBytes:[uuidString uuidBytes] searchString:[aDict objectForKey:BMSearchStringKey]];
+			return (self = [self initWithNoteUUIDBytes:[uuidString uuidBytes] searchString:[aDict objectForKey:BMSearchStringKey]]);
 		} else {
 			NSLog(@"NoteBookmark init: supplied nil uuidString");
 		}
 	} else {
 		NSLog(@"NoteBookmark init: supplied nil dictionary; couldn't init");
-		return nil;
 	}
-	return self;
+	return nil;
 }
 
 - (id)initWithNoteUUIDBytes:(CFUUIDBytes)bytes searchString:(NSString*)aString {

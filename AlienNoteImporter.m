@@ -95,7 +95,7 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 }
 
 - (id)initWithStoragePaths:(NSArray*)filenames {
-	if ([self init]) {
+	if ((self = [self init])) {
 		if ((source = [filenames retain])) {
 		
 			importerSelector = @selector(notesWithPaths:);
@@ -108,7 +108,7 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 }
 
 - (id)initWithStoragePath:(NSString*)filename {
-	if ([self init]) {
+	if ((self = [self init])) {
 		if ((source = [filename retain])) {
 			
 			//auto-detect based on bundle/extension/metadata
