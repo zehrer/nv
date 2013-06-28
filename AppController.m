@@ -506,7 +506,9 @@ void outletObjectAwoke(id sender) {
 	}
 	
 	if (URLToInterpretOnLaunch) {
-		[self interpretNVURL:[URLToInterpretOnLaunch autorelease]];
+        NSURL *URL = [NSURL URLWithString:URLToInterpretOnLaunch];
+		[self interpretNVURL:URL];
+        [URLToInterpretOnLaunch release];
 		URLToInterpretOnLaunch = nil;
 	}
 	
