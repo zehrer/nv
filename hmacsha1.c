@@ -177,7 +177,7 @@ void sha1_process_bytes (const void *buffer, size_t len, sha1_ctx_nv *ctx) {
 		/* Move remaining bytes in internal buffer.  */
 		if (len > 0)
 		{
-			size_t left_over = ctx->buflen;
+			uint32_t left_over = ctx->buflen;
 			
 			memcpy (&ctx->buffer[left_over], buffer, len);
 			left_over += len;

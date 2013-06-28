@@ -30,7 +30,7 @@ CFDateFormatterRef simplenoteDateFormatter(int lowPrecision);
 - (CFArrayRef)copyRangesOfWordsInString:(NSString*)findString inRange:(NSRange)limitRange;
 + (NSString*)customPasteboardTypeOfCode:(int)code;
 - (NSString*)stringAsSafePathExtension;
-- (NSString*)filenameExpectingAdditionalCharCount:(int)charCount;
+- (NSString*)filenameExpectingAdditionalCharCount:(NSUInteger)charCount;
 #if MAC_OS_X_VERSION_MIN_REQUIRED < MAC_OS_X_VERSION_10_5
 - (NSString*)stringByReplacingOccurrencesOfString:(NSString*)stringToReplace withString:(NSString*)replacementString;
 #endif
@@ -41,8 +41,8 @@ CFDateFormatterRef simplenoteDateFormatter(int lowPrecision);
 - (NSString*)syntheticTitleAndSeparatorWithContext:(NSString**)sepStr bodyLoc:(NSUInteger*)bodyLoc 
 										  oldTitle:(NSString*)oldTitle maxTitleLen:(NSUInteger)maxTitleLen;
 - (NSString*)syntheticTitleAndTrimmedBody:(NSString**)newBody;
-+ (NSString *)tabbifiedStringWithNumberOfSpaces:(unsigned)origNumSpaces tabWidth:(unsigned)tabWidth usesTabs:(BOOL)usesTabs;
-- (unsigned)numberOfLeadingSpacesFromRange:(NSRange*)range tabWidth:(unsigned)tabWidth;
++ (NSString *)tabbifiedStringWithNumberOfSpaces:(NSUInteger)origNumSpaces tabWidth:(NSUInteger)tabWidth usesTabs:(BOOL)usesTabs;
+- (NSUInteger)numberOfLeadingSpacesFromRange:(NSRange *)range tabWidth:(NSUInteger)tabWidth;
 
 	BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, unsigned charIndex);
 
@@ -69,7 +69,7 @@ CFDateFormatterRef simplenoteDateFormatter(int lowPrecision);
 @end
 
 @interface NSMutableString (NV)
-- (void)replaceTabsWithSpacesOfWidth:(int)tabWidth;
+- (void)replaceTabsWithSpacesOfWidth:(NSInteger)tabWidth;
 + (NSMutableString*)newShortLivedStringFromFile:(NSString*)filename;
 + (NSMutableString*)newShortLivedStringFromData:(NSMutableData*)data ofGuessedEncoding:(NSStringEncoding*)encoding 
 									   withPath:(const char*)aPath orWithFSRef:(const FSRef*)fsRef;

@@ -75,8 +75,8 @@ static id _sharedHotKeyCenter = nil;
 	hotKeyID.id = mNextKeyID;
     
 	//NSLog(@"registering...");
-	err = RegisterEventHotKey(  [[hotKey keyCombo] keyCode],
-								[[hotKey keyCombo] modifiers],
+	err = RegisterEventHotKey(  (unsigned int)[[hotKey keyCombo] keyCode],
+								(unsigned int)[[hotKey keyCombo] modifiers],
 								hotKeyID,
 								GetEventDispatcherTarget(),
 								0,

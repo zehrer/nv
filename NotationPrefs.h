@@ -35,14 +35,14 @@ extern NSString *NotationPrefsDidChangeNotification;
 	//password(s) stored in keychain or otherwise encrypted using notes password
 	NSMutableDictionary *syncServiceAccounts;
 	
-	unsigned int hashIterationCount, keyLengthInBits;
+	NSUInteger hashIterationCount, keyLengthInBits;
 	
 	NSColor *foregroundColor;
 	NSFont *baseBodyFont;
 	NSInteger notesStorageFormat;
 	BOOL confirmFileDeletion;
 	
-	unsigned int chosenExtIndices[4];
+	NSUInteger chosenExtIndices[4];
     NSMutableArray *typeStrings[4], *pathExtensions[4];
     OSType *allowedTypes;
 	
@@ -82,8 +82,8 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 - (NSUInteger)syncFrequencyInMinutesForServiceName:(NSString*)serviceName;
 - (BOOL)syncNotesShouldMergeForServiceName:(NSString*)serviceName;
 - (BOOL)syncServiceIsEnabled:(NSString*)serviceName;
-- (unsigned int)keyLengthInBits;
-- (unsigned int)hashIterationCount;
+- (NSUInteger)keyLengthInBits;
+- (NSUInteger)hashIterationCount;
 - (UInt32)epochIteration;
 - (BOOL)firstTimeUsed;
 - (BOOL)secureTextEntry;
@@ -100,7 +100,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 - (BOOL)canLoadPassphraseData:(NSData*)passData;
 - (BOOL)canLoadPassphrase:(NSString*)pass;
 - (void)setPassphraseData:(NSData*)passData inKeychain:(BOOL)inKeychain;
-- (void)setPassphraseData:(NSData*)passData inKeychain:(BOOL)inKeychain withIterations:(int)iterationCount;
+- (void)setPassphraseData:(NSData *)passData inKeychain:(BOOL)inKeychain withIterations:(NSInteger)iterationCount;
 - (BOOL)encryptDataInNewSession:(NSMutableData*)data;
 - (BOOL)decryptDataWithCurrentSettings:(NSMutableData*)data;
 - (NSData*)WALSessionKey;
@@ -120,18 +120,18 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 - (void)removeSyncPasswordForService:(NSString*)serviceName;
 - (void)setKeyLengthInBits:(unsigned int)newLength;
 
-- (NSUInteger)tableIndexOfDiskUUID:(CFUUIDRef)UUIDRef;
+- (UInt32)tableIndexOfDiskUUID:(CFUUIDRef)UUIDRef;
 - (void)checkForKnownRedundantSyncConduitsAtPath:(NSString*)dbPath;
 
-+ (NSString*)pathExtensionForFormat:(int)format;
++ (NSString*)pathExtensionForFormat:(NSInteger)format;
 
 //used to view tableviews
 - (NSString*)typeStringAtIndex:(NSInteger)typeIndex;
 - (NSString*)pathExtensionAtIndex:(NSInteger)pathIndex;
-- (unsigned int)indexOfChosenPathExtension;
-- (NSString*)chosenPathExtensionForFormat:(int)format;
-- (int)typeStringsCount;
-- (int)pathExtensionsCount;
+- (NSUInteger)indexOfChosenPathExtension;
+- (NSString*)chosenPathExtensionForFormat:(NSInteger)format;
+- (NSUInteger)typeStringsCount;
+- (NSUInteger)pathExtensionsCount;
 
 //used to edit tableviews
 - (void)addAllowedPathExtension:(NSString*)extension;
@@ -142,7 +142,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 - (BOOL)setExtension:(NSString*)newExtension atIndex:(unsigned int)oldIndex;
 - (BOOL)setType:(NSString*)newType atIndex:(unsigned int)oldIndex;
 
-- (BOOL)pathExtensionAllowed:(NSString*)anExtension forFormat:(int)formatID;
+- (BOOL)pathExtensionAllowed:(NSString *)anExtension forFormat:(NSInteger)formatID;
 
 //actually used while searching for files
 - (void)updateOSTypesArray;

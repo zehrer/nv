@@ -24,7 +24,7 @@
     IBOutlet NSView* view;
 	IBOutlet NSProgressIndicator *iterationEstimatorProgress;
 	
-	int lastHashIterationCount;
+	NSInteger lastHashIterationCount;
 	double lastHashDuration;
 	
 	NSData *crapData, *crapSalt;
@@ -35,8 +35,8 @@
 - (id)initWithNotationPrefs:(NotationPrefs*)prefs;
 - (NSView*)view;
 - (IBAction)sliderChanged:(id)sender;
-- (int)hashIterationCount;
-- (double)delayForHashIterations:(int)count;
+- (NSInteger)hashIterationCount;
+- (NSTimeInterval)delayForHashIterations:(NSInteger)count;
 - (int)estimatedIterationsForDuration:(double)duration;
 - (void)mouseUpForKeyDerivationDelaySlider:(KeyDerivationDelaySlider*)aSlider;
 - (void)updateToolTip;

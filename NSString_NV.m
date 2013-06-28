@@ -258,7 +258,7 @@ CFDateFormatterRef simplenoteDateFormatter(int lowPrecision) {
 	return [self stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"./*: \t\n\r"]];
 }
 
-- (NSString*)filenameExpectingAdditionalCharCount:(int)charCount {
+- (NSString*)filenameExpectingAdditionalCharCount:(NSUInteger)charCount {
 	NSString *newfilename = self;
 	if ([self length] + charCount > 255)
 		newfilename = [self substringToIndex: 255 - charCount];
@@ -375,13 +375,13 @@ CFDateFormatterRef simplenoteDateFormatter(int lowPrecision) {
 }
 
 //the following three methods + function come courtesy of Mike Ferris' TextExtras
-+ (NSString *)tabbifiedStringWithNumberOfSpaces:(unsigned)origNumSpaces tabWidth:(unsigned)tabWidth usesTabs:(BOOL)usesTabs {
++ (NSString *)tabbifiedStringWithNumberOfSpaces:(NSUInteger)origNumSpaces tabWidth:(NSUInteger)tabWidth usesTabs:(BOOL)usesTabs {
 	static NSMutableString *sharedString = nil;
-	static unsigned numTabs = 0;
-    static unsigned numSpaces = 0;
+	static NSUInteger numTabs = 0;
+    static NSUInteger numSpaces = 0;
 	
-    int diffInTabs;
-    int diffInSpaces;
+    NSInteger diffInTabs;
+    NSInteger diffInSpaces;
 	
     // TabWidth of 0 means don't use tabs!
     if (!usesTabs || (tabWidth == 0)) {
@@ -399,7 +399,7 @@ CFDateFormatterRef simplenoteDateFormatter(int lowPrecision) {
     if (diffInTabs < 0) {
         [sharedString deleteCharactersInRange:NSMakeRange(0, -diffInTabs)];
     } else {
-        unsigned numToInsert = diffInTabs;
+        NSUInteger numToInsert = diffInTabs;
         while (numToInsert > 0) {
             [sharedString replaceCharactersInRange:NSMakeRange(0, 0) withString:@"\t"];
             numToInsert--;
@@ -410,7 +410,7 @@ CFDateFormatterRef simplenoteDateFormatter(int lowPrecision) {
     if (diffInSpaces < 0) {
         [sharedString deleteCharactersInRange:NSMakeRange(numTabs, -diffInSpaces)];
     } else {
-        unsigned numToInsert = diffInSpaces;
+        NSUInteger numToInsert = diffInSpaces;
         while (numToInsert > 0) {
             [sharedString replaceCharactersInRange:NSMakeRange(numTabs, 0) withString:@" "];
             numToInsert--;
@@ -422,14 +422,14 @@ CFDateFormatterRef simplenoteDateFormatter(int lowPrecision) {
     return sharedString;
 }
 
-- (unsigned)numberOfLeadingSpacesFromRange:(NSRange*)range tabWidth:(unsigned)tabWidth {
+- (NSUInteger)numberOfLeadingSpacesFromRange:(NSRange *)range tabWidth:(NSUInteger)tabWidth {
     // Returns number of spaces, accounting for expanding tabs.
     NSRange searchRange = (range ? *range : NSMakeRange(0, [self length]));
     unichar buff[100];
-    unsigned i = 0;
-    unsigned spaceCount = 0;
+    NSUInteger i = 0;
+    NSUInteger spaceCount = 0;
     BOOL done = NO;
-    unsigned tabW = tabWidth;
+    NSUInteger tabW = tabWidth;
     NSUInteger endOfWhiteSpaceIndex = NSNotFound;
 	
     if (!range || range->length == 0) {
@@ -543,7 +543,7 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, unsigned charIndex) {
 }
 
 - (CFUUIDBytes)uuidBytes {
-	CFUUIDBytes bytes = {0};
+	CFUUIDBytes bytes = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 	CFUUIDRef uuidRef = CFUUIDCreateFromString(NULL, (CFStringRef)self);
 	if (uuidRef) {
 		bytes = CFUUIDGetUUIDBytes(uuidRef);
@@ -572,7 +572,7 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, unsigned charIndex) {
 
 - (NSData *)decodeBase64WithNewlines:(BOOL)encodedWithNewlines {
     // Create a memory buffer containing Base64 encoded string data
-    BIO * mem = BIO_new_mem_buf((void *) [self UTF8String], strlen([self UTF8String]));
+    BIO * mem = BIO_new_mem_buf((void *) [self UTF8String], (int)strlen([self UTF8String]));
     
     // Push a Base64 filter so that reading from the buffer decodes it
     BIO * b64 = BIO_new(BIO_f_base64());
@@ -658,17 +658,17 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, unsigned charIndex) {
 
 @implementation NSMutableString (NV)
 
-- (void)replaceTabsWithSpacesOfWidth:(int)tabWidth {
+- (void)replaceTabsWithSpacesOfWidth:(NSInteger)tabWidth {
 	NSAssert(tabWidth < 50 && tabWidth > 0, @"that's a ridiculous tab width");
 	
 	@try {
 		NSRange tabRange, nextRange = NSMakeRange(0, [self length]);
 		while ((tabRange = [self rangeOfString:@"\t" options:NSLiteralSearch range:nextRange]).location != NSNotFound) {
 			
-			int numberOfSpacesPerTab = tabWidth;
-			int locationOnLine = tabRange.location - [self lineRangeForRange:tabRange].location;
+			NSInteger numberOfSpacesPerTab = tabWidth;
+			NSInteger locationOnLine = tabRange.location - [self lineRangeForRange:tabRange].location;
 			if (numberOfSpacesPerTab != 0) {
-				int numberOfSpacesLess = locationOnLine % numberOfSpacesPerTab;
+				NSInteger numberOfSpacesLess = locationOnLine % numberOfSpacesPerTab;
 				numberOfSpacesPerTab = numberOfSpacesPerTab - numberOfSpacesLess;
 			}
 			//NSLog(@"loc on line: %d, numberOfSpacesPerTab: %d", locationOnLine, numberOfSpacesPerTab);
@@ -722,7 +722,7 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, unsigned charIndex) {
 		NSStringEncoding extendedAttrsEncoding = 0;
 		if (!aPath && fsRef && !IsZeros(fsRef, sizeof(FSRef))) {
 			NSMutableData *pathData = [NSMutableData dataWithLength:4 * 1024];
-			if (FSRefMakePath(fsRef, [pathData mutableBytes], [pathData length]) == noErr)
+			if (FSRefMakePath(fsRef, [pathData mutableBytes], (unsigned int)[pathData length]) == noErr)
 				extendedAttrsEncoding = [[NSFileManager defaultManager] textEncodingAttributeOfFSPath:[pathData bytes]];
 		} else if (aPath) {
 			extendedAttrsEncoding = [[NSFileManager defaultManager] textEncodingAttributeOfFSPath:aPath];

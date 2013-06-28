@@ -137,8 +137,8 @@ enum {VERIFY_NOT_ATTEMPTED, VERIFY_FAILED, VERIFY_IN_PROGRESS, VERIFY_SUCCESS};
     //set up outlets to reflect new settings
     if (notationPrefs) {
 		
-		[keyLengthField setIntValue:[notationPrefs keyLengthInBits]];
-		[keyLengthStepper setIntValue:[notationPrefs keyLengthInBits]];
+        [keyLengthField setIntegerValue:[notationPrefs keyLengthInBits]];
+		[keyLengthStepper setIntegerValue:[notationPrefs keyLengthInBits]];
 		[self setEncryptionControlsState:[notationPrefs doesEncryption]];
 		[self setSeparateFileControlsState:[notationPrefs notesStorageFormat]];
 		[self updateRemoveKeychainItemStatus];

@@ -61,7 +61,7 @@
 		if (zlibError == Z_OK) {
 			// Add original size to the end of the buffer, written big-endian
 			*( (unsigned *) ([newData mutableBytes] + bufferLength) ) =
-            NSSwapHostIntToBig( [self length] );
+            NSSwapHostIntToBig( (unsigned int)[self length] );
 			[newData setLength:bufferLength + sizeof(unsigned)];
 		} else {
 			NSLog(@"error compressing: %s", zError(zlibError));
@@ -165,7 +165,7 @@
 	return randomData;
 }
 
-- (NSMutableData*)derivedKeyOfLength:(int)len salt:(NSData*)salt iterations:(int)count {
+- (NSMutableData*)derivedKeyOfLength:(NSUInteger)len salt:(NSData *)salt iterations:(NSUInteger)count {
 	
 	NSMutableData *derivedKey = [NSMutableData dataWithLength:len];
 	
@@ -185,7 +185,7 @@
 
 - (unsigned long)CRC32 {
 	uLong crc = crc32(0L, Z_NULL, 0);
-    return crc32(crc, [self bytes], [self length]);
+    return crc32(crc, [self bytes], (unsigned int)[self length]);
 }
 
 - (NSData*)SHA1Digest {
@@ -205,7 +205,7 @@
 	NSMutableData *digest = [NSMutableData dataWithLength:16];
     
     BrokenMD5Init(&context);
-    BrokenMD5Update(&context, [self bytes], [self length]);
+    BrokenMD5Update(&context, [self bytes], (unsigned int)[self length]);
     BrokenMD5Final([digest mutableBytes], &context);
 	
 	return digest;
@@ -281,7 +281,7 @@
 //but those 1) require file paths and 2) the non-deprecated version is available only on 10.4
 
 - (NSMutableString*)newStringUsingBOMReturningEncoding:(NSStringEncoding*)encoding {
-	unsigned len = [self length];
+	NSUInteger len = [self length];
 	NSMutableString *string = nil;
 	
 	if (len % 2 != 0 || !len) {
@@ -357,7 +357,7 @@
     mem = BIO_push(b64, mem);
     
     // Encode all the data
-    BIO_write(mem, [self bytes], [self length]);
+    BIO_write(mem, [self bytes], (unsigned int)[self length]);
     (void)BIO_flush(mem);
     
     // Create a new string from the data in the memory buffer
@@ -378,7 +378,7 @@
 @implementation NSMutableData (NVCryptoRelated)
 
 - (void)reverseBytes {
-	int head, tail;
+	NSUInteger head, tail;
 	unsigned char temp, *str = [self mutableBytes];
 	if (!str) return;
 	tail = [self length] - 1;
@@ -391,9 +391,9 @@
 }
 
 //extends nsmutabledata if necessary
-- (void)alignForBlockSize:(int)alignedBlockSize {
-	int dataBlockSize = [self length];
-	int paddedDataBlockSize = 0;
+- (void)alignForBlockSize:(NSUInteger)alignedBlockSize {
+	NSUInteger dataBlockSize = [self length];
+	NSInteger paddedDataBlockSize = 0;
 	
 	if (dataBlockSize <= alignedBlockSize)
 		paddedDataBlockSize = alignedBlockSize;
@@ -401,7 +401,7 @@
 		paddedDataBlockSize = alignedBlockSize * ((dataBlockSize + (alignedBlockSize-1)) / alignedBlockSize);
 
 	//if malloc was used on conventional architectures, nsdata should be smart enough not to have to allocate a new block
-	int difference = paddedDataBlockSize - dataBlockSize;
+	NSInteger difference = paddedDataBlockSize - dataBlockSize;
 	if (difference > 0)
 		[self increaseLengthBy:difference];	
 }
@@ -417,7 +417,7 @@
 
 //these two methods will change the size of the data, but at large sizes that should be well within the malloc'ed block padding, anyway
 - (BOOL)encryptDataWithCipher:(const EVP_CIPHER*)cipher key:(NSData*)key iv:(NSData*)iv {
-	int originalDataLength = [self length];
+	NSUInteger originalDataLength = [self length];
 	
 	EVP_CIPHER_CTX cipherContext;
 	if (!EVP_EncryptInit(&cipherContext, cipher /*EVP_aes_256_cbc()*/, NULL, NULL)) {
@@ -444,15 +444,15 @@
 	[self increaseLengthBy:EVP_CIPHER_CTX_block_size(&cipherContext)];
 	int encLen, finalLen = 0;
 	
-	encLen = [self length];
+	encLen = (int)[self length];
 	if (!EVP_EncryptUpdate(&cipherContext, [self mutableBytes], &encLen,
-						   (unsigned char *)[self bytes], originalDataLength)) {
+						   (unsigned char *)[self bytes], (int)originalDataLength)) {
 		NSLog(@"Couldn't encrypt data--buffer is wrong size?");
 		return NO;
 	}
 	
 	finalLen = encLen;
-	encLen = [self length] - finalLen;
+	encLen = (int)[self length] - finalLen;
 	if (!EVP_EncryptFinal(&cipherContext, (unsigned char *)[self mutableBytes] + finalLen, &encLen)) {
 		NSLog(@"Couldn't encrypt final buffer--buffer is wrong size?");
 		return NO;
@@ -467,7 +467,7 @@
 }
 
 - (BOOL)decryptDataWithCipher:(const EVP_CIPHER*)cipher key:(NSData*)key iv:(NSData*)iv {
-	int originalDataLength = [self length];
+	NSUInteger originalDataLength = [self length];
 	
 	EVP_CIPHER_CTX cipherContext;
 	if (!EVP_DecryptInit(&cipherContext, cipher /*EVP_aes_256_cbc()*/, NULL, NULL)) {
@@ -494,15 +494,15 @@
 	[self increaseLengthBy:EVP_CIPHER_CTX_block_size(&cipherContext)];
 	int decLen, finalLen = 0;
 	
-	decLen = [self length];
+	decLen = (unsigned int)[self length];
 	if (!EVP_DecryptUpdate(&cipherContext, [self mutableBytes], &decLen,
-						   (unsigned char *)[self bytes], originalDataLength)) {
+						   (unsigned char *)[self bytes], (int)originalDataLength)) {
 		NSLog(@"Couldn't decrypt data--buffer is wrong size?");
 		return NO;
 	}
 	
 	finalLen = decLen;
-	decLen = [self length] - finalLen;
+	decLen = (unsigned int)[self length] - finalLen;
 	if (!EVP_DecryptFinal(&cipherContext, (unsigned char *)[self mutableBytes] + finalLen, &decLen)) {
 		char buf[256];
 		ERR_error_string_n(ERR_get_error(), buf, sizeof(buf));

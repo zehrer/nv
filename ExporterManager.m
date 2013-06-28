@@ -27,23 +27,22 @@
 
 - (void)awakeFromNib {
 	
-	int storageFormat = [[[GlobalPrefs defaultPrefs] notationPrefs] notesStorageFormat];
+	NSInteger storageFormat = [[[GlobalPrefs defaultPrefs] notationPrefs] notesStorageFormat];
 	[formatSelectorPopup selectItemWithTag:storageFormat];
 }
 
 - (IBAction)formatSelectorChanged:(id)sender {
-	NSSavePanel *panel = (NSSavePanel *)[sender window];
-	
-	int storageFormat = [[formatSelectorPopup selectedItem] tag];
-//	[panel setRequiredFileType:[NotationPrefs pathExtensionForFormat:storageFormat]];
+	//NSSavePanel *panel = (NSSavePanel *)[sender window];
+	//int storageFormat = [[formatSelectorPopup selectedItem] tag];
+    //[panel setRequiredFileType:[NotationPrefs pathExtensionForFormat:storageFormat]];
 }
 
 - (void)exportPanelDidEnd:(NSSavePanel *)sheet returnCode:(int)returnCode contextInfo:(void  *)contextInfo {
 	NSArray *notes = (NSArray *)contextInfo;
 	if (returnCode == NSFileHandlingPanelOKButton && notes) {
 		//write notes in chosen format
-		unsigned int i;
-		int result, storageFormat = [[formatSelectorPopup selectedItem] tag];
+		NSUInteger i;
+		NSInteger result, storageFormat = [[formatSelectorPopup selectedItem] tag];
 		NSString *directory = nil, *filename = nil;
 		BOOL overwriteNotes = NO;
 		

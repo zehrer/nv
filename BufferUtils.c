@@ -19,6 +19,7 @@
 
 #include "BufferUtils.h"
 #include <string.h>
+#import <MacTypes.h>
 
 static const unsigned char gsToLowerMap[256] = {
 '\0', 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, '\t',
@@ -69,7 +70,7 @@ char *replaceString(char *oldString, const char *newString) {
 }
 
 
-void _ResizeBuffer(void ***buffer, unsigned int objCount, unsigned int *bufObjCount, unsigned int elemSize) {
+void _ResizeBuffer(void ***buffer, NSUInteger objCount, NSUInteger *bufObjCount, NSUInteger elemSize) {
 	assert(buffer && bufObjCount);
 	
 	if (*bufObjCount < objCount || !*buffer) {
@@ -91,12 +92,12 @@ int IsZeros(const void *s1, size_t n) {
 	return (1);
 }
 
-void modp_tolower_copy(char* dest, const char* str, int len) {
-	int i;
+void modp_tolower_copy(char* dest, const char* str, NSUInteger len) {
+	NSInteger i;
 	NSUInteger eax, ebx;
 	const uint8_t* ustr = (const uint8_t*) str;
-	const int leftover = len % sizeof(NSUInteger);
-	const int imax = len / sizeof(NSUInteger);
+	const NSInteger leftover = len % sizeof(NSUInteger);
+	const NSInteger imax = len / sizeof(NSUInteger);
 	const NSUInteger* s = (const NSUInteger*) str;
 	NSUInteger* d = (NSUInteger*) dest;
 	for (i = 0; i != imax; ++i) {
@@ -313,7 +314,7 @@ void RemovePerDiskInfoWithTableIndex(UInt32 diskIndex, PerDiskInfo **perDiskGrou
 	}
 }
 
-unsigned int SetPerDiskInfoWithTableIndex(UTCDateTime *dateTime, UInt32 *nodeID, UInt32 diskIndex, PerDiskInfo **perDiskGroups, unsigned int *groupCount) {
+NSUInteger SetPerDiskInfoWithTableIndex(UTCDateTime *dateTime, UInt32 *nodeID, UInt32 diskIndex, PerDiskInfo **perDiskGroups, NSUInteger *groupCount) {
 	//if an entry for this diskIndex already exists, then just update it in place
 	//if an entry does not exist, then resize the buffer and add one at the end
 	//if one of dateTime or nodeID is NULL, then do not set it
@@ -389,14 +390,14 @@ CFStringRef CreateRandomizedFileName() {
     ProcessSerialNumber psn;
     OSStatus err = noErr;
     if ((err = GetCurrentProcess(&psn)) != noErr) {
-	printf("error getting process serial number: %d\n", (int)err);
-	
-	//just use the location of our memory
-	psn.lowLongOfPSN = (unsigned long)&psn;
+        printf("error getting process serial number: %d\n", (int)err);
+        
+        //just use the location of our memory
+        psn.lowLongOfPSN = (UInt32)&psn;
     }
     
-    CFStringRef name = CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR(".%lu%lu-%d-%d"), 
-						psn.highLongOfPSN, psn.lowLongOfPSN, (int)CFAbsoluteTimeGetCurrent(), sequence);
+    CFStringRef name = CFStringCreateWithFormat(kCFAllocatorDefault, NULL, CFSTR(".%u%u-%d-%d"), 
+						(unsigned int)psn.highLongOfPSN, (unsigned int)psn.lowLongOfPSN, (int)CFAbsoluteTimeGetCurrent(), sequence);
     
     return name;
 }

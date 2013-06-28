@@ -549,7 +549,7 @@ static void sendCallbacksForGlobalPrefs(GlobalPrefs* self, SEL selector, id orig
 	return [defaults boolForKey:UseSoftTabsKey];
 }
 
-- (int)numberOfSpacesInTab {
+- (NSInteger)numberOfSpacesInTab {
 	return [defaults integerForKey:NumberOfSpacesInTabKey];
 }
 
@@ -685,7 +685,7 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
 	NSFont *bodyFont = [self noteBodyFont];
 
 	if (!noteBodyParagraphStyle && bodyFont) {
-		int numberOfSpaces = [self numberOfSpacesInTab];
+		NSInteger numberOfSpaces = [self numberOfSpacesInTab];
 		NSMutableString *sizeString = [[NSMutableString alloc] initWithCapacity:numberOfSpaces];
 		while (numberOfSpaces--) {
 			[sizeString appendString:@" "];

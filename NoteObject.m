@@ -128,7 +128,7 @@ static FSRef *noteFileRefInit(NoteObject* obj) {
 }
 
 static void setAttrModifiedDate(NoteObject *note, UTCDateTime *dateTime) {
-	unsigned int idx = SetPerDiskInfoWithTableIndex(dateTime, NULL, diskUUIDIndexForNotation(note->delegate), 
+	NSUInteger idx = SetPerDiskInfoWithTableIndex(dateTime, NULL, diskUUIDIndexForNotation(note->delegate),
 													&(note->perDiskInfoGroups), &(note->perDiskInfoGroupCount));
 	note->attrsModifiedDate = &(note->perDiskInfoGroups[idx].attrTime);
 }
@@ -142,7 +142,7 @@ UTCDateTime *attrsModifiedDateOfNote(NoteObject *note) {
 	//once unarchived, the disk UUID index won't change, so this pointer will always reflect the current attr mod time
 	if (!note->attrsModifiedDate) {
 		//init from delegate based on disk table index
-		unsigned int i, tableIndex = diskUUIDIndexForNotation(note->delegate);
+		NSUInteger i, tableIndex = diskUUIDIndexForNotation(note->delegate);
 		
 		for (i=0; i<note->perDiskInfoGroupCount; i++) {
 			//check if this date has actually been initialized; this entry could be here only because setCatalogNodeID was called
@@ -160,7 +160,7 @@ giveDate:
 
 UInt32 fileNodeIDOfNote(NoteObject *note) {
 	if (!note->nodeID) {
-		unsigned int i, tableIndex = diskUUIDIndexForNotation(note->delegate);
+		NSUInteger i, tableIndex = diskUUIDIndexForNotation(note->delegate);
 		
 		for (i=0; i<note->perDiskInfoGroupCount; i++) {
 			//check if this nodeID has actually been initialized; this entry could be here only because setAttrModifiedDate was called
@@ -447,8 +447,8 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		[coder encodeBool:contentsWere7Bit forKey:VAR_STR(contentsWere7Bit)];
 		
 		[coder encodeInt32:logSequenceNumber forKey:VAR_STR(logSequenceNumber)];
-		
-		[coder encodeInt32:currentFormatID forKey:VAR_STR(currentFormatID)];
+        		
+		[coder encodeInteger:currentFormatID forKey:VAR_STR(currentFormatID)];
 		[coder encodeInt32:logicalSize forKey:VAR_STR(logicalSize)];
 
 		uint8_t *flippedPerDiskInfoGroups = calloc(perDiskInfoGroupCount, sizeof(PerDiskInfo));
@@ -458,7 +458,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		free(flippedPerDiskInfoGroups);
 		
 		[coder encodeInt64:*(int64_t*)&fileModifiedDate forKey:VAR_STR(fileModifiedDate)];
-		[coder encodeInt32:fileEncoding forKey:VAR_STR(fileEncoding)];
+		[coder encodeInteger:fileEncoding forKey:VAR_STR(fileEncoding)];
 		
 		[coder encodeBytes:(const uint8_t *)&uniqueNoteIDBytes length:sizeof(CFUUIDBytes) forKey:VAR_STR(uniqueNoteIDBytes)];
 		[coder encodeObject:syncServicesMD forKey:VAR_STR(syncServicesMD)];
@@ -506,7 +506,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	}
 }
 
-- (id)initWithNoteBody:(NSAttributedString*)bodyText title:(NSString*)aNoteTitle delegate:(id)aDelegate format:(int)formatID labels:(NSString*)aLabelString {
+- (id)initWithNoteBody:(NSAttributedString *)bodyText title:(NSString *)aNoteTitle delegate:(id)aDelegate format:(NSInteger)formatID labels:(NSString*)aLabelString {
 	//delegate optional here
     if ((self = [self init])) {
 		
@@ -621,7 +621,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		cContentsFoundPtr = cContents = replaceString(cContents, [[contentString string] lowercaseUTF8String]);
 		contentCacheNeedsUpdate = NO;
 		
-		int len = strlen(cContents);
+		NSUInteger len = strlen(cContents);
 		contentsWere7Bit = !(ContainsHighAscii(cContents, len));
 	}
 }
@@ -1168,7 +1168,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
     NSError *error = nil;
 	NSMutableAttributedString *contentMinusColor = nil;
 	
-    int formatID = [delegate currentNoteStorageFormat];
+    NSInteger formatID = [delegate currentNoteStorageFormat];
     switch (formatID) {
 		case SingleDatabaseFormat:
 			//we probably shouldn't be here
@@ -1305,7 +1305,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	
 	NSMutableData *pathData = [NSMutableData dataWithLength:4 * 1024];
 	OSStatus err = noErr;
-	if ((err = FSRefMakePath(fsRef, [pathData mutableBytes], [pathData length])) == noErr) {
+	if ((err = FSRefMakePath(fsRef, [pathData mutableBytes], (unsigned int)[pathData length])) == noErr) {
 		[[NSFileManager defaultManager] setTextEncodingAttribute:fileEncoding atFSPath:[pathData bytes]];
 	} else {
 		NSLog(@"%@: error getting path from FSRef: %d (IsZeros: %d)", NSStringFromSelector(_cmd), err, IsZeros(fsRef, sizeof(fsRef)));
@@ -1424,7 +1424,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	logicalSize = catEntry->logicalSize;
 	
 	NSMutableData *pathData = [NSMutableData dataWithLength:4 * 1024];
-	if (FSRefMakePath(noteFileRefInit(self), [pathData mutableBytes], [pathData length]) == noErr) {
+	if (FSRefMakePath(noteFileRefInit(self), [pathData mutableBytes], (unsigned int)[pathData length]) == noErr) {
 		
 		NSArray *openMetaTags = [[NSFileManager defaultManager] getOpenMetaTagsAtFSPath:[pathData bytes]];
 		if (openMetaTags) {
@@ -1466,7 +1466,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
     return YES;
 }
 
-- (BOOL)updateFromData:(NSMutableData*)data inFormat:(int)fmt {
+- (BOOL)updateFromData:(NSMutableData *)data inFormat:(NSInteger)fmt {
     
     if (!data) {
 		NSLog(@"%@: Data is nil!", NSStringFromSelector(_cmd));
@@ -1623,7 +1623,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	//so expect the delegate to know to schedule the same update itself
 }
 
-- (OSStatus)exportToDirectoryRef:(FSRef*)directoryRef withFilename:(NSString*)userFilename usingFormat:(int)storageFormat overwrite:(BOOL)overwrite {
+- (OSStatus)exportToDirectoryRef:(FSRef *)directoryRef withFilename:(NSString *)userFilename usingFormat:(NSInteger)storageFormat overwrite:(BOOL)overwrite {
 	
 	NSData *formattedData = nil;
 	NSError *error = nil;

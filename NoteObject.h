@@ -54,7 +54,7 @@ typedef struct _NoteFilterContext {
 	//for syncing to text file
 	UInt32 nodeID;
 	PerDiskInfo *perDiskInfoGroups;
-	unsigned int perDiskInfoGroupCount;
+	NSUInteger perDiskInfoGroupCount;
 	BOOL shouldWriteToFile, didUnarchive;
 	
 	//for storing in write-ahead-log
@@ -80,7 +80,7 @@ typedef struct _NoteFilterContext {
 	UInt32 logicalSize;
 	UTCDateTime fileModifiedDate, *attrsModifiedDate;
 	NSStringEncoding fileEncoding;
-	int currentFormatID;
+	NSInteger currentFormatID;
 	CFAbsoluteTime modifiedDate, createdDate;
 }
 
@@ -110,7 +110,7 @@ NSInteger compareFileSize(id *a, id *b);
 - (BOOL)youngerThanLogObject:(id<SynchronizedNote>)obj;
 
 	//syncing w/ files in directory
-	int storageFormatOfNote(NoteObject *note);
+	NSInteger storageFormatOfNote(NoteObject *note);
 	NSString* filenameOfNote(NoteObject *note);
 	UInt32 fileNodeIDOfNote(NoteObject *note);
 	UInt32 fileSizeOfNote(NoteObject *note);
@@ -147,8 +147,8 @@ NSInteger compareFileSize(id *a, id *b);
 
 - (id)delegate;
 - (void)setDelegate:(id)theDelegate;
-- (id)initWithNoteBody:(NSAttributedString*)bodyText title:(NSString*)aNoteTitle 
-			  delegate:(id)aDelegate format:(int)formatID labels:(NSString*)aLabelString;
+- (id)initWithNoteBody:(NSAttributedString *)bodyText title:(NSString *)aNoteTitle
+              delegate:(id)aDelegate format:(NSInteger)formatID labels:(NSString*)aLabelString;
 - (id)initWithCatalogEntry:(NoteCatalogEntry*)entry delegate:(id)aDelegate;
 
 - (NSSet*)labelSet;
@@ -178,7 +178,7 @@ NSInteger compareFileSize(id *a, id *b);
 - (BOOL)upgradeEncodingToUTF8;
 - (BOOL)updateFromFile;
 - (BOOL)updateFromCatalogEntry:(NoteCatalogEntry*)catEntry;
-- (BOOL)updateFromData:(NSMutableData*)data inFormat:(int)fmt;
+- (BOOL)updateFromData:(NSMutableData *)data inFormat:(NSInteger)fmt;
 
 - (OSStatus)writeFileDatesAndUpdateTrackingInfo;
 
@@ -197,7 +197,7 @@ NSInteger compareFileSize(id *a, id *b);
 - (void)removeFileFromDirectory;
 - (BOOL)removeUsingJournal:(WALStorageController*)wal;
 
-- (OSStatus)exportToDirectoryRef:(FSRef*)directoryRef withFilename:(NSString*)userFilename usingFormat:(int)storageFormat overwrite:(BOOL)overwrite;
+- (OSStatus)exportToDirectoryRef:(FSRef *)directoryRef withFilename:(NSString *)userFilename usingFormat:(NSInteger)storageFormat overwrite:(BOOL)overwrite;
 - (NSRange)nextRangeForWords:(NSArray*)words options:(unsigned)opts range:(NSRange)inRange;
 - (void)editExternallyUsingEditor:(ExternalEditor*)ed;
 - (void)abortEditingInExternalEditor;

@@ -579,7 +579,7 @@
 
 -(IBAction)switchTabs:(id)sender
 {
-	int tabSelection = [tabView indexOfTabViewItem:[tabView selectedTabViewItem]];
+	NSInteger tabSelection = [tabView indexOfTabViewItem:[tabView selectedTabViewItem]];
 
 	if (tabSelection == 0) {
 		[tabSwitcher setTitle:@"View Preview"];

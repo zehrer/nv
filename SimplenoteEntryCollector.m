@@ -151,7 +151,7 @@
 			return nil;
 	}
 	NSURL *url = [fetcher requestURL];
-	int index = [[url pathComponents] indexOfObject:@"i"];
+	NSUInteger index = [[url pathComponents] indexOfObject:@"i"];
 	NSString *key;
 	if (index > 0 && index+1 < [[url pathComponents] count]) {
 		key = [[url pathComponents] objectAtIndex:(index+1)];
@@ -160,7 +160,7 @@
 	NSMutableDictionary *entry = [NSMutableDictionary dictionaryWithCapacity:12];
 	NSNumber *deleted = [NSNumber numberWithInt:[[rawObject objectForKey:@"deleted"] intValue]];
 	[entry setObject:key forKey:@"key"];
-	[entry setObject:[NSNumber numberWithInt:version] forKey:@"version"];
+	[entry setObject:@(version) forKey:@"version"];
 	[entry setObject:deleted forKey:@"deleted"];
 	// Normalize dates from unix epoch timestamps to mac os x epoch timestamps
 	[entry setObject:[NSNumber numberWithDouble:[[NSDate dateWithTimeIntervalSince1970:[[rawObject objectForKey:@"creationDate"] doubleValue]] timeIntervalSinceReferenceDate]] forKey:@"create"];
@@ -188,7 +188,7 @@
 		id obj = [fetcher representedObject];
 		if (obj) {
 			[entriesInError addObject:[NSDictionary dictionaryWithObjectsAndKeys: obj, @"NoteObject", 
-									   [NSNumber numberWithInt:[fetcher statusCode]], @"StatusCode", nil]];
+									   @([fetcher statusCode]), @"StatusCode", nil]];
 		}
 	} else {
 		NSDictionary *preparedDictionary = [self preparedDictionaryWithFetcher:fetcher receivedData:data];
@@ -197,7 +197,7 @@
 			id obj = [fetcher representedObject];
 			if (obj) {
 				[entriesInError addObject: [NSDictionary dictionaryWithObjectsAndKeys: obj, @"NoteObject",
-											[NSNumber numberWithInt:[fetcher statusCode]], @"StatusCode", nil]];
+											@([fetcher statusCode]), @"StatusCode", nil]];
 			}
 		} else {
 			if ([preparedDictionary count]) {
@@ -294,7 +294,7 @@
 	} else {
 		NSUInteger v = [[info objectForKey:@"version"] integerValue];
 		if (v > 0) {
-			noteURL = [SimplenoteSession simperiumURLWithPath:[NSString stringWithFormat:@"/Note/i/%@/v/%u", [info objectForKey:@"key"], v] parameters:params];
+			noteURL = [SimplenoteSession simperiumURLWithPath:[NSString stringWithFormat:@"/Note/i/%@/v/%lu", [info objectForKey:@"key"], v] parameters:params];
 		} else {
 			noteURL = [SimplenoteSession simperiumURLWithPath:[NSString stringWithFormat:@"/Note/i/%@", [info objectForKey:@"key"]] parameters:params];
 		}
@@ -385,7 +385,7 @@
 	
 	NSString *keyString = nil;
 	NSURL *url = [fetcher requestURL];
-	int index = [[url pathComponents] indexOfObject:@"i"];
+	NSUInteger index = [[url pathComponents] indexOfObject:@"i"];
 	if (index > 0 && index+1 < [[url pathComponents] count]) {
 		keyString = [[url pathComponents] objectAtIndex:(index+1)];
 	}
@@ -400,16 +400,16 @@
 		[syncMD setObject:keyString forKey:@"key"];
 		[syncMD setObject:[NSNumber numberWithDouble:[[NSDate dateWithTimeIntervalSince1970:[[rawObject objectForKey:@"creationDate"] doubleValue]] timeIntervalSinceReferenceDate]] forKey:@"create"];
 		[syncMD setObject:[NSNumber numberWithDouble:[[NSDate dateWithTimeIntervalSince1970:[[rawObject objectForKey:@"modificationDate"] doubleValue]] timeIntervalSinceReferenceDate]] forKey:@"modify"];
-		[syncMD setObject:[NSNumber numberWithInt:version] forKey:@"version"];
-		[syncMD setObject:[NSNumber numberWithBool:NO] forKey:@"dirty"];
+		[syncMD setObject:@(version) forKey:@"version"];
+		[syncMD setObject:@NO forKey:@"dirty"];
 	} else {
 		if ([fetcher statusCode] == 412) {
-			[syncMD setObject:[NSNumber numberWithBool:NO] forKey:@"dirty"];
+			[syncMD setObject:@NO forKey:@"dirty"];
 		} else if ([fetcher statusCode] == 413) {
 			// note was too large, don't clear dirty flag
-			[syncMD setObject:[NSNumber numberWithBool:YES] forKey:@"error"];
+			[syncMD setObject:@YES forKey:@"error"];
 		}
-		[syncMD setObject:[NSNumber numberWithInt:version] forKey:@"version"];
+		[syncMD setObject:@(version) forKey:@"version"];
 	}
 	if ([fetcher representedObject]) {
 		id <SynchronizedNote> aNote = [fetcher representedObject];

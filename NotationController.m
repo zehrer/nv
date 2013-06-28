@@ -632,7 +632,7 @@ returnResult:
 	[[ODBEditor sharedODBEditor] performSelector:@selector(initializeDatabase:) withObject:notationPrefs afterDelay:0.0];
 }
 
-- (int)currentNoteStorageFormat {
+- (NSInteger)currentNoteStorageFormat {
     return [notationPrefs notesStorageFormat];
 }
 
@@ -1405,7 +1405,7 @@ returnResult:
 	return objs;
 }
 
-- (NoteObject*)noteObjectAtFilteredIndex:(int)noteIndex {
+- (NoteObject*)noteObjectAtFilteredIndex:(NSUInteger)noteIndex {
 	unsigned int theIndex = (unsigned int)noteIndex;
 	
 	if (theIndex < [notesListDataSource count])

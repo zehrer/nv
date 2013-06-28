@@ -14,7 +14,7 @@ NSString* PTKeyBroadcasterKeyEvent = @"PTKeyBroadcasterKeyEvent";
 
 @implementation PTKeyBroadcaster
 
-- (void)_bcastKeyCode: (short)keyCode modifiers: (long)modifiers
+- (void)_bcastKeyCode:(short)keyCode modifiers: (NSInteger)modifiers
 {
 	PTKeyCombo* keyCombo = [PTKeyCombo keyComboWithKeyCode: keyCode modifiers: modifiers];
 	NSDictionary* userInfo = [NSDictionary dictionaryWithObject: keyCombo forKey:@"keyCombo"];

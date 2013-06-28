@@ -1663,7 +1663,7 @@ void outletObjectAwoke(id sender) {
 	}
 }
 
-- (BOOL)displayContentsForNoteAtIndex:(int)noteIndex {
+- (BOOL)displayContentsForNoteAtIndex:(NSInteger)noteIndex {
 	NoteObject *note = [notationController noteObjectAtFilteredIndex:noteIndex];
 	if (note != currentNote) {
 		[self setEmptyViewState:NO];
@@ -3194,7 +3194,7 @@ void outletObjectAwoke(id sender) {
         currentPreviewMode = [previewItem tag];
         
         // update user defaults
-        [[NSUserDefaults standardUserDefaults] setObject:[NSNumber numberWithInt:currentPreviewMode]
+        [[NSUserDefaults standardUserDefaults] setObject:@(currentPreviewMode)
                                                   forKey:@"markupPreviewMode"];
         
         [self postTextUpdate];

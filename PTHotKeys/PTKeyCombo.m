@@ -17,12 +17,12 @@
 	return [self keyComboWithKeyCode: -1 modifiers: -1];
 }
 
-+ (id)keyComboWithKeyCode: (int)keyCode modifiers: (int)modifiers
++ (id)keyComboWithKeyCode:(NSInteger)keyCode modifiers: (NSInteger)modifiers
 {
 	return [[[self alloc] initWithKeyCode: keyCode modifiers: modifiers] autorelease];
 }
 
-- (id)initWithKeyCode: (int)keyCode modifiers: (int)modifiers
+- (id)initWithKeyCode:(NSInteger)keyCode modifiers: (NSInteger)modifiers
 {
 	self = [super init];
 	
@@ -51,8 +51,8 @@
 - (id)plistRepresentation
 {
 	return [NSDictionary dictionaryWithObjectsAndKeys:
-				[NSNumber numberWithInt: [self keyCode]], @"keyCode",
-				[NSNumber numberWithInt: [self modifiers]], @"modifiers",
+				@([self keyCode]), @"keyCode",
+				@([self modifiers]), @"modifiers",
 				nil];
 }
 
@@ -69,12 +69,12 @@
 
 #pragma mark -
 
-- (int)keyCode
+- (NSInteger)keyCode
 {
 	return mKeyCode;
 }
 
-- (int)modifiers
+- (NSInteger)modifiers
 {
 	return mModifiers;
 }

@@ -53,7 +53,7 @@ OSStatus CreateDirectoryIfNotPresent(FSRef *parentRef, CFStringRef subDirectoryN
 
 OSStatus CreateTemporaryFile(FSRef *parentRef, FSRef *childTempRef) {
     UniChar chars[256];
-    unsigned int nameLength = 0;
+    NSUInteger nameLength = 0;
     OSStatus result = noErr;
     
     do {
@@ -416,7 +416,7 @@ terminate:
 	uniqueFilename = [[sanitizedName copy] autorelease];
 	
 	//use the note's current format if the current default format is for a database; get the "ideal" extension for that format
-	int noteFormat = [notationPrefs notesStorageFormat] || !note ? [notationPrefs notesStorageFormat] : storageFormatOfNote(note);
+	NSInteger noteFormat = [notationPrefs notesStorageFormat] || !note ? [notationPrefs notesStorageFormat] : storageFormatOfNote(note);
 	NSString *extension = [notationPrefs chosenPathExtensionForFormat:noteFormat];
 	
 	//if the note's current extension is compatible with the storage format above, then use the existing extension instead

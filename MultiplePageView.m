@@ -99,7 +99,7 @@ static float defaultTextPadding(void) {
     return printInfo;
 }
 
-- (void)setNumberOfPages:(unsigned)num {
+- (void)setNumberOfPages:(NSUInteger)num {
     if (numPages != num) {
 	NSRect oldFrame = [self frame];
         NSRect newFrame;
@@ -112,7 +112,7 @@ static float defaultTextPadding(void) {
     }
 }
 
-- (unsigned)numberOfPages {
+- (NSUInteger)numberOfPages {
     return numPages;
 }
     
@@ -133,7 +133,7 @@ static float defaultTextPadding(void) {
     return paperSize;
 }
 
-- (NSRect)documentRectForPageNumber:(unsigned)pageNumber {	/* First page is page 0, of course! */
+- (NSRect)documentRectForPageNumber:(NSUInteger)pageNumber {	/* First page is page 0, of course! */
     NSRect rect = [self pageRectForPageNumber:pageNumber];
     rect.origin.x += [printInfo leftMargin] - defaultTextPadding();
     rect.origin.y += [printInfo topMargin];
@@ -141,7 +141,7 @@ static float defaultTextPadding(void) {
     return rect;
 }
 
-- (NSRect)pageRectForPageNumber:(unsigned)pageNumber {
+- (NSRect)pageRectForPageNumber:(NSUInteger)pageNumber {
     NSRect rect;
     rect.size = [printInfo paperSize];
     rect.origin = [self frame].origin;
@@ -264,8 +264,8 @@ static float defaultTextPadding(void) {
 	[formfeed release];
 	
 	// force layout before printing
-	unsigned len;
-	unsigned loc = INT_MAX;
+	NSUInteger len;
+	NSUInteger loc = NSUIntegerMax;
 	if (loc > 0 && (len = [pageStorage length]) > 0) {
 		NSRange glyphRange;
 		if (loc >= len) loc = len - 1;

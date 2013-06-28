@@ -278,7 +278,7 @@ void NotesDirFNSubscriptionProc(FNMessage message, OptionBits flags, void * refc
 				
 				totalObjects += dirObjectCount;
 				if (totalObjects > totalCatEntriesCount) {
-					unsigned int oldCatEntriesCount = totalCatEntriesCount;
+					NSUInteger oldCatEntriesCount = totalCatEntriesCount;
 					
 					totalCatEntriesCount = totalObjects;
 					catalogEntries = (NoteCatalogEntry *)realloc(catalogEntries, totalObjects * sizeof(NoteCatalogEntry));
@@ -394,10 +394,10 @@ void NotesDirFNSubscriptionProc(FNMessage message, OptionBits flags, void * refc
 	return NO;
 }
 
-- (void)makeNotesMatchCatalogEntries:(NoteCatalogEntry**)catEntriesPtrs ofSize:(size_t)catCount {
+- (void)makeNotesMatchCatalogEntries:(NoteCatalogEntry **)catEntriesPtrs ofSize:(NSUInteger)catCount {
     
-    unsigned int aSize = [allNotes count];
-    unsigned int bSize = catCount;
+    NSUInteger aSize = [allNotes count];
+    NSUInteger bSize = catCount;
     
 	ResizeArray(&allNotesBuffer, aSize, &allNotesBufferSize);
 	
@@ -415,7 +415,7 @@ void NotesDirFNSubscriptionProc(FNMessage message, OptionBits flags, void * refc
     //oldItems(a,i) = currentNotes
     //newItems(b,j) = catEntries;
     
-    unsigned int i, j, lastInserted = 0;
+    NSUInteger i, j, lastInserted = 0;
     
     for (i=0; i<aSize; i++) {
 		
@@ -488,7 +488,7 @@ void NotesDirFNSubscriptionProc(FNMessage message, OptionBits flags, void * refc
 
 //find renamed notes through unique file IDs
 - (void)processNotesAddedByCNID:(NSMutableArray*)addedEntries removed:(NSMutableArray*)removedEntries {
-	unsigned int aSize = [removedEntries count], bSize = [addedEntries count];
+	NSUInteger aSize = [removedEntries count], bSize = [addedEntries count];
     
     //sort on nodeID here
 	[addedEntries sortUnstableUsingFunction:compareCatalogValueNodeID];
@@ -500,7 +500,7 @@ void NotesDirFNSubscriptionProc(FNMessage message, OptionBits flags, void * refc
     //oldItems(a,i) = currentNotes
     //newItems(b,j) = catEntries;
     
-    unsigned int i, j, lastInserted = 0;
+    NSUInteger i, j, lastInserted = 0;
     
     for (i=0; i<aSize; i++) {
 		NoteObject *currentNote = [removedEntries objectAtIndex:i];

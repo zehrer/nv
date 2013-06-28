@@ -75,7 +75,7 @@
 	return view;
 }
 
-- (int)hashIterationCount {
+- (NSInteger)hashIterationCount {
 	return lastHashIterationCount;
 }
 
@@ -101,7 +101,7 @@
 	[hashDurationField setAttributedStringValue:[NSAttributedString timeDelayStringWithNumberOfSeconds:[sender doubleValue]]];
 }
 
-- (double)delayForHashIterations:(int)count {
+- (NSTimeInterval)delayForHashIterations:(NSInteger)count {
 	NSDate *before = [NSDate date];
 	[crapData derivedKeyOfLength:[notationPrefs keyLengthInBits]/8 salt:crapSalt iterations:count];
 	return [[NSDate date] timeIntervalSinceDate:before];
