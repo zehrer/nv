@@ -376,7 +376,7 @@
 		NSString *folder = [[NSFileManager defaultManager] applicationSupportDirectory];
 		if ([fileManager fileExistsAtPath: folder] == NO)
 		{
-				[fileManager createDirectoryAtPath: folder attributes: nil];
+				[fileManager createDirectoryAtPath:folder withIntermediateDirectories:YES attributes:nil error:NULL];
 
 		}
 
