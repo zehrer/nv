@@ -134,31 +134,12 @@
 	return NO;
 }
 
-+ (NSMutableData *)randomDataOfLength:(int)len {
-	NSMutableData *randomData = nil;
-	ssize_t amtRead = 0, oneRead;
-	NSFileHandle *devRandom = [ NSFileHandle fileHandleForReadingAtPath:@"/dev/random" ];
-	
-	if(devRandom != nil) {
-		randomData = [NSMutableData dataWithLength:len];
-		while (amtRead < len) {
-			
-			//read mutable data
-			oneRead = read( [ devRandom fileDescriptor ], [ randomData mutableBytes ],
-							len - amtRead );
-			if (oneRead <= 0 && ( errno != EINTR && errno != EAGAIN ) ) {
-				
-				NSLog(@"random data read error: %s", strerror(errno));
-				randomData = nil;
-				break;
-			}
-			amtRead += oneRead;
-		}
-		[devRandom closeFile];
-	} else
-		NSLog(@"error opening /dev/random");
-	
-	return randomData;
++ (NSData *)randomDataOfLength:(NSUInteger)len {
+	NSMutableData *data = [NSMutableData dataWithLength:len];
+	if (SecRandomCopyBytes(kSecRandomDefault, len, data.mutableBytes) != noErr) {
+		return nil;
+	}
+	return [[data copy] autorelease];
 }
 
 - (NSData *)derivedKeyOfLength:(NSUInteger)len salt:(NSData *)salt iterations:(NSUInteger)count {
