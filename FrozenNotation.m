@@ -65,9 +65,6 @@
 		notesData = [[notesData compressedData] retain];
 		[oldNotesData release];
 		
-		//ostensibly to create more entropy in the first blocks, relying on CBC dependency to crack
-		//[notesData reverseBytes];
-		
 		if ([somePrefs doesEncryption]) {
 			//compress?, reverse?, encrypt notesData based on notationprefs
 			//we also want to have the salt reset here, but that requires knowing the original password
@@ -180,8 +177,6 @@
 					return(nil);
 				}
 			}
-			
-			//[notesData reverseBytes];
 			
 			NSMutableData *oldNotesData = notesData;
 			notesData = [[notesData uncompressedData] retain];

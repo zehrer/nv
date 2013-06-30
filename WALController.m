@@ -21,11 +21,12 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <sys/stat.h>
-#import "NSData_transformations.h"
 #import "WALController.h"
 #import "DeletedNoteObject.h"
 #import "NSCollection_utils.h"
 #import "NSString_NV.h"
+#import "NSData_transformations.h"
+#import "NSMutableData+NVAESEncryption.h"
 
 extern CFHashCode CFHashBytes(UInt8 *bytes, CFIndex length) DEPRECATED_ATTRIBUTE;
 
@@ -260,7 +261,7 @@ extern CFHashCode CFHashBytes(UInt8 *bytes, CFIndex length) DEPRECATED_ATTRIBUTE
 	NSData *recordSalt = [NSData randomDataOfLength:RECORD_SALT_LEN];
 	NSData *recordKey = [logSessionKey derivedKeyOfLength:[logSessionKey length] salt:recordSalt iterations:1];
 	
-	if (![data encryptAESDataWithKey:recordKey iv:[recordSalt subdataWithRange:NSMakeRange(0, 16)]]) {
+	if (![data nv_encryptDataWithKey:recordKey iv:[recordSalt subdataWithRange:NSMakeRange(0, 16)]]) {
 		NSLog(@"Couldn't encrypt WAL record data!");
 		return NO;
 	}
@@ -435,7 +436,7 @@ extern CFHashCode CFHashBytes(UInt8 *bytes, CFIndex length) DEPRECATED_ATTRIBUTE
 	NSData *recordSalt = [NSData dataWithBytesNoCopy:record.saltBuffer length:RECORD_SALT_LEN freeWhenDone:NO];
 	NSData *recordKey = [logSessionKey derivedKeyOfLength:[logSessionKey length] salt:recordSalt iterations:1];
 	
-	if (!([presumablySerializedData decryptAESDataWithKey:recordKey iv:[recordSalt subdataWithRange:NSMakeRange(0, 16)]])) {
+	if (!([presumablySerializedData nv_decryptDataWithKey:recordKey iv:[recordSalt subdataWithRange:NSMakeRange(0, 16)]])) {
 		NSLog(@"Record decryption failed!");
 		return nil;
 	}

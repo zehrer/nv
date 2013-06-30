@@ -26,6 +26,7 @@
 #import "NotationFileManager.h"
 #import "SecureTextEntryManager.h"
 #import "DiskUUIDEntry.h"
+#import "NSMutableData+NVAESEncryption.h"
 #include <CoreServices/CoreServices.h>
 #include <ApplicationServices/ApplicationServices.h>
 
@@ -539,13 +540,13 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 	
 	NSData *dataSessionKey = [masterKey derivedKeyOfLength:keyLengthInBits/8 salt:dataSessionSalt iterations:1];
 	
-	return [data encryptAESDataWithKey:dataSessionKey iv:[dataSessionSalt subdataWithRange:NSMakeRange(0, 16)]];
+	return [data nv_encryptDataWithKey:dataSessionKey iv:[dataSessionSalt subdataWithRange:NSMakeRange(0, 16)]];
 }
 - (BOOL)decryptDataWithCurrentSettings:(NSMutableData*)data {
 	
 	NSData *dataSessionKey = [masterKey derivedKeyOfLength:keyLengthInBits/8 salt:dataSessionSalt iterations:1];
 	
-	return [data decryptAESDataWithKey:dataSessionKey iv:[dataSessionSalt subdataWithRange:NSMakeRange(0, 16)]];
+	return [data nv_decryptDataWithKey:dataSessionKey iv:[dataSessionSalt subdataWithRange:NSMakeRange(0, 16)]];
 }
 
 - (void)setPassphraseData:(NSData*)passData inKeychain:(BOOL)inKeychain {

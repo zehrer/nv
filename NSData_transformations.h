@@ -16,7 +16,7 @@
 - (NSMutableData *) uncompressedData;
 - (BOOL) isCompressedFormat;
 
-+ (NSMutableData *)randomDataOfLength:(int)len;
++ (NSData *)randomDataOfLength:(NSUInteger)len;
 - (NSData *)derivedKeyOfLength:(NSUInteger)len salt:(NSData *)salt iterations:(NSUInteger)count;
 - (unsigned long)CRC32;
 - (NSData*)SHA1Digest;
@@ -33,13 +33,5 @@
 - (NSString *)nv_stringByBase64Decoding;
 - (NSData *)nv_dataByBase64Encoding;
 - (NSData *)nv_dataByBase64Decoding;
-
-@end
-
-@interface NSMutableData (NVCryptoRelated)
-- (void)reverseBytes;
-
-- (BOOL)encryptAESDataWithKey:(NSData*)key iv:(NSData*)iv;
-- (BOOL)decryptAESDataWithKey:(NSData*)key iv:(NSData*)iv;
 
 @end
