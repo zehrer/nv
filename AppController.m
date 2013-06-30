@@ -33,7 +33,6 @@
 #import "DualField.h"
 #import "TitlebarButton.h"
 #import "RBSplitView/RBSplitView.h"
-//#import "AugmentedScrollView.h"
 #import "BookmarksController.h"
 #import "SyncSessionController.h"
 #import "MultiplePageView.h"
@@ -54,7 +53,6 @@
 #import <Sparkle/SUUpdater.h>
 
 #define kSparkleUpdateFeedForLions @"http://abyss.designheresy.com/nvalt2/nvalt2main.xml"
-#define kSparkleUpdateFeedForSnowLeopard @"http://abyss.designheresy.com/nvalt2/nvalt2snowleopardfeed.xml"
 //http://abyss.designheresy.com/nvalt/betaupdates.xml
 
 #define kDualFieldHeight 35.0
@@ -79,22 +77,16 @@ BOOL splitViewAwoke;
         hasLaunched=NO;
         
         if (![[NSUserDefaults standardUserDefaults] boolForKey:@"ShowDockIcon"]){
-            if (IsLionOrLater) {
-                ProcessSerialNumber psn = { 0, kCurrentProcess };
-                OSStatus returnCode = TransformProcessType(&psn, kProcessTransformToUIElementApplication);
-                if( returnCode != 0) {
-                    NSLog(@"Could not bring the application to front. Error %d", returnCode);
-                }                
-            }
+
+			ProcessSerialNumber psn = { 0, kCurrentProcess };
+			OSStatus returnCode = TransformProcessType(&psn, kProcessTransformToUIElementApplication);
+			if( returnCode != 0) {
+				NSLog(@"Could not bring the application to front. Error %d", returnCode);
+			}                
+
             if (![[NSUserDefaults standardUserDefaults] boolForKey:@"StatusBarItem"]) {
                 [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"StatusBarItem"];
             }
-        }else{
-            if (!IsLionOrLater) {
-                enum {NSApplicationActivationPolicyRegular};
-                [[NSApplication sharedApplication] setActivationPolicy:NSApplicationActivationPolicyRegular];
-            }
-        
         }
         
         splitViewAwoke = NO;
@@ -325,11 +317,7 @@ void outletObjectAwoke(id sender) {
 		NSString *frameworkPath = [[[NSBundle bundleForClass:[self class]] privateFrameworksPath] stringByAppendingPathComponent:@"Sparkle.framework"];
 		if ([[NSBundle bundleWithPath:frameworkPath] load]) {
 			SUUpdater *updater =[NSClassFromString(@"SUUpdater") performSelector:@selector(sharedUpdater)];
-            if (IsLionOrLater) {
-                [updater setFeedURL:[NSURL URLWithString:kSparkleUpdateFeedForLions]];
-            }else{
-                [updater setFeedURL:[NSURL URLWithString:kSparkleUpdateFeedForSnowLeopard]];
-            }
+			[updater setFeedURL:[NSURL URLWithString:kSparkleUpdateFeedForLions]];
 			[sparkleUpdateItem setTarget:updater];
 			[sparkleUpdateItem setAction:@selector(checkForUpdates:)];
 			NSMenuItem *siSparkle = [statBarMenu itemWithTag:902];
@@ -358,22 +346,9 @@ void outletObjectAwoke(id sender) {
     [fsMenuItem setEnabled:YES];
     [fsMenuItem setHidden:NO];
 		
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
-    if (IsLionOrLater) {
-        //  [window setCollectionBehavior:NSWindowCollectionBehaviorTransient|NSWindowCollectionBehaviorMoveToActiveSpace];
-        //
-        [window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
-        //            [window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenAuxiliary];
-        [NSApp setPresentationOptions:NSApplicationPresentationFullScreen];
-        
-        
-    } else {
-#endif
-        [fsMenuItem setTarget:self];
-        [fsMenuItem setAction:@selector(switchFullScreen:)];            
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
-    }
-#endif
+	[window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
+	[NSApp setPresentationOptions:NSApplicationPresentationFullScreen];
+	
     theMenuItem = [fsMenuItem copy];
     [statBarMenu insertItem:theMenuItem atIndex:12];
     [theMenuItem release];
@@ -930,11 +905,7 @@ void outletObjectAwoke(id sender) {
         
         NSRect linkingFrame=[textScrollView convertRect:[textScrollView frame] toView:nil];
         
-        if (IsLionOrLater) {
-            linkingFrame=[window convertRectToScreen:linkingFrame];
-        }else{
-            linkingFrame.origin=[window convertBaseToScreen:linkingFrame.origin];
-        }
+        linkingFrame=[window convertRectToScreen:linkingFrame];
         NSPoint cPoint=NSMakePoint(NSMidX(linkingFrame), NSMaxY(linkingFrame));
         
         //Multiple Notes selected, use ElasticThreads' multitagging implementation
@@ -1152,21 +1123,21 @@ void outletObjectAwoke(id sender) {
 - (void)cancelOperation:(id)sender {
 	//simulate a search for nothing
 	if ([window isKeyWindow]) {
-		if (IsLionOrLater&&([textView textFinderIsVisible])) {
+		if ([textView textFinderIsVisible]) {
             [[NSNotificationCenter defaultCenter] postNotificationName:@"TextFinderShouldHide" object:self];
-            return;
-        }
-		[field setStringValue:@""];
-		typedStringIsCached = NO;
-		
-		[notesTableView deselectAll:sender];//thiss
-		[notationController filterNotesFromString:@""];
-		//was here
-        [self setDualFieldIsVisible:YES];
-        //		[self _expandToolbar];
-		
-		[field selectText:sender];
-		[[field cell] setShowsClearButton:NO];
+        } else {
+			[field setStringValue:@""];
+			typedStringIsCached = NO;
+			
+			[notesTableView deselectAll:sender];//thiss
+			[notationController filterNotesFromString:@""];
+			//was here
+			[self setDualFieldIsVisible:YES];
+			//		[self _expandToolbar];
+			
+			[field selectText:sender];
+			[[field cell] setShowsClearButton:NO];
+		}
 	}
 }
 
@@ -1446,10 +1417,7 @@ void outletObjectAwoke(id sender) {
 }
 
 - (void)tableViewSelectionIsChanging:(NSNotification *)aNotification {
-	
-    if (IsLionOrLater) {
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"TextFindContextShouldReset" object:self];
-    }
+	[[NSNotificationCenter defaultCenter] postNotificationName:@"TextFindContextShouldReset" object:self];
     [[NSNotificationCenter defaultCenter] postNotificationName:@"ModTimersShouldReset" object:nil];
     
 	BOOL allowMultipleSelection = NO;
@@ -1489,10 +1457,9 @@ void outletObjectAwoke(id sender) {
 }
 
 - (void)tableViewSelectionDidChange:(NSNotification *)aNotification {
-    if (IsLionOrLater) {
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"TextFindContextShouldUpdate" object:self];
-    }
-    self.isEditing = NO;
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"TextFindContextShouldUpdate" object:self];
+
+	self.isEditing = NO;
 	NSEventType type = [[window currentEvent] type];
 	if (type != NSKeyDown && type != NSKeyUp) {
 		[self performSelector:@selector(setTableAllowsMultipleSelection) withObject:nil afterDelay:0];
@@ -1691,12 +1658,9 @@ void outletObjectAwoke(id sender) {
 		[currentNote setContentString:[textView textStorage]];
 		[self postTextUpdate];
 		[self updateWordCount:(![prefsController showWordCount])];
-        if (IsLionOrLater) {
-            [[NSNotificationCenter defaultCenter] postNotificationName:@"TextFindContextShouldUpdate" object:self];
-        }
+        
+		[[NSNotificationCenter defaultCenter] postNotificationName:@"TextFindContextShouldUpdate" object:self];
 	}
-    
-    
 }
 
 - (void)textDidBeginEditing:(NSNotification *)aNotification {
@@ -1709,17 +1673,13 @@ void outletObjectAwoke(id sender) {
 }
 
 - (BOOL)textShouldBeginEditing:(NSText *)aTextObject {
-    if (IsLionOrLater) {
-        if (aTextObject==textView) {
-            [[NSNotificationCenter defaultCenter]postNotificationName:@"TextFindContextShouldNoteChanges" object:nil];
-            
-        }else{
-            
-            NSLog(@"not textview should begin with to:%@",[aTextObject description]);
-        }
-    }
-    return YES;
-    
+	if (aTextObject==textView) {
+		[[NSNotificationCenter defaultCenter]postNotificationName:@"TextFindContextShouldNoteChanges" object:nil];
+		
+	}else{
+		NSLog(@"not textview should begin with to:%@",[aTextObject description]);
+	}
+    return YES;    
 }
 
 /*
@@ -2014,9 +1974,6 @@ void outletObjectAwoke(id sender) {
 }
 
 - (NSUInteger)splitView:(RBSplitView*)sender dividerForPoint:(NSPoint)point inSubview:(RBSplitSubview*)subview {
-	//if ([(AugmentedScrollView*)[notesTableView enclosingScrollView] shouldDragWithPoint:point sender:sender]) {
-	//	return 0;       // [firstSplit position], which we assume to be zero
-	//}
 	return NSNotFound;
 }
 
@@ -2263,9 +2220,8 @@ void outletObjectAwoke(id sender) {
 }
 
 - (void)focusControlField:(id)sender activate:(BOOL)shouldActivate{
-    if (IsLionOrLater) {
-        [[NSNotificationCenter defaultCenter] postNotificationName:@"TextFinderShouldHide" object:sender];
-    }
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"TextFinderShouldHide" object:sender];
+
 	if ([notesSubview isCollapsed]) {
 		[self toggleCollapse:self];
 	}else if (![self dualFieldIsVisible]){
@@ -2521,18 +2477,7 @@ void outletObjectAwoke(id sender) {
 
 - (void)setDualFieldIsVisible:(BOOL)isVis{
     if ([self dualFieldIsVisible]!=isVis) {
-        if (IsLionOrLater||![mainView isInFullScreenMode]) {
-            [toolbar setVisible:isVis];
-        }else{
-            NSSize wSize = [mainView frame].size;
-            if (isVis) {
-                wSize.height -= kDualFieldHeight;
-            }
-            [dualFieldView setHidden:!isVis];
-            [splitView setFrameSize:wSize];
-            //        [splitView adjustSubviews];
-            [mainView setNeedsDisplay:YES];
-        }
+		[toolbar setVisible:isVis];
     }
     //        [[NSUserDefaults standardUserDefaults] setBool:!isVis forKey:@"ToolbarHidden"];
     if (isVis) {
@@ -2563,15 +2508,7 @@ void outletObjectAwoke(id sender) {
 
 
 - (BOOL)dualFieldIsVisible{
-    BOOL dfIsVis=NO;
-    if (!IsLionOrLater&&[mainView isInFullScreenMode]) {
-        if (dualFieldView) {
-            dfIsVis=![dualFieldView isHidden];
-        }
-    }else{
-        dfIsVis=[toolbar isVisible];
-    }
-    return dfIsVis;
+    return [toolbar isVisible];
 }
 
 - (IBAction)toggleCollapse:(id)sender{
@@ -2593,8 +2530,6 @@ void outletObjectAwoke(id sender) {
 }
 
 #pragma mark fullscreen methods
-
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
 
 - (NSApplicationPresentationOptions)window:(NSWindow *)window
       willUseFullScreenPresentationOptions:(NSApplicationPresentationOptions)rect{
@@ -2656,98 +2591,13 @@ void outletObjectAwoke(id sender) {
     [self setDualFieldIsVisible:[boolNum boolValue]];
 }
 
-#endif
-
 - (BOOL)isInFullScreen{
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
-    if (IsLionOrLater) {
-        return (([window styleMask]&NSFullScreenWindowMask)>0);
-    }
-#endif
-    return [mainView isInFullScreenMode];
-    
+	return (([window styleMask]&NSFullScreenWindowMask)>0);
 }
 
 - (IBAction)switchFullScreen:(id)sender
 {
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
-    if (IsLionOrLater) {
-        //        BOOL inFS=[self isInFullScreen];
-        [window toggleFullScreen:nil];
-        return;
-	}   
-#endif
-    self.isEditing = NO;
-    NSResponder *currentResponder = [window firstResponder];
-    NSDictionary* options;
-    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"ShowDockIcon"]) {
-        options = [NSDictionary dictionaryWithObjectsAndKeys:@(NSApplicationPresentationAutoHideMenuBar | NSApplicationPresentationHideDock),NSFullScreenModeApplicationPresentationOptions, nil];
-    }else {
-        options = [NSDictionary dictionary];
-    }
-    CGFloat colW = [notesSubview dimension];
-    
-    wasDFVisible=[self dualFieldIsVisible];
-    if ([mainView isInFullScreenMode]) {
-        window = normalWindow;
-        [mainView exitFullScreenModeWithOptions:options];
-        
-        [notesSubview setDimension:colW];
-        [self setDualFieldInToolbar];
-        [splitView setFrameSize:[mainView frame].size];
-        if ((!wasVert)&&([splitView isVertical])) {
-            [self switchViewLayout:self];
-        }else{
-            [splitView adjustSubviews];
-        }
-        [window makeKeyAndOrderFront:self];
-    }else {
-        [mainView enterFullScreenMode:[window screen]  withOptions:options];
-        [notesSubview setDimension:colW];
-        [self setDualFieldInView];
-        if (![splitView isVertical]) {
-            [self switchViewLayout:self];
-            wasVert = NO;
-        }else {
-            wasVert = YES;
-            [splitView adjustSubviews];
-        }
-        normalWindow = window;
-        [normalWindow orderOut:self];
-        window = [mainView window];
-        //[NSApp setDelegate:self];
-        [notesTableView setDelegate:self];
-        [window setDelegate:self];
-        // [window setInitialFirstResponder:field];
-        [field setDelegate:self];
-        [textView setDelegate:self];
-        [splitView setDelegate:self];
-        NSSize wSize = [mainView frame].size;
-        wSize.height = [splitView frame].size.height;
-        [splitView setFrameSize:wSize];
-    }
-    [window setBackgroundColor:backgrndColor];
-    
-    [self setDualFieldIsVisible:wasDFVisible];
-    
-    [textView updateInsetAndForceLayout:YES];
-    if ([[currentResponder description] rangeOfString:@"_NSFullScreenWindow"].length>0){
-        currentResponder = textView;
-    }
-    if (([currentResponder isKindOfClass:[NSTextView class]])&&(![currentResponder isKindOfClass:[LinkingEditor class]])) {
-        currentResponder = field;
-    }
-    
-    [splitView setNextKeyView:notesTableView];
-    [field setNextKeyView:textView];
-    [textView setNextKeyView:field];
-    [window setAutorecalculatesKeyViewLoop:NO];
-    [window makeFirstResponder:currentResponder];
-    
-    [mainView setNeedsDisplay:YES];
-    if (![NSApp isActive]) {
-        [NSApp activateIgnoringOtherApps:YES];
-    }
+	[window toggleFullScreen:nil];
 }
 
 #pragma mark color scheme methods
@@ -2816,12 +2666,6 @@ void outletObjectAwoke(id sender) {
     }
     
     - (void)updateColorScheme{
-//        @try {
-            if (!IsLionOrLater) {
-                
-                [window setBackgroundColor:backgrndColor];//[NSColor blueColor]
-                [dualFieldView setBackgroundColor:backgrndColor];
-            }
             [mainView setBackgroundColor:backgrndColor];
         [notesTableView setBackgroundColor:backgrndColor];
         [NotesTableHeaderCell setForegroundColor:foregrndColor];
@@ -2829,19 +2673,15 @@ void outletObjectAwoke(id sender) {
         
         [textView setBackgroundColor:backgrndColor];
         [textView updateTextColors];
-            [self updateFieldAttributes];
-            //[editorStatusView setBackgroundColor:backgrndColor];
-            //		[editorStatusView setNeedsDisplay:YES];
-            //	[field setTextColor:foregrndColor];
-            if (currentNote) {
-                [self contentsUpdatedForNote:currentNote];
-            }
-            [dividerShader updateColors:backgrndColor];
-            [splitView setNeedsDisplay:YES];
-//        }
-//        @catch (NSException * e) {
-//            NSLog(@"setting SCheme EXception : %@",[e name]);
-//        }
+		[self updateFieldAttributes];
+		//[editorStatusView setBackgroundColor:backgrndColor];
+		//		[editorStatusView setNeedsDisplay:YES];
+		//	[field setTextColor:foregrndColor];
+		if (currentNote) {
+			[self contentsUpdatedForNote:currentNote];
+		}
+		[dividerShader updateColors:backgrndColor];
+		[splitView setNeedsDisplay:YES];
     }
     
     - (void)updateFieldAttributes{
@@ -3215,43 +3055,26 @@ void outletObjectAwoke(id sender) {
     }
     
     - (void)showDockIcon{
-        if (IsLionOrLater) {
-            ProcessSerialNumber psn = { 0, kCurrentProcess };
-            OSStatus returnCode = TransformProcessType(&psn, kProcessTransformToForegroundApplication);
-            if( returnCode != 0) {
-                NSLog(@"Could not bring the application to front. Error %d", returnCode);
-            }
-
-        }else{
-            enum {NSApplicationActivationPolicyRegular};
-            [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
-        }
-              [self performSelector:@selector(reActivate:) withObject:self afterDelay:0.16];
+		ProcessSerialNumber psn = { 0, kCurrentProcess };
+		OSStatus returnCode = TransformProcessType(&psn, kProcessTransformToForegroundApplication);
+		if( returnCode != 0) {
+			NSLog(@"Could not bring the application to front. Error %d", returnCode);
+		}
+			
+		[self performSelector:@selector(reActivate:) withObject:self afterDelay:0.16];
     }
 
     - (void)hideDockIcon{
-        //    id fullPath = [[NSBundle mainBundle] executablePath];
-        //    NSArray *arg = [NSArray arrayWithObjects:nil];
-        //    [NSTask launchedTaskWithLaunchPath:fullPath arguments:arg];
-        //    [NSApp terminate:sender];
-        if (IsLionOrLater) {
-            ProcessSerialNumber psn = { 0, kCurrentProcess };
-            OSStatus returnCode = TransformProcessType(&psn, kProcessTransformToUIElementApplication);
-            if( returnCode != 0) {
-                NSLog(@"Could not bring the application to front. Error %d", returnCode);
-            }
-            if (!statusItem) {
-                [self setUpStatusBarItem];
-            }
-            
-            [self performSelector:@selector(reActivate:) withObject:self afterDelay:0.36];
-        }else{
-//            NSLog(@"hiding dock incon in snow leopard");
-            id fullPath = [[NSBundle mainBundle] executablePath];
-            NSArray *arg = [NSArray arrayWithObjects:nil];
-            [NSTask launchedTaskWithLaunchPath:fullPath arguments:arg];
-            [NSApp terminate:self];
-        }
+		ProcessSerialNumber psn = { 0, kCurrentProcess };
+		OSStatus returnCode = TransformProcessType(&psn, kProcessTransformToUIElementApplication);
+		if( returnCode != 0) {
+			NSLog(@"Could not bring the application to front. Error %d", returnCode);
+		}
+		if (!statusItem) {
+			[self setUpStatusBarItem];
+		}
+		
+		[self performSelector:@selector(reActivate:) withObject:self afterDelay:0.36];
         
     }
     

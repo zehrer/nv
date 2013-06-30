@@ -39,12 +39,7 @@
         knobAlpha=0.45f;
 		[self setArrowsPosition:NSScrollerArrowsNone];
         
-        isOverlay=NO;        
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
-        if (IsLionOrLater) {
-            isOverlay=[[self class]isCompatibleWithOverlayScrollers];
-        }
-#endif
+        isOverlay=[[self class]isCompatibleWithOverlayScrollers];
 	}
 	return self;
 }
@@ -59,44 +54,12 @@
     [super dealloc];
 }
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
 + (CGFloat)scrollerWidthForControlSize:(NSControlSize)controlSize scrollerStyle:(NSScrollerStyle)scrollerStyle{
     return 15.0;
 }
 
-#else
-+ (CGFloat)scrollerWidth
-{
-	return 15.0;//slotVerticalFill.size.width + verticalPaddingLeft + verticalPaddingRight;
-}
-+ (CGFloat)scrollerWidthForControlSize:(NSControlSize)controlSize 
-{
-	return 15.0;//slotVerticalFill.size.width + verticalPaddingLeft + verticalPaddingRight;
-}
-#endif
-
 - (void)setFillBackground:(BOOL)fillIt{
     fillBackground=fillIt;
-}
-
-- (void)drawRect:(NSRect)aRect;
-{       
-        // Only draw if the slot is larger than the knob
-    if (IsLionOrLater) {
-        [super drawRect:aRect];
-    }else{
-        if (([self bounds].size.height - verticalPaddingTop - verticalPaddingBottom + 1) > minKnobHeight){
-
-            if (fillBackground) {                
-                [[[[self window] contentView] backgroundColor] setFill];
-                NSRectFill([self bounds]);
-            }
-            [self drawKnobSlotInRect:[self rectForPart:NSScrollerKnobSlot] highlight:NO];
-            
-            if ([self knobProportion] > 0.0)	
-                [self drawKnob];
-        }
-    }
 }
 
 - (void)drawKnobSlotInRect:(NSRect)slotRect highlight:(BOOL)flag{  

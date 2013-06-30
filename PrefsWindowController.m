@@ -469,7 +469,7 @@
 	
 	[window setShowsToolbarButton:NO];
     [useETScrollbarsOnLionButton setState:[prefsController useETScrollbarsOnLion]];
-    [useETScrollbarsOnLionButton setHidden:!IsLionOrLater];
+    [useETScrollbarsOnLionButton setHidden:NO];
     [self switchViews:nil];  //select last selected pane by default
     
 }

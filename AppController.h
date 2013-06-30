@@ -33,7 +33,6 @@
 @class DFView;
 @class PreviewController;
 @class WordCountToken;
-//@class AugmentedScrollView;
 @class ETContentView;
 @class ETScrollView;
 
@@ -235,9 +234,6 @@ void outletObjectAwoke(id sender);
 - (void)toggleStatusItem:(NSNotification *)notification;
 - (void)setUpStatusBarItem;
 - (NSArray *)referenceLinksInString:(NSString *)contentString;
-//- (IBAction)testThing:(id)sender;
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
 - (void)postToggleToolbar:(NSNumber *)boolNum;
-#endif
 
 @end

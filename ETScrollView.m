@@ -22,8 +22,7 @@
         
         if (NSPointInRect (aPoint,vsRect)) {
             return [self verticalScroller];
-        }else if (IsLionOrLater){
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
+        } else {
             if([[self subviews]containsObject:[self findBarView]]) {
                 NSView *tView=[super hitTest:aPoint];
                 if ((tView==[self findBarView])||([tView superview]==[self findBarView])||([[tView className]isEqualToString:@"NSFindPatternFieldEditor"])) {
@@ -32,7 +31,6 @@
                     return tView;
                 }
             }
-#endif
         }
         [[self documentView]setMouseInside:YES];
         return [self documentView];
@@ -46,26 +44,16 @@
     BOOL fillIt=NO;
     if([[[self documentView]className] isEqualToString:@"NotesTableView"]){
         scrollerClass=NSClassFromString(@"ETOverlayScroller");
-        if (!IsLionOrLater) {
-            [self setAutohidesScrollers:YES];
-            needsOverlayTiling=YES;
-        }
     }else{
-        scrollerClass=NSClassFromString(@"ETTransparentScroller");   
-        if (!IsLionOrLater) {
-            fillIt=YES;            
-        }
+        scrollerClass=NSClassFromString(@"ETTransparentScroller");
     }
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
-    if (IsLionOrLater) {
-        [[GlobalPrefs defaultPrefs] registerForSettingChange:@selector(setUseETScrollbarsOnLion:sender:) withTarget:self];
-        [self setHorizontalScrollElasticity:NSScrollElasticityNone];
-        [self setVerticalScrollElasticity:NSScrollElasticityAllowed];
-//        [self setScrollerStyle:NSScrollerStyleOverlay];   
-    }
-#endif    
-    if (!IsLionOrLater||([[GlobalPrefs defaultPrefs]useETScrollbarsOnLion])) {
-         id theScroller=[[scrollerClass alloc]init];
+	
+	[[GlobalPrefs defaultPrefs] registerForSettingChange:@selector(setUseETScrollbarsOnLion:sender:) withTarget:self];
+	[self setHorizontalScrollElasticity:NSScrollElasticityNone];
+	[self setVerticalScrollElasticity:NSScrollElasticityAllowed];
+	
+    if ([[GlobalPrefs defaultPrefs]useETScrollbarsOnLion]) {
+		id theScroller=[[scrollerClass alloc]init];
         [theScroller setFillBackground:fillIt];
         [self setVerticalScroller:theScroller];
         [theScroller release];
@@ -73,9 +61,8 @@
 }
 
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
-- (void)settingChangedForSelectorString:(NSString*)selectorString{  
-    if (IsLionOrLater&&([selectorString isEqualToString:SEL_STR(setUseETScrollbarsOnLion:sender:)])){
+- (void)settingChangedForSelectorString:(NSString*)selectorString{
+    if ([selectorString isEqualToString:SEL_STR(setUseETScrollbarsOnLion:sender:)]) {
         [self changeUseETScrollbarsOnLion];
     }
 }
@@ -98,7 +85,6 @@
     [self tile];
     [self reflectScrolledClipView:[self contentView]];
 }
-#endif
 
 - (void)tile {
 	[super tile];

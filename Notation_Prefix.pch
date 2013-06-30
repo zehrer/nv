@@ -10,20 +10,12 @@
 #import <Cocoa/Cocoa.h>
 #endif
 
-#ifndef MAC_OS_X_VERSION_10_7
-#define MAC_OS_X_VERSION_10_7 1070
-#endif
-
 #ifndef MAC_OS_X_VERSION_10_8
 #define MAC_OS_X_VERSION_10_8 1080
 #endif
 
 #ifndef MAC_OS_X_VERSION_10_9
 #define MAC_OS_X_VERSION_10_9 1090
-#endif
-
-#ifndef NSFoundationVersionNumber10_7
-#define NSFoundationVersionNumber10_7 830.00
 #endif
 
 #ifndef NSFoundationVersionNumber10_8
@@ -71,7 +63,6 @@ typedef char _COMPILE_ASSERT_SYMBOL(__LINE__, msg) [ ((test) ? 1 : -1) ]
 #define VERIFY_SALT "Salt for verifying master key in a single iteration"
 #define LOG_SESSION_SALT "Salt for encrypting a write-ahead-log session"
 
-#define IsLionOrLater (floor(NSFoundationVersionNumber) >= NSFoundationVersionNumber10_7)
 #define IsMountainLionOrLater (floor(NSFoundationVersionNumber) >= NSFoundationVersionNumber10_8)
 #define IsMavericksOrLater (floor(NSFoundationVersionNumber) >= NSFoundationVersionNumber10_9)
 

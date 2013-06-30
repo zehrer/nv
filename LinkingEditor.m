@@ -196,7 +196,7 @@ static long (*GetGetScriptManagerVariablePointer())(short);
         [self setBackgroundColor:bgColor];
     }
 	[[self enclosingScrollView] setBackgroundColor:bgColor];
-    if (IsLionOrLater&&[self textFinderIsVisible]) {
+    if ([self textFinderIsVisible]) {
         [[self window]invalidateCursorRectsForView:[[self enclosingScrollView]findBarView]];
     }
     
@@ -1151,18 +1151,11 @@ copyRTFType:
         //for ElasticThreads Find... fix. Also make sure all Find menuItems point their targets to LinkingEditor instead of firstResponder
         
         //hide Find and Replace... on Pre-Lion machines
-        if (!IsLionOrLater){
-            if([menuItem tag]==12) {
-            [menuItem setHidden:YES];
-            return NO;
-            }
-        }else{
-            if ([menuItem tag]==7) {
-                if (![textFinder validateAction:[menuItem tag]]) {
-                    return NO;
-                }
-            }
-        }
+		if ([menuItem tag]==7) {
+			if (![textFinder validateAction:[menuItem tag]]) {
+				return NO;
+			}
+		}
         return YES;
     }else if (action==@selector(pasteMarkdownLink:)) {
         
@@ -1672,9 +1665,7 @@ static long (*GetGetScriptManagerVariablePointer())(short) {
 
 - (void)dealloc {
 	[[NSNotificationCenter defaultCenter] removeObserver: self];
-    if (IsLionOrLater) {
-        [textFinder release];
-    }
+    [textFinder release];
     [activeParagraphPastCursor release];
     [activeParagraph release];
     [activeParagraphBeforeCursor release];
@@ -1704,22 +1695,19 @@ static long (*GetGetScriptManagerVariablePointer())(short) {
 - (BOOL)mouseIsHere{
     NSPoint mPt;
     NSRect vRect=[[self enclosingScrollView]visibleRect];
-    if (IsLionOrLater) {
-        NSRect aRect=NSZeroRect;
-        aRect.origin=[NSEvent mouseLocation];
-        mPt=[[self enclosingScrollView] convertPoint:[[self window] convertRectFromScreen:aRect].origin fromView:nil];
-        if ([self textFinderIsVisible]) {
-            NSView *fbView=[[self enclosingScrollView]findBarView];
-            if (NSMouseInRect(mPt,[fbView frame],[fbView isFlipped])) {
-                if (backgroundIsDark) {
-                    [[self window]invalidateCursorRectsForView:fbView];
-                }
-                return NO;
-            }
-        }
-    }else{
-        mPt= [[self window]convertScreenToBase:[NSEvent mouseLocation]];
-    }
+
+	NSRect aRect=NSZeroRect;
+	aRect.origin=[NSEvent mouseLocation];
+	mPt=[[self enclosingScrollView] convertPoint:[[self window] convertRectFromScreen:aRect].origin fromView:nil];
+	if ([self textFinderIsVisible]) {
+		NSView *fbView=[[self enclosingScrollView]findBarView];
+		if (NSMouseInRect(mPt,[fbView frame],[fbView isFlipped])) {
+			if (backgroundIsDark) {
+				[[self window]invalidateCursorRectsForView:fbView];
+			}
+			return NO;
+		}
+	}
     //    vRect.size.width=[[self enclosingScrollView]visibleRect].size.width;
     //     NSLog(@"mPt:%@     vRect :>%@<",NSStringFromPoint(mPt),NSStringFromRect(vRect));
     return NSMouseInRect(mPt,vRect,YES);
@@ -2282,45 +2270,31 @@ static long (*GetGetScriptManagerVariablePointer())(short) {
     [dc addObserver:self selector:@selector(hideTextFinderIfNecessary:) name:@"TextFinderShouldHide" object:nil];
 }
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
 - (void)textFinderShouldResetContext:(NSNotification *)aNotification{
-    
-    if (IsLionOrLater){
-        [textFinder cancelFindIndicator];
-        [textFinder noteClientStringWillChange];
-    }
+	[textFinder cancelFindIndicator];
+	[textFinder noteClientStringWillChange];
 }
 
 - (void)textFinderShouldNoteChanges:(NSNotification *)aNotification{
-    if (IsLionOrLater){
-        [textFinder noteClientStringWillChange];
-    }
+	[textFinder noteClientStringWillChange];
 }
 
-- (void)textFinderShouldUpdateContext:(NSNotification *)aNotification{
-    
-    if (IsLionOrLater){
-        [textFinder setFindIndicatorNeedsUpdate:YES];
-    }
+- (void)textFinderShouldUpdateContext:(NSNotification *)aNotification{    
+	[textFinder setFindIndicatorNeedsUpdate:YES];
 }
 
 - (void)hideTextFinderIfNecessary:(NSNotification *)aNotification{
-    if (IsLionOrLater){        
-        if([self textFinderIsVisible]){            
-            [textFinder setFindIndicatorNeedsUpdate:YES];
-            [textFinder cancelFindIndicator];
-            [textFinder performAction:NSTextFinderActionHideFindInterface];
-        }
-    }
+	if([self textFinderIsVisible]){            
+		[textFinder setFindIndicatorNeedsUpdate:YES];
+		[textFinder cancelFindIndicator];
+		[textFinder performAction:NSTextFinderActionHideFindInterface];
+	}
 }
-#endif
 
 - (BOOL)textFinderIsVisible{
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
-    if ((IsLionOrLater)&&([[self enclosingScrollView]findBarView]!=nil)) {
+    if ([[self enclosingScrollView]findBarView]!=nil) {
         return [[[self enclosingScrollView] subviews]containsObject:[[self enclosingScrollView]findBarView]];
     }
-#endif
     return NO;
 }
 
@@ -2332,7 +2306,7 @@ static long (*GetGetScriptManagerVariablePointer())(short) {
     NSInteger findTag=[sender tag];
     
     [sender setTarget:self];
-    if(!IsLionOrLater||([sender tag]!=7)){
+    if ([sender tag]!=7){
         NSString *pbType=NSPasteboardTypeString;
         NSString *typedString = [controller typedString];
         if (!typedString) typedString = [controlField stringValue];
@@ -2356,63 +2330,45 @@ static long (*GetGetScriptManagerVariablePointer())(short) {
     if ([[self window] firstResponder]!=self) {
         [[self window]makeFirstResponder:self];
     }
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
-    if (IsLionOrLater) {
-        
-        id newSender=[sender copy];
-        if((findTag!=1)&&(findTag!=12)&&(findTag!=7)&&(![self textFinderIsVisible])){            
-            [newSender setTag:NSTextFinderActionShowFindInterface];
-            [super performTextFinderAction:newSender];
-        } 
-        if (findTag==1) {
-            findTag=NSTextFinderActionShowFindInterface;
-        }else if (findTag==2) {            
-            findTag=NSTextFinderActionNextMatch;
-        }else if (findTag==3) {
-            findTag=NSTextFinderActionPreviousMatch;
-        }else if (findTag==4) {
-            findTag=NSTextFinderActionReplaceAll;
-        }else if (findTag==5) {
-            findTag=NSTextFinderActionReplace;
-        }else if (findTag==6) {
-            findTag=NSTextFinderActionReplaceAndFind;
-        }else if (findTag==7) {
-            findTag=(NSTextFinderActionSetSearchString);
-        }else if (findTag==9) {
-            findTag=NSTextFinderActionSelectAll;
-        }else if (findTag==12) {
-            findTag=NSTextFinderActionShowReplaceInterface;
-        }//NSTextFinderActionSelectAll = 9,
-        [newSender setTag:findTag];
-        
-        if ([textFinder validateAction:findTag]) {
-            [super performTextFinderAction:newSender]; 
-            if ((findTag==NSTextFinderActionSetSearchString)&&(![self textFinderIsVisible])) {
-                [newSender setTag:NSTextFinderActionShowFindInterface];
-                [super performTextFinderAction:newSender];
-            }
-            
+
+	id newSender=[sender copy];
+	if((findTag!=1)&&(findTag!=12)&&(findTag!=7)&&(![self textFinderIsVisible])){            
+		[newSender setTag:NSTextFinderActionShowFindInterface];
+		[super performTextFinderAction:newSender];
+	} 
+	if (findTag==1) {
+		findTag=NSTextFinderActionShowFindInterface;
+	}else if (findTag==2) {            
+		findTag=NSTextFinderActionNextMatch;
+	}else if (findTag==3) {
+		findTag=NSTextFinderActionPreviousMatch;
+	}else if (findTag==4) {
+		findTag=NSTextFinderActionReplaceAll;
+	}else if (findTag==5) {
+		findTag=NSTextFinderActionReplace;
+	}else if (findTag==6) {
+		findTag=NSTextFinderActionReplaceAndFind;
+	}else if (findTag==7) {
+		findTag=(NSTextFinderActionSetSearchString);
+	}else if (findTag==9) {
+		findTag=NSTextFinderActionSelectAll;
+	}else if (findTag==12) {
+		findTag=NSTextFinderActionShowReplaceInterface;
+	}//NSTextFinderActionSelectAll = 9,
+	[newSender setTag:findTag];
+	
+	if ([textFinder validateAction:findTag]) {
+		[super performTextFinderAction:newSender]; 
+		if ((findTag==NSTextFinderActionSetSearchString)&&(![self textFinderIsVisible])) {
+			[newSender setTag:NSTextFinderActionShowFindInterface];
+			[super performTextFinderAction:newSender];
+		}
+		
 //            [textFinder setFindIndicatorNeedsUpdate:YES];
-        }else{
-            NSLog(@"find action was invalid");
-        }
-        [newSender release];
-        return;
-    }
-#else
-    //not lion do it the old, hacky way
-    if([sender tag]==1){
-        if(lastImportedFindString&&(lastImportedFindString.length>0)&&([textFinder respondsToSelector:@selector(loadFindStringFromPasteboard)])){                
-            if(![textFinder loadFindStringFromPasteboard]){
-                [textFinder setFindString:lastImportedFindString writeToPasteboard:YES updateUI:YES];
-            }
-        }
-//        else{
-//            NSLog(@"Apple changed NSTextFinder (loadFindStringFromPasteboard)");
-//        }	
-    }
-#endif
-    [super performFindPanelAction:sender];
+	}else{
+		NSLog(@"find action was invalid");
+	}
+	[newSender release];
 }
 
 - (IBAction)toggleLayoutOrientation:(id)sender {
