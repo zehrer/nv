@@ -344,43 +344,41 @@ long BlockSizeForNotation(NotationController *controller) {
 		[openPanel setMessage:NSLocalizedString(@"Select a new location for your Notational Velocity notes.",nil)];
 		
 		if ([openPanel runModal] == NSOKButton) {
-			CFStringRef filename = (CFStringRef)[openPanel filename];
-			if (filename) {
-				
-				FSRef newParentRef;
-				CFURLRef url = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, filename, kCFURLPOSIXPathStyle, true);
-				[(id)url autorelease];
-				if (!url || !CFURLGetFSRef(url, &newParentRef)) {
-					NSRunAlertPanel(NSLocalizedString(@"Unable to create an FSRef from the chosen directory.",nil), 
-									NSLocalizedString(@"Your notes were not moved.",nil), NSLocalizedString(@"OK",nil), NULL, NULL);
-					continue;
-				}
-				
-				FSRef newNotesDirectory;
-				OSErr err = FSMoveObject(&noteDirectoryRef,  &newParentRef, &newNotesDirectory);
-				if (err != noErr) {
-					NSRunAlertPanel([NSString stringWithFormat:NSLocalizedString(@"Couldn't move notes into the chosen folder because %@",nil), 
-						[NSString reasonStringFromCarbonFSError:err]], NSLocalizedString(@"Your notes were not moved.",nil), NSLocalizedString(@"OK",nil), NULL, NULL);
-					continue;
-				}
-				
-				if (FSCompareFSRefs(&noteDirectoryRef, &newNotesDirectory) != noErr) {
-					NSData *aliasData = [NSData aliasDataForFSRef:&newNotesDirectory];
-					if (aliasData) [[GlobalPrefs defaultPrefs] setAliasDataForDefaultDirectory:aliasData sender:self];
-					//we must quit now, as notes will very likely be re-initialized in the same place
-					goto terminate;
-				}
-				
-				//directory move successful! //show the user where new notes are
-				NSString *newNotesPath = [[NSFileManager defaultManager] pathWithFSRef:&newNotesDirectory];
-				if (newNotesPath) [[NSWorkspace sharedWorkspace] selectFile:newNotesPath inFileViewerRootedAtPath:nil];
-				
+			NSURL *URL = openPanel.URL;
+			if (!URL) {
+				[NSApp terminate:nil];
 				break;
-			} else {
-				goto terminate;
 			}
+			
+			FSRef newParentRef;
+			if (!CFURLGetFSRef((CFURLRef)URL, &newParentRef)) {
+				NSRunAlertPanel(NSLocalizedString(@"Unable to create an FSRef from the chosen directory.",nil),
+								NSLocalizedString(@"Your notes were not moved.",nil), NSLocalizedString(@"OK",nil), NULL, NULL);
+				continue;
+			}
+			
+			FSRef newNotesDirectory;
+			OSErr err = FSMoveObject(&noteDirectoryRef,  &newParentRef, &newNotesDirectory);
+			if (err != noErr) {
+				NSRunAlertPanel([NSString stringWithFormat:NSLocalizedString(@"Couldn't move notes into the chosen folder because %@",nil),
+								 [NSString reasonStringFromCarbonFSError:err]], NSLocalizedString(@"Your notes were not moved.",nil), NSLocalizedString(@"OK",nil), NULL, NULL);
+				continue;
+			}
+			
+			if (FSCompareFSRefs(&noteDirectoryRef, &newNotesDirectory) != noErr) {
+				NSData *aliasData = [NSData aliasDataForFSRef:&newNotesDirectory];
+				if (aliasData) [[GlobalPrefs defaultPrefs] setAliasDataForDefaultDirectory:aliasData sender:self];
+				// we must quit now, as notes will very likely be re-initialized in the same place
+				[NSApp terminate:nil];
+				break;
+			}
+			
+			//directory move successful! //show the user where new notes are
+			NSString *newNotesPath = [[NSFileManager defaultManager] pathWithFSRef:&newNotesDirectory];
+			if (newNotesPath) [[NSWorkspace sharedWorkspace] selectFile:newNotesPath inFileViewerRootedAtPath:nil];
+			
+			break;
 		} else {
-terminate:
 			[NSApp terminate:nil];
 			break;
 		}

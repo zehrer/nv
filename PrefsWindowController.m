@@ -317,18 +317,20 @@
 }
 
 - (BOOL)getNewNotesRefFromOpenPanel:(FSRef*)notesDirectoryRef returnedPath:(NSString**)path {
-    NSString *startingDirectory = nil;
-	
     if (!notesDirectoryRef) {
 		NSLog(@"notesDirectoryRef is NULL!");
 		return NO;
     }
+	
+	NSURL *directoryURL = nil;
     
     FSRef currentNotesDirectoryRef;
     //resolve alias to fsref; get path from fsref
     if ([[prefsController aliasDataForDefaultDirectory] fsRefAsAlias:&currentNotesDirectoryRef]) {
 		NSString *resolvedPath = [[NSFileManager defaultManager] pathWithFSRef:&currentNotesDirectoryRef];
+		NSString *startingDirectory = nil;
 		if (resolvedPath) startingDirectory = resolvedPath;
+		if (startingDirectory) directoryURL = [NSURL fileURLWithPath:startingDirectory isDirectory:YES];
     }
     
     NSOpenPanel *openPanel = [NSOpenPanel openPanel];
@@ -341,23 +343,24 @@
     [openPanel setTitle:NSLocalizedString(@"Select a folder",@"title of open panel for selecting a notes folder")];
     [openPanel setPrompt:NSLocalizedString(@"Select", @"title of open panel button to select a folder")];
     [openPanel setMessage:NSLocalizedString(@"Select the folder that Notational Velocity should use for reading and storing notes.",nil)];
-    
-    if ([openPanel runModalForDirectory:startingDirectory file:@"Notational Data" types:nil] == NSOKButton) {
-		CFStringRef filename = (CFStringRef)[openPanel filename];
-		if (!filename)
-			return NO;
+	
+	if (directoryURL) {
+		directoryURL = [directoryURL URLByAppendingPathComponent:@"Notational Data" isDirectory:YES];
+		[openPanel setDirectoryURL:directoryURL];
+	}
+	
+	if ([openPanel runModal] == NSOKButton) {
+		NSURL *fileURL = [openPanel URL];
+		if (!fileURL) return NO;
 		
 		if (path)
-			*path = [[[openPanel filename] copy] autorelease];
+			*path = [[[fileURL path] copy] autorelease];
 		
-		//yes, I know that navigation services uses uses FSRefs, but NSSavePanel saves us much more work
-		CFURLRef url = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, filename, kCFURLPOSIXPathStyle, true);
-		[(id)url autorelease];
-		if (!url || !CFURLGetFSRef(url, notesDirectoryRef))
+		if (!CFURLGetFSRef((CFURLRef)fileURL, notesDirectoryRef))
 			return NO;
 		
 		return YES;
-    }
+	}
     
     return NO;
 }

@@ -154,30 +154,6 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 	return importAccessoryView;
 }
 
-
-- (void)openPanelDidEnd:(NSOpenPanel *)panel returnCode:(int)returnCode contextInfo:(void  *)contextInfo {
-	id delegate = (id)contextInfo;
-	
-	if (delegate && [delegate respondsToSelector:@selector(noteImporter:importedNotes:)]) {
-		
-		if (returnCode == NSOKButton) {
-			shouldGrabCreationDates = [grabCreationDatesButton state] == NSOnState;
-			[[NSUserDefaults standardUserDefaults] setBool:shouldGrabCreationDates forKey:ShouldImportCreationDates];
-			NSArray *notes = [self notesWithPaths:[panel filenames]];
-			if (notes && [notes count])
-				[delegate noteImporter:self importedNotes:notes];
-			else
-				NSRunAlertPanel(NSLocalizedString(@"None of the selected files could be imported.",nil), 
-								NSLocalizedString(@"Please choose other files.",nil), NSLocalizedString(@"OK",nil),nil,nil);
-		}
-	} else {
-		NSLog(@"Where's my note importing delegate?");
-		NSBeep();
-	}
-	
-	[self release];
-}
-
 - (void)importNotesFromDialogAroundWindow:(NSWindow*)mainWindow receptionDelegate:(id)receiver {
 	NSOpenPanel *openPanel = [NSOpenPanel openPanel];
 	[openPanel setCanChooseFiles:YES];
@@ -191,8 +167,29 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 	
 	[self retain];
 	
-	[openPanel beginSheetForDirectory:nil file:nil types:nil modalForWindow:mainWindow modalDelegate:self 
-					   didEndSelector:@selector(openPanelDidEnd:returnCode:contextInfo:) contextInfo:receiver];
+	[openPanel beginSheetModalForWindow:mainWindow completionHandler:^(NSInteger result) {
+		id delegate = receiver;
+		
+		if (delegate && [delegate respondsToSelector:@selector(noteImporter:importedNotes:)]) {
+			
+			if (result == NSOKButton) {
+				shouldGrabCreationDates = [grabCreationDatesButton state] == NSOnState;
+				[[NSUserDefaults standardUserDefaults] setBool:shouldGrabCreationDates forKey:ShouldImportCreationDates];
+				NSArray *paths = [openPanel.URLs valueForKey:@"path"];
+				NSArray *notes = [self notesWithPaths:paths];
+				if (notes && [notes count])
+					[delegate noteImporter:self importedNotes:notes];
+				else
+					NSRunAlertPanel(NSLocalizedString(@"None of the selected files could be imported.",nil),
+									NSLocalizedString(@"Please choose other files.",nil), NSLocalizedString(@"OK",nil),nil,nil);
+			}
+		} else {
+			NSLog(@"Where's my note importing delegate?");
+			NSBeep();
+		}
+		
+		[self release];
+	}];
 }
 
 - (void)URLGetter:(URLGetter*)getter returnedDownloadedFile:(NSString*)filename {

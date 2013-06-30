@@ -267,14 +267,12 @@ static ExternalEditorListController* sharedInstance = nil;
 	NSOpenPanel *openPanel = [NSOpenPanel openPanel];
     [openPanel setResolvesAliases:YES];
     [openPanel setAllowsMultipleSelection:NO];
+	[openPanel setDirectoryURL:[NSURL fileURLWithPath:@"/Applications"]];
+	[openPanel setAllowedFileTypes:[NSArray arrayWithObject: (id)kUTTypeApplication]];
     
-    if ([openPanel runModalForDirectory:@"/Applications" file:nil types:[NSArray arrayWithObject:@"app"]] == NSOKButton) {
-		if (![openPanel filename]) {
-            NSBeep();
-            NSLog(@"Unable to add external editor");
-        }
-        
-		NSURL *appURL = [NSURL fileURLWithPath:[openPanel filename]];
+    if ([openPanel runModal] == NSOKButton) {
+		NSURL *appURL = [openPanel URL];
+		
 		if (!appURL) {
             NSBeep();
             NSLog(@"Unable to add external editor");
