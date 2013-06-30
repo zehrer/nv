@@ -161,11 +161,6 @@
 	NSRect rc = [closeButton frame];
 	[self setFrameOrigin:NSMakePoint(NSMaxX([superview bounds]) - rc.origin.x - rc.size.width - 20, rc.origin.y - 2.0)];
 	[superview addSubview:self];
-	
-	//work around a problem with mouseentered/exited events on tiger:
-	//http://lists.apple.com/archives/cocoa-dev/2007/Jul/msg00142.html
-	[self setShowsBorderOnlyWhileMouseInside:NO];
-	[self setShowsBorderOnlyWhileMouseInside:YES];
 }
 
 

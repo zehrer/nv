@@ -69,10 +69,7 @@ static long (*GetGetScriptManagerVariablePointer())(short);
     prefsController = [GlobalPrefs defaultPrefs];
 	
     [self setContinuousSpellCheckingEnabled:[prefsController checkSpellingAsYouType]];
-	if (IsSnowLeopardOrLater) {
-		[self setAutomaticTextReplacementEnabled:[prefsController useTextReplacement]];
-	}
-
+	[self setAutomaticTextReplacementEnabled:[prefsController useTextReplacement]];
     
     [prefsController registerWithTarget:self forChangesInSettings:
 	 @selector(setCheckSpellingAsYouType:sender:),
@@ -116,9 +113,8 @@ static long (*GetGetScriptManagerVariablePointer())(short);
 		
 	} else if ([selectorString isEqualToString:SEL_STR(setUseTextReplacement:sender:)]) {
 		
-		if (IsSnowLeopardOrLater) {
-			[self setAutomaticTextReplacementEnabled:[prefsController useTextReplacement]];
-		}
+		[self setAutomaticTextReplacementEnabled:[prefsController useTextReplacement]];
+
     } else if ([selectorString isEqualToString:SEL_STR(setNoteBodyFont:sender:)]) {
 
 		[self setTypingAttributes:[prefsController noteBodyAttributes]];
@@ -1451,8 +1447,8 @@ static long (*GetGetScriptManagerVariablePointer())(short) {
 		
 		id bulletIndicator = nil;
 		
-		//sometimes the temporary attributes are split across juxtaposing characters for some reason, so longest-effective-range is necessary
-		//unfortunately there is no such method on Tiger, and I'm not about to emulate its coalescing behavior here
+		// sometimes the temporary attributes are split across juxtaposing characters for some reason, so longest-effective-range is necessary
+		// and I'm not about to emulate its coalescing behavior here
         bulletIndicator = [[self layoutManager] temporaryAttribute:NVHiddenBulletIndentAttributeName atCharacterIndex:NSMaxRange(effectiveRange) longestEffectiveRange:&effectiveRange inRange:aRange];
 		if (bulletIndicator && NSEqualRanges(effectiveRange, aRange)) {
 			return YES;
@@ -1618,14 +1614,6 @@ static long (*GetGetScriptManagerVariablePointer())(short) {
 		
         NSMenu *editMenu = [[NSApp mainMenu] numberOfItems] > 2 ? [[[NSApp mainMenu] itemAtIndex:2] submenu] : nil;
 		
-//		if (IsSnowLeopardOrLater) {
-//            
-//			theMenuItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Use Automatic Text Replacement", "use-text-replacement command in the edit menu")
-//													 action:@selector(toggleAutomaticTextReplacement:) keyEquivalent:@""];
-//			[theMenuItem setTarget:self];
-//			[editMenu addItem:theMenuItem];
-//			[theMenuItem release];
-//		}
 		theMenuItem = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Insert Link",@"insert link menu item title") action:@selector(insertLink:) keyEquivalent:@"L"] autorelease];
         [theMenuItem setTarget:self];
         [editMenu addItem:theMenuItem];
@@ -1658,15 +1646,10 @@ static long (*GetGetScriptManagerVariablePointer())(short) {
 {
     [self insertText:password];
     @try {
-    NSPasteboard *pb = [NSPasteboard generalPasteboard];
-    #if MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
-    NSPasteboardItem *pbitem = [[[NSPasteboardItem alloc] init] autorelease];
-    [pbitem setData:[password dataUsingEncoding:NSUTF8StringEncoding] forType:@"public.plain-text"];
-    [pb writeObjects:[NSArray arrayWithObject:pbitem]];
-    #else
-    [pb declareTypes:[NSArray arrayWithObject:NSStringPboardType] owner:nil];
-    [pb setString:password forType:NSStringPboardType];
-    #endif
+		NSPasteboard *pb = [NSPasteboard generalPasteboard];
+		NSPasteboardItem *pbitem = [[[NSPasteboardItem alloc] init] autorelease];
+		[pbitem setData:[password dataUsingEncoding:NSUTF8StringEncoding] forType:@"public.plain-text"];
+		[pb writeObjects:[NSArray arrayWithObject:pbitem]];
     } @catch (NSException *e) {}
 }
 
@@ -2350,12 +2333,7 @@ static long (*GetGetScriptManagerVariablePointer())(short) {
     
     [sender setTarget:self];
     if(!IsLionOrLater||([sender tag]!=7)){
-        NSString *pbType;
-        if (IsSnowLeopardOrLater) {
-            pbType=NSPasteboardTypeString;
-        }else{
-            pbType=NSStringPboardType;
-        }
+        NSString *pbType=NSPasteboardTypeString;
         NSString *typedString = [controller typedString];
         if (!typedString) typedString = [controlField stringValue];
         if (!typedString||([typedString length]==0)) {

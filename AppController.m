@@ -53,20 +53,10 @@
 #import "NSString_CustomTruncation.h"
 #import <Sparkle/SUUpdater.h>
 
-#define NSApplicationPresentationAutoHideMenuBar (1 <<  2)
-#define NSApplicationPresentationHideMenuBar (1 <<  3)
-//#define NSApplicationPresentationAutoHideDock (1 <<  0)
-#define NSApplicationPresentationHideDock (1 <<  1)
-//#define NSApplicationActivationPolicyAccessory
-
 #define kSparkleUpdateFeedForLions @"http://abyss.designheresy.com/nvalt2/nvalt2main.xml"
 #define kSparkleUpdateFeedForSnowLeopard @"http://abyss.designheresy.com/nvalt2/nvalt2snowleopardfeed.xml"
 //http://abyss.designheresy.com/nvalt/betaupdates.xml
 
-
-
-//#define NSTextViewChangedNotification @"TextViewHasChangedContents"
-//#define kDefaultMarkupPreviewMode @"markupPreviewMode"
 #define kDualFieldHeight 35.0
 
 
@@ -75,20 +65,13 @@ int ModFlagger;
 int popped;
 BOOL splitViewAwoke;
 
+@interface AppController () <NSToolbarDelegate, NSTableViewDelegate, NSWindowDelegate, NSTextFieldDelegate, NSTextViewDelegate>
+
+@end
 
 @implementation AppController
 
 @synthesize isEditing;
-
-//an instance of this class is designated in the nib as the delegate of the window, nstextfield and two nstextviews
-/*
- + (void)initialize
- {
- NSDictionary *appDefaults = [NSDictionary dictionaryWithObject:[NSNumber numberWithInt:MultiMarkdownPreview] forKey:kDefaultMarkupPreviewMode];
- 
- [[NSUserDefaults standardUserDefaults] registerDefaults:appDefaults];
- } // initialize*/
-
 
 - (id)init {
     self = [super init];
@@ -424,8 +407,6 @@ void outletObjectAwoke(id sender) {
 
 
 - (void)applicationDidFinishLaunching:(NSNotification*)aNote {
-	//on tiger dualfield is often not ready to add tracking tracks until this point:
-	
 	[field setTrackingRect];
     NSDate *before = [NSDate date];
 	prefsWindowController = [[PrefsWindowController alloc] init];
@@ -1784,7 +1765,7 @@ void outletObjectAwoke(id sender) {
 	
 	if ([sender firstResponder] == textView) {
 		if (currentNote) {
-			NSLog(@"windowWillReturnUndoManager should not be called when textView is first responder on Tiger or higher");
+			NSLog(@"windowWillReturnUndoManager should not be called when textView is first responder");
 		}
 		
 		NSUndoManager *undoMan = [self undoManagerForTextView:textView];
@@ -2620,9 +2601,9 @@ void outletObjectAwoke(id sender) {
     
     BOOL autohideTB=NO;
     wasDFVisible=[self dualFieldIsVisible];
-    NSUInteger options=NSApplicationPresentationFullScreen | NSApplicationPresentationAutoHideMenuBar | NSApplicationPresentationAutoHideDock;
+    NSApplicationPresentationOptions options = NSApplicationPresentationFullScreen | NSApplicationPresentationAutoHideMenuBar | NSApplicationPresentationAutoHideDock;
     if (autohideTB) {
-        return options|NSApplicationPresentationAutoHideToolbar;
+		options |= NSApplicationPresentationAutoHideToolbar;
     }
     
     return options;
@@ -2699,10 +2680,10 @@ void outletObjectAwoke(id sender) {
     self.isEditing = NO;
     NSResponder *currentResponder = [window firstResponder];
     NSDictionary* options;
-    if (([[NSUserDefaults standardUserDefaults] boolForKey:@"ShowDockIcon"])&&(IsSnowLeopardOrLater)) {
-        options = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithInt:(NSApplicationPresentationAutoHideMenuBar | NSApplicationPresentationHideDock)],@"NSFullScreenModeApplicationPresentationOptions", nil];
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"ShowDockIcon"]) {
+        options = [NSDictionary dictionaryWithObjectsAndKeys:@(NSApplicationPresentationAutoHideMenuBar | NSApplicationPresentationHideDock),NSFullScreenModeApplicationPresentationOptions, nil];
     }else {
-        options = [NSDictionary dictionaryWithObjectsAndKeys:nil];
+        options = [NSDictionary dictionary];
     }
     CGFloat colW = [notesSubview dimension];
     

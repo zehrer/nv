@@ -19,11 +19,8 @@
 @class NoteObject;
 @class GlobalPrefs;
 
-@interface LinkingEditor : NSTextView
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
-<NSLayoutManagerDelegate>
-#endif
-{	
+@interface LinkingEditor : NSTextView <NSLayoutManagerDelegate>
+{
     NSTextFinder *textFinder;
     IBOutlet NSTextField *controlField;
     IBOutlet NotesTableView *notesTableView;
@@ -127,14 +124,4 @@
 - (IBAction)toggleLayoutOrientation:(id)sender;
 #endif
 //
-@end
-
-@interface NSTextView (Private)
-#if MAC_OS_X_VERSION_MAX_ALLOWED < MAC_OS_X_VERSION_10_6
-- (void)toggleAutomaticTextReplacement:(id)sender;
-- (BOOL)isAutomaticTextReplacementEnabled;
-- (void)setAutomaticTextReplacementEnabled:(BOOL)flag;
-- (void)moveToLeftEndOfLine:(id)sender;
-#endif
-
 @end

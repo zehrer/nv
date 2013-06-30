@@ -239,14 +239,8 @@ static void SleepCallBack(void *refcon, io_service_t y, natural_t messageType, v
 
 - (void)_updateMenuWithCurrentStatus:(NSMenu*)aMenu {
 	
-	if (IsSnowLeopardOrLater) {
-		[aMenu performSelector:@selector(removeAllItems)];
-	} else {
-		while ([aMenu numberOfItems])
-			[aMenu removeItemAtIndex:0];
-	}
-	//BUG: on Tiger this creates an extra item that appears at the _bottom_ of the pulldown,
-	//but on Leopard and above the first item is rightly used as the "title" of the button
+	[aMenu performSelector:@selector(removeAllItems)];
+	
 	[aMenu addItem:[NSMenuItem separatorItem]];
 	
 	//for each service that NV can handle, add a section to the menu with information about its current session, if one exists

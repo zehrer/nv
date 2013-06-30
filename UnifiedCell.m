@@ -157,9 +157,11 @@ NSAttributedString *AttributedStringForSelection(NSAttributedString *str, BOOL w
 	BOOL isActive = ([tv selectionHighlightStyle] == NSTableViewSelectionHighlightStyleSourceList) ? YES : [tv isActiveStyle];
 	
 	NSColor *textColor = ([self isHighlighted] && isActive) ? [NSColor whiteColor] : (![self isHighlighted] ? [[self class] dateColorForTint]/*[NSColor grayColor]*/ : nil);
-	if (textColor)
+	if (textColor) {
 		[baseAttrs setObject:textColor forKey:NSForegroundColorAttributeName];
-	if (IsSnowLeopardOrLater && [self isHighlighted] && ([tv selectionHighlightStyle] == NSTableViewSelectionHighlightStyleSourceList)) {
+	}
+	
+	if ([self isHighlighted] && ([tv selectionHighlightStyle] == NSTableViewSelectionHighlightStyleSourceList)) {
 		[baseAttrs setObject:ShadowForSnowLeopard() forKey:NSShadowAttributeName];
 	}
 	

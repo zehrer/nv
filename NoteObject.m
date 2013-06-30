@@ -308,9 +308,8 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	[cell setPreviewIsHidden:NO];
 
 	BOOL rowSelected = [tv isRowSelected:row];
-	BOOL drawShadow = IsSnowLeopardOrLater || (rowSelected && [tv currentEditor]);
 	
-	id obj = note->tableTitleString ? (rowSelected ? (id)AttributedStringForSelection(note->tableTitleString, drawShadow) : 
+	id obj = note->tableTitleString ? (rowSelected ? (id)AttributedStringForSelection(note->tableTitleString, YES) :
 									   (id)note->tableTitleString) : (id)titleOfNote(note);
 	
 	
