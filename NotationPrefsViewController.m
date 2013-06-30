@@ -26,8 +26,6 @@
 #import "SimplenoteSession.h"
 #import "PassphrasePicker.h"
 #import "PassphraseChanger.h"
-#import "NSDictionary+BSJSONAdditions.h"
-//#import "AppController.h"
 
 @implementation FileKindListView 
 
@@ -453,8 +451,9 @@ enum {VERIFY_NOT_ATTEMPTED, VERIFY_FAILED, VERIFY_IN_PROGRESS, VERIFY_SUCCESS};
 		NSDictionary *headers = [NSDictionary dictionaryWithObject:kSimperiumAPIKey forKey:@"X-Simperium-API-Key"];
 		NSDictionary *login = [NSDictionary dictionaryWithObjectsAndKeys:
 							   [syncAccountField stringValue], @"username", [syncPasswordField stringValue], @"password", nil];
+		NSData *loginJSON = [NSJSONSerialization dataWithJSONObject:login options:0 error:NULL];
 
-		loginVerifier = [[SyncResponseFetcher alloc] initWithURL:loginURL POSTData:[[login jsonStringValue] dataUsingEncoding:NSUTF8StringEncoding] headers:headers contentType:@"application/json" delegate:self];
+		loginVerifier = [[SyncResponseFetcher alloc] initWithURL:loginURL POSTData:loginJSON headers:headers contentType:@"application/json" delegate:self];
 
 		[loginVerifier start];
 		[self setVerificationStatus:VERIFY_IN_PROGRESS withString:@""];

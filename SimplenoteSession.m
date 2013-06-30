@@ -25,7 +25,6 @@
 #import "GlobalPrefs.h"
 #import "NotationPrefs.h"
 #import "NSString_NV.h"
-#import "NSDictionary+BSJSONAdditions.h"
 #import "AttributedPlainText.h"
 #import "InvocationRecorder.h"
 #import "SynchronizedNoteProtocol.h"
@@ -304,7 +303,9 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		NSDictionary *headers = [NSDictionary dictionaryWithObject:kSimperiumAPIKey forKey:@"X-Simperium-API-Key"];
 		NSDictionary *login = [NSDictionary dictionaryWithObjectsAndKeys:
 							   emailAddress, @"username", password, @"password", nil];
-		loginFetcher = [[SyncResponseFetcher alloc] initWithURL:loginURL POSTData:[[login jsonStringValue] dataUsingEncoding:NSUTF8StringEncoding] headers:headers contentType:@"application/json" delegate:self];
+		NSData *loginJSON = [NSJSONSerialization dataWithJSONObject:login options:0 error:NULL];
+		
+		loginFetcher = [[SyncResponseFetcher alloc] initWithURL:loginURL POSTData:loginJSON headers:headers contentType:@"application/json" delegate:self];
 	}
 	return loginFetcher;
 }
@@ -1075,18 +1076,18 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		[self _stoppedWithErrorString:[fetcher didCancel] ? nil : errString];
 		return;
 	}
-	NSString *bodyString = [[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] autorelease];
 	NSDictionary *responseDictionary = nil;
 	NSArray *rawEntries = nil;
 	NSMutableArray *entries = nil;
 	NSUInteger i = 0;
 
 	if (fetcher == loginFetcher) {
-		@try {
-			responseDictionary = [NSDictionary dictionaryWithJSONString:bodyString];
-		} @catch (NSException *e) {
-			NSLog(@"Exception while parsing Simplenote user: %@", [e reason]);
+		NSError *err = nil;
+		responseDictionary = [NSJSONSerialization JSONObjectWithData:data options:0 error:&err];
+		if (err) {
+			NSLog(@"Error while parsing Simplenote user: %@", err);
 		}
+
 		if ([responseDictionary objectForKey:@"access_token"]) {
 			[simperiumToken autorelease];
 			simperiumToken = [[responseDictionary objectForKey:@"access_token"] retain];
@@ -1094,19 +1095,22 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 			[self _stoppedWithErrorString:NSLocalizedString(@"No authorization token", @"Simplenote-specific error")];
 		}
 	} else if (fetcher == changesFetcher) {
+		NSString *bodyString = [[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] autorelease];
 		bodyString = [NSString stringWithFormat:@"{\"changes\":%@}", bodyString];
-		@try {
-			responseDictionary = [NSDictionary dictionaryWithJSONString:bodyString];
-			if (responseDictionary) {
-				rawEntries = [responseDictionary objectForKey:@"changes"];
-			}
-		} @catch (NSException *e) {
-			NSLog(@"Exception while parsing Simplenote JSON index: %@", [e reason]);
-		} @finally {
-			if (!rawEntries) {
-				[self _stoppedWithErrorString:NSLocalizedString(@"The index of notes could not be parsed.", @"Simplenote-specific error")];
-			}
+		data = [bodyString dataUsingEncoding:NSUTF8StringEncoding];
+		
+		NSError *err = nil;
+		responseDictionary = [NSJSONSerialization JSONObjectWithData:data options:0 error:&err];
+		if (err) {
+			NSLog(@"Exception while parsing Simplenote JSON index: %@", err);
+		} else if (responseDictionary) {
+			rawEntries = [responseDictionary objectForKey:@"changes"];
 		}
+		
+		if (!rawEntries) {
+			[self _stoppedWithErrorString:NSLocalizedString(@"The index of notes could not be parsed.", @"Simplenote-specific error")];
+		}
+		
 		if ([fetcher statusCode] == 400 || [fetcher statusCode] == 401 || [fetcher statusCode] == 404) {
 			NSLog(@"changes fetcher error code: %ld", (long)[fetcher statusCode]);
 			[lastCV release];
@@ -1152,18 +1156,18 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 
     } else if (fetcher == listFetcher) {
 		lastIndexAuthFailed = NO;
-		@try {
-			responseDictionary = [NSDictionary dictionaryWithJSONString:bodyString];
-			if (responseDictionary) {
-				rawEntries = [responseDictionary objectForKey:@"index"];
-			}
-		} @catch (NSException *e) {
-			NSLog(@"Exception while parsing Simplenote JSON index: %@", [e reason]);
-		} @finally {
-			if (!rawEntries) {
-				[self _stoppedWithErrorString:NSLocalizedString(@"The index of notes could not be parsed.", @"Simplenote-specific error")];
-				return;
-			}
+		
+		NSError *err = nil;
+		responseDictionary = [NSJSONSerialization JSONObjectWithData:data options:0 error:&err];
+		if (err) {
+			NSLog(@"Error while parsing Simplenote JSON index: %@", err);
+		} else if (responseDictionary) {
+			rawEntries = [responseDictionary objectForKey:@"index"];
+		}
+		
+		if (!rawEntries) {
+			[self _stoppedWithErrorString:NSLocalizedString(@"The index of notes could not be parsed.", @"Simplenote-specific error")];
+			return;
 		}
 
 		//convert syncnum, dates and "deleted" indicator into NSNumbers
@@ -1242,7 +1246,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 			indexEntryBuffer = nil;
 		}
 	} else {
-		NSLog(@"unknown fetcher returned: %@, body: %@", fetcher, bodyString);
+		NSLog(@"unknown fetcher returned: %@, body: %@", fetcher, data);
 	}
 }
 
