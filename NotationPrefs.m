@@ -159,11 +159,10 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 	NSAssert([coder allowsKeyedCoding], @"Keyed encoding only!");
 	
 	/* epochIteration:
-	 0: .Blor files
-	 1: First NSArchiver (was unused--maps to 0)
-	 2: First NSKeyedArchiver
-	 3: First syncServicesMD and date created/modified syncing to files
-	 4: tracking of file size and attribute mod dates, font foreground colors, openmeta labels
+	 0: First NSArchiver (was unused--maps to 0)
+	 1: First NSKeyedArchiver
+	 2: First syncServicesMD and date created/modified syncing to files
+	 3: tracking of file size and attribute mod dates, font foreground colors, openmeta labels
 	 */
 	[coder encodeInt32:EPOC_ITERATION forKey:VAR_STR(epochIteration)];
 	

@@ -21,7 +21,6 @@
 - (unsigned long)CRC32;
 - (NSData*)SHA1Digest;
 - (NSData*)MD5Digest;
-- (NSData*)BrokenMD5Digest;
 
 - (NSString*)pathURLFromWebArchive;
 

@@ -175,9 +175,6 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2);
 - (NSString*)displayNameForDefaultDirectoryWithFSRef:(FSRef*)fsRef;
 - (NSString*)humanViewablePathForDefaultDirectory;
 
-- (void)setBlorImportAttempted:(BOOL)value;
-- (BOOL)triedToImportBlor;
-
 - (void)synchronize;
 
 - (void)setRTL:(BOOL)value sender:(id)sender;

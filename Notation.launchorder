@@ -343,7 +343,7 @@ _replaceString
 -[NotationController setUndoManager]
 -[DeletionManager initWithNotationController]
 -[NotationController aliasNeedsUpdating]
-+[AlienNoteImporter importBlorOrHelpFilesIfNecessaryIntoNotation]
++[AlienNoteImporter importHelpFilesIfNecessaryIntoNotation]
 -[GlobalPrefs triedToImportBlor]
 -[NotationPrefs firstTimeUsed]
 -[FocusRingScrollView windowChangedKeyNotification]

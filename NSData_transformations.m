@@ -19,7 +19,6 @@
 
 #import "NSData_transformations.h"
 #import <CommonCrypto/CommonCrypto.h>
-#include "broken_md5.h"
 
 #include <unistd.h>
 #include <zlib.h>
@@ -179,19 +178,6 @@
 	CC_SHA1(self.bytes, (CC_LONG)self.length, mutableData.mutableBytes);
 	return [[mutableData copy] autorelease];
 }
-
-- (NSData*)BrokenMD5Digest {
-	BrokenMD5_CTX context;
-	NSMutableData *digest = [NSMutableData dataWithLength:16];
-    
-    BrokenMD5Init(&context);
-    BrokenMD5Update(&context, [self bytes], (unsigned int)[self length]);
-    BrokenMD5Final([digest mutableBytes], &context);
-	
-	return digest;
-}
-
-
 
 - (NSData*)MD5Digest {
 	NSMutableData *digest = [NSMutableData dataWithLength:CC_MD5_DIGEST_LENGTH];

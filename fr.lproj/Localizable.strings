@@ -168,9 +168,6 @@
 "Search or Create" = "Chercher ou créer";
 
 /* No comment provided by engineer. */
-"You can import your old notes at any time by choosing quotemarkImport...quotemark from the quotemarkNotequotemark menu and selecting your NotationalDatabase.blor file." = "Vous pouvez importer vos anciennes notes à tout moment en choisissant “Importer…” depuis le menu “Note” et en sélectionnant votre fichier NotationalDatabase.blor.";
-
-/* No comment provided by engineer. */
 "You may need to re-run the Mac OS X installer." = "You may need to re-run the Mac OS X installer.";
 
 /* No comment provided by engineer. */

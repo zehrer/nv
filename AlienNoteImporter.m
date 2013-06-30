@@ -18,7 +18,6 @@
 
 #import "AlienNoteImporter.h"
 #import "StickiesDocument.h"
-#import "BlorPasswordRetriever.h"
 #import "URLGetter.h"
 #import "GlobalPrefs.h"
 #import "AttributedPlainText.h"
@@ -37,7 +36,6 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 
 @interface AlienNoteImporter (Private)
 - (NSArray*)_importStickies:(NSString*)filename;
-- (NSArray*)_importBlorNotes:(NSString*)filename;
 - (NSArray*)_importTSVFile:(NSString*)filename;
 - (NSArray*)_importCSVFile:(NSString*)filename;
 - (NSArray*)_importDelimitedFile:(NSString*)filename withDelimiter:(NSString*)delimiter;
@@ -53,46 +51,23 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 	return self;
 }
 
-+ (void)importBlorOrHelpFilesIfNecessaryIntoNotation:(NotationController*)notation {
++ (void)importHelpFilesIfNecessaryIntoNotation:(NotationController*)notation {
 	GlobalPrefs *prefsController = [GlobalPrefs defaultPrefs];
 	NotationPrefs *prefs = [prefsController notationPrefs];
-	if (![prefsController triedToImportBlor] && [prefs firstTimeUsed]) {
-		AlienNoteImporter *importer = [AlienNoteImporter importerWithPath:[AlienNoteImporter blorPath]];
-		NSArray *noteArray = [importer importedNotes];
-		if ([noteArray count] > 0) {
-			NSLog(@"importing BLOR");
-			NSData *passData = [[[importer documentSettings] objectForKey:RetrievedPasswordKey] dataUsingEncoding:NSUTF8StringEncoding];
-			BOOL shouldStoreInKeychain = [[[importer documentSettings] objectForKey:PasswordWasRetrievedFromKeychainKey] boolValue];
-			[prefs setPassphraseData:passData inKeychain:shouldStoreInKeychain];
-			[prefs setDoesEncryption:YES];
-			
-			[notation addNotes:noteArray];
-		} else {
-			//add localized RTF help notes (how do we handle initializing a new NV copy when the owner just wants to re-sync from web? they will get new help notes each time?)
-			NSArray *paths = [[NSBundle mainBundle] pathsForResourcesOfType:@"nvhelp" inDirectory:nil];
-			NSArray *helpNotes = [[[[AlienNoteImporter alloc] initWithStoragePaths:paths] autorelease] importedNotes];
-			if ([helpNotes count] > 0) {
-				[notation addNotes:helpNotes];
-				[[notation delegate] notation:notation revealNote:[helpNotes lastObject] options:NVEditNoteToReveal];
-			}
+	if ([prefs firstTimeUsed]) {
+		//add localized RTF help notes (how do we handle initializing a new NV copy when the owner just wants to re-sync from web? they will get new help notes each time?)
+		NSArray *paths = [[NSBundle mainBundle] pathsForResourcesOfType:@"nvhelp" inDirectory:nil];
+		NSArray *helpNotes = [[[[AlienNoteImporter alloc] initWithStoragePaths:paths] autorelease] importedNotes];
+		if ([helpNotes count] > 0) {
+			[notation addNotes:helpNotes];
+			[[notation delegate] notation:notation revealNote:[helpNotes lastObject] options:NVEditNoteToReveal];
 		}
-		[prefsController setBlorImportAttempted:YES];
 	}
 }
 
 + (AlienNoteImporter *)importerWithPath:(NSString*)path {
 	AlienNoteImporter *importer = [[AlienNoteImporter alloc] initWithStoragePath:path];
 	return [importer autorelease];
-}
-
-+ (NSString*)blorPath {
-	NSDictionary *oldDict = [[NSUserDefaults standardUserDefaults] persistentDomainForName:@"com.scrod.notationalvelocity"];
-	NSString *blorPath = [oldDict objectForKey:@"DatabaseLocation"];
-	if (!blorPath) {
-		NSLog(@"Couldn't read old defaults--reverting to default location in prefs directory");
-		blorPath = [NSString stringWithFormat:@"%@/Library/Preferences/%@", NSHomeDirectory(), @"NotationalDatabase.blor"];
-	}
-	return blorPath;
 }
 
 - (id)initWithStoragePaths:(NSArray*)filenames {
@@ -475,7 +450,7 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 	NSString *extension = [[filename pathExtension] lowercaseString];
 	
 	if ([extension isEqualToString:@"blor"]) {
-		return [self _importBlorNotes:filename];
+		return nil;
 	} else if ([[filename lastPathComponent] isEqualToString:@"StickiesDatabase"]) {
 		return [self _importStickies:filename];
 	} else if ([extension isEqualToString:@"tsv"]) {
@@ -660,55 +635,6 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 	}
 	
 	return nil;
-}
-
-- (NSArray*)_importBlorNotes:(NSString*)filename {
-	
-	BlorPasswordRetriever *retriever = [[[BlorPasswordRetriever alloc] initWithBlor:filename] autorelease];
-	NSData *keyData = [retriever validPasswordHashData];
-	if (!keyData) {
-		NSLog(@"Couldn't get a valid pass-key to decrypt the blor!");
-		return nil;
-	}
-	
-	[documentSettings setObject:[NSNumber numberWithBool:[retriever canRetrieveFromKeychain]]
-						 forKey:PasswordWasRetrievedFromKeychainKey];
-	[documentSettings setObject:[retriever originalPasswordString] forKey:RetrievedPasswordKey];
-	
-	NSDictionary *dbAttrs = [[NSFileManager defaultManager] fileAttributesAtPath:filename traverseLink:YES];
-	NSDate *creationDate = [dbAttrs objectForKey:NSFileCreationDate];
-	NSDate *modificationDate = [dbAttrs objectForKey:NSFileModificationDate];
-	
-	CFAbsoluteTime creationTime = CFAbsoluteTimeGetCurrent();
-	CFAbsoluteTime modificationTime = creationTime;
-	if (creationDate) creationTime = CFDateGetAbsoluteTime((CFDateRef)creationDate);
-	if (modificationDate) modificationTime = CFDateGetAbsoluteTime((CFDateRef)modificationDate);
-	
-	//iterate over notes with blorenumerator and return array
-	BlorNoteEnumerator *enumerator = [[BlorNoteEnumerator alloc] initWithBlor:filename passwordHashData:keyData];
-	if (!enumerator) {
-		NSLog(@"couldn't initialize blor note enumerator!");
-		return nil;
-	}
-	NSMutableArray *array = [NSMutableArray array];
-	NoteObject *note = nil;
-	unsigned int count = 0;
-	while ((note = [enumerator nextNote])) {
-		count ++;
-		
-		[array addObject:note];
-		
-		[note setDateAdded:(creationTime += 1.0)];
-		[note setDateModified:(modificationTime += 1.0)];
-	}
-	
-	if (count != [enumerator suspectedNoteCount]) {
-		NSLog(@"read notes (%d) != stated note count (%d)!", count, [enumerator suspectedNoteCount]);
-	}
-	
-	[enumerator release];
-	
-	return array;
 }
 
 - (NSArray*)_importTSVFile:(NSString*)filename {

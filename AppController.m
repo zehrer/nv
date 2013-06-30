@@ -452,8 +452,8 @@ void outletObjectAwoke(id sender) {
 	NSLog(@"load time: %g, ",[[NSDate date] timeIntervalSinceDate:before]);
 	//	NSLog(@"version: %s", PRODUCT_NAME);
 	
-	//import old database(s) here if necessary
-	[AlienNoteImporter importBlorOrHelpFilesIfNecessaryIntoNotation:newNotation];
+	//import if necessary
+	[AlienNoteImporter importHelpFilesIfNecessaryIntoNotation:newNotation];
 	
 	[newNotation release];
 	if (pathsToOpenOnLaunch) {

@@ -43,11 +43,10 @@ extern NSString *RetrievedPasswordKey;
 //a directory containing notes, a custom bundle, or custom file format in which more than one note could be expected
 - (id)initWithStoragePaths:(NSArray*)filenames;
 - (id)initWithStoragePath:(NSString*)filename;
-+ (void)importBlorOrHelpFilesIfNecessaryIntoNotation:(NotationController*)notation;
++ (void)importHelpFilesIfNecessaryIntoNotation:(NotationController*)notation;
 + (AlienNoteImporter *)importerWithPath:(NSString*)path;
 - (void)importNotesFromDialogAroundWindow:(NSWindow*)mainWindow receptionDelegate:(id)receiver;
 - (void)importURLInBackground:(NSURL*)aURL linkTitle:(NSString*)linkTitle receptionDelegate:(id)receiver;
-+ (NSString*)blorPath;
 
 + (NSBundle *)PDFKitBundle;
 + (Class)PDFDocClass;

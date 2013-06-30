@@ -37,7 +37,6 @@
 
 #define SEND_CALLBACKS() sendCallbacksForGlobalPrefs(self, _cmd, sender)
 
-static NSString *TriedToImportBlorKey = @"TriedToImportBlor";
 static NSString *DirectoryAliasKey = @"DirectoryAlias";
 static NSString *AutoCompleteSearchesKey = @"AutoCompleteSearches";
 static NSString *NoteAttributesVisibleKey = @"NoteAttributesVisible";
@@ -136,7 +135,6 @@ static void sendCallbacksForGlobalPrefs(GlobalPrefs* self, SEL selector, id orig
 			[NSNumber numberWithBool:NO], TextReplacementInNoteBodyKey, 
 			[NSNumber numberWithBool:YES], AutoCompleteSearchesKey, 
 			[NSNumber numberWithBool:YES], QuitWhenClosingMainWindowKey, 
-			[NSNumber numberWithBool:NO], TriedToImportBlorKey,
 			[NSNumber numberWithBool:NO], HorizontalLayoutKey,
 			[NSNumber numberWithBool:YES], MakeURLsClickableKey,
 			[NSNumber numberWithBool:YES], HighlightSearchTermsKey, 
@@ -955,13 +953,6 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
     return nil;
 }
 
-- (void)setBlorImportAttempted:(BOOL)value {
-	[defaults setBool:value forKey:TriedToImportBlorKey];
-}
-
-- (BOOL)triedToImportBlor {
-	return [defaults boolForKey:TriedToImportBlorKey];
-}
 - (void)synchronize {
     [defaults synchronize];
 }

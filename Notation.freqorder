@@ -240,7 +240,6 @@ _GetVolumeInfo
 -[RBSplitView setAutosaveNamerecursively]
 -[GlobalPrefs synchronize]
 -[NotesTableView performKeyEquivalent]
--[GlobalPrefs triedToImportBlor]
 -[FocusRingScrollView awakeFromNib]
 -[RBSplitView autoresizesSubviews]
 -[GlobalPrefs tableFontSize]
@@ -286,7 +285,7 @@ _resetCurrentDayTime
 -[FrozenNotation dealloc]
 -[NotesTableView initWithCoder]
 _main
-+[AlienNoteImporter importBlorOrHelpFilesIfNecessaryIntoNotation]
++[AlienNoteImporter importHelpFilesIfNecessaryIntoNotation]
 -[FastListDataSource objectsAtFilteredIndexes]
 -[NotationPrefsViewController init]
 -[NotationPrefs secureTextEntry]
