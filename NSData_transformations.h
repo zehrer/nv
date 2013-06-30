@@ -17,7 +17,7 @@
 - (BOOL) isCompressedFormat;
 
 + (NSMutableData *)randomDataOfLength:(int)len;
-- (NSMutableData*)derivedKeyOfLength:(NSUInteger)len salt:(NSData *)salt iterations:(NSUInteger)count;
+- (NSData *)derivedKeyOfLength:(NSUInteger)len salt:(NSData *)salt iterations:(NSUInteger)count;
 - (unsigned long)CRC32;
 - (NSData*)SHA1Digest;
 - (NSData*)MD5Digest;
