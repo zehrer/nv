@@ -430,7 +430,7 @@ This is the standard "new" BSD license:
 http://www.opensource.org/licenses/bsd-license.php
 
 --
-Some UI elements (the scrollers, and also the buttons in the markdown preview) are from BWToolkit.
+Some UI elements (the buttons in the markdown preview) are from BWToolkit.
 
 BWToolKit
 http://www.brandonwalkin.com/bwtoolkit/
@@ -463,23 +463,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 This is the standard "new" BSD license:
 http://www.opensource.org/licenses/bsd-license.php
-
---
-
-ETTransparentScroller
-The main window uses a scroller class are based on the BWTransparentScroller from BWToolKit
-http://www.brandonwalkin.com/bwtoolkit/
-(modifications by ElasticThreads on 10/19/2010)
-
-see BWToolkit above
---
-
-BTTransparentScroller
-The Markdown preview pane uses a scroller class are based on the BWTransparentScroller from BWToolKit
-http://www.brandonwalkin.com/bwtoolkit/
-(but modified by Brett Terpstra on 12/8/10 and again by ElasticThreads on 03/10/11)
-
-see BWToolkit above
 
 --
 

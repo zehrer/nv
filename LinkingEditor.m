@@ -201,7 +201,6 @@ static long (*GetGetScriptManagerVariablePointer())(short);
     }
     
 	//[self setBackgroundColor:bgColor];
-	//[nvTextScroller setBackgroundColor:bgColor];
 	//[[self enclosingScrollView] setNeedsDisplay:YES];
     
 	[self setInsertionPointColor:[self _insertionPointColorForForegroundColor:fgColor backgroundColor:bgColor]];

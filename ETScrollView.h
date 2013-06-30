@@ -10,14 +10,7 @@
 
 
 @interface ETScrollView : NSScrollView {
-    Class scrollerClass;
     BOOL needsOverlayTiling;
 }
-
-//- (void)setNeedsOverlayTiling:(BOOL)overlay;
-//- (void)setScrollerClassWithString:(NSString *)scrollerClassName;
-
-- (void)changeUseETScrollbarsOnLion;
-- (void)settingChangedForSelectorString:(NSString*)selectorString;
 
 @end
