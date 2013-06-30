@@ -17,7 +17,7 @@
 
 
 #import "SyncResponseFetcher.h"
-#import "NSData_transformations.h"
+#import "NSString_NV.h"
 
 @implementation SyncResponseFetcher
 
@@ -34,8 +34,7 @@
 - (id)initWithURL:(NSURL*)aURL bodyStringAsUTF8B64:(NSString*)stringToEncode delegate:(id)aDelegate {
 	NSData *B64Data = nil;
 	if (stringToEncode) {
-		NSString *B64String = [[stringToEncode dataUsingEncoding:NSUTF8StringEncoding] encodeBase64WithNewlines:NO];
-		if (!(B64Data = [B64String dataUsingEncoding:NSASCIIStringEncoding])) {
+		if (!(B64Data = [stringToEncode nv_dataByBase64Encoding])) {
 			return nil;
 		}
 	}

@@ -23,11 +23,11 @@
 #import "NoteObject.h"
 #import "GlobalPrefs.h"
 #import "NSData_transformations.h"
-#include <sys/param.h>
-#include <sys/mount.h>
 
 #import <Foundation/Foundation.h>
-#include <openssl/md5.h>
+#import <CommonCrypto/CommonCrypto.h>
+#include <sys/param.h>
+#include <sys/mount.h>
 
 NSString *NotesDatabaseFileName = @"Notes & Settings";
 
@@ -110,19 +110,19 @@ static BOOL GetVolumeUUIDAttr(const char *path, VolumeUUID *volumeUUIDPtr) {
 
 
 // Create a version 3 UUID; derived using "name" via MD5 checksum.
-static void uuid_create_md5_from_name(unsigned char result_uuid[16], const void *name, int namelen) {
+static void uuid_create_md5_from_name(unsigned char result_uuid[CC_MD5_DIGEST_LENGTH], const void *name, int namelen) {
 	
-	static unsigned char FSUUIDNamespaceSHA1[16] = { 
-		0xB3, 0xE2, 0x0F, 0x39, 0xF2, 0x92, 0x11, 0xD6, 
+	static unsigned char const FSUUIDNamespaceSHA1[CC_MD5_DIGEST_LENGTH] = {
+		0xB3, 0xE2, 0x0F, 0x39, 0xF2, 0x92, 0x11, 0xD6,
 		0x97, 0xA4, 0x00, 0x30, 0x65, 0x43, 0xEC, 0xAC
 	};
 	
-    MD5_CTX c;
+	CC_MD5_CTX ctx;
 	
-    MD5_Init(&c);
-    MD5_Update(&c, FSUUIDNamespaceSHA1, sizeof(FSUUIDNamespaceSHA1));
-    MD5_Update(&c, name, namelen);
-    MD5_Final(result_uuid, &c);
+	CC_MD5_Init(&ctx);
+	CC_MD5_Update(&ctx, FSUUIDNamespaceSHA1, sizeof(FSUUIDNamespaceSHA1));
+	CC_MD5_Update(&ctx, name, namelen);
+	CC_MD5_Final(result_uuid, &ctx);
 	
     result_uuid[6] = (result_uuid[6] & 0x0F) | 0x30;
     result_uuid[8] = (result_uuid[8] & 0x3F) | 0x80;

@@ -8,7 +8,6 @@
 /* NSData_crypto.h */
 
 #import <Foundation/Foundation.h>
-#include <openssl/evp.h>
 
 @interface NSData (NVUtilities)
 
@@ -31,19 +30,17 @@
 - (NSMutableString*)newStringUsingBOMReturningEncoding:(NSStringEncoding*)encoding;
 + (NSData*)uncachedDataFromFile:(NSString*)filename;
 
-- (NSString *)encodeBase64;
-- (NSString *)encodeBase64WithNewlines:(BOOL)encodeWithNewlines;
+- (NSString *)nv_stringByBase64Encoding;
+- (NSString *)nv_stringByBase64Decoding;
+- (NSData *)nv_dataByBase64Encoding;
+- (NSData *)nv_dataByBase64Decoding;
 
 @end
 
 @interface NSMutableData (NVCryptoRelated)
 - (void)reverseBytes;
-- (void)alignForBlockSize:(NSUInteger)alignedBlockSize;
 
 - (BOOL)encryptAESDataWithKey:(NSData*)key iv:(NSData*)iv;
 - (BOOL)decryptAESDataWithKey:(NSData*)key iv:(NSData*)iv;
-
-- (BOOL)encryptDataWithCipher:(const EVP_CIPHER*)cipher key:(NSData*)key iv:(NSData*)iv;
-- (BOOL)decryptDataWithCipher:(const EVP_CIPHER*)cipher key:(NSData*)key iv:(NSData*)iv;
 
 @end

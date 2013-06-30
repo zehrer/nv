@@ -27,7 +27,6 @@
 #import "SecureTextEntryManager.h"
 #import "DiskUUIDEntry.h"
 #include <CoreServices/CoreServices.h>
-#include <Security/Security.h>
 #include <ApplicationServices/ApplicationServices.h>
 
 #define DEFAULT_HASH_ITERATIONS 8000
