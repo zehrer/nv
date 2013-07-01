@@ -527,7 +527,7 @@ void outletObjectAwoke(id sender) {
 		}
 		[notationController setSortColumn:[notesTableView noteAttributeColumnForIdentifier:[prefsController sortedTableColumnKey]]];
 		[notesTableView setDataSource:[notationController notesListDataSource]];
-		[notesTableView setLabelsListSource:[notationController labelsListDataSource]];
+		[notesTableView setLabelsListSource:notationController];
 		[notationController setDelegate:self];
 		
 		//allow resolution of UUIDs to NoteObjects from saved searches
@@ -1007,7 +1007,7 @@ void outletObjectAwoke(id sender) {
 		
 		ResetFontRelatedTableAttributes();
 		[notesTableView updateTitleDereferencorState];
-		[[notationController labelsListDataSource] invalidateCachedLabelImages];
+		[notationController invalidateCachedLabelImages];
 		[self _forceRegeneratePreviewsForTitleColumn];
         
 		if ([selectorString isEqualToString:SEL_STR(setTableColumnsShowPreview:sender:)]) [self updateNoteMenus];
@@ -1522,13 +1522,6 @@ void outletObjectAwoke(id sender) {
 			}
 			return;
 		}
-	} else { //tags
-#if 0
-		if (numberSelected == 1)
-			[notationController filterNotesFromLabelAtIndex:selectedRow];
-		else if (numberSelected > 1)
-			[notationController filterNotesFromLabelIndexSet:[table selectedRowIndexes]];
-#endif
 	}
 	
 	if (!isFilteringFromTyping) {

@@ -18,7 +18,6 @@
 
 #import <Cocoa/Cocoa.h>
 #import "FastListDataSource.h"
-#import "LabelsListController.h"
 #import "WALController.h"
 
 #import <CoreServices/CoreServices.h>
@@ -48,7 +47,6 @@ typedef struct _NoteCatalogEntry {
 @interface NotationController : NSObject {
     NSMutableArray *allNotes;
     FastListDataSource *notesListDataSource;
-    LabelsListController *labelsListController;
 	GlobalPrefs *prefsController;
 	SyncSessionController *syncSessionController;
 	DeletionManager *deletionManager;
@@ -152,8 +150,6 @@ typedef struct _NoteCatalogEntry {
 - (void)note:(NoteObject*)note didAddLabelSet:(NSSet*)labelSet;
 - (void)note:(NoteObject*)note didRemoveLabelSet:(NSSet*)labelSet;
 
-- (void)filterNotesFromLabelAtIndex:(int)labelIndex;
-- (void)filterNotesFromLabelIndexSet:(NSIndexSet*)indexSet;
 - (void)updateLabelConnectionsAfterDecoding;
 
 - (void)refilterNotes;
@@ -178,13 +174,17 @@ typedef struct _NoteCatalogEntry {
 - (void)regenerateAllPreviews;
 
 //for setting up the nstableviews
-- (id)labelsListDataSource;
 - (id)notesListDataSource;
 
 - (NotationPrefs*)notationPrefs;
 - (SyncSessionController*)syncSessionController;
 
-- (void)dealloc;
+@property(nonatomic, strong) NSCountedSet *allLabels;
+
+- (NSArray*)labelTitlesPrefixedByString:(NSString*)prefixString indexOfSelectedItem:(NSInteger *)anIndex minusWordSet:(NSSet*)antiSet;
+
+- (void)invalidateCachedLabelImages;
+- (NSImage*)cachedLabelImageForWord:(NSString*)aWord highlighted:(BOOL)isHighlighted;
 
 @end
 

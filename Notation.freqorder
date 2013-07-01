@@ -295,7 +295,6 @@ _main
 -[NotationPrefs baseBodyFont]
 -[PTKeyCombo modifiers]
 -[BookmarksController initWithBookmarks]
--[LabelsListController init]
 -[NotesTableView setSortDirectioninTableColumn]
 -[PTHotKey name]
 -[AppController updateNoteMenus]

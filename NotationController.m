@@ -41,6 +41,12 @@
 #import "SyncSessionController.h"
 #import "BookmarksController.h"
 #import "DeletionManager.h"
+#import "LabelObject.h"
+#import "NoteObject.h"
+#import "GlobalPrefs.h"
+#import "NSBezierPath_NV.h"
+#import "NSCollection_utils.h"
+#import "NoteAttributeColumn.h"
 #import "nvaDevConfig.h"
 
 inline NSComparisonResult NVComparisonResult(NSInteger result) {
@@ -48,6 +54,12 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	if (result > 0) return NSOrderedDescending;
 	return NSOrderedSame;
 }
+
+@interface NotationController ()
+
+@property (nonatomic, strong) NSMutableDictionary *labelImages;
+
+@end
 
 @implementation NotationController
 
@@ -57,7 +69,6 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		
 		allNotes = [[NSMutableArray alloc] init]; //<--the authoritative list of all memory-accessible notes
 		deletedNotes = [[NSMutableSet alloc] init];
-		labelsListController = [[LabelsListController alloc] init];
 		prefsController = [GlobalPrefs defaultPrefs];
 		notesListDataSource = [[FastListDataSource alloc] init];
 		deletionManager = [[DeletionManager alloc] initWithNotationController:self];
@@ -82,6 +93,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		
 		lastWriteError = noErr;
 		unwrittenNotes = [[NSMutableSet alloc] init];
+		_allLabels = [[NSCountedSet alloc] init];
     }
     return self;
 }
@@ -1207,35 +1219,22 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 
 //re-searching for all notes each time a label is added or removed is unnecessary, I think
 - (void)note:(NoteObject*)note didAddLabelSet:(NSSet*)labelSet {
-	[labelsListController addLabelSet:labelSet toNote:note];
-        
-    //this can only happen while the note is visible
+	[self.allLabels unionSet:labelSet];
 	
-	//[self refilterNotes];
+	NSMutableSet *existingLabels = [self.allLabels setIntersectedWithSet:labelSet];
+    [existingLabels makeObjectsPerformSelector:@selector(addNote:) withObject:note];
+    [note replaceMatchingLabelSet:existingLabels]; //link back for the existing note, so that it knows about the other notes in this label
 }
 
 - (void)note:(NoteObject*)note didRemoveLabelSet:(NSSet*)labelSet {
-	[labelsListController removeLabelSet:labelSet fromNote:note];
-        
-	//[self refilterNotes];
-}
-
-- (void)filterNotesFromLabelAtIndex:(int)labelIndex {
-	NSArray *notes = [[labelsListController notesAtFilteredIndex:labelIndex] allObjects];
-	
-	[delegate notationListMightChange:self];
-	[notesListDataSource fillArrayFromArray:notes];
-	
-	[delegate notationListDidChange:self];	
-}
-
-- (void)filterNotesFromLabelIndexSet:(NSIndexSet*)indexSet {
-	NSArray *notes = [[labelsListController notesAtFilteredIndexes:indexSet] allObjects];
-	
-	[delegate notationListMightChange:self];
-	[notesListDataSource fillArrayFromArray:notes];
-	
-	[delegate notationListDidChange:self];
+	[self.allLabels minusSet:labelSet];
+    
+	//could use this as an opportunity to remove counterparts in labelImages
+    
+    //we narrow down the set to make sure that we operate on the actual objects within it, and note the objects used as prototypes
+    //these will be any labels that were shared by notes other than this one
+    NSMutableSet *existingLabels = [self.allLabels setIntersectedWithSet:labelSet];
+    [existingLabels makeObjectsPerformSelector:@selector(removeNote:) withObject:note];
 }
 
 - (BOOL)filterNotesFromString:(NSString*)string {
@@ -1274,7 +1273,6 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		//the search must be re-initialized; our strings don't have the same prefix
 		
 		[notesListDataSource fillArrayFromArray:allNotes];
-		//[labelsListController unfilterLabels];
 		
 		stringHasExistingPrefix = NO;
 		lastWordInFilterStr = 0;
@@ -1330,9 +1328,6 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 			for (i=0; i<filteredNoteCount; i++)
 				resetFoundPtrsForNote(notesBuffer[i]);
 		}
-		
-		//we have to re-create the array at each iteration while searching notes, but not here, so we can wait until the end
-		//[labelsListController recomputeListFromFilteredSet];
     }
     
 	//PHASE 4: autocomplete based on results
@@ -1536,10 +1531,6 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	return notationPrefs;
 }
 
-- (id)labelsListDataSource {
-    return labelsListController;
-}
-
 - (id)notesListDataSource {
     return notesListDataSource;
 }
@@ -1565,16 +1556,20 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	
     [undoManager release];
     [notesListDataSource release];
-    [labelsListController release];
 	[syncSessionController release];
 	[deletionManager release];
     [allNotes release];
 	[deletedNotes release];
 	[notationPrefs release];
 	[unwrittenNotes release];
+	
+	[_allLabels release];
+	[_labelImages release];
     
     [super dealloc];
 }
+	
+	
 
 #pragma mark nvALT stuff
 - (NSString *)createCachesFolder{
@@ -1597,6 +1592,81 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
         NSLog(@"Unable to find or create cache folder:\n%@", path);
     }
     return nil;
+}
+	
+#pragma mark - Labels
+	
+- (NSArray*)labelTitlesPrefixedByString:(NSString*)prefixString indexOfSelectedItem:(NSInteger *)anIndex minusWordSet:(NSSet*)antiSet {
+	
+	NSMutableArray *objs = [[[self.allLabels allObjects] mutableCopy] autorelease];
+	NSMutableArray *titles = [NSMutableArray arrayWithCapacity:[self.allLabels count]];
+	
+	[objs sortWithOptions:NSSortConcurrent usingComparator:^(LabelObject *obj1, LabelObject *obj2) {
+		return [titleOfLabel(obj1) caseInsensitiveCompare:titleOfLabel(obj2)];
+	}];
+	
+	CFStringRef prefix = (CFStringRef)prefixString;
+	NSUInteger i, titleLen, j = 0, shortestTitleLen = UINT_MAX;
+	
+	for (i=0; i<[objs count]; i++) {
+		CFStringRef title = (CFStringRef)titleOfLabel((LabelObject*)[objs objectAtIndex:i]);
+		
+		if (CFStringFindWithOptions(title, prefix, CFRangeMake(0, CFStringGetLength(prefix)), kCFCompareAnchored | kCFCompareCaseInsensitive, NULL)) {
+			
+			if (![antiSet containsObject:(id)title]) {
+				[titles addObject:(id)title];
+				if (anIndex && (titleLen = CFStringGetLength(title)) < shortestTitleLen) {
+					*anIndex = j;
+					shortestTitleLen = titleLen;
+				}
+				j++;
+			}
+		}
+	}
+	return titles;
+}
+
+- (void)invalidateCachedLabelImages {
+	//used when the list font size changes
+	[self.labelImages removeAllObjects];
+}
+- (NSImage*)cachedLabelImageForWord:(NSString*)aWord highlighted:(BOOL)isHighlighted {
+	if (!self.labelImages) self.labelImages = [NSMutableDictionary dictionary];
+	
+	NSString *imgKey = [[aWord lowercaseString] stringByAppendingFormat:@", %d", isHighlighted];
+	NSImage *img = [self.labelImages objectForKey:imgKey];
+	if (!img) {
+		//generate the image and add it to labelImages under imgKey
+		float tableFontSize = [[GlobalPrefs defaultPrefs] tableFontSize] - 1.0;
+		NSDictionary *attrs = [NSDictionary dictionaryWithObject:[NSFont systemFontOfSize:tableFontSize] forKey:NSFontAttributeName];
+		NSSize wordSize = [aWord sizeWithAttributes:attrs];
+		NSRect wordRect = NSMakeRect(0, 0, roundf(wordSize.width + 4.0), roundf(tableFontSize * 1.3));
+		
+		//peter hosey's suggestion, rather than doing setWindingRule: and appendBezierPath: as before:
+		//http://stackoverflow.com/questions/4742773/why-wont-helvetica-neue-bold-glyphs-draw-as-a-normal-subpath-in-nsbezierpath
+		
+		img = [[NSImage alloc] initWithSize:wordRect.size];
+		[img lockFocus];
+		
+		CGContextRef context = (CGContextRef)([[NSGraphicsContext currentContext] graphicsPort]);
+		CGContextBeginTransparencyLayer(context, NULL);
+		
+		CGContextClipToRect(context, NSRectToCGRect(wordRect));
+		
+		NSBezierPath *backgroundPath = [NSBezierPath bezierPathWithRoundRectInRect:wordRect radius:2.0f];
+		[(isHighlighted ? [NSColor whiteColor] : [NSColor colorWithCalibratedWhite:0.55 alpha:1.0]) setFill];
+		[backgroundPath fill];
+		
+		[[NSGraphicsContext currentContext] setCompositingOperation:NSCompositeSourceOut];
+		[aWord drawWithRect:(NSRect){{2.0, 3.0}, wordRect.size} options:NSStringDrawingUsesFontLeading attributes:attrs];
+		
+		CGContextEndTransparencyLayer(context);
+		
+		[img unlockFocus];
+		
+		[self.labelImages setObject:[img autorelease] forKey:imgKey];
+	}
+	return img;
 }
 
 @end

@@ -72,7 +72,6 @@
 		21A30EA70971D11D0071E9AF /* FastListDataSource.m in Sources */ = {isa = PBXBuildFile; fileRef = 21A30EA60971D11D0071E9AF /* FastListDataSource.m */; };
 		21A38EE412EA864400CEB5F0 /* MakeDefault_Pressed.tiff in Resources */ = {isa = PBXBuildFile; fileRef = 21A38EE212EA864400CEB5F0 /* MakeDefault_Pressed.tiff */; };
 		21A3913A12EB4C2F00CEB5F0 /* Spaces.m in Sources */ = {isa = PBXBuildFile; fileRef = 21A3913912EB4C2F00CEB5F0 /* Spaces.m */; };
-		21A6E6FD0974204F008436A9 /* LabelsListController.m in Sources */ = {isa = PBXBuildFile; fileRef = 21A6E6FC0974204F008436A9 /* LabelsListController.m */; };
 		21A73DC8099712A8009F8A6C /* WALController.m in Sources */ = {isa = PBXBuildFile; fileRef = 21A73DC7099712A8009F8A6C /* WALController.m */; };
 		21AD2550110A8BA600B7A985 /* SimplenoteEntryCollector.m in Sources */ = {isa = PBXBuildFile; fileRef = 21AD254F110A8BA600B7A985 /* SimplenoteEntryCollector.m */; };
 		21AD2850110BE99B00B7A985 /* SyncSessionController.m in Sources */ = {isa = PBXBuildFile; fileRef = 21AD284F110BE99B00B7A985 /* SyncSessionController.m */; };
@@ -437,8 +436,6 @@
 		21A38EE312EA864400CEB5F0 /* MakeDefault.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = MakeDefault.tiff; path = Images/MakeDefault.tiff; sourceTree = "<group>"; };
 		21A3913812EB4C2F00CEB5F0 /* Spaces.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Spaces.h; sourceTree = "<group>"; };
 		21A3913912EB4C2F00CEB5F0 /* Spaces.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Spaces.m; sourceTree = "<group>"; };
-		21A6E6FB0974204F008436A9 /* LabelsListController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LabelsListController.h; sourceTree = "<group>"; };
-		21A6E6FC0974204F008436A9 /* LabelsListController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LabelsListController.m; sourceTree = "<group>"; };
 		21A73DC6099712A8009F8A6C /* WALController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WALController.h; sourceTree = "<group>"; };
 		21A73DC7099712A8009F8A6C /* WALController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WALController.m; sourceTree = "<group>"; };
 		21AD254E110A8BA600B7A985 /* SimplenoteEntryCollector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SimplenoteEntryCollector.h; sourceTree = "<group>"; };
@@ -799,8 +796,6 @@
 				21B1BC351104D20E0004A7D0 /* InvocationRecorder.m */,
 				217D4280096545A000E84749 /* LabelObject.h */,
 				217D4281096545A000E84749 /* LabelObject.m */,
-				21A6E6FB0974204F008436A9 /* LabelsListController.h */,
-				21A6E6FC0974204F008436A9 /* LabelsListController.m */,
 				2114C13D0957732800614E74 /* NotationController.h */,
 				2114C13E0957732800614E74 /* NotationController.m */,
 				21B548F9112F307E00E163A1 /* NotationDirectoryManager.h */,
@@ -1510,7 +1505,6 @@
 				219588D20961D7F200972B8C /* LinkingEditor.m in Sources */,
 				217D4282096545A000E84749 /* LabelObject.m in Sources */,
 				21A30EA70971D11D0071E9AF /* FastListDataSource.m in Sources */,
-				21A6E6FD0974204F008436A9 /* LabelsListController.m in Sources */,
 				212B84620978422300F3597F /* NSString_NV.m in Sources */,
 				21DC788F097894B600E59B09 /* NSCollection_utils.m in Sources */,
 				2155DEA6097B5F0300163A10 /* BufferUtils.m in Sources */,

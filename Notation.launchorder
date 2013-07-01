@@ -196,7 +196,6 @@ _FSRefMakePath
 -[NotationController initWithAliasDataerror]
 -[NotationController initWithDirectoryReferror]
 -[NotationController init]
--[LabelsListController init]
 +[NoteObject initialize]
 -[FastListDataSource initWithClass]
 _hoursFromAbsoluteTime
