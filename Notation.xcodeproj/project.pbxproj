@@ -228,7 +228,6 @@
 		934C3FB414FDA06A000D14BA /* template.html in Resources */ = {isa = PBXBuildFile; fileRef = 934C3FB014FDA069000D14BA /* template.html */; };
 		934C3FB514FDA06A000D14BA /* templateclean.html in Resources */ = {isa = PBXBuildFile; fileRef = 934C3FB114FDA069000D14BA /* templateclean.html */; };
 		934C3FB914FDA74F000D14BA /* NSFileManager+DirectoryLocations.m in Sources */ = {isa = PBXBuildFile; fileRef = 934C3FB814FDA74F000D14BA /* NSFileManager+DirectoryLocations.m */; };
-		937E6783138C250E0099DF47 /* AutoHyperlinks.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 937E6781138C24980099DF47 /* AutoHyperlinks.framework */; };
 		93A158BC133C304D00E1E7DA /* Markdownify.nvhelp in Resources */ = {isa = PBXBuildFile; fileRef = 93A158BB133C304D00E1E7DA /* Markdownify.nvhelp */; };
 		93A158BE133C497400E1E7DA /* Notality.icns in Resources */ = {isa = PBXBuildFile; fileRef = 93A158BD133C497400E1E7DA /* Notality.icns */; };
 		93B348281371547800658F98 /* HUDIconLock.png in Resources */ = {isa = PBXBuildFile; fileRef = 93B348241371547800658F98 /* HUDIconLock.png */; };
@@ -261,6 +260,7 @@
 		B69E26F616F0B523001C6E4B /* Pencil@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = B69E26EE16F0B523001C6E4B /* Pencil@2x.png */; };
 		B69E26F716F0B523001C6E4B /* Search@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = B69E26EF16F0B523001C6E4B /* Search@2x.png */; };
 		D3EECA00106F66C70023D7F8 /* NVPasswordGenerator.m in Sources */ = {isa = PBXBuildFile; fileRef = D3EEC9FE106F66C70023D7F8 /* NVPasswordGenerator.m */; };
+		DB3CB57817810A2E0030EA13 /* NSMutableData+NVAESEncryption.m in Sources */ = {isa = PBXBuildFile; fileRef = DB83632E1780E9FE001D4DC2 /* NSMutableData+NVAESEncryption.m */; };
 		DB924C58177D327E00E96033 /* Quartz.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB924C57177D327E00E96033 /* Quartz.framework */; };
 /* End PBXBuildFile section */
 
@@ -272,7 +272,6 @@
 			dstSubfolderSpec = 10;
 			files = (
 				213623FC0B92AA6E008C0830 /* Sparkle.framework in CopyFiles */,
-				937E6783138C250E0099DF47 /* AutoHyperlinks.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -404,7 +403,6 @@
 		21918FCF09C49B2500586B15 /* EmptyView.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = EmptyView.h; sourceTree = SOURCE_ROOT; };
 		219190EF09C4A60600586B15 /* DualField.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = DualField.h; sourceTree = "<group>"; };
 		219190F009C4A60700586B15 /* DualField.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = DualField.m; sourceTree = "<group>"; };
-		2191926309C52A9100586B15 /* libcrypto.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libcrypto.dylib; path = /usr/lib/libcrypto.dylib; sourceTree = "<absolute>"; };
 		2191926609C52AA600586B15 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = /usr/lib/libz.dylib; sourceTree = "<absolute>"; };
 		219192D209CFBC8700586B15 /* NoteAttributeColumn.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = NoteAttributeColumn.h; sourceTree = "<group>"; };
 		219192D309CFBC8700586B15 /* NoteAttributeColumn.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = NoteAttributeColumn.m; sourceTree = "<group>"; };
@@ -706,7 +704,6 @@
 		934C3FB114FDA069000D14BA /* templateclean.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = templateclean.html; sourceTree = "<group>"; };
 		934C3FB714FDA74F000D14BA /* NSFileManager+DirectoryLocations.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSFileManager+DirectoryLocations.h"; sourceTree = "<group>"; };
 		934C3FB814FDA74F000D14BA /* NSFileManager+DirectoryLocations.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSFileManager+DirectoryLocations.m"; sourceTree = "<group>"; };
-		937E6781138C24980099DF47 /* AutoHyperlinks.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = AutoHyperlinks.framework; sourceTree = "<group>"; };
 		93A158BB133C304D00E1E7DA /* Markdownify.nvhelp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Markdownify.nvhelp; sourceTree = "<group>"; };
 		93A158BD133C497400E1E7DA /* Notality.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Notality.icns; sourceTree = "<group>"; };
 		93B348241371547800658F98 /* HUDIconLock.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = HUDIconLock.png; path = Images/HUDIconLock.png; sourceTree = "<group>"; };
@@ -870,7 +867,6 @@
 		1058C7A2FEA54F0111CA2CBB /* Other Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				937E6781138C24980099DF47 /* AutoHyperlinks.framework */,
 				21B54C011134F2E800E163A1 /* IOKit.framework */,
 				213623E50B92AA4E008C0830 /* Sparkle.framework */,
 				210C07230B6BF0A1005D23A8 /* WebKit.framework */,
@@ -880,7 +876,6 @@
 				21F4599B0A92E01C00FB6FFE /* Carbon.framework */,
 				21D5834D0B78F0CC00245E29 /* ApplicationServices.framework */,
 				2191926609C52AA600586B15 /* libz.dylib */,
-				2191926309C52A9100586B15 /* libcrypto.dylib */,
 				29B97324FDCFA39411CA2CEA /* AppKit.framework */,
 				29B97325FDCFA39411CA2CEA /* Foundation.framework */,
 				219D25491113FE34005E7DF5 /* SystemConfiguration.framework */,
@@ -1577,6 +1572,7 @@
 				21B64A2612E61FA700D87EFC /* LabelColumnCell.m in Sources */,
 				21B64C4E12E62A5700D87EFC /* UnifiedCell.m in Sources */,
 				21A3913A12EB4C2F00CEB5F0 /* Spaces.m in Sources */,
+				DB3CB57817810A2E0030EA13 /* NSMutableData+NVAESEncryption.m in Sources */,
 				5CBA7A981305E38C004ADEBB /* TagEditingManager.m in Sources */,
 				5CC2DF0B13083BCF006772D9 /* StatusItemView.m in Sources */,
 				5CF33C721308B478002B5499 /* NotesTableHeaderCell.m in Sources */,
@@ -2031,6 +2027,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 			};
 			name = Development;
 		};
@@ -2186,6 +2183,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 			};
 			name = ForBuilding;
 		};
