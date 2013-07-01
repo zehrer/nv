@@ -6,30 +6,21 @@
 //
 
 #import "NotesTableHeaderCell.h"
+#import <objc/runtime.h>
 
-NSColor *bColor;
-NSColor *tColor;
-NSColor *hColor;
-NSGradient *gradient;
+static const void *NotesTableHeaderBackgroundColorKey = &NotesTableHeaderBackgroundColorKey;
+static const void *NotesTableHeaderHighlightColorKey = &NotesTableHeaderHighlightColorKey;
+static const void *NotesTableHeaderTextColorKey = &NotesTableHeaderTextColorKey;
 
-@implementation NotesTableHeaderCell
+@implementation NotesTableHeaderCell {
+	NSGradient *_gradient;
+}
 
 - (id)initTextCell:(NSString *)text
 {
     if ((self = [super initTextCell:text])) {
 		@try {
-			//NSLog(@"headerCELL initing");
-			if (!bColor) {
-				bColor = [[NSColor whiteColor] retain];
-			}
-			if (!hColor) {
-				hColor = [[NSColor grayColor] retain];
-			}
-			if (!tColor) {
-				tColor = [[NSColor blackColor] retain];
-			}
-			gradient =  [[[NSGradient alloc] initWithStartingColor:[NSColor colorWithCalibratedWhite:0.93f alpha:0.3f] endingColor:[NSColor colorWithCalibratedWhite:0.12f alpha:0.25f]] retain];
-			
+			_gradient = [[[NSGradient alloc] initWithStartingColor:[NSColor colorWithCalibratedWhite:0.93f alpha:0.3f] endingColor:[NSColor colorWithCalibratedWhite:0.12f alpha:0.25f]] retain];
 		}
 		@catch (NSException * e) {
 			NSLog(@"init colors EXCEPT: %@",[e description]);
@@ -50,11 +41,19 @@ NSGradient *gradient;
     return nil;
 }
 
++ (NSColor *)backgroundColor
+{
+	return objc_getAssociatedObject(self, NotesTableHeaderBackgroundColorKey) ?: [NSColor whiteColor];
+}
+
++ (NSColor *)highlightColor
+{
+	return objc_getAssociatedObject(self, NotesTableHeaderHighlightColorKey) ?: [NSColor grayColor];
+}
+
 + (void)setBackgroundColor:(NSColor *)inColor{
-    if (bColor) {
-        [bColor release];
-    }
-	bColor = [inColor retain];
+	objc_setAssociatedObject(self, NotesTableHeaderBackgroundColorKey, inColor, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+
 	CGFloat fWhite;
 	CGFloat endWhite;
 	CGFloat fAlpha;
@@ -65,15 +64,17 @@ NSGradient *gradient;
 	}else {		
 		endWhite = fWhite - .27f;
 	}
-	[hColor release];
-	hColor = [[inColor blendedColorWithFraction:0.60f ofColor:[NSColor colorWithCalibratedWhite:endWhite alpha:0.98f]] retain];
+	
+	objc_setAssociatedObject(self, NotesTableHeaderHighlightColorKey, [inColor blendedColorWithFraction:0.60f ofColor:[NSColor colorWithCalibratedWhite:endWhite alpha:0.98f]], OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
++ (NSColor *)foregroundColor
+{
+	return objc_getAssociatedObject(self, NotesTableHeaderTextColorKey) ?: [NSColor blackColor];
 }
 
 + (void)setForegroundColor:(NSColor *)inColor{
-    if (tColor) {
-        [tColor release];
-    }
-	tColor = [inColor retain];
+	objc_setAssociatedObject(self, NotesTableHeaderTextColorKey, inColor, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
 - (NSRect)drawingRectForBounds:(NSRect)theRect {
@@ -82,43 +83,36 @@ NSGradient *gradient;
 
 - (void)drawWithFrame:(NSRect)inFrame inView:(NSView*)inView
 {
-	@try {
-		[[bColor copy]setFill];
-		NSRectFill(inFrame);
-		[gradient drawInRect:inFrame angle:90];
-		@try {
-			[tColor set];
-			 NSBezierPath* thePath = [NSBezierPath bezierPath];
-			 [thePath removeAllPoints];	
-			[thePath moveToPoint:NSMakePoint((inFrame.origin.x + inFrame.size.width),(inFrame.origin.y +  inFrame.size.height))];
-			[thePath lineToPoint:NSMakePoint(inFrame.origin.x,(inFrame.origin.y +  inFrame.size.height))];	
-			if (inFrame.origin.x>5) {
-				[thePath lineToPoint:inFrame.origin];
-			}
-			
+	NSColor *bColor = [[self class] backgroundColor], *tColor = [[self class] foregroundColor];
+	
+	[bColor setFill];
+	NSRectFill(inFrame);
+	[_gradient drawInRect:inFrame angle:90];
+
+	[tColor set];
+		 NSBezierPath* thePath = [NSBezierPath bezierPath];
+		 [thePath removeAllPoints];	
+		[thePath moveToPoint:NSMakePoint((inFrame.origin.x + inFrame.size.width),(inFrame.origin.y +  inFrame.size.height))];
+		[thePath lineToPoint:NSMakePoint(inFrame.origin.x,(inFrame.origin.y +  inFrame.size.height))];	
+		if (inFrame.origin.x>5) {
+			[thePath lineToPoint:inFrame.origin];
+		}
+		
 //			[thePath moveToPoint:NSMakePoint((inFrame.origin.x + inFrame.size.width),inFrame.origin.y)];
 //			[thePath lineToPoint:NSMakePoint(inFrame.origin.x,inFrame.origin.y)];
-			
-			[thePath setLineWidth:1.4];
-			 [thePath stroke];
-		}
-		@catch (NSException * e) {
-			NSLog(@"draw sides EXCEPT name: %@  description : %@",[e name],[e description]);
-		}
-		float offset = 5;  
-		NSRect centeredRect = inFrame;
-		centeredRect.size = [[self stringValue] sizeWithAttributes:attrs];
-		//centeredRect.origin.x += ((inFrame.size.width - centeredRect.size.width) / 2.0); //- offset;
-		centeredRect.origin.x += offset;
-		centeredRect.origin.y = ((inFrame.size.height - centeredRect.size.height) / 2.0);
-		// centeredRect.origin.y += offset/2;
+		
+		[thePath setLineWidth:1.4];
+		 [thePath stroke];
+	float offset = 5;  
+	NSRect centeredRect = inFrame;
+	centeredRect.size = [[self stringValue] sizeWithAttributes:attrs];
+	//centeredRect.origin.x += ((inFrame.size.width - centeredRect.size.width) / 2.0); //- offset;
+	centeredRect.origin.x += offset;
+	centeredRect.origin.y = ((inFrame.size.height - centeredRect.size.height) / 2.0);
+	// centeredRect.origin.y += offset/2;
 
-		[attrs setValue:tColor forKey:@"NSColor"];
-		[[self stringValue] drawInRect:centeredRect withAttributes:attrs];		
-	}
-	@catch (NSException * e) {
-		NSLog(@"draw frame EXCEPT: %@",[e description]);
-	}
+	[attrs setValue:tColor forKey:@"NSColor"];
+	[[self stringValue] drawInRect:centeredRect withAttributes:attrs];
 	
 }
 
@@ -127,44 +121,38 @@ NSGradient *gradient;
 }
 
 - (void)highlight:(BOOL)hBool withFrame:(NSRect)inFrame inView:(NSView *)controlView{
-	@try {
-		if (hBool) {
-			[hColor setFill];
-			
-			NSRectFill(inFrame);
-			
-			[gradient drawInRect:inFrame angle:90];
-			@try {
-				[tColor setStroke];
-				NSBezierPath* thePath = [NSBezierPath bezierPath];
-				[thePath removeAllPoints];
-				[thePath moveToPoint:NSMakePoint((inFrame.origin.x + inFrame.size.width),(inFrame.origin.y +  inFrame.size.height))];
-				[thePath lineToPoint:NSMakePoint(inFrame.origin.x,(inFrame.origin.y +  inFrame.size.height))];	
-				if (inFrame.origin.x>5) {
-					[thePath lineToPoint:inFrame.origin];
-				}
-//				[thePath moveToPoint:NSMakePoint((inFrame.origin.x + inFrame.size.width),inFrame.origin.y)];
-//				[thePath lineToPoint:NSMakePoint(inFrame.origin.x,inFrame.origin.y)];
-				//[thePath setLineWidth:2.0]; // Has no effect.
-				[thePath setLineWidth:1.4];
-				[thePath stroke];
-			}
-			@catch (NSException * e) {
-				NSLog(@"draw highliths sides EXCEPT name: %@  description : %@",[e name],[e description]);
-			}
-			
-			float offset = 5;
-			[attrs setValue:bColor forKey:@"NSColor"];    
-			NSRect centeredRect = inFrame;
-			centeredRect.size = [[self stringValue] sizeWithAttributes:attrs]; 
-			centeredRect.origin.x += offset;
-			centeredRect.origin.y = ((inFrame.size.height - centeredRect.size.height) / 2.0); 			
-			[attrs setValue:tColor forKey:@"NSColor"];
-			[[self stringValue] drawInRect:centeredRect withAttributes:attrs];				
-		}		
-	}
-	@catch (NSException * e) {
-		NSLog(@"draw highlight EXCEPT: %@",[e description]);
+	NSColor *bColor = [[self class] backgroundColor],
+	*tColor = [[self class] foregroundColor],
+	*hColor = [[self class] highlightColor];
+	
+	if (hBool) {
+		[hColor setFill];
+		
+		NSRectFill(inFrame);
+		
+		[_gradient drawInRect:inFrame angle:90];
+		[tColor setStroke];
+		NSBezierPath* thePath = [NSBezierPath bezierPath];
+		[thePath removeAllPoints];
+		[thePath moveToPoint:NSMakePoint((inFrame.origin.x + inFrame.size.width),(inFrame.origin.y +  inFrame.size.height))];
+		[thePath lineToPoint:NSMakePoint(inFrame.origin.x,(inFrame.origin.y +  inFrame.size.height))];	
+		if (inFrame.origin.x>5) {
+			[thePath lineToPoint:inFrame.origin];
+		}
+//		[thePath moveToPoint:NSMakePoint((inFrame.origin.x + inFrame.size.width),inFrame.origin.y)];
+//		[thePath lineToPoint:NSMakePoint(inFrame.origin.x,inFrame.origin.y)];
+//		[thePath setLineWidth:2.0]; // Has no effect.
+		[thePath setLineWidth:1.4];
+		[thePath stroke];
+		
+		float offset = 5;
+		[attrs setValue:bColor forKey:@"NSColor"];    
+		NSRect centeredRect = inFrame;
+		centeredRect.size = [[self stringValue] sizeWithAttributes:attrs]; 
+		centeredRect.origin.x += offset;
+		centeredRect.origin.y = ((inFrame.size.height - centeredRect.size.height) / 2.0); 			
+		[attrs setValue:tColor forKey:@"NSColor"];
+		[[self stringValue] drawInRect:centeredRect withAttributes:attrs];				
 	}		
 }
 
