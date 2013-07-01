@@ -355,20 +355,16 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t nu
     NSUInteger aSize = [allNotes count];
     NSUInteger bSize = catCount;
     
-	ResizeArray(&allNotesBuffer, aSize, &allNotesBufferSize);
-	
-	NSAssert(allNotesBuffer != NULL, @"sorting buffer not initialized");
-	
-    NoteObject **currentNotes = allNotesBuffer;
-    [allNotes getObjects:(id*)currentNotes];
-	
-	mergesort((void *)allNotesBuffer, (size_t)aSize, sizeof(id), (int (*)(const void *, const void *))compareFilename);
+	NSArray *currentNotes = [allNotes sortedArrayWithOptions:NSSortConcurrent|NSSortStable usingComparator:^(NoteObject *obj1, NoteObject *obj2) {
+		return NVComparisonResult(compareFilename(&obj1, &obj2));
+	}];
+
 	mergesort((void *)catEntriesPtrs, (size_t)bSize, sizeof(NoteCatalogEntry*), (int (*)(const void *, const void *))compareCatalogEntryName);
 	
     NSMutableArray *addedEntries = [NSMutableArray array];
     NSMutableArray *removedEntries = [NSMutableArray array];
 	
-    //oldItems(a,i) = currentNotes
+    //oldItems(a,i) = currentNotesArray
     //newItems(b,j) = catEntries;
     
     NSUInteger i, j, lastInserted = 0;

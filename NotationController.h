@@ -23,7 +23,7 @@
 
 #import <CoreServices/CoreServices.h>
 
-//enum { kUISearch, kUINewNote, kUIDeleteNote, kUIRenameNote, kUILabelOperation };
+extern inline NSComparisonResult NVComparisonResult(NSInteger result)
 
 typedef struct _NoteCatalogEntry {
     UTCDateTime lastModified;
@@ -56,9 +56,6 @@ typedef struct _NoteCatalogEntry {
 	
 	float titleColumnWidth;
 	NoteAttributeColumn* sortColumn;
-	
-    NoteObject **allNotesBuffer;
-	NSUInteger allNotesBufferSize;
     
     NSUInteger selectedNoteIndex;
     char *currentFilterStr, *manglingString;

@@ -310,7 +310,7 @@
 		2114C1440957733200614E74 /* NoteObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NoteObject.h; sourceTree = "<group>"; };
 		2114C1450957733200614E74 /* NoteObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NoteObject.m; sourceTree = "<group>"; };
 		2114C23B095883A600614E74 /* NSData_transformations.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = NSData_transformations.h; sourceTree = "<group>"; };
-		2114C23C095883A600614E74 /* NSData_transformations.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = NSData_transformations.m; sourceTree = "<group>"; };
+		2114C23C095883A600614E74 /* NSData_transformations.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSData_transformations.m; sourceTree = "<group>"; };
 		2114C25A095885C800614E74 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/Localizable.strings; sourceTree = "<group>"; };
 		212089AF0B0C24F500A15A69 /* AlienNoteImporter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AlienNoteImporter.h; sourceTree = "<group>"; };
 		212089B00B0C24F500A15A69 /* AlienNoteImporter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AlienNoteImporter.m; sourceTree = "<group>"; };

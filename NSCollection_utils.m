@@ -230,16 +230,4 @@
 	[self sortUsingFunction:(NSInteger (*)(id, id, void *))genericSortContextLast context:compare];
 }
 
-- (void)sortStableUsingFunction:(NSInteger ( *)(id *, id *))compare usingBuffer:(id **)buffer ofSize:(NSUInteger *)bufSize {
-    NSUInteger count = [self count];
-	
-	ResizeArray(buffer, count, bufSize);
-	
-	CFArrayGetValues((CFArrayRef)self, CFRangeMake(0, [self count]), (const void **)*buffer);
-	
-	mergesort((void *)*buffer, (size_t)count, sizeof(id), (int (*)(const void *, const void *))compare);
-	
-	CFArrayReplaceValues((CFMutableArrayRef)self, CFRangeMake(0, count), (const void **)*buffer, count);
-}
-
 @end

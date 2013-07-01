@@ -43,6 +43,12 @@
 #import "DeletionManager.h"
 #import "nvaDevConfig.h"
 
+inline NSComparisonResult NVComparisonResult(NSInteger result) {
+	if (result < 0) return NSOrderedAscending;
+	if (result > 0) return NSOrderedDescending;
+	return NSOrderedSame;
+}
+
 @implementation NotationController
 
 - (id)init {
@@ -746,8 +752,21 @@
 		return;
 	
 	//sort alphabetically to find shorter prefixes first
-	NSMutableArray *allNotesAlpha = [allNotes mutableCopy];
-	[allNotesAlpha sortStableUsingFunction:compareTitleString usingBuffer:&allNotesBuffer ofSize:&allNotesBufferSize];
+	NSArray *allNotesAlpha = [allNotes sortedArrayWithOptions:NSSortStable|NSSortConcurrent usingComparator:^(NoteObject *obj1, NoteObject *obj2) {
+		NSString *title1 = titleOfNote(obj1);
+		NSString *title2 = titleOfNote(obj2);
+		
+		NSComparisonResult result = [title1 compare:title2 options:NSCaseInsensitiveSearch];
+		
+		if (result == NSOrderedSame) {
+			NSComparisonResult dateResult = NVComparisonResult(compareDateCreated(&obj1, &obj2));
+			if (dateResult == NSOrderedSame) {
+				return NVComparisonResult(compareUniqueNoteIDBytes(&obj1, &obj2));
+			}
+		}
+		
+		return result;
+	}];
 	[allNotes makeObjectsPerformSelector:@selector(removeAllPrefixParentNotes)];
 
 	NSUInteger j, i = 0, count = [allNotesAlpha count];
@@ -763,8 +782,6 @@
 			}
 		} while (isAPrefix && ++j<count);
 	}
-
-	[allNotesAlpha release];
 }
 
 - (void)addNewNote:(NoteObject*)note {
@@ -1303,7 +1320,7 @@
     
 	//PHASE 3: reset found pointers in case have been cleared
 	NSUInteger filteredNoteCount = [notesListDataSource count];
-	NoteObject **notesBuffer = (const NoteObject **)[notesListDataSource immutableObjects];
+	NoteObject * __autoreleasing *notesBuffer = (NoteObject **)[notesListDataSource immutableObjects];
 	
     if (didFilterNotes) {
 		
@@ -1400,23 +1417,16 @@
 //O(n^2) at best, but at least we're dealing with C arrays
 
 - (NSIndexSet*)indexesOfNotes:(NSArray*)noteArray {
-	NSMutableIndexSet *noteIndexes = [[NSMutableIndexSet alloc] init];
+	NSMutableIndexSet *noteIndexes = [[[NSMutableIndexSet alloc] init] autorelease];
 	
-	NSUInteger i, noteCount = [noteArray count];
-	
-	id *notes = (id*)malloc(noteCount * sizeof(id));
-	[noteArray getObjects:notes];
-	
-	for (i=0; i<noteCount; i++) {
-		NSUInteger noteIndex = [notesListDataSource indexOfObjectIdenticalTo:notes[i]];
+	[noteArray enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+		NSUInteger noteIndex = [notesListDataSource indexOfObjectIdenticalTo:obj];
 		
 		if (noteIndex != NSNotFound)
 			[noteIndexes addIndex:noteIndex];
-	}
+	}];
 	
-	free(notes);
-	
-	return [noteIndexes autorelease];
+	return [[noteIndexes copy] autorelease];
 }
 
 - (NSUInteger)indexInFilteredListForNoteIdenticalTo:(NoteObject*)note {
@@ -1450,10 +1460,15 @@
 		NSInteger (*sortFunction) (id *, id *) = (reversed ? [col reverseSortFunction] : [col sortFunction]);
 		NSInteger (*stringSortFunction) (id*, id*) = (reversed ? compareTitleStringReverse : compareTitleString);
 		
-		[allNotes sortStableUsingFunction:stringSortFunction usingBuffer:&allNotesBuffer ofSize:&allNotesBufferSize];
-		if (sortFunction != stringSortFunction)
-			[allNotes sortStableUsingFunction:sortFunction usingBuffer:&allNotesBuffer ofSize:&allNotesBufferSize];
+		[allNotes sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:^(NoteObject *obj1, NoteObject *obj2) {
+			return NVComparisonResult(stringSortFunction(&obj1, &obj2));
+		}];
 		
+		if (sortFunction != stringSortFunction) {
+			[allNotes sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:^(NoteObject *obj1, NoteObject *obj2) {
+				return NVComparisonResult(sortFunction(&obj1, &obj2));
+			}];
+		}
 		
 		if ([notesListDataSource count] != [allNotes count]) {
 				
@@ -1479,10 +1494,16 @@
 	
 		NSInteger (*sortFunction) (id*, id*) = (reversed ? [col reverseSortFunction] : [col sortFunction]);
 		NSInteger (*stringSortFunction) (id*, id*) = (reversed ? compareTitleStringReverse : compareTitleString);
-
-		[allNotes sortStableUsingFunction:stringSortFunction usingBuffer:&allNotesBuffer ofSize:&allNotesBufferSize];
-		if (sortFunction != stringSortFunction)
-			[allNotes sortStableUsingFunction:sortFunction usingBuffer:&allNotesBuffer ofSize:&allNotesBufferSize];
+		
+		[allNotes sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:^(NoteObject *obj1, NoteObject *obj2) {
+			return NVComparisonResult(stringSortFunction(&obj1, &obj2));
+		}];
+		
+		if (sortFunction != stringSortFunction) {
+			[allNotes sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:^(NoteObject *obj1, NoteObject *obj2) {
+				return NVComparisonResult(sortFunction(&obj1, &obj2));
+			}];
+		}
 	}
 }
 
@@ -1543,8 +1564,6 @@
 		free(catalogEntries);
     if (sortedCatalogEntries)
 		free(sortedCatalogEntries);
-    if (allNotesBuffer)
-		free(allNotesBuffer);
 	
     [undoManager release];
     [notesListDataSource release];

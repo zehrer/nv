@@ -480,14 +480,7 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, unsigned charIndex) {
 }
 
 - (const char*)lowercaseUTF8String {
-	
-	CFMutableStringRef str2 = CFStringCreateMutableCopy(NULL, 0, (CFStringRef)self);
-	CFStringLowercase(str2, NULL);
-	
-	const char *utf8String = [(NSString*)str2 UTF8String];
-	
-	CFRelease(str2);
-	return utf8String;
+	return [[self lowercaseString] UTF8String];
 }
 
 - (NSString *)stringByReplacingPercentEscapes {
