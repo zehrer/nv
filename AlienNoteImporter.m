@@ -112,33 +112,6 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 	[super dealloc];
 }
 
-+ (NSBundle *)PDFKitBundle {
-	static NSBundle *PDFKitBundle = nil;
-	if (PDFKitBundle == nil) {
-		NSString *PDFKitPath = @"/System/Library/Frameworks/Quartz.framework/Frameworks/PDFKit.framework";
-		if (![[NSFileManager defaultManager] fileExistsAtPath:PDFKitPath]) {
-			NSLog(@"Couldn't find PDFKit.framework");
-			return nil;
-		}
-		PDFKitBundle = [NSBundle bundleWithPath:PDFKitPath];
-		if (![PDFKitBundle load]) {
-			NSLog(@"Couldn't load PDFKit.framework");
-		}
-	}
-	return PDFKitBundle;
-}
-
-+ (Class)PDFDocClass {
-	static Class PDFDocClass = nil;
-	if (PDFDocClass == nil) {
-		PDFDocClass = [[self PDFKitBundle] classNamed:@"PDFDocument"];
-		if (PDFDocClass == nil) {
-			NSLog(@"Couldn't find PDFDocument class in PDFKit.framework");
-		}
-	}
-	return PDFDocClass;
-}
-
 - (NSDictionary*)documentSettings {
 	return documentSettings;
 }
