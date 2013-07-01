@@ -467,36 +467,43 @@ static CGFloat _perceptualColorDifference(NSColor*a, NSColor*b) {
 			NSRange effectiveRange = NSMakeRange(0,0);
 			NSUInteger stringLength = [newString length];
 			
+			void (^copyRTFType)(void) = ^{
+				//we have more than a single styling segment within the selection--grudgingly allow regular RTF copying
+#if COPY_PASTE_DEBUG
+				NSLog(@"copying RTF due to multiple attributes");
+				[[self layoutManager] addTemporaryAttributes:[prefsController searchTermHighlightAttributes] forCharacterRange:effectiveRange];
+#endif
+				[types insertObject:NSRTFPboardType atIndex:1];
+
+			};
+			
 			//iterate over all styles; if any are acceptable, copy as RTF
 			while (NSMaxRange(effectiveRange) < stringLength) {
 				// Get the attributes for the current range
 				NSDictionary *attributes = [newString attributesAtIndex:NSMaxRange(effectiveRange) effectiveRange:&effectiveRange];
 				
-				if ([attributes attributesHaveFontTrait:NSBoldFontMask orAttribute:NSStrokeWidthAttributeName])
-					goto copyRTFType;
-				if ([attributes attributesHaveFontTrait:NSItalicFontMask orAttribute:NSObliquenessAttributeName])
-					goto copyRTFType;
-				if ([attributes attributesHaveFontTrait:0 orAttribute:NSStrikethroughStyleAttributeName])
-					goto copyRTFType;
+				if ([attributes attributesHaveFontTrait:NSBoldFontMask orAttribute:NSStrokeWidthAttributeName]) {
+					copyRTFType();
+					return types;
+				}
+				
+				if ([attributes attributesHaveFontTrait:NSItalicFontMask orAttribute:NSObliquenessAttributeName]) {
+					copyRTFType();
+					return types;
+				}
+				
+				if ([attributes attributesHaveFontTrait:0 orAttribute:NSStrikethroughStyleAttributeName]) {
+					copyRTFType();
+					return types;
+				}
 			}
 #if COPY_PASTE_DEBUG
 			NSLog(@"false alarm: no real styles");
 #endif
-			
 		} else {
 #if COPY_PASTE_DEBUG
 			NSLog(@"homogeneous style");
 #endif
-		}
-		
-		if (0) {
-copyRTFType:
-			//we have more than a single styling segment within the selection--grudgingly allow regular RTF copying
-#if COPY_PASTE_DEBUG
-			NSLog(@"copying RTF due to multiple attributes");
-			[[self layoutManager] addTemporaryAttributes:[prefsController searchTermHighlightAttributes] forCharacterRange:effectiveRange];
-#endif
-			[types insertObject:NSRTFPboardType atIndex:1];
 		}
 	}
 	
@@ -618,7 +625,8 @@ copyRTFType:
 							firstRange = *(NSRange*)range;
 							if (noHighlight) {
 								CFRelease(ranges);
-								goto returnEarly;
+								CFRelease(terms);
+								return firstRange;
 							}
 						}
 						[[self layoutManager] addTemporaryAttributes:highlightDict forCharacterRange:*(NSRange*)range];
@@ -629,7 +637,6 @@ copyRTFType:
 				CFRelease(ranges);
 			}
 		}
-	returnEarly:
 		CFRelease(terms);
 	}
 	return (firstRange);
@@ -1247,31 +1254,28 @@ copyRTFType:
 }
 
 - (NSRange)rangeForUserCompletion {
+	static const NSRange invalidRange = { NSNotFound, 0 };
 	NSRange completionRange = [super rangeForUserCompletion];
-	//NSLog(@"completionRange: %@", [[self string] substringWithRange:completionRange]);
-	
 	
 	//problem: changedRange.location was 201, but completionRange.location was 195
 	NSRange beginLineRange = NSMakeRange(changedRange.location, completionRange.location - changedRange.location);
 	if (beginLineRange.length > changedRange.length)
-		goto cancelCompetion;
+		return invalidRange;
 	
 	NSRange backRange = [[self string] rangeOfString:@"[[" options:NSBackwardsSearch | NSLiteralSearch range:beginLineRange];
 	if (backRange.location == NSNotFound)
-		goto cancelCompetion;
+		return invalidRange;
 	
 	backRange.location += 2;
 	backRange.length = completionRange.length + (completionRange.location - backRange.location);
 
 	if ([[NSCharacterSet whitespaceAndNewlineCharacterSet] characterIsMember:[[self string] characterAtIndex:backRange.location]])
-		goto cancelCompetion;
+		return invalidRange;
 	
 	if ([[self string] rangeOfString:@"]]" options:NSLiteralSearch range:backRange].location != NSNotFound)
-		goto cancelCompetion;
+		return invalidRange;
 		
 	return backRange;
-cancelCompetion:
-	return NSMakeRange(NSNotFound, 0);
 }
 
 - (void)insertCompletion:(NSString *)word forPartialWordRange:(NSRange)charRange movement:(NSInteger)movement isFinal:(BOOL)isFinal {

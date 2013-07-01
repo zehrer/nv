@@ -50,10 +50,8 @@ static size_t EstimatedCharCountForWidth(float upToWidth);
 					usedBufLen = bodyCharCount = strlen(fullUTF8String);
 					bodyPreviewBuffer = realloc(bodyPreviewBuffer, bodyCharCount + 1);
 					memcpy(bodyPreviewBuffer, fullUTF8String, bodyCharCount + 1);
-					goto replace;
 				}
-			}
-			if (!CFStringGetBytes((CFStringRef)self, CFRangeMake(0, bodyCharCount), bodyPreviewEncoding, ' ', FALSE, 
+			} else if (!CFStringGetBytes((CFStringRef)self, CFRangeMake(0, bodyCharCount), bodyPreviewEncoding, ' ', FALSE,
 								  (UInt8 *)bodyPreviewBuffer, bodyCharCount + 1, &usedBufLen)) {
 				NSLog(@"can't get utf8 string from '%@' (charcount: %lu)", self, (NSUInteger)bodyCharCount);
 				free(bodyPreviewBuffer);
@@ -61,7 +59,7 @@ static size_t EstimatedCharCountForWidth(float upToWidth);
 			}
 		}
 	}
-replace:
+
 	//if bodyPreviewBuffer is a UTF-8 encoded string, then examine the string one UTF-8 sequence at a time to catch multi-byte breaks
 	if (bodyPreviewEncoding == kCFStringEncodingUTF8) {
 		replace_breaks_utf8(bodyPreviewBuffer, bodyCharCount);

@@ -177,13 +177,21 @@
 		NSArray *svcs = [[SyncSessionController class] allServiceNames];
 		NoteObject *foundNote = nil;
 		
+		BOOL(^handleFound)(void) = ^{
+			//if this search had initiated a clearing of the history, then make sure it doesn't happen
+			[NSObject cancelPreviousPerformRequestsWithTarget:field selector:@selector(clearFollowedLinks) object:nil];
+			
+			if (foundNote) [self revealNote:foundNote options:NVOrderFrontWindow];
+			return YES;
+		};
+		
 		for (i=0; i<[params count]; i++) {
 			NSString *idStr = [params objectAtIndex:i];
 			
 			if ([idStr hasPrefix:@"NV="] && [idStr length] > 3) {
 				NSData *uuidData = [[[idStr substringFromIndex:3] stringByReplacingPercentEscapes] nv_dataByBase64Decoding];
 				if ((foundNote = [notationController noteForUUIDBytes:(CFUUIDBytes*)[uuidData bytes]]))
-					goto handleFound;
+					return handleFound();
 			}
 			
 			for (j=0; j<[svcs count]; j++) {
@@ -192,17 +200,12 @@
 					//lookup note with identical key for this service
 					NSString *key = [[idStr substringFromIndex:[serviceName length] + 1] stringByReplacingPercentEscapes];
 					if ((foundNote = [notationController noteForKey:key ofServiceClass:[[SyncSessionController allServiceClasses] objectAtIndex:j]]))
-						goto handleFound;
+						return handleFound();
 				}
 			}
 		}
-	handleFound:
-		//if this search had initiated a clearing of the history, then make sure it doesn't happen
-		[NSObject cancelPreviousPerformRequestsWithTarget:field selector:@selector(clearFollowedLinks) object:nil];
 		
-		if (foundNote) [self revealNote:foundNote options:NVOrderFrontWindow];
-		return YES;
-		
+		return handleFound();
 	} else if ([[aURL host] isEqualToString:@"make"]) {
 		
 		NSArray *params = [[aURL query] componentsSeparatedByString:@"&"];

@@ -306,10 +306,18 @@
 		}
 	}
 	
+	void (^end)(void) = ^{
+		//we might not be continuing with the sync, in which case we wouldn't get a 'stop' message
+		//so do things conditionally that otherwise might have been done when stopping
+		[syncSessionController performSelector:@selector(invokeUncommmitedWaitCallbackIfNecessaryReturningError:) withObject:nil afterDelay:0];
+		[syncSessionController queueStatusNotification];
+	};
+	
 	//show this only if there is no evidence of these notes ever being on the server (all remotely removed with none manually deleted)
 	if ([remotelyMissingNotes count] && [allNotes count] == ([remotelyMissingNotes count] + [locallyAddedNotes count])) {
 		if ([self handleSyncingWithAllMissingAndRemoteNoteCount:[remotelyAddedEntries count] fromSession:syncSession]) {
-			goto ended;
+			end();
+			return;
 		}
 	}
 	
@@ -329,7 +337,8 @@
 								NSLocalizedString(@"Notes will be merged, omitting entries duplicated on the server.", nil), 
 								NSLocalizedString(@"Add Notes", nil), NSLocalizedString(@"Turn Off Syncing", nil), nil) == NSAlertAlternateReturn) {
 				[syncSessionController disableService:serviceName];
-				goto ended;
+				end();
+				return;
 			} else {
 				//remember that we have to merge them for next time in case sync is cancelled; do not remember "automatic" merges
 				[notationPrefs setSyncShouldMerge:YES inCurrentAccountForService:serviceName];
@@ -382,11 +391,7 @@
 	//for remotelyDeletedNotes, also remove syncMD from deletedNotes, but leave syncMD will be left in the undo-registered notes 
 	[self removeSyncMDFromDeletedNotesInSet:[NSSet setWithArray:remotelyDeletedNotes] forService:serviceName];
 	
-ended:
-	//we might not be continuing with the sync, in which case we wouldn't get a 'stop' message
-	//so do things conditionally that otherwise might have been done when stopping
-	[syncSessionController performSelector:@selector(invokeUncommmitedWaitCallbackIfNecessaryReturningError:) withObject:nil afterDelay:0];
-	[syncSessionController queueStatusNotification];
+	end();
 }
 
 - (void)syncSession:(id <SyncServiceSession>)syncSession didStopWithError:(NSString*)errString {

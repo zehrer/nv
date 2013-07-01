@@ -148,13 +148,12 @@ UTCDateTime *attrsModifiedDateOfNote(NoteObject *note) {
 			//check if this date has actually been initialized; this entry could be here only because setCatalogNodeID was called
 			if (note->perDiskInfoGroups[i].diskIDIndex == tableIndex && !UTCDateTimeIsEmpty(note->perDiskInfoGroups[i].attrTime)) {
 				note->attrsModifiedDate = &(note->perDiskInfoGroups[i].attrTime);
-				goto giveDate;
+				return note->attrsModifiedDate;
 			}
 		}
 		//this note doesn't have a file-modified date, so initialize a fairly reasonable one here
 		setAttrModifiedDate(note, &(note->fileModifiedDate));
 	}
-giveDate:	
 	return note->attrsModifiedDate;
 }
 
@@ -166,13 +165,12 @@ UInt32 fileNodeIDOfNote(NoteObject *note) {
 			//check if this nodeID has actually been initialized; this entry could be here only because setAttrModifiedDate was called
 			if (note->perDiskInfoGroups[i].diskIDIndex == tableIndex && note->perDiskInfoGroups[i].nodeID != 0U) {
 				note->nodeID = note->perDiskInfoGroups[i].nodeID;
-				goto giveID;
+				return note->nodeID;
 			}
 		}
 		//this note doesn't have a file-modified date, so initialize something that at least won't repeat this lookup
 		setCatalogNodeID(note, 1);
 	}
-giveID:	
 	return note->nodeID;
 }
 
@@ -1028,13 +1026,19 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	//iterate over words in orderedLabelTitles, retrieving images via -[LabelsListController cachedLabelImageForWord:highlighted:]
 	//if right-align is enabled, then the label-images are queued on the first pass and drawn in reverse on the second
 	
-	float totalWidth = 0.0, height = 0.0;
 	
-	if (![labelString length]) goto returnSizeIfNecessary;
+	if (![labelString length]) {
+		if (reqSize) *reqSize = NSZeroSize;
+		return;
+	}
 	
 	NSArray *words = [self orderedLabelTitles];
-	if (![words count]) goto returnSizeIfNecessary;
+	if (![words count]) {
+		if (reqSize) *reqSize = NSZeroSize;
+		return;
+	}
 	
+	CGFloat totalWidth = 0.0, height = 0.0;
 	NSPoint nextBoxPoint = onRight ? NSMakePoint(NSMaxX(aRect), aRect.origin.y) : aRect.origin;
 	NSMutableArray *images = reqSize || !onRight ? nil : [NSMutableArray arrayWithCapacity:[words count]];
 	NSInteger i;
@@ -1068,7 +1072,6 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 			}
 		}
 	} else {
-	returnSizeIfNecessary:
 		if (reqSize) *reqSize = NSMakeSize(totalWidth, height);
 	}
 }

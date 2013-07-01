@@ -736,18 +736,23 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, unsigned charIndex) {
 		return;
 	}
 	NSUInteger len = [[self string] length];
-	if ([self scanCharactersFromSet:[NSCharacterSet whitespaceAndNewlineCharacterSet] intoString:sepStr]) {
+	BOOL success = [self scanCharactersFromSet:[NSCharacterSet whitespaceAndNewlineCharacterSet] intoString:sepStr];
+	
+	if (success) {
 		if (sepStr && *sepStr) {
-			if ([self scanLocation] >= len) goto noBody;
-			//typical case
-			*sepStr = [NSString stringWithFormat:@"%C%@%C", [firstLine characterAtIndex:[firstLine length] - 1], *sepStr, 
-					   [[self string] characterAtIndex:[self scanLocation]]];
+			if ([self scanLocation] >= len) {
+				*sepStr = @"";
+			} else {
+				//typical case
+				*sepStr = [NSString stringWithFormat:@"%C%@%C", [firstLine characterAtIndex:[firstLine length] - 1], *sepStr, 
+						   [[self string] characterAtIndex:[self scanLocation]]];
+				
+			}
 		}
 	} else if (sepStr) {
 		//is this the end of the string, or was the scanner's location previously somewhere in the middle?
 		if ([self scanLocation] >= len) {
-		noBody: //all one line
-			*sepStr = @"";
+			*sepStr = @"";  //all one line
 		} else {
 			//middle of the "title", probably because it is too long; grab the two surrounding characters
 			*sepStr = [NSString stringWithFormat:@"%C%C", [firstLine characterAtIndex:[firstLine length] - 1], 

@@ -604,17 +604,19 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
 	BOOL triedOnce = NO;
 	
 	if (!noteBodyFont) {
-		retry:
-		@try {
-			noteBodyFont = [[NSUnarchiver unarchiveObjectWithData:[defaults objectForKey:NoteBodyFontKey]] retain];
-		} @catch (NSException *e) {
-			NSLog(@"Error trying to unarchive default note body font (%@, %@)", [e name], [e reason]);
-		}
-		
-		if ((!noteBodyFont || ![noteBodyFont isKindOfClass:[NSFont class]]) && !triedOnce) {
-			triedOnce = YES;
-			[defaults removeObjectForKey:NoteBodyFontKey];
-			goto retry;
+		while (1) {
+			@try {
+				noteBodyFont = [[NSUnarchiver unarchiveObjectWithData:[defaults objectForKey:NoteBodyFontKey]] retain];
+			} @catch (NSException *e) {
+				NSLog(@"Error trying to unarchive default note body font (%@, %@)", [e name], [e reason]);
+			}
+			
+			if ((!noteBodyFont || ![noteBodyFont isKindOfClass:[NSFont class]]) && !triedOnce) {
+				triedOnce = YES;
+				[defaults removeObjectForKey:NoteBodyFontKey];
+			} else {
+				break;
+			}
 		}
 	}
 	

@@ -221,48 +221,48 @@
 	FSRef *notesFileRef = [fsRefValue pointerValue];
 	UInt64 fileSize = 0;
 	char *notesData = NULL;
-	OSStatus err = noErr, result = noErr;
+	OSStatus err = noErr;
 	if ((err = FSRefReadData(notesFileRef, BlockSizeForNotation(self), &fileSize, (void**)&notesData, forceReadMask)) != noErr)
-		return [NSNumber numberWithInt:err];
+		return @(err);
 	
 	FrozenNotation *frozenNotation = nil;
 	if (!fileSize) {
-		result = eofErr;
-		goto returnResult;
+		if (notesData) free(notesData);
+		return @(eofErr);
 	}
 	NSData *archivedNotation = [[[NSData alloc] initWithBytesNoCopy:notesData length:fileSize freeWhenDone:NO] autorelease];
 	@try {
 		frozenNotation = [NSKeyedUnarchiver unarchiveObjectWithData:archivedNotation];
 	} @catch (NSException *e) {
 		NSLog(@"(VERIFY) Error unarchiving notes and preferences from data (%@, %@)", [e name], [e reason]);
-		result = kCoderErr;
-		goto returnResult;
+		if (notesData) free(notesData);
+		return @(kCoderErr);
 	}
 	//unpack notes using the current NotationPrefs instance (not the just-unarchived one), with which we presumably just used to encrypt it
 	NSMutableArray *notesToVerify = [[frozenNotation unpackedNotesWithPrefs:notationPrefs returningError:&err] retain];	
 	if (noErr != err) {
-		result = err;
-		goto returnResult;
+		if (notesData) free(notesData);
+		return @(err);
 	}
 	//notes were unpacked--now roughly compare notesToVerify with allNotes, plus deletedNotes and notationPrefs
 	if (!notesToVerify || [notesToVerify count] != [allNotes count] || [[frozenNotation deletedNotes] count] != [deletedNotes  count] || 
 		[[frozenNotation notationPrefs] notesStorageFormat] != [notationPrefs notesStorageFormat] ||
 		[[frozenNotation notationPrefs] hashIterationCount] != [notationPrefs hashIterationCount]) {
-		result = kItemVerifyErr;
-		goto returnResult;
+		if (notesData) free(notesData);
+		return @(kItemVerifyErr);
 	}
 	unsigned int i;
 	for (i=0; i<[notesToVerify count]; i++) {
 		if ([[[notesToVerify objectAtIndex:i] contentString] length] != [[[allNotes objectAtIndex:i] contentString] length]) {
-			result = kItemVerifyErr;
-			goto returnResult;
+			if (notesData) free(notesData);
+			return @(kItemVerifyErr);
 		}
 	}
 	
 	NSLog(@"verified %lu notes in %g s", [notesToVerify count], (float)[[NSDate date] timeIntervalSinceDate:date]);
-returnResult:
+
 	if (notesData) free(notesData);
-	return [NSNumber numberWithInt:result];
+	return @(noErr);
 }
 
 
@@ -374,7 +374,6 @@ returnResult:
 						//in this case the WAL should be destroyed, re-initialized, and the recovered (and de-duped) notes added back
 						NSLog(@"Unable to flush recovered notes back to database");
 						databaseCouldNotBeFlushed = YES;
-						//goto bail;
 					}
 				}
 				//is there a way that recoverNextObject could fail that would indicate a failure with the file as opposed to simple non-recovery?
