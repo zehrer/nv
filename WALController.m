@@ -28,8 +28,6 @@
 #import "NSData_transformations.h"
 #import "NSMutableData+NVAESEncryption.h"
 
-extern CFHashCode CFHashBytes(UInt8 *bytes, CFIndex length) DEPRECATED_ATTRIBUTE;
-
 //file descriptor based for lower level access
 
 //also used as an ad-hoc lock file;
@@ -486,60 +484,55 @@ extern CFHashCode CFHashBytes(UInt8 *bytes, CFIndex length) DEPRECATED_ATTRIBUTE
     return object;
 }
 
-static CFStringRef SynchronizedNoteKeyDescription(const void *value) {
+static NSUInteger SynchronizedNoteKeySize(const void *o) {
+	return sizeof(CFUUIDBytes);
+}
 
-	return value ? (CFStringRef)[NSString uuidStringWithBytes:*(CFUUIDBytes*)value] : NULL;
-}
-static CFHashCode SynchronizedNoteHash(const void * o) {
-	
-    //CFUUIDBytes
-	return CFHashBytes((UInt8 *)o, sizeof(CFUUIDBytes));
-}
-static Boolean SynchronizedNoteIsEqual(const void *o, const void *p) {
-	
-	return (!memcmp((CFUUIDBytes*)o, (CFUUIDBytes*)p, sizeof(CFUUIDBytes)));
+static NSString *SynchronizedNoteDescription(const void *o) {
+	CFUUIDBytes *bytes = (CFUUIDBytes *)o;
+	CFUUIDRef UUID = CFUUIDCreateFromUUIDBytes(NULL, *bytes);
+	NSString *ret = (NSString *)CFUUIDCreateString(NULL, UUID);
+	CFRelease(UUID);
+	return [ret autorelease];
 }
 
 //we keep a table of the newest recovered notes, as any changed notes will almost certainly be written multiple times
 //throw away objects with LSNs lower than the current highest one for each UUID
 //and when recovery cannot progress any further, only the newest objects will be exchanged
 
-- (NSDictionary*)recoveredNotes {
+- (NSMapTable *)recoveredNotes {
     id <SynchronizedNote> obj = nil;
 	CFUUIDBytes *objUUIDBytes = NULL;
-    
-    CFDictionaryKeyCallBacks keyCallbacks = kCFTypeDictionaryKeyCallBacks;
-    keyCallbacks.equal = SynchronizedNoteIsEqual;
-    keyCallbacks.hash = SynchronizedNoteHash;
-	keyCallbacks.copyDescription = SynchronizedNoteKeyDescription;
-	keyCallbacks.retain = NULL;
-	keyCallbacks.release = NULL;
-    
-    CFMutableDictionaryRef recoveredNotes = CFDictionaryCreateMutable(kCFAllocatorDefault, 0, &keyCallbacks, &kCFTypeDictionaryValueCallBacks);
-    
+
+	NSPointerFunctions *keyFunctions = [NSPointerFunctions pointerFunctionsWithOptions:NSPointerFunctionsOpaqueMemory | NSPointerFunctionsStructPersonality];
+	keyFunctions.sizeFunction = SynchronizedNoteKeySize;
+	keyFunctions.descriptionFunction = SynchronizedNoteDescription;
+	NSPointerFunctions *valueFunctions = [NSPointerFunctions pointerFunctionsWithOptions:NSPointerFunctionsStrongMemory|NSPointerFunctionsObjectPersonality];
+	NSMapTable *recoveredNotesTable = [[NSMapTable alloc] initWithKeyPointerFunctions:keyFunctions valuePointerFunctions:valueFunctions capacity:10];
+	
     do {
 		if ((obj = [self recoverNextObject])) {
-			
 			if ([obj conformsToProtocol:@protocol(SynchronizedNote)]) {
 				objUUIDBytes = [obj uniqueNoteIDBytes];
 				id <SynchronizedNote> foundNote = nil;
 				
 				//if the note already exists, then insert this note only if it's newer, and always insert it if it doesn't exist
-				if (CFDictionaryGetValueIfPresent(recoveredNotes, (const void *)objUUIDBytes, (const void **)&foundNote)) {
+				if (NSMapMember(recoveredNotesTable, objUUIDBytes, NULL, (void **)&foundNote)) {
 					
 					//note is already here, overwrite it only if our LSN is greater or equal
 					if (foundNote && ![foundNote youngerThanLogObject:obj])
 						continue;
+					
 				}
-				CFDictionarySetValue(recoveredNotes, (const void *)objUUIDBytes, (const void *)obj);
+				
+				NSMapInsert(recoveredNotesTable, objUUIDBytes, obj);
 			} else {
 				NSLog(@"object of class %@ recovered that doesn't conform to SynchronizedNote protocol", [(NSObject*)obj className]);
 			}
 		}
     } while (obj); //|| this note failed because of a deserialization problem, but everything else was fine
-    
-    
-	return [(NSDictionary*)recoveredNotes autorelease];
+	
+	return [recoveredNotesTable autorelease];
 }
 
 @end

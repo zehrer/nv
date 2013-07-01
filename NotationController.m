@@ -364,7 +364,7 @@ returnResult:
 #endif
 				
 				BOOL databaseCouldNotBeFlushed = NO;
-				NSDictionary *recoveredNotes = [walReader recoveredNotes];
+				NSMapTable *recoveredNotes = [walReader recoveredNotes];
 				if ([recoveredNotes count] > 0) {
 					[self processRecoveredNotes:recoveredNotes];
 					
@@ -401,7 +401,7 @@ returnResult:
 						//this allows for an ever-growing journal in the case of broken database serialization
 						//it should not be an acceptable condition for permanent use; hopefully an update would come soon
 						//warn the user, perhaps
-						[walWriter writeNoteObjects:[recoveredNotes allValues]];
+						[walWriter writeNoteObjects:NSAllMapTableValues(recoveredNotes)];
 					}
 					[self refilterNotes];
 				}
@@ -423,74 +423,58 @@ returnResult:
 }
 
 //stick the newest unique recovered notes into allNotes
-- (void)processRecoveredNotes:(NSDictionary*)dict {
-    const unsigned int vListBufCount = 16;
-    void* keysBuffer[vListBufCount], *valuesBuffer[vListBufCount];
-    NSUInteger i, count = [dict count];
-    
-    void **keys = (count <= vListBufCount) ? keysBuffer : (void **)malloc(sizeof(void*) * count);
-    void **values = (count <= vListBufCount) ? valuesBuffer : (void **)malloc(sizeof(void*) * count);
-    
-    if (keys && values && dict) {
-        CFDictionaryGetKeysAndValues((CFDictionaryRef)dict, (const void **)keys, (const void **)values);
+- (void)processRecoveredNotes:(NSMapTable *)table {
+	NSMapEnumerator enumerator = NSEnumerateMapTable(table);
+	CFUUIDBytes *objUUIDBytes = NULL;
+	id<SynchronizedNote> obj = nil;
 	
-		for (i=0; i<count; i++) {
+	while (NSNextMapEnumeratorPair(&enumerator, (void **)&objUUIDBytes, (void **)&obj)) {
+		NSUInteger existingNoteIndex = [allNotes indexOfNoteWithUUIDBytes:objUUIDBytes];
+		
+		if ([obj isKindOfClass:[DeletedNoteObject class]]) {
 			
-			CFUUIDBytes *objUUIDBytes = (CFUUIDBytes *)keys[i];
-			id<SynchronizedNote> obj = (id)values[i];
-			
-			NSUInteger existingNoteIndex = [allNotes indexOfNoteWithUUIDBytes:objUUIDBytes];
-			
-			if ([obj isKindOfClass:[DeletedNoteObject class]]) {
+			if (existingNoteIndex != NSNotFound) {
 				
-				if (existingNoteIndex != NSNotFound) {
-					
-					NoteObject *existingNote = [allNotes objectAtIndex:existingNoteIndex];
-					if ([existingNote youngerThanLogObject:obj]) {
-						NSLog(@"got a newer deleted note %@", obj);
-						//except that normally the undomanager doesn't exist by this point			
-						[self _registerDeletionUndoForNote:existingNote];
-						[allNotes removeObjectAtIndex:existingNoteIndex];
-						//try to use use the deleted note object instead of allowing _addDeletedNote: to make a new one, to preserve any changes to the syncMD
-						[self _addDeletedNote:obj];
-						notesChanged = YES;
-					} else {
-						NSLog(@"got an older deleted note %@", obj);
-					}
-				} else {
-					NSLog(@"got a deleted note with a UUID that doesn't match anything in allNotes, adding to deletedNotes only");
-					//must remember that this was deleted; b/c it could've been added+synced and then deleted before syncing the deletion
-					//and it might not be in allNotes because the WALreader would have already coalesced by UUID, and so the next sync might re-add the note
+				NoteObject *existingNote = [allNotes objectAtIndex:existingNoteIndex];
+				if ([existingNote youngerThanLogObject:obj]) {
+					NSLog(@"got a newer deleted note %@", obj);
+					//except that normally the undomanager doesn't exist by this point
+					[self _registerDeletionUndoForNote:existingNote];
+					[allNotes removeObjectAtIndex:existingNoteIndex];
+					//try to use use the deleted note object instead of allowing _addDeletedNote: to make a new one, to preserve any changes to the syncMD
 					[self _addDeletedNote:obj];
-				}
-			} else if (existingNoteIndex != NSNotFound) {
-				
-				if ([[allNotes objectAtIndex:existingNoteIndex] youngerThanLogObject:obj]) {
-					// NSLog(@"replacing old note with new: %@", [[(NoteObject*)obj contentString] string]);
-					
-					[(NoteObject*)obj setDelegate:self];
-					[(NoteObject*)obj updateLabelConnectionsAfterDecoding];
-					[allNotes replaceObjectAtIndex:existingNoteIndex withObject:obj];
 					notesChanged = YES;
 				} else {
-					// NSLog(@"note %@ is not being replaced because its LSN is %u, while the old note's LSN is %u", 
-					//  [[(NoteObject*)obj contentString] string], [(NoteObject*)obj logSequenceNumber], [[allNotes objectAtIndex:existingNoteIndex] logSequenceNumber]);
+					NSLog(@"got an older deleted note %@", obj);
 				}
 			} else {
-				//NSLog(@"Found new note: %@", [(NoteObject*)obj contentString]);
-				
-				[self _addNote:obj];
-				[(NoteObject*)obj updateLabelConnectionsAfterDecoding];
+				NSLog(@"got a deleted note with a UUID that doesn't match anything in allNotes, adding to deletedNotes only");
+				//must remember that this was deleted; b/c it could've been added+synced and then deleted before syncing the deletion
+				//and it might not be in allNotes because the WALreader would have already coalesced by UUID, and so the next sync might re-add the note
+				[self _addDeletedNote:obj];
 			}
+		} else if (existingNoteIndex != NSNotFound) {
+			
+			if ([[allNotes objectAtIndex:existingNoteIndex] youngerThanLogObject:obj]) {
+				// NSLog(@"replacing old note with new: %@", [[(NoteObject*)obj contentString] string]);
+				
+				[(NoteObject*)obj setDelegate:self];
+				[(NoteObject*)obj updateLabelConnectionsAfterDecoding];
+				[allNotes replaceObjectAtIndex:existingNoteIndex withObject:obj];
+				notesChanged = YES;
+			} else {
+				// NSLog(@"note %@ is not being replaced because its LSN is %u, while the old note's LSN is %u",
+				//  [[(NoteObject*)obj contentString] string], [(NoteObject*)obj logSequenceNumber], [[allNotes objectAtIndex:existingNoteIndex] logSequenceNumber]);
+			}
+		} else {
+			//NSLog(@"Found new note: %@", [(NoteObject*)obj contentString]);
+			
+			[self _addNote:obj];
+			[(NoteObject*)obj updateLabelConnectionsAfterDecoding];
 		}
-    } else {
-        NSLog(@"_makeChangesInDictionary: Could not get values or keys!");
-    }
-    
-    if (keys && keys != keysBuffer)
-        free(keys);
-    if (values && values != valuesBuffer)
-        free(values);
+	}
+	
+	NSEndMapTableEnumeration(&enumerator);
 }
 
 - (void)closeJournal {

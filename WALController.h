@@ -75,6 +75,6 @@ typedef union {
 
 - (id)initWithParentFSRep:(const char*)path encryptionKey:(NSData*)key;
 - (id <SynchronizedNote>)recoverNextObject;
-- (NSDictionary*)recoveredNotes;
+- (NSMapTable *)recoveredNotes;
 
 @end

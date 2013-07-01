@@ -106,7 +106,7 @@ typedef struct _NoteCatalogEntry {
 - (BOOL)aliasNeedsUpdating;
 - (NSData*)aliasDataForNoteDirectory;
 - (OSStatus)_readAndInitializeSerializedNotes;
-- (void)processRecoveredNotes:(NSDictionary*)dict;
+- (void)processRecoveredNotes:(NSMapTable *)table;
 - (BOOL)initializeJournaling;
 - (void)handleJournalError;
 - (void)checkJournalExistence;
