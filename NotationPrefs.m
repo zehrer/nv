@@ -35,15 +35,17 @@
 
 #define KEYCHAIN_SERVICENAME "Notational Velocity"
 
-#define INIT_DICT_ACCT() NSMutableDictionary *accountDict = ServiceAccountDictInit(self, serviceName)
-
 NSString *NotationPrefsDidChangeNotification = @"NotationPrefsDidChangeNotification";
 
 @implementation NotationPrefs
 
-NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serviceName) {
+static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serviceName) {
 	NSMutableDictionary *accountDict = [prefs->syncServiceAccounts objectForKey:serviceName];
-	if (!accountDict) [prefs->syncServiceAccounts setObject:(accountDict = [[NSMutableDictionary alloc] init]) forKey:serviceName];
+	if (!accountDict) {
+		accountDict = [[NSMutableDictionary alloc] init];
+		[prefs->syncServiceAccounts setObject:accountDict forKey:serviceName];
+		[accountDict release];
+	}
 	return accountDict;
 }
 
@@ -291,7 +293,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 - (NSString*)syncPasswordForServiceName:(NSString*)serviceName {
 	//if non-existing, fetch from keychain and cache
 	
-	INIT_DICT_ACCT();
+	NSMutableDictionary *accountDict = ServiceAccountDictInit(self, serviceName);
 	
 	NSString *password = [accountDict objectForKey:@"password"];
 	if (password) return password;
@@ -692,7 +694,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 }
 
 - (void)setSyncEnabled:(BOOL)isEnabled forService:(NSString*)serviceName {
-	INIT_DICT_ACCT();
+	NSMutableDictionary *accountDict = ServiceAccountDictInit(self, serviceName);
 	
 	if ([self syncServiceIsEnabled:serviceName] != isEnabled) {
 		[accountDict setObject:[NSNumber numberWithBool:isEnabled] forKey:@"enabled"];
@@ -703,7 +705,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 }
 
 - (void)setSyncFrequency:(NSUInteger)frequencyInMinutes forService:(NSString*)serviceName {
-	INIT_DICT_ACCT();
+	NSMutableDictionary *accountDict = ServiceAccountDictInit(self, serviceName);
 	
 	if ([self syncFrequencyInMinutesForServiceName:serviceName] != frequencyInMinutes) {
 		[accountDict setObject:@(frequencyInMinutes) forKey:@"frequency"];
@@ -713,7 +715,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 }
 
 - (void)setSyncShouldMerge:(BOOL)shouldMerge inCurrentAccountForService:(NSString*)serviceName {
-	INIT_DICT_ACCT();
+	NSMutableDictionary *accountDict = ServiceAccountDictInit(self, serviceName);
 	
 	if ([self syncNotesShouldMergeForServiceName:serviceName] != shouldMerge) {
 		NSString *username = [accountDict objectForKey:@"username"];
@@ -733,7 +735,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 
 - (void)setSyncUsername:(NSString*)username forService:(NSString*)serviceName {
 	
-	INIT_DICT_ACCT();
+	NSMutableDictionary *accountDict = ServiceAccountDictInit(self, serviceName);
 	
 	if (![[accountDict objectForKey:@"username"] isEqualToString:username]) {
 		[accountDict setObject:username forKey:@"username"];
@@ -751,7 +753,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 - (void)setSyncPassword:(NSString*)password forService:(NSString*)serviceName {
 	//a username _MUST_ already exist in the account dict in order for the password to be saved in the keychain
 	
-	INIT_DICT_ACCT();
+	NSMutableDictionary *accountDict = ServiceAccountDictInit(self, serviceName);
 	
 	if (![[accountDict objectForKey:@"password"] isEqualToString:password]) {
 		[accountDict setObject:password forKey:@"password"];
@@ -796,7 +798,7 @@ NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serv
 }
 
 - (void)removeSyncPasswordForService:(NSString*)serviceName {
-	INIT_DICT_ACCT();
+	NSMutableDictionary *accountDict = ServiceAccountDictInit(self, serviceName);
 	
 	if ([accountDict objectForKey:@"password"]) {
 		[accountDict removeObjectForKey:@"password"];

@@ -47,6 +47,7 @@ NSString *ExternalEditorsChangedNotification = @"ExternalEditorsChanged";
 		if (!bundleIdentifier) {
 			if (!(bundleIdentifier = [[[NSBundle bundleWithPath:[aURL path]] bundleIdentifier] copy])) {
 				NSLog(@"initWithBundleID:resolvedURL: URL does not seem to point to a valid bundle");
+				[self release];
 				return nil;
 			}
 		}

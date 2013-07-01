@@ -60,8 +60,6 @@ extern NSString *NotationPrefsDidChangeNotification;
 	NSData *masterKey;
 }
 
-NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serviceName);
-
 + (int)appVersion;
 + (NSMutableArray*)defaultTypeStringsForFormat:(int)formatID;
 + (NSMutableArray*)defaultPathExtensionsForFormat:(int)formatID;

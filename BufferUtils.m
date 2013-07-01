@@ -71,10 +71,17 @@ char *replaceString(char *oldString, const char *newString) {
 
 
 void _ResizeBuffer(void ***buffer, NSUInteger objCount, NSUInteger *bufObjCount, NSUInteger elemSize) {
-	assert(buffer && bufObjCount);
+	assert(buffer && bufObjCount && elemSize);
 	
 	if (*bufObjCount < objCount || !*buffer) {
-		*buffer = (void **)realloc(*buffer, elemSize * objCount);
+		size_t size = elemSize * objCount;
+		if (size == 0) {
+			free(*buffer);
+			*buffer = NULL;
+		} else {
+			*buffer = (void **)realloc(*buffer, elemSize * objCount);
+		}
+		
 		*bufObjCount = objCount;
 	}
 	
@@ -359,6 +366,8 @@ void CopyPerDiskInfoGroupsToOrder(PerDiskInfo **flippedGroups, NSUInteger *exist
 	
 	ResizeArray(flippedGroups, count, existingCount);
 	PerDiskInfo *newGroups = *flippedGroups;
+	
+	if (newGroups == NULL) return;
 		
 	//does this need to flip the entire struct, too?
 	if (toHostOrder) {

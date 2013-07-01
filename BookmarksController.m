@@ -54,6 +54,7 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 - (id)initWithNoteObject:(NoteObject*)aNote searchString:(NSString*)aString {
 	if (!aNote) {
 		NSLog(@"NoteBookmark init: supplied nil note");
+		[self release];
 		return nil;
 	}
     
@@ -64,6 +65,7 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 		CFUUIDBytes *bytes = [aNote uniqueNoteIDBytes];
 		if (!bytes) {
 			NSLog(@"NoteBookmark init: no cfuuidbytes pointer from note %@", titleOfNote(aNote));
+			[self release];
 			return nil;
 		}
 		uuidBytes = *bytes;
