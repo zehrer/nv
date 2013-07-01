@@ -443,8 +443,15 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t nu
 	NSUInteger aSize = [removedEntries count], bSize = [addedEntries count];
     
     //sort on nodeID here
-	[addedEntries sortUnstableUsingFunction:compareCatalogValueNodeID];
-	[removedEntries sortUnstableUsingFunction:compareNodeID];
+	[addedEntries sortWithOptions:NSSortConcurrent usingComparator:^(NSValue *obj1, NSValue *obj2) {
+		NoteCatalogEntry* aEntry = (NoteCatalogEntry*)[obj1 pointerValue];
+		NoteCatalogEntry* bEntry = (NoteCatalogEntry*)[obj2 pointerValue];
+		return NVComparisonResult(aEntry->nodeID - bEntry->nodeID);
+	}];
+	
+	[removedEntries sortWithOptions:NSSortConcurrent usingComparator:^(NoteObject *obj1, NoteObject *obj2) {
+		return NVComparisonResult(fileNodeIDOfNote(obj1) - fileNodeIDOfNote(obj2));
+	}];
 	
 	NSMutableArray *hfsAddedEntries = [NSMutableArray array];
 	NSMutableArray *hfsRemovedEntries = [NSMutableArray array];

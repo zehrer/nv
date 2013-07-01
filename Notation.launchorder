@@ -305,7 +305,6 @@ _memcmp
 -[NotationController setSortColumn]
 -[NotationController sortAndRedisplayNotes]
 -[NoteAttributeColumn reverseSortFunction]
--[NSMutableArray(Sorting) sortStableUsingFunctionusingBufferofSize]
 _ResizeBuffer
 _titleOfNote
 _compareDateCreatedReverse

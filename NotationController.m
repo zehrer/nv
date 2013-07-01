@@ -62,8 +62,6 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		notesListDataSource = [[FastListDataSource alloc] init];
 		deletionManager = [[DeletionManager alloc] initWithNotationController:self];
 		
-		allNotesBuffer = NULL;
-		allNotesBufferSize = 0;
 		manglingString = currentFilterStr = NULL;
 		lastWordInFilterStr = 0;
 		selectedNoteIndex = NSNotFound;

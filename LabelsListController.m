@@ -80,8 +80,10 @@
 	
 	NSMutableArray *objs = [[[allLabels allObjects] mutableCopy] autorelease];
 	NSMutableArray *titles = [NSMutableArray arrayWithCapacity:[allLabels count]];
-
-	[objs sortUnstableUsingFunction:(NSInteger (*)(id *, id *))compareLabel];
+	
+	[objs sortWithOptions:NSSortConcurrent usingComparator:^(LabelObject *obj1, LabelObject *obj2) {
+		return [titleOfLabel(obj1) caseInsensitiveCompare:titleOfLabel(obj2)];
+	}];
 	
 	CFStringRef prefix = (CFStringRef)prefixString;
 	NSUInteger i, titleLen, j = 0, shortestTitleLen = UINT_MAX;

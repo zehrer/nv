@@ -23,7 +23,7 @@
 
 #import <CoreServices/CoreServices.h>
 
-extern inline NSComparisonResult NVComparisonResult(NSInteger result)
+extern inline NSComparisonResult NVComparisonResult(NSInteger result);
 
 typedef struct _NoteCatalogEntry {
     UTCDateTime lastModified;

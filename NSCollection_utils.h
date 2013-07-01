@@ -54,9 +54,3 @@
 - (NSArray*)objectsFromDictionariesForKey:(id)aKey;
 
 @end
-
-@interface NSMutableArray (Sorting)
-
-- (void)sortUnstableUsingFunction:(NSInteger (*)(id *, id *))compare;
-@end
-
