@@ -50,6 +50,7 @@
 #import "NSFileManager+DirectoryLocations.h"
 #import "nvaDevConfig.h"
 #import "NSString_CustomTruncation.h"
+#import "WordCountToken.h"
 #import <Sparkle/SUUpdater.h>
 
 #define kSparkleUpdateFeedForLions @"http://abyss.designheresy.com/nvalt2/nvalt2main.xml"

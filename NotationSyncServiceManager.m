@@ -20,6 +20,7 @@
 #import "SyncServiceSessionProtocol.h"
 #import "SyncSessionController.h"
 #import "NotationPrefs.h"
+#import "NoteObject.h"
 
 @implementation NotationController (NotationSyncServiceManager)
 

@@ -21,7 +21,7 @@
 #import "NSString_NV.h"
 #import "NVPasswordGenerator.h"
 #import "ETClipView.h"
-//#import "NVTextFinderAdditions.h"
+#import "NoteObject.h"
 
 #include <CoreServices/CoreServices.h>
 #include <Carbon/Carbon.h>
