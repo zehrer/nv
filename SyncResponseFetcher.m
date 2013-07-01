@@ -198,7 +198,7 @@
 	
 	if (!anErrString) [successInvocation invoke];
 	
-	[successInvocation autorelease];
+	[successInvocation release];
 	successInvocation = nil;
 	
 	[lastErrorMessage autorelease];
@@ -206,12 +206,12 @@
 	
 	[receivedData setLength:0];
 	
-	[urlConnection autorelease];
+	[urlConnection release];
 	urlConnection = nil;
 	isRunning = NO;
 	
-	[self autorelease];
-	[delegate autorelease];
+	[delegate release];
+	[self release];
 }
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {

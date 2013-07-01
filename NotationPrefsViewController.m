@@ -438,7 +438,7 @@ enum {VERIFY_NOT_ATTEMPTED, VERIFY_FAILED, VERIFY_IN_PROGRESS, VERIFY_SUCCESS};
 
 - (void)cancelLoginVerifier {
 	[loginVerifier cancel];
-	[loginVerifier autorelease];
+	[loginVerifier release];
 	loginVerifier = nil;
 	[self setVerificationStatus:VERIFY_NOT_ATTEMPTED withString:@""];
 	

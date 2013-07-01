@@ -61,7 +61,7 @@ static ODBEditor	*_sharedODBEditor;
 		UInt32  packageCreator = 0;
 		
 		if (_sharedODBEditor != nil) {
-			[self autorelease];
+			[self release];
 			[NSException raise: NSInternalInconsistencyException format: @"ODBEditor is a singleton - use [ODBEditor sharedODBEditor]"];
 			return nil;
 		}

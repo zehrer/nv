@@ -205,7 +205,7 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 																	 delegate:nil format:SingleDatabaseFormat labels:nil];
 				
 				[receptionDelegate noteImporter:self importedNotes:[NSArray arrayWithObject:noteObject]];
-				[noteObject autorelease];
+				[noteObject release];
 			}
 		}			
 		
@@ -321,7 +321,7 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
                 } else {
                     NSLog(@"Couldn't get entire doc selection for PDF");
                 }
-                [doc autorelease];
+                [doc release];
             } else {
                 NSLog(@"Couldn't parse data into PDF");
             }
@@ -365,16 +365,17 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 			prefixedSourceLength = [[attributedStringFromData prefixWithSourceString:sourceIdentifierString] length];
 		[attributedStringFromData santizeForeignStylesForImporting];
 		
-		[attributedStringFromData autorelease];
+		NSUInteger attributedStringLength = attributedStringFromData.length;
 		
 		//transfer any openmeta tags associated with this file as tags for the new note
 		NSArray *openMetaTags = [[NSFileManager defaultManager] getOpenMetaTagsAtFSPath:[filename fileSystemRepresentation]];
 		
 		//we do not also use filename as uniqueFilename, as we are only importing--not taking ownership
 		NoteObject *noteObject = [[NoteObject alloc] initWithNoteBody:attributedStringFromData title:title delegate:nil 
-															   format:SingleDatabaseFormat labels:[openMetaTags componentsJoinedByString:@" "]];				
+															   format:SingleDatabaseFormat labels:[openMetaTags componentsJoinedByString:@" "]];
+		[attributedStringFromData release];
 		if (noteObject) {
-			if (bodyLoc > 0 && [attributedStringFromData length] >= bodyLoc + prefixedSourceLength) [noteObject setSelectedRange:NSMakeRange(prefixedSourceLength, bodyLoc)];
+			if (bodyLoc > 0 && attributedStringLength >= bodyLoc + prefixedSourceLength) [noteObject setSelectedRange:NSMakeRange(prefixedSourceLength, bodyLoc)];
 			if (shouldGrabCreationDates) {
 				[noteObject setDateAdded:CFDateGetAbsoluteTime((CFDateRef)[attributes objectForKey:NSFileCreationDate])];
 			}

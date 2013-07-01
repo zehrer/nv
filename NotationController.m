@@ -293,7 +293,7 @@
 			return kCoderErr;
 		}
 	
-		[archivedNotation autorelease];
+		[archivedNotation release];
 	}
 	
 	

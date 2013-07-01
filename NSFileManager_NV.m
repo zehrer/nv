@@ -51,7 +51,7 @@
 	id outObject = [NSPropertyListSerialization propertyListFromData:nsData mutabilityOption:kCFPropertyListImmutable format:&formatFound errorDescription:&errorString];
 	if (errorString) {
 		NSLog(@"%@: error deserializing labels: %@", NSStringFromSelector(_cmd), errorString);
-		[errorString autorelease];
+		[errorString release];
 		return nil;
 	}
 	
@@ -76,7 +76,7 @@
 		dataToSendNS = [NSPropertyListSerialization dataFromPropertyList:plistObject format:kCFPropertyListBinaryFormat_v1_0 errorDescription:&errorString];
 		if (errorString) {
 			NSLog(@"%@: error serializing labels: %@", NSStringFromSelector(_cmd), errorString);
-			[errorString autorelease];
+			[errorString release];
 			return NO;
 		}
 	}

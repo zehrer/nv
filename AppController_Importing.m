@@ -124,12 +124,14 @@
 		if (pboardString) newString = [[NSMutableAttributedString alloc] initWithString:pboardString];
 	}
 	
-	[newString autorelease];
-	if ([newString length] > 0) {
+	if (newString) {
 		[newString removeAttachments];
 		
-		if (hasRTFData && ![prefsController pastePreservesStyle]) //fallback scenario
-			newString = [[[NSMutableAttributedString alloc] initWithString:[newString string]] autorelease];
+		if (hasRTFData && ![prefsController pastePreservesStyle]) {
+			NSString *contents = [[newString.string retain] autorelease];
+			[newString release];
+			newString = [[NSMutableAttributedString alloc] initWithString:contents];
+		}
 		
 		NSUInteger bodyLoc = 0, prefixedSourceLength = 0;
 		NSString *noteTitle = [[newString string] syntheticTitleAndSeparatorWithContext:NULL bodyLoc:&bodyLoc maxTitleLen:36];
@@ -139,12 +141,17 @@
 		}
 		[newString santizeForeignStylesForImporting];
 		
-		NoteObject *note = [[[NoteObject alloc] initWithNoteBody:newString title:noteTitle delegate:notationController
-														  format:[notationController currentNoteStorageFormat] labels:nil] autorelease];
-		if (bodyLoc > 0 && [newString length] >= bodyLoc + prefixedSourceLength) [note setSelectedRange:NSMakeRange(prefixedSourceLength, bodyLoc)];
-		[notationController addNewNote:note];
+		NoteObject *note = [[NoteObject alloc] initWithNoteBody:newString title:noteTitle delegate:notationController
+														 format:[notationController currentNoteStorageFormat] labels:nil];
 		
-		return note != nil;
+		[newString release];
+		
+		if (note) {
+			if (bodyLoc > 0 && [newString length] >= bodyLoc + prefixedSourceLength) [note setSelectedRange:NSMakeRange(prefixedSourceLength, bodyLoc)];
+			[notationController addNewNote:note];
+			[note release];
+			return YES;
+		}
 	}
 	
 	return NO;

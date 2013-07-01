@@ -139,7 +139,7 @@ static animationData* currentAnimation = NULL;
 }
 
 - (void)setIdentifier:(NSString*)aString {
-	[identifier autorelease];
+	[identifier release];
 	identifier = aString?[aString retain]:@"";
 }
 

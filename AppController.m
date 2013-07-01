@@ -431,7 +431,7 @@ void outletObjectAwoke(id sender) {
 			if (!location) { //fscopyaliasinfo sucks
 				FSRef locationRef;
 				if ([aliasData fsRefAsAlias:&locationRef] && LSCopyDisplayNameForRef(&locationRef, (CFStringRef*)&location) == noErr) {
-					[location autorelease];
+					[location release];
 				} else {
 					location = NSLocalizedString(@"its current location",nil);
 				}
@@ -523,6 +523,7 @@ void outletObjectAwoke(id sender) {
 						scrollOffsetForTableView:notesTableView sender:self];
 			//if we already had a notation, appController should already be bookmarksController's delegate
 			[[prefsController bookmarksController] performSelector:@selector(updateBookmarksUI) withObject:nil afterDelay:0.0];
+			[oldNotation release];
 		}
 		[notationController setSortColumn:[notesTableView noteAttributeColumnForIdentifier:[prefsController sortedTableColumnKey]]];
 		[notesTableView setDataSource:[notationController notesListDataSource]];
@@ -559,8 +560,6 @@ void outletObjectAwoke(id sender) {
 		}
 		
 		[field selectText:nil];
-		
-		[oldNotation autorelease];
     }
 }
 
@@ -933,7 +932,7 @@ void outletObjectAwoke(id sender) {
 - (IBAction)importNotes:(id)sender {
 	AlienNoteImporter *importer = [[AlienNoteImporter alloc] init];
 	[importer importNotesFromDialogAroundWindow:window receptionDelegate:self];
-	[importer autorelease];
+	[importer release];
 }
 
 - (void)settingChangedForSelectorString:(NSString*)selectorString {

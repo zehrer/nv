@@ -144,7 +144,7 @@
 	[[bodyTextFontField cell] setAttributedStringValue:attributedString];
     [bodyTextFontField updateCell:[bodyTextFontField cell]];
 	
-	[attributedString autorelease];
+	[attributedString release];
 	
 }
 

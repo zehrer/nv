@@ -532,18 +532,18 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 }
 
 - (void)_clearTokenAndDependencies {
-	[listFetcher autorelease];
+	[listFetcher release];
 	listFetcher = nil;
-	[changesFetcher autorelease];
+	[changesFetcher release];
 	changesFetcher = nil;
-	[simperiumToken autorelease];
+	[simperiumToken release];
 	simperiumToken = nil;
 }
 
 - (void)clearErrors {
 	//effectively reset what the session knows about itself, in preparation for another sync
 	lastIndexAuthFailed = NO;
-	[lastErrorString autorelease];
+	[lastErrorString release];
 	lastErrorString = nil;
 	lastSyncedTime = 0.0;
 	lastCV = nil;
@@ -615,7 +615,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		
 		[collector startCollectingWithCallback:[notesToMerge count] ? 
 		 @selector(addedEntriesToMergeCollectorDidFinish:) : @selector(addedEntryCollectorDidFinish:) collectionDelegate:self];
-		[collector autorelease];
+		[collector release];
 	}
 }
 
@@ -655,7 +655,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		SimplenoteEntryCollector *collector = [[SimplenoteEntryCollector alloc] initWithEntriesToCollect:entries simperiumToken:simperiumToken];
 		[self _registerCollector:collector];
 		[collector startCollectingWithCallback:@selector(changedEntryCollectorDidFinish:) collectionDelegate:self];
-		[collector autorelease];
+		[collector release];
 	}
 }
 
@@ -985,7 +985,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 			
 			[self _registerCollector:modifier];
 			[modifier startCollectingWithCallback:callback collectionDelegate:self];
-			[modifier autorelease];
+			[modifier release];
 		}
 	}
 }
@@ -1115,7 +1115,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 			NSLog(@"changes fetcher error code: %ld", (long)[fetcher statusCode]);
 			[lastCV release];
 			lastCV = nil;
-			[changesFetcher autorelease];
+			[changesFetcher release];
 			changesFetcher = nil;
 			return;
 		}
@@ -1150,7 +1150,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		[self _updateSyncTime];
 		[delegate syncSession:self receivedPartialNoteList:entries withRemovedList:removedEntries];
 		if ([entries count] || [removedEntries count]) {
-			[changesFetcher autorelease];
+			[changesFetcher release];
 			changesFetcher = nil;
 		}
 
@@ -1192,7 +1192,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 			}
 		}
 
-		[lastErrorString autorelease];
+		[lastErrorString release];
 		lastErrorString = nil;
 		
 		reachabilityFailed = NO;
@@ -1218,7 +1218,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		//we can no longer rely on the URL for listFetcher remaining constant,
 		//so we don't reuse it. (we could consider extending SyncResponseFetcher to support
 		//dynamic URLS instead)
-		[listFetcher autorelease];
+		[listFetcher release];
 		listFetcher = nil;
 		[indexMark release];
 		indexMark = [[responseDictionary objectForKey:@"mark"] copy];
@@ -1227,7 +1227,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		//we need to start over trying to fetch the index
 		if (lastCV && [lastCV isEqualToString:[responseDictionary objectForKey:@"current"]] == NO) {
 			//someone has made a change to notes since we started fetching index, start over
-			[indexEntryBuffer autorelease];
+			[indexEntryBuffer release];
 			indexEntryBuffer = nil;
 			[indexMark release];
 			indexMark = nil;
@@ -1242,7 +1242,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		} else {
 			[self _updateSyncTime];
 			[delegate syncSession:self receivedFullNoteList:indexEntryBuffer];
-			[indexEntryBuffer autorelease];
+			[indexEntryBuffer release];
 			indexEntryBuffer = nil;
 		}
 	} else {
