@@ -17,7 +17,6 @@
 
 #import "NotesTableView.h"
 #import "AppController_Importing.h"
-#import "FastListDataSource.h"
 #import "NoteAttributeColumn.h"
 #import "ExternalEditorListController.h"
 #import "GlobalPrefs.h"
@@ -380,7 +379,7 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 	ctx.verticalDistanceToPivotRow = 0;
 	
 	if (pivotRow < nRows) {
-		if ((ctx.nonRetainedPivotObject = [(FastListDataSource*)[self dataSource] immutableObjects][pivotRow])) {
+		if ((ctx.nonRetainedPivotObject = [(NotationController *)[self dataSource] noteObjectAtFilteredIndex:pivotRow])) {
 			ctx.verticalDistanceToPivotRow = [self distanceFromRow:pivotRow forVisibleArea:visibleRect];
 		}
 	}
@@ -390,7 +389,7 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 - (void)setViewingLocation:(ViewLocationContext)ctx {
 	if (ctx.nonRetainedPivotObject) {
 		
-		NSInteger pivotIndex = [(FastListDataSource*)[self dataSource] indexOfObjectIdenticalTo:ctx.nonRetainedPivotObject];
+		NSInteger pivotIndex = [(NotationController*)[self dataSource] indexInFilteredListForNoteIdenticalTo:ctx.nonRetainedPivotObject];
 		if (pivotIndex != NSNotFound) {
 			//figure out how to determine top/bottom condition:
 			//if pivotRow was 0 or nRows-1, and pivotIndex is not either, then scroll maximally in the nearest direction?
@@ -742,7 +741,7 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 	
 	_CopyItemWithSelectorFromMenu(theMenu, notesMenu, @selector(printNote:), target, -1);
 	
-	NSArray *notes = [(FastListDataSource*)[self dataSource] objectsAtFilteredIndexes:[self selectedRowIndexes]];
+	NSArray *notes = [(NotationController*)[self dataSource] notesAtIndexes:[self selectedRowIndexes]];
 	[notes addMenuItemsForURLsInNotes:theMenu];
 	
 	return theMenu;
@@ -819,7 +818,7 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 			selectedRows = [self selectedRowIndexes];
 		}
 		
-        NSArray *notes = [(FastListDataSource*)[self dataSource] objectsAtFilteredIndexes:selectedRows];
+        NSArray *notes = [(NotationController*)[self dataSource] notesAtIndexes:selectedRows];
 		NSMutableArray *paths = [NSMutableArray arrayWithCapacity:[notes count]];
 		unsigned int i;
 		for (i=0;i<[notes count]; i++) {
@@ -1175,7 +1174,7 @@ enum { kNext_Tag = 'j', kPrev_Tag = 'k' };
 	
 	//this is way easier and faster than a custom formatter! just change the title while we're editing!
 	if (isTitleCol || tagsInTitleColumn) {
-		NoteObject *note = [(FastListDataSource*)[self dataSource] immutableObjects][rowIndex];
+		NoteObject *note = [(NotationController*)[self dataSource] noteObjectAtFilteredIndex:rowIndex];
 		
 		NSTextView *editor = (NSTextView*)[self currentEditor];
 		[editor setString: tagsInTitleColumn ? note.labelString : note.titleString];

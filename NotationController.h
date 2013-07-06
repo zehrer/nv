@@ -17,7 +17,6 @@
 
 
 #import <Cocoa/Cocoa.h>
-#import "FastListDataSource.h"
 #import "WALController.h"
 #import "NotationTypes.h"
 
@@ -45,9 +44,9 @@ typedef struct _NoteCatalogEntry {
 @class DeletionManager;
 @class GlobalPrefs;
 
-@interface NotationController : NSObject {
+@interface NotationController : NSObject <NSTableViewDataSource> {
     NSMutableArray *allNotes;
-    FastListDataSource *notesListDataSource;
+    NSMutableOrderedSet *notesList;
 	GlobalPrefs *prefsController;
 	SyncSessionController *syncSessionController;
 	DeletionManager *deletionManager;
@@ -57,8 +56,7 @@ typedef struct _NoteCatalogEntry {
 	NoteAttributeColumn* sortColumn;
     
     NSUInteger selectedNoteIndex;
-    char *currentFilterStr, *manglingString;
-    NSInteger lastWordInFilterStr;
+    NSString *currentFilter;
     
 	BOOL directoryChangesFound;
     
@@ -155,7 +153,6 @@ typedef struct _NoteCatalogEntry {
 
 - (void)refilterNotes;
 - (BOOL)filterNotesFromString:(NSString*)string;
-- (BOOL)filterNotesFromUTF8String:(const char*)searchString forceUncached:(BOOL)forceUncached;
 - (NSUInteger)preferredSelectedNoteIndex;
 - (NSArray*)noteTitlesPrefixedByString:(NSString*)prefixString indexOfSelectedItem:(NSInteger *)anIndex;
 - (NoteObject*)noteObjectAtFilteredIndex:(NSUInteger)noteIndex;
@@ -173,9 +170,6 @@ typedef struct _NoteCatalogEntry {
 - (float)titleColumnWidth;
 - (void)regeneratePreviewsForColumn:(NSTableColumn*)col visibleFilteredRows:(NSRange)rows forceUpdate:(BOOL)force;
 - (void)regenerateAllPreviews;
-
-//for setting up the nstableviews
-- (id)notesListDataSource;
 
 - (NotationPrefs*)notationPrefs;
 - (SyncSessionController*)syncSessionController;

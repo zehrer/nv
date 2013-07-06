@@ -620,6 +620,11 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, unsigned charIndex) {
 //    return @"";
 }
 
+- (BOOL)nv_containsStringInsensitive:(NSString *)needle
+{
+	return [self rangeOfString:needle options:NSCaseInsensitiveSearch|NSDiacriticInsensitiveSearch].location != NSNotFound;
+}
+
 @end
 
 

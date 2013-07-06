@@ -75,9 +75,9 @@ typedef NSRange NSRange32;
 @synthesize titleString = titleString;
 @synthesize labelString = labelString;
 @synthesize nodeID = nodeID;
-
 @synthesize attrsModifiedDate = attrsModifiedDate;
 @synthesize prefixParentNotes = prefixParentNotes;
+@synthesize delegate = delegate;
 
 static FSRef *noteFileRefInit(NoteObject* obj);
 static void setAttrModifiedDate(NoteObject *note, UTCDateTime *dateTime);
@@ -126,10 +126,6 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid);
 	    free(cLabels);
 	
 	[super dealloc];
-}
-
-- (id)delegate {
-	return delegate;
 }
 
 - (void)setDelegate:(id)theDelegate {
@@ -480,8 +476,8 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	
 		//re-created at runtime to save space
 		[self initContentCacheCString];
-		cTitleFoundPtr = cTitle = titleString ? strdup([titleString lowercaseUTF8String]) : NULL;
-		cLabelsFoundPtr = cLabels = labelString ? strdup([labelString lowercaseUTF8String]) : NULL;
+		cTitle = titleString ? strdup([titleString lowercaseUTF8String]) : NULL;
+		cLabels = labelString ? strdup([labelString lowercaseUTF8String]) : NULL;
 		
 		dateCreatedString = [[NSString relativeDateStringWithAbsoluteTime:createdDate] retain];
 		dateModifiedString = [[NSString relativeDateStringWithAbsoluteTime:modifiedDate] retain];
@@ -582,7 +578,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		
 		if (![self _setLabelString:aLabelString]) {
 			labelString = @"";
-			cLabelsFoundPtr = cLabels = strdup("");
+			cLabels = strdup("");
 		}
 		
 		currentFormatID = formatID;
@@ -624,7 +620,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 			titleString = NSLocalizedString(@"Untitled Note", @"Title of a nameless note");
 		
 		labelString = @""; //set by updateFromCatalogEntry if there are openmeta extended attributes 
-		cLabelsFoundPtr = cLabels = strdup("");	
+		cLabels = strdup("");	
 				
 		contentString = [[NSMutableAttributedString alloc] initWithString:@""];
 		[self initContentCacheCString];
@@ -673,7 +669,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 - (void)updateContentCacheCStringIfNecessary {
 	if (contentCacheNeedsUpdate) {
 		//NSLog(@"updating ccache strs");
-		cContentsFoundPtr = cContents = replaceString(cContents, [[contentString string] lowercaseUTF8String]);
+		cContents = replaceString(cContents, [[contentString string] lowercaseUTF8String]);
 		contentCacheNeedsUpdate = NO;
 		
 		NSUInteger len = strlen(cContents);
@@ -684,7 +680,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 - (void)initContentCacheCString {
 
 	if (contentsWere7Bit) {
-		if (!(cContentsFoundPtr = cContents = [[contentString string] copyLowercaseASCIIString]))
+		if (!(cContents = [[contentString string] copyLowercaseASCIIString]))
 			contentsWere7Bit = NO;
 	}
 	
@@ -692,7 +688,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	
 	if (!contentsWere7Bit) {
 		const char *cStringData = [[contentString string] lowercaseUTF8String];
-		cContentsFoundPtr = cContents = cStringData ? strdup(cStringData) : NULL;
+		cContents = cStringData ? strdup(cStringData) : NULL;
 		
 		contentsWere7Bit = cContents ? !(ContainsHighAscii(cContents, (len = strlen(cContents)))) : NO;
 	}
@@ -834,7 +830,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
     [titleString release];
     titleString = [aNewTitle copy];
     
-    cTitleFoundPtr = cTitle = replaceString(cTitle, [titleString lowercaseUTF8String]);
+    cTitle = replaceString(cTitle, [titleString lowercaseUTF8String]);
     
     return YES;
 }
@@ -1020,7 +1016,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		[labelString release];
 		labelString = [newLabelString copy];
 		
-		cLabelsFoundPtr = cLabels = replaceString(cLabels, [labelString lowercaseUTF8String]);
+		cLabels = replaceString(cLabels, [labelString lowercaseUTF8String]);
 		
 		[self updateLabelConnections];
 		return YES;
@@ -1814,35 +1810,6 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	}
 
 	return nextRange;
-}
-
-force_inline void resetFoundPtrsForNote(NoteObject *note) {
-	note->cTitleFoundPtr = note->cTitle;
-	note->cContentsFoundPtr = note->cContents;
-	note->cLabelsFoundPtr = note->cLabels;	
-}
-
-BOOL noteContainsUTF8String(NoteObject *note, NoteFilterContext *context) {
-	
-    if (!context->useCachedPositions) {
-		resetFoundPtrsForNote(note);
-    }
-	
-	char *needle = context->needle;
-    
-	/* NOTE: strstr in Darwin is heinously, supernaturally optimized; it blows boyer-moore out of the water. 
-	implementations on other OSes will need considerably more code in this function. */
-	
-    if (note->cTitleFoundPtr)
-		note->cTitleFoundPtr = strstr(note->cTitleFoundPtr, needle);
-    
-    if (note->cContentsFoundPtr)
-		note->cContentsFoundPtr = strstr(note->cContentsFoundPtr, needle);
-    
-    if (note->cLabelsFoundPtr)
-		note->cLabelsFoundPtr = strstr(note->cLabelsFoundPtr, needle);
-        
-    return note->cContentsFoundPtr || note->cTitleFoundPtr || note->cLabelsFoundPtr;
 }
 
 BOOL noteTitleHasPrefixOfUTF8String(NoteObject *note, const char* fullString, size_t stringLen) {

@@ -48,6 +48,7 @@
 #import "NSCollection_utils.h"
 #import "NoteAttributeColumn.h"
 #import "nvaDevConfig.h"
+#import "NSMutableOrderedSet+NVFiltering.h"
 
 inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	if (result < 0) return NSOrderedAscending;
@@ -70,11 +71,9 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		allNotes = [[NSMutableArray alloc] init]; //<--the authoritative list of all memory-accessible notes
 		deletedNotes = [[NSMutableSet alloc] init];
 		prefsController = [GlobalPrefs defaultPrefs];
-		notesListDataSource = [[FastListDataSource alloc] init];
+		notesList = [[NSMutableOrderedSet alloc] init];
 		deletionManager = [[DeletionManager alloc] initWithNotationController:self];
 		
-		manglingString = currentFilterStr = NULL;
-		lastWordInFilterStr = 0;
 		selectedNoteIndex = NSNotFound;
 		
 		fsCatInfoArray = NULL;
@@ -906,7 +905,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	
 	if ([attribute isEqualToString:NotePreviewString]) {
 		if ([prefsController tableColumnsShowPreview]) {
-			NSUInteger idx = [notesListDataSource indexOfObjectIdenticalTo:note];
+			NSUInteger idx = [notesList indexOfObject:note];
 			if (NSNotFound != idx) {
 				[delegate rowShouldUpdate:idx];
 			}
@@ -1240,7 +1239,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 - (BOOL)filterNotesFromString:(NSString*)string {
 	
 	[delegate notationListMightChange:self];
-	if ([self filterNotesFromUTF8String:[string lowercaseUTF8String] forceUncached:NO]) {
+	if ([self _filterNotesFromString:string]) {
 		[delegate notationListDidChange:self];
 		
 		return YES;
@@ -1252,84 +1251,57 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 - (void)refilterNotes {
 	
     [delegate notationListMightChange:self];
-    [self filterNotesFromUTF8String:(currentFilterStr ? currentFilterStr : "") forceUncached:YES];
+    [self _filterNotesFromString:(currentFilter ?: @"")];
     [delegate notationListDidChange:self];
 }
-
-- (BOOL)filterNotesFromUTF8String:(const char*)searchString forceUncached:(BOOL)forceUncached {
-    BOOL stringHasExistingPrefix = YES;
+	
+- (BOOL)_filterNotesFromString:(NSString *)string
+{
+	//const char *searchString = string.UTF8String;
+	BOOL forceUncached = NO;
     BOOL didFilterNotes = NO;
     size_t oldLen = 0, newLen = 0;
-	NSUInteger i, initialCount = [notesListDataSource count];
+	NSUInteger i, initialCount = notesList.count;
     
-	NSAssert(searchString != NULL, @"filterNotesFromUTF8String requires a non-NULL argument");
+	NSAssert(string, @"_filterNotesFromString requires a non-nil argument");
 	
-	newLen = strlen(searchString);
+	newLen = string.length;
     
 	//PHASE 1: determine whether notes can be searched from where they are--if not, start on all the notes
-    if (!currentFilterStr || forceUncached || ((oldLen = strlen(currentFilterStr)) > newLen) ||
-		strncmp(currentFilterStr, searchString, oldLen)) {
+    if (!currentFilter || forceUncached || ((oldLen = currentFilter.length) > newLen) || ![string hasPrefix: currentFilter]) {
 		
 		//the search must be re-initialized; our strings don't have the same prefix
 		
-		[notesListDataSource fillArrayFromArray:allNotes];
+		[notesList removeAllObjects];
+		[notesList addObjectsFromArray:allNotes];
 		
-		stringHasExistingPrefix = NO;
-		lastWordInFilterStr = 0;
 		didFilterNotes = YES;
-		
-		//		NSLog(@"filter: scanning all notes");
     }
-    
-	
-	//PHASE 2: actually search for notes
-	NoteFilterContext filterContext;
 	
 	//if there is a quote character in the string, use that as a delimiter, as we will search by phrase
 	//perhaps we could add some additional delimiters like punctuation marks here
-    char *token, *separators = (strchr(searchString, '"') ? "\"" : " :\t\r\n");
-    manglingString = replaceString(manglingString, searchString);
-    
-    BOOL touchedNotes = NO;
+	NSCharacterSet *separators = ([string rangeOfString:@"\""].location == NSNotFound) ? [NSCharacterSet characterSetWithCharactersInString:@"\""] : [NSCharacterSet whitespaceAndNewlineCharacterSet];
     
     if (!didFilterNotes || newLen > 0) {
 		//only bother searching each note if we're actually searching for something
 		//otherwise, filtered notes already reflect all-notes-state
 		
-		char *preMangler = manglingString + lastWordInFilterStr;
-		while ((token = strsep(&preMangler, separators))) {
+		NSArray *tokens = [string componentsSeparatedByCharactersInSet:separators];
+		for (NSString *token in tokens) {
+			NSUInteger preCount = notesList.count;
+						
+			[notesList nv_filterStableUsingBlock:^(NoteObject *obj){
+				if ([obj.titleString nv_containsStringInsensitive:token]) return YES;
+				if ([obj.contentString.string nv_containsStringInsensitive:token]) return YES;
+				if ([obj.labelString nv_containsStringInsensitive:token]) return YES;
+				return NO;
+			}];
 			
-			if (*token != '\0') {
-				//if this is the same token that we had scanned previously
-				filterContext.useCachedPositions = stringHasExistingPrefix && (token == manglingString + lastWordInFilterStr);
-				filterContext.needle = token;
-				
-				touchedNotes = YES;
-				
-				if ([notesListDataSource filterArrayUsingFunction:(BOOL (*)(id, void*))noteContainsUTF8String context:&filterContext])
-					didFilterNotes = YES;
-								
-				lastWordInFilterStr = token - manglingString;
-			}
+			if (notesList.count != preCount)
+				didFilterNotes = YES;
 		}
     }
-    
-	//PHASE 3: reset found pointers in case have been cleared
-	NSUInteger filteredNoteCount = [notesListDataSource count];
-	NoteObject * __autoreleasing *notesBuffer = (NoteObject **)[notesListDataSource immutableObjects];
-	
-    if (didFilterNotes) {
-		
-		if (!touchedNotes) {
-			//I can't think of any situation where notes were filtered and not touched--EXCEPT WHEN REMOVING A NOTE (>= vs. ==)
-			NSAssert(filteredNoteCount >= [allNotes count], @"filtered notes were claimed to be filtered but were not");
-			
-			//reset found-ptr values; the search string was effectively blank and so no notes were examined
-			for (i=0; i<filteredNoteCount; i++)
-				resetFoundPtrsForNote(notesBuffer[i]);
-		}
-    }
-    
+
 	//PHASE 4: autocomplete based on results
 	//even if the controller didn't filter, the search string could have changed its representation wrt spacing
 	//which will still influence note title prefixes 
@@ -1337,20 +1309,19 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	
     if (newLen && [prefsController autoCompleteSearches]) {
 
-		for (i=0; i<filteredNoteCount; i++) {			
+		for (i=0; i<notesList.count; i++) {
 			//because we already searched word-by-word up there, this is just way simpler
-			if (noteTitleHasPrefixOfUTF8String(notesBuffer[i], searchString, newLen)) {
+			if ([[notesList[i] titleString] hasPrefix:string]) {
 				selectedNoteIndex = i;
 				//this note matches, but what if there are other note-titles that are prefixes of both this one and the search string?
 				//find the first prefix-parent of which searchString is also a prefix
 				NSUInteger j = 0, prefixParentIndex = NSNotFound;
-				NSArray *prefixParents = [notesBuffer[i] prefixParentNotes];
+				NSArray *prefixParents = [notesList[i] prefixParentNotes];
 				
 				for (j=0; j<[prefixParents count]; j++) {
 					NoteObject *obj = [prefixParents objectAtIndex:j];
 					
-					if (noteTitleHasPrefixOfUTF8String(obj, searchString, newLen) &&
-						(prefixParentIndex = [notesListDataSource indexOfObjectIdenticalTo:obj]) != NSNotFound) {
+					if ([obj.titleString hasPrefix:string] && (prefixParentIndex = [notesList indexOfObject:obj]) != NSNotFound) {
 						//figure out where this prefix parent actually is in the list--if it actually is in the list, that is
 						//otherwise look at the next prefix parent, etc.
 						//the prefix parents array should always be alpha-sorted, so the shorter prefixes will always be first
@@ -1363,9 +1334,9 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		}
     }
     
-    currentFilterStr = replaceString(currentFilterStr, searchString);
+	currentFilter = [string copy];
 	
-	if (!initialCount && initialCount == filteredNoteCount)
+	if (!initialCount && initialCount == notesList.count)
 		return NO;
     
     return didFilterNotes;
@@ -1398,14 +1369,14 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 - (NoteObject*)noteObjectAtFilteredIndex:(NSUInteger)noteIndex {
 	unsigned int theIndex = (unsigned int)noteIndex;
 	
-	if (theIndex < [notesListDataSource count])
-		return [notesListDataSource immutableObjects][theIndex];
+	if (theIndex < notesList.count)
+		return notesList[theIndex];
 	
 	return nil;
 }
 
 - (NSArray*)notesAtIndexes:(NSIndexSet*)indexSet {
-	return [notesListDataSource objectsAtFilteredIndexes:indexSet];
+	return [notesList objectsAtIndexes:indexSet];
 }
 
 //O(n^2) at best, but at least we're dealing with C arrays
@@ -1414,7 +1385,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	NSMutableIndexSet *noteIndexes = [[[NSMutableIndexSet alloc] init] autorelease];
 	
 	[noteArray enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-		NSUInteger noteIndex = [notesListDataSource indexOfObjectIdenticalTo:obj];
+		NSUInteger noteIndex = [notesList indexOfObject:obj];
 		
 		if (noteIndex != NSNotFound)
 			[noteIndexes addIndex:noteIndex];
@@ -1424,7 +1395,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 }
 
 - (NSUInteger)indexInFilteredListForNoteIdenticalTo:(NoteObject*)note {
-	return [notesListDataSource indexOfObjectIdenticalTo:note];
+	return [notesList indexOfObject:note];
 }
 
 - (NSUInteger)totalNoteCount {
@@ -1464,15 +1435,20 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 			}];
 		}
 		
-		if ([notesListDataSource count] != [allNotes count]) {
-				
-			[notesListDataSource sortStableUsingFunction:stringSortFunction];	
-		    if (sortFunction != stringSortFunction)
-				[notesListDataSource sortStableUsingFunction:sortFunction];
+		if ([notesList count] != [allNotes count]) {
+			[notesList sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:^(NoteObject *obj1, NoteObject *obj2) {
+				return NVComparisonResult(stringSortFunction(&obj1, &obj2));
+			}];
+			
+			if (sortFunction != stringSortFunction) {
+				[notesList sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:^(NoteObject *obj1, NoteObject *obj2) {
+					return NVComparisonResult(sortFunction(&obj1, &obj2));
+				}];
+			}
 			
 		} else {
-		    //mirror from allNotes; notesListDataSource is not filtered
-		    [notesListDataSource fillArrayFromArray:allNotes];
+			[notesList removeAllObjects];
+			[notesList addObjectsFromArray:allNotes];
 		}
 		
 		[delegate notationListDidChange:self];
@@ -1514,9 +1490,8 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		
 		//regenerate previews for visible rows immediately and post a delayed message to regenerate previews for all rows
 		if (rows.length > 0) {
-			CFArrayRef visibleNotes = CFArrayCreate(NULL, (const void **)([notesListDataSource immutableObjects] + rows.location), rows.length, NULL);
-			[(NSArray*)visibleNotes makeObjectsPerformSelector:@selector(updateTablePreviewString)];
-			CFRelease(visibleNotes);
+			NSIndexSet *set = [NSIndexSet indexSetWithIndexesInRange:rows];
+			[[notesList objectsAtIndexes:set] makeObjectsPerformSelector:@selector(updateTablePreviewString)];
 		}
 		
 		[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(regenerateAllPreviews) object:nil];
@@ -1530,10 +1505,6 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 
 - (NotationPrefs*)notationPrefs {
 	return notationPrefs;
-}
-
-- (id)notesListDataSource {
-    return notesListDataSource;
 }
 
 - (SyncSessionController*)syncSessionController {
@@ -1556,10 +1527,10 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		free(sortedCatalogEntries);
 	
     [undoManager release];
-    [notesListDataSource release];
 	[syncSessionController release];
 	[deletionManager release];
     [allNotes release];
+    [notesList release];
 	[deletedNotes release];
 	[notationPrefs release];
 	[unwrittenNotes release];
@@ -1668,6 +1639,25 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		[self.labelImages setObject:[img autorelease] forKey:imgKey];
 	}
 	return img;
+}
+	
+#pragma mark - Data source
+
+- (void)tableView:(NSTableView *)aTableView setObjectValue:(id)anObject
+forTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex {
+	
+	//allow the tableview to override the selector destination for this object value
+	SEL colAttributeMutator = [(NotesTableView*)aTableView attributeSetterForColumn:(NoteAttributeColumn*)aTableColumn];
+	
+	[notesList[rowIndex] performSelector:colAttributeMutator ? colAttributeMutator : columnAttributeMutator((NoteAttributeColumn*)aTableColumn) withObject:anObject];
+}
+	
+- (id)tableView:(NSTableView *)aTableView objectValueForTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex {
+	return columnAttributeForObject((NotesTableView*)aTableView, (NoteAttributeColumn*)aTableColumn, notesList[rowIndex], rowIndex);
+}
+	
+- (NSInteger)numberOfRowsInTableView:(NSTableView *)aTableView {
+	return notesList.count;
 }
 
 @end

@@ -197,9 +197,7 @@ BOOL splitViewAwoke;
 	[notesTableView setDelegate:self];
 	[field setDelegate:self];
 	[textView setDelegate:self];
-    
-	//set up temporary FastListDataSource containing false visible notes
-    
+        
 	//this will not make a difference
 	[window useOptimizedDrawing:YES];
 	
@@ -526,7 +524,7 @@ void outletObjectAwoke(id sender) {
 			[oldNotation release];
 		}
 		[notationController setSortColumn:[notesTableView noteAttributeColumnForIdentifier:[prefsController sortedTableColumnKey]]];
-		[notesTableView setDataSource:[notationController notesListDataSource]];
+		[notesTableView setDataSource:notationController];
 		[notesTableView setLabelsListSource:notationController];
 		[notationController setDelegate:self];
 		

@@ -104,6 +104,8 @@ typedef struct _ViewLocationContext {
 - (BOOL)needsGridLines;
 - (void)updateGrid;
 
+- (SEL)attributeSetterForColumn:(NoteAttributeColumn*)col;
+
 @end
 
 @interface NSTableView (Private)

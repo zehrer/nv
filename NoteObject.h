@@ -41,7 +41,7 @@ typedef struct _NoteFilterContext {
 	NSAttributedString *tableTitleString;
 	
 	//caching/searching purposes only -- created at runtime
-	char *cTitle, *cContents, *cLabels, *cTitleFoundPtr, *cContentsFoundPtr, *cLabelsFoundPtr;
+	char *cTitle, *cContents, *cLabels;
 	NSMutableSet *labelSet;
 	BOOL contentCacheNeedsUpdate;
 	//if this note's title is "Chicken Shack menu listing", its prefix parent might have the title "Chicken Shack"
@@ -111,13 +111,11 @@ NSInteger compareFileSize(id *a, id *b);
 	id dateModifiedStringOfNote(NotesTableView *tv, NoteObject *note, NSInteger row);
 	id wordCountOfNote(NotesTableView *tv, NoteObject *note, NSInteger row);
 
-	void resetFoundPtrsForNote(NoteObject *note);
-	BOOL noteContainsUTF8String(NoteObject *note, NoteFilterContext *context);
 	BOOL noteTitleHasPrefixOfUTF8String(NoteObject *note, const char* fullString, size_t stringLen);
 	BOOL noteTitleIsAPrefixOfOtherNoteTitle(NoteObject *longerNote, NoteObject *shorterNote);
 
-- (id)delegate;
-- (void)setDelegate:(id)theDelegate;
+@property (nonatomic, assign) id delegate;
+
 - (id)initWithNoteBody:(NSAttributedString *)bodyText title:(NSString *)aNoteTitle
               delegate:(id)aDelegate format:(NVDatabaseFormat)formatID labels:(NSString*)aLabelString;
 - (id)initWithCatalogEntry:(NoteCatalogEntry*)entry delegate:(id)aDelegate;

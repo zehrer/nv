@@ -66,6 +66,8 @@ CFDateFormatterRef simplenoteDateFormatter(int lowPrecision);
 - (NSInteger)isPairedCharacterWithMatchString:(NSString **)matchString;
 //- (NSTextView*)textViewWithFrame:(NSRect*)theFrame;
 
+- (BOOL)nv_containsStringInsensitive:(NSString *)needle;
+
 @end
 
 @interface NSMutableString (NV)
