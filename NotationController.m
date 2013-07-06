@@ -589,14 +589,14 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 }
 
 //notation prefs delegate method
-- (void)databaseSettingsChangedFromOldFormat:(NSInteger)oldFormat {
-	NSInteger currentStorageFormat = [notationPrefs notesStorageFormat];
+- (void)databaseSettingsChangedFromOldFormat:(NVDatabaseFormat)oldFormat {
+	NVDatabaseFormat currentStorageFormat = [notationPrefs notesStorageFormat];
     
 	if (!walWriter && ![self initializeJournaling]) {
 		[self performSelector:@selector(handleJournalError) withObject:nil afterDelay:0.0];
 	}
 	
-    if (currentStorageFormat == SingleDatabaseFormat) {
+    if (currentStorageFormat == NVDatabaseFormatSingle) {
 		
 		[self stopFileNotifications];
 		
@@ -627,7 +627,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	[[ODBEditor sharedODBEditor] performSelector:@selector(initializeDatabase:) withObject:notationPrefs afterDelay:0.0];
 }
 
-- (NSInteger)currentNoteStorageFormat {
+- (NVDatabaseFormat)currentNoteStorageFormat {
     return [notationPrefs notesStorageFormat];
 }
 
@@ -647,7 +647,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
     
     if ([unwrittenNotes count] > 0) {
 		lastWriteError = noErr;
-		if ([notationPrefs notesStorageFormat] != SingleDatabaseFormat) {
+		if ([notationPrefs notesStorageFormat] != NVDatabaseFormatSingle) {
 			//to avoid mutation enumeration if writing this file triggers a filename change which then triggers another makeNoteDirty which then triggers another scheduleWriteForNote:
 			//loose-coupling? what?
 			[[[unwrittenNotes copy] autorelease] makeObjectsPerformSelector:@selector(writeUsingCurrentFileFormatIfNecessary)];
@@ -739,7 +739,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 }
 
 - (void)trashRemainingNoteFilesInDirectory {
-	NSAssert([notationPrefs notesStorageFormat] == SingleDatabaseFormat, @"We shouldn't be removing files if the storage is not single-database");	
+	NSAssert([notationPrefs notesStorageFormat] == NVDatabaseFormatSingle, @"We shouldn't be removing files if the storage is not single-database");
 	[allNotes makeObjectsPerformSelector:@selector(moveFileToTrash)];
 	[self notifyOfChangedTrash];
 }
@@ -936,7 +936,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	
 	NSArray *unknownPaths = filenames; //(this is not a requirement for -notesWithFilenames:unknownFiles:)
 	
-	if ([self currentNoteStorageFormat] != SingleDatabaseFormat) {
+	if ([self currentNoteStorageFormat] != NVDatabaseFormatSingle) {
 		//notes are stored as separate files, so if these paths are in the notes folder then NV can claim ownership over them
 		
 		//probably should sync directory here to make sure notesWithFilenames has the freshest data
@@ -1074,7 +1074,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	[self synchronizeNoteChanges:nil];
     
     //we do this after removing it from the array to avoid re-discovering a removed file
-    if ([notationPrefs notesStorageFormat] != SingleDatabaseFormat) {
+    if ([notationPrefs notesStorageFormat] != NVDatabaseFormatSingle) {
 		[aNoteObject removeFileFromDirectory];
     }
 	//add journal removal event

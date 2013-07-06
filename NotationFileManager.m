@@ -193,7 +193,7 @@ static BOOL VolumeSupportsExchangeObjects(NotationController *controller) {
 	//don't bother unless we will be reading notes as separate files; otherwise there's no need to track the source of the attr mod dates
 	//maybe disk UUIDs will be used in the future for something else; at that point this check should be altered
 	
-	if (!diskUUID && [self currentNoteStorageFormat] != SingleDatabaseFormat) {
+	if (!diskUUID && [self currentNoteStorageFormat] != NVDatabaseFormatSingle) {
 		
 		struct statfs * sfsb = StatFSVolumeInfo(self);
 		//if this is not an hfs+ disk, then get the FSEvents UUID
@@ -414,7 +414,7 @@ long BlockSizeForNotation(NotationController *controller) {
 	uniqueFilename = [[sanitizedName copy] autorelease];
 	
 	//use the note's current format if the current default format is for a database; get the "ideal" extension for that format
-	NSInteger noteFormat = [notationPrefs notesStorageFormat] || !note ? [notationPrefs notesStorageFormat] : storageFormatOfNote(note);
+	NVDatabaseFormat noteFormat = [notationPrefs notesStorageFormat] || !note ? [notationPrefs notesStorageFormat] : storageFormatOfNote(note);
 	NSString *extension = [notationPrefs chosenPathExtensionForFormat:noteFormat];
 	
 	//if the note's current extension is compatible with the storage format above, then use the existing extension instead
@@ -450,7 +450,7 @@ long BlockSizeForNotation(NotationController *controller) {
 }
 
 - (OSStatus)noteFileRenamed:(FSRef*)childRef fromName:(NSString*)oldName toName:(NSString*)newName {
-    if (![self currentNoteStorageFormat])
+    if ([self currentNoteStorageFormat] == NVDatabaseFormatSingle)
 		return noErr;
     
     UniChar chars[256];

@@ -196,13 +196,13 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 		}
 		if (!foundNotes) {	
 			//no notes recovered from downloaded file--just add the URL as a string?
-			NSString *urlString = [[getter url] absoluteString];			
+			NSString *urlString = [[getter url] absoluteString];
 			if (urlString) {
 				NSMutableAttributedString *newString = [[[NSMutableAttributedString alloc] initWithString:urlString] autorelease];
 				[newString santizeForeignStylesForImporting];
 				
 				NoteObject *noteObject = [[NoteObject alloc] initWithNoteBody:newString title:[getter userData] ? [getter userData] : urlString
-																	 delegate:nil format:SingleDatabaseFormat labels:nil];
+																	 delegate:nil format:NVDatabaseFormatSingle labels:nil];
 				
 				[receptionDelegate noteImporter:self importedNotes:[NSArray arrayWithObject:noteObject]];
 				[noteObject release];
@@ -372,7 +372,7 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 		
 		//we do not also use filename as uniqueFilename, as we are only importing--not taking ownership
 		NoteObject *noteObject = [[NoteObject alloc] initWithNoteBody:attributedStringFromData title:title delegate:nil 
-															   format:SingleDatabaseFormat labels:[openMetaTags componentsJoinedByString:@" "]];
+															   format:NVDatabaseFormatSingle labels:[openMetaTags componentsJoinedByString:@" "]];
 		[attributedStringFromData release];
 		if (noteObject) {
 			if (bodyLoc > 0 && attributedStringLength >= bodyLoc + prefixedSourceLength) [noteObject setSelectedRange:NSMakeRange(prefixedSourceLength, bodyLoc)];
@@ -584,7 +584,7 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 				NSString *syntheticTitle = [attributedString trimLeadingSyntheticTitle];
 				
 				NoteObject *noteObject = [[[NoteObject alloc] initWithNoteBody:attributedString title:syntheticTitle 
-																	  delegate:nil format:SingleDatabaseFormat labels:nil] autorelease];
+																	  delegate:nil format:NVDatabaseFormatSingle labels:nil] autorelease];
 				if (noteObject) {
 					[noteObject setDateAdded:CFDateGetAbsoluteTime((CFDateRef)[doc creationDate])];
 					[noteObject setDateModified:CFDateGetAbsoluteTime((CFDateRef)[doc modificationDate])];
@@ -652,7 +652,7 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 			[attributedBody addLinkAttributesForRange:NSMakeRange(0, [attributedBody length])];
 			[attributedBody addStrikethroughNearDoneTagsForRange:NSMakeRange(0, [attributedBody length])];
 			
-            NoteObject *note = [[[NoteObject alloc] initWithNoteBody:attributedBody title:title delegate:nil format:SingleDatabaseFormat labels:nil] autorelease];
+            NoteObject *note = [[[NoteObject alloc] initWithNoteBody:attributedBody title:title delegate:nil format:NVDatabaseFormatSingle labels:nil] autorelease];
 			if (note) {
 				now += 1.0; //to ensure a consistent sort order
 				[note setDateAdded:now];

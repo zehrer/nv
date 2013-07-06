@@ -608,7 +608,7 @@ void outletObjectAwoke(id sender) {
 		
 	} else if (selector == @selector(revealNote:)) {
         
-		return (numberSelected == 1) && [notationController currentNoteStorageFormat] != SingleDatabaseFormat;
+		return (numberSelected == 1) && [notationController currentNoteStorageFormat] != NVDatabaseFormatSingle;
 		
         //	} else if (selector == @selector(openFileInEditor:)) {
         //		NSString *defApp = [prefsController textEditor];
@@ -630,7 +630,7 @@ void outletObjectAwoke(id sender) {
         //			defApp = @"TextEdit";
         //		}
         //		[menuItem setTitle:[@"Open Note in " stringByAppendingString:defApp]];
-        //		return (numberSelected == 1) && [notationController currentNoteStorageFormat] != SingleDatabaseFormat;
+        //		return (numberSelected == 1) && [notationController currentNoteStorageFormat] != NVDatabaseFormatSingle;
 	} else if (selector == @selector(toggleCollapse:)) {
         if ([notesSubview isCollapsed]) {
             [menuItem setTitle:NSLocalizedString(@"Expand Notes List",@"menu item title for expanding notes list")];
@@ -652,7 +652,7 @@ void outletObjectAwoke(id sender) {
         
 	} else if (selector == @selector(fixFileEncoding:)) {
 		
-		return (currentNote != nil && storageFormatOfNote(currentNote) == PlainTextFormat && ![currentNote contentsWere7Bit]);
+		return (currentNote != nil && storageFormatOfNote(currentNote) == NVDatabaseFormatPlainText && ![currentNote contentsWere7Bit]);
     } else if (selector == @selector(editNoteExternally:)) {
         return (numberSelected > 0) && [[menuItem representedObject] canEditAllNotes:[notationController notesAtIndexes:[notesTableView selectedRowIndexes]]];
 	}else if (selector == @selector(previewNoteWithMarked:)){
@@ -1100,7 +1100,7 @@ void outletObjectAwoke(id sender) {
 - (void)applicationDidBecomeActive:(NSNotification *)aNotification {
 	[notationController checkJournalExistence];
 	
-    if ([notationController currentNoteStorageFormat] != SingleDatabaseFormat)
+    if ([notationController currentNoteStorageFormat] != NVDatabaseFormatSingle)
 		[notationController performSelector:@selector(synchronizeNotesFromDirectory) withObject:nil afterDelay:0.0];
 	[notationController updateDateStringsIfNecessary];
 }

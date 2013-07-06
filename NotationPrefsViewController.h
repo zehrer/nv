@@ -17,6 +17,7 @@
 
 
 #import <Cocoa/Cocoa.h>
+#import "NotationTypes.h"
 
 @class NotationPrefs;
 @class PassphrasePicker;
@@ -61,7 +62,7 @@
 	BOOL didAwakeFromNib;
     
 	NSInvocation *postStorageFormatInvocation;
-	NSInteger notesStorageFormatInProgress;
+	NVDatabaseFormat notesStorageFormatInProgress;
     NotationPrefs *notationPrefs;
 	
 	PassphrasePicker *picker;
@@ -90,7 +91,7 @@
 - (IBAction)removeFromKeychain:(id)sender;
 - (void)updateRemoveKeychainItemStatus;
 - (void)notesStorageFormatDidChange;
-- (NSInteger)notesStorageFormatInProgress;
+- (NVDatabaseFormat)notesStorageFormatInProgress;
 - (void)runQueuedStorageFormatChangeInvocation;
 - (IBAction)visitSimplenoteSite:(id)sender;
 - (IBAction)makeDefaultExtension:(id)sender;

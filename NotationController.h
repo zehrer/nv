@@ -19,6 +19,7 @@
 #import <Cocoa/Cocoa.h>
 #import "FastListDataSource.h"
 #import "WALController.h"
+#import "NotationTypes.h"
 
 #import <CoreServices/CoreServices.h>
 
@@ -115,9 +116,9 @@ typedef struct _NoteCatalogEntry {
 - (void)setDelegate:(id)theDelegate;
 
 - (void)databaseEncryptionSettingsChanged;
-- (void)databaseSettingsChangedFromOldFormat:(NSInteger)oldFormat;
+- (void)databaseSettingsChangedFromOldFormat:(NVDatabaseFormat)oldFormat;
 
-- (NSInteger)currentNoteStorageFormat;
+- (NVDatabaseFormat)currentNoteStorageFormat;
 - (void)synchronizeNoteChanges:(NSTimer*)timer;
 
 - (void)updateDateStringsIfNecessary;

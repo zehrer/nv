@@ -86,7 +86,7 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid);
 		perDiskInfoGroups[0].diskIDIndex = -1;
 		perDiskInfoGroupCount = 1;
 		
-		currentFormatID = SingleDatabaseFormat;
+		currentFormatID = NVDatabaseFormatSingle;
 		fileEncoding = NSUTF8StringEncoding;
 		selectedRange = NSMakeRange(NSNotFound, 0);
 		
@@ -325,7 +325,7 @@ force_inline CFAbsoluteTime createdDateOfNote(NoteObject *note){
 	return note.createdDate;
 }
 
-force_inline NSInteger storageFormatOfNote(NoteObject *note){
+force_inline NVDatabaseFormat storageFormatOfNote(NoteObject *note){
 	return note.currentFormatID;
 }
 
@@ -599,7 +599,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	}
 }
 
-- (id)initWithNoteBody:(NSAttributedString *)bodyText title:(NSString *)aNoteTitle delegate:(id)aDelegate format:(NSInteger)formatID labels:(NSString*)aLabelString {
+- (id)initWithNoteBody:(NSAttributedString *)bodyText title:(NSString *)aNoteTitle delegate:(id)aDelegate format:(NVDatabaseFormat)formatID labels:(NSString*)aLabelString {
 	//delegate optional here
     if ((self = [self init])) {
 		
@@ -841,7 +841,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		
 		//woe to the exporter who also left the note files in the notes directory after switching to a singledb format
 		//his note names might not be up-to-date
-		if ([delegate currentNoteStorageFormat] != SingleDatabaseFormat || 
+		if ([delegate currentNoteStorageFormat] != NVDatabaseFormatSingle ||
 			![delegate notesDirectoryContainsFile:filename returningFSRef:noteFileRefInit(self)]) {
 			
 			[self setFilenameFromTitle];
@@ -930,7 +930,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	[self _setTitleString:(NSString*)normalizedString];
 	CFRelease(normalizedString);
 	
-	if ([delegate currentNoteStorageFormat] == RTFTextFormat)
+	if ([delegate currentNoteStorageFormat] == NVDatabaseFormatRTF)
 		[self makeNoteDirtyUpdateTime:NO updateFile:YES];
 }
 
@@ -941,7 +941,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	if ([contentString restyleTextToFont:[[GlobalPrefs defaultPrefs] noteBodyFont] usingBaseFont:baseFont] > 0) {
 		[undoManager removeAllActions];
 		
-		if ([delegate currentNoteStorageFormat] == RTFTextFormat)
+		if ([delegate currentNoteStorageFormat] == NVDatabaseFormatRTF)
 			[self makeNoteDirtyUpdateTime:NO updateFile:YES];
 	}
 }
@@ -1250,10 +1250,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 - (BOOL)writeUsingJournal:(WALStorageController*)wal {
     BOOL wroteAllOfNote = [wal writeEstablishedNote:self];
 	
-    if (wroteAllOfNote) {
-		//update formatID to absolutely ensure we don't reload an earlier note back from disk, from text encoding menu, for example
-		//currentFormatID = SingleDatabaseFormat;
-	} else {
+    if (!wroteAllOfNote) {
 		[delegate noteDidNotWrite:self errorCode:kWriteJournalErr];
 	}
     
@@ -1266,14 +1263,14 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
     NSError *error = nil;
 	NSMutableAttributedString *contentMinusColor = nil;
 	
-    NSInteger formatID = [delegate currentNoteStorageFormat];
+    NVDatabaseFormat formatID = [delegate currentNoteStorageFormat];
     switch (formatID) {
-		case SingleDatabaseFormat:
+		case NVDatabaseFormatSingle:
 			//we probably shouldn't be here
 			NSAssert(NO, @"Warning! Tried to write data for an individual note in single-db format!");
 			
 			return NO;
-		case PlainTextFormat:
+		case NVDatabaseFormatPlainText:
 			
 			if (!(formattedData = [[contentString string] dataUsingEncoding:fileEncoding allowLossyConversion:NO])) {
 				
@@ -1286,21 +1283,22 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 				formattedData = [[contentString string] dataUsingEncoding:fileEncoding allowLossyConversion:YES];
 			}
 			break;
-		case RTFTextFormat:
+		case NVDatabaseFormatRTF:
 			contentMinusColor = [contentString mutableCopy];
 			[contentMinusColor removeAttribute:NSForegroundColorAttributeName range:NSMakeRange(0, [contentMinusColor length])];
 			formattedData = [contentMinusColor RTFFromRange:NSMakeRange(0, [contentMinusColor length]) documentAttributes:nil];
 			[contentMinusColor release];
 			
 			break;
-		case HTMLFormat:
+		case NVDatabaseFormatHTML:
 			//export to HTML document here using NSHTMLTextDocumentType;
 			formattedData = [contentString dataFromRange:NSMakeRange(0, [contentString length]) 
 									  documentAttributes:[NSDictionary dictionaryWithObject:NSHTMLTextDocumentType 
 																					 forKey:NSDocumentTypeDocumentAttribute] error:&error];
 			//our links will always be to filenames, so hopefully we shouldn't have to change anything
 			break;
-		default:
+		case NVDatabaseFormatDOC:
+		case NVDatabaseFormatDOCX:
 			NSLog(@"Attempted to write using unknown format ID: %ld", (long)formatID);
 			//return NO;
     }
@@ -1328,8 +1326,8 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 			return NO;
 		}
 		//if writing plaintext set the file encoding with setxattr
-		if (PlainTextFormat == formatID) {
-			(void)[self writeCurrentFileEncodingToFSRef:noteFileRefInit(self)];
+		if (NVDatabaseFormatPlainText == formatID) {
+			[self writeCurrentFileEncodingToFSRef:noteFileRefInit(self)];
 		}
 		NSFileManager *fileMan = [NSFileManager defaultManager];
 		[fileMan setOpenMetaTags:[self orderedLabelTitles] atFSPath:[[fileMan pathWithFSRef:noteFileRefInit(self)] fileSystemRepresentation]];
@@ -1361,7 +1359,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 }
 
 - (OSStatus)writeFileDatesAndUpdateTrackingInfo {
-	if (SingleDatabaseFormat == currentFormatID) return noErr;
+	if (NVDatabaseFormatSingle == currentFormatID) return noErr;
 	
 	//sync the file's creation and modification date:
 	FSCatalogInfo catInfo;
@@ -1424,15 +1422,15 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	if (NSUTF8StringEncoding != fileEncoding) {
 		[self _setFileEncoding:NSUTF8StringEncoding];
 		
-		if (!contentsWere7Bit && PlainTextFormat == currentFormatID) {
+		if (!contentsWere7Bit && currentFormatID == NVDatabaseFormatPlainText) {
 			//this note exists on disk as a plaintext file, and its encoding is incompatible with UTF-8
 			
-			if ([delegate currentNoteStorageFormat] == PlainTextFormat) {
+			if ([delegate currentNoteStorageFormat] == NVDatabaseFormatPlainText) {
 				//actual conversion is expected because notes are presently being maintained as plain text files
 				
 				NSLog(@"rewriting %@ as utf8 data", titleString);
 				didUpgrade = [self writeUsingCurrentFileFormat];
-			} else if ([delegate currentNoteStorageFormat] == SingleDatabaseFormat) {
+			} else if ([delegate currentNoteStorageFormat] == NVDatabaseFormatSingle) {
 				//update last-written-filemod time to guarantee proper encoding at next DB storage format switch, 
 				//in case this note isn't otherwise modified before that happens.
 				//a side effect is that if the user switches to an RTF or HTML format,
@@ -1564,7 +1562,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
     return YES;
 }
 
-- (BOOL)updateFromData:(NSMutableData *)data inFormat:(NSInteger)fmt {
+- (BOOL)updateFromData:(NSMutableData *)data inFormat:(NVDatabaseFormat)fmt {
     
     if (!data) {
 		NSLog(@"%@: Data is nil!", NSStringFromSelector(_cmd));
@@ -1575,12 +1573,12 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
     NSMutableAttributedString *attributedStringFromData = nil;
     //interpret based on format; text, rtf, html, etc...
     switch (fmt) {
-	case SingleDatabaseFormat:
+	case NVDatabaseFormatSingle:
 	    //hmmmmm
 		NSAssert(NO, @"Warning! Tried to update data from a note in single-db format!");
 	    
 	    break;
-	case PlainTextFormat:
+	case NVDatabaseFormatPlainText:
 		//try to merge/re-match attributes?
 	    if ((stringFromData = [NSMutableString newShortLivedStringFromData:data ofGuessedEncoding:&fileEncoding withPath:NULL orWithFSRef:noteFileRefInit(self)])) {
 			attributedStringFromData = [[NSMutableAttributedString alloc] initWithString:stringFromData 
@@ -1591,18 +1589,20 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	    }
 	    
 	    break;
-	case RTFTextFormat:
+	case NVDatabaseFormatRTF:
 	    
 		attributedStringFromData = [[NSMutableAttributedString alloc] initWithRTF:data documentAttributes:NULL];
 	    break;
-	case HTMLFormat:
+	case NVDatabaseFormatHTML:
 
 		attributedStringFromData = [[NSMutableAttributedString alloc] initWithHTML:data documentAttributes:NULL];
 		[attributedStringFromData removeAttachments];
 		
-	    break;
-	default:
+		break;
+	case NVDatabaseFormatDOC:
+	case NVDatabaseFormatDOCX:
 	    NSLog(@"%@: Unknown format: %ld", NSStringFromSelector(_cmd), (long)fmt);
+			break;
     }
     
     if (!attributedStringFromData) {
@@ -1649,9 +1649,6 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	OSStatus err = noErr;
 	if ((err = [delegate moveFileToTrash:noteFileRefInit(self) forFilename:filename]) != noErr) {
 		NSLog(@"Couldn't move file to trash: %d", err);
-	} else {
-		//file's gone! don't assume it's not coming back. if the storage format was not single-db, this note better be removed
-		//currentFormatID = SingleDatabaseFormat;
 	}
 }
 
@@ -1697,7 +1694,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	if (updateTime) {
 		[self setDateModified:CFAbsoluteTimeGetCurrent()];
 		
-		if ([delegate currentNoteStorageFormat] == SingleDatabaseFormat) {
+		if ([delegate currentNoteStorageFormat] == NVDatabaseFormatSingle) {
 			//only set if we're not currently synchronizing to avoid re-reading old data
 			//this will be updated again when writing to a file, but for now we have the newest version
 			//we must do this to allow new notes to be written when switching formats, and for encodingmanager checks
@@ -1721,7 +1718,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	//so expect the delegate to know to schedule the same update itself
 }
 
-- (OSStatus)exportToDirectoryRef:(FSRef *)directoryRef withFilename:(NSString *)userFilename usingFormat:(NSInteger)storageFormat overwrite:(BOOL)overwrite {
+- (OSStatus)exportToDirectoryRef:(FSRef *)directoryRef withFilename:(NSString *)userFilename usingFormat:(NVDatabaseFormat)storageFormat overwrite:(BOOL)overwrite {
 	
 	NSData *formattedData = nil;
 	NSError *error = nil;
@@ -1731,27 +1728,27 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 
 	
 	switch (storageFormat) {
-		case SingleDatabaseFormat:
+		case NVDatabaseFormatSingle:
 			NSAssert(NO, @"Warning! Tried to export data in single-db format!?");
-		case PlainTextFormat:
+		case NVDatabaseFormatPlainText:
 			if (!(formattedData = [[contentMinusColor string] dataUsingEncoding:fileEncoding allowLossyConversion:NO])) {
 				[self _setFileEncoding:NSUTF8StringEncoding];
 				NSLog(@"promoting to unicode (UTF-8) on export--probably because internal format is singledb");
 				formattedData = [[contentMinusColor string] dataUsingEncoding:fileEncoding allowLossyConversion:YES];
 			}
 			break;
-		case RTFTextFormat:
+		case NVDatabaseFormatRTF:
 			formattedData = [contentMinusColor RTFFromRange:NSMakeRange(0, [contentMinusColor length]) documentAttributes:nil];
 			break;
-		case HTMLFormat:
+		case NVDatabaseFormatHTML:
 			formattedData = [contentMinusColor dataFromRange:NSMakeRange(0, [contentMinusColor length])
 									  documentAttributes:[NSDictionary dictionaryWithObject:NSHTMLTextDocumentType 
 																					 forKey:NSDocumentTypeDocumentAttribute] error:&error];
 			break;
-		case WordDocFormat:
+		case NVDatabaseFormatDOC:
 			formattedData = [contentMinusColor docFormatFromRange:NSMakeRange(0, [contentMinusColor length]) documentAttributes:nil];
 			break;
-		case WordXMLFormat:
+		case NVDatabaseFormatDOCX:
 			formattedData = [contentMinusColor dataFromRange:NSMakeRange(0, [contentMinusColor length]) 
 									  documentAttributes:[NSDictionary dictionaryWithObject:NSWordMLTextDocumentType 
 																					 forKey:NSDocumentTypeDocumentAttribute] error:&error];
@@ -1787,7 +1784,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		NSLog(@"error writing to temporary file: %d", err);
 		return err;
     }
-	if (PlainTextFormat == storageFormat) {
+	if (storageFormat == NVDatabaseFormatPlainText) {
 		(void)[self writeCurrentFileEncodingToFSRef:&fileRef];
 	}
 	NSFileManager *fileMan = [NSFileManager defaultManager];
@@ -1821,7 +1818,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	
 	//can't use updateFromCatalogEntry because it would assign ownership via various metadata
 	
-	if ([self updateFromData:[NSMutableData dataWithContentsOfFile:path options:NSUncachedRead error:NULL] inFormat:PlainTextFormat]) {
+	if ([self updateFromData:[NSMutableData dataWithContentsOfFile:path options:NSUncachedRead error:NULL] inFormat:NVDatabaseFormatPlainText]) {
 		//reflect the temp file's changes directly back to the backing-store-file, database, and sync services
 		[self makeNoteDirtyUpdateTime:YES updateFile:YES];
 		

@@ -27,7 +27,7 @@
 
 - (void)awakeFromNib {
 	
-	NSInteger storageFormat = [[[GlobalPrefs defaultPrefs] notationPrefs] notesStorageFormat];
+	NVDatabaseFormat storageFormat = [[[GlobalPrefs defaultPrefs] notationPrefs] notesStorageFormat];
 	[formatSelectorPopup selectItemWithTag:storageFormat];
 }
 
@@ -62,7 +62,8 @@
 		if (returnCode == NSFileHandlingPanelOKButton && notes) {
 			//write notes in chosen format
 			NSUInteger i;
-			NSInteger result, storageFormat = [[formatSelectorPopup selectedItem] tag];
+			NSInteger result;
+			NVDatabaseFormat storageFormat = [[formatSelectorPopup selectedItem] tag];
 			NSURL *directory = nil;
 			NSString *filename = nil;
 			BOOL overwriteNotes = NO;

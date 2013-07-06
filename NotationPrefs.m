@@ -98,7 +98,7 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 		storesPasswordInKeychain = secureTextEntry = doesEncryption = NO;
 		syncServiceAccounts = [[NSMutableDictionary alloc] init];
 		seenDiskUUIDEntries = [[NSMutableArray alloc] init];
-		notesStorageFormat = SingleDatabaseFormat;
+		notesStorageFormat = NVDatabaseFormatSingle;
 		hashIterationCount = DEFAULT_HASH_ITERATIONS;
 		keyLengthInBits = DEFAULT_KEY_LENGTH;
 		baseBodyFont = [[[GlobalPrefs defaultPrefs] noteBodyFont] retain];
@@ -250,16 +250,16 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 
 + (NSMutableArray*)defaultTypeStringsForFormat:(int)formatID {
     switch (formatID) {
-	case SingleDatabaseFormat:
+	case NVDatabaseFormatSingle:
 	    return [NSMutableArray arrayWithCapacity:0];
-	case PlainTextFormat: 
+	case NVDatabaseFormatPlainText:
 	    return [NSMutableArray arrayWithObjects:[(id)UTCreateStringForOSType(TEXT_TYPE_ID) autorelease], 
 			[(id)UTCreateStringForOSType(UTXT_TYPE_ID) autorelease], nil];
-	case RTFTextFormat: 
+	case NVDatabaseFormatRTF:
 	    return [NSMutableArray arrayWithObjects:[(id)UTCreateStringForOSType(RTF_TYPE_ID) autorelease], nil];
-	case HTMLFormat:
+	case NVDatabaseFormatHTML:
 	    return [NSMutableArray arrayWithObjects:[(id)UTCreateStringForOSType(HTML_TYPE_ID) autorelease], nil];
-	case WordDocFormat:
+	case NVDatabaseFormatDOC:
 		return [NSMutableArray arrayWithObjects:[(id)UTCreateStringForOSType(WORD_DOC_TYPE_ID) autorelease], nil];
 	default:
 	    NSLog(@"Unknown format ID: %d", formatID);
@@ -270,17 +270,17 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 
 + (NSMutableArray*)defaultPathExtensionsForFormat:(int)formatID {
     switch (formatID) {
-	case SingleDatabaseFormat:
+	case NVDatabaseFormatSingle:
 	    return [NSMutableArray arrayWithCapacity:0];
-	case PlainTextFormat: 
+	case NVDatabaseFormatPlainText:
 	    return [NSMutableArray arrayWithObjects:@"txt", @"text", @"utf8", @"taskpaper", nil];
-	case RTFTextFormat: 
+	case NVDatabaseFormatRTF:
 	    return [NSMutableArray arrayWithObjects:@"rtf", nil];
-	case HTMLFormat:
+	case NVDatabaseFormatHTML:
 	    return [NSMutableArray arrayWithObjects:@"html", @"htm", nil];
-	case WordDocFormat:
+	case NVDatabaseFormatDOC:
 		return [NSMutableArray arrayWithObjects:@"doc", nil];
-	case WordXMLFormat:
+	case NVDatabaseFormatDOCX:
 		return [NSMutableArray arrayWithObjects:@"docx", nil];
 	default:
 	    NSLog(@"Unknown format ID: %d", formatID);
@@ -466,7 +466,6 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 		}
 		
 		CFRelease(itemRef);
-		
 	} else {
 		const char *accountName = [[self setKeychainDatabaseIdentifier] UTF8String];
 		
@@ -576,9 +575,9 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 	return [masterKey derivedKeyOfLength:keyLengthInBits/8 salt:sessionSalt iterations:1];
 }
 
-- (void)setNotesStorageFormat:(NSInteger)formatID {
+- (void)setNotesStorageFormat:(NVDatabaseFormat)formatID {
 	if (formatID != notesStorageFormat) {
-		NSInteger oldFormat = notesStorageFormat;
+		NVDatabaseFormat oldFormat = notesStorageFormat;
 		notesStorageFormat = formatID;	
 		preferencesChanged = YES;
 		
@@ -599,7 +598,7 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 	if ([delegate respondsToSelector:@selector(totalNoteCount)])
 		notesExist = [delegate totalNoteCount] > 0;
 
-	return (proposedFormat == SingleDatabaseFormat && notesStorageFormat != SingleDatabaseFormat && notesExist);
+	return (proposedFormat == NVDatabaseFormatSingle && notesStorageFormat != NVDatabaseFormatSingle && notesExist);
 }
 
 - (void)noteFilesCleanupSheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo {
@@ -608,7 +607,7 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 	NSAssert([(id)contextInfo respondsToSelector:@selector(notesStorageFormatInProgress)],
 			 @"can't get notesStorageFormatInProgress method for changing");
 
-	NSInteger newNoteStorageFormat = [(NotationPrefsViewController*)contextInfo notesStorageFormatInProgress];
+	NVDatabaseFormat newNoteStorageFormat = [(NotationPrefsViewController*)contextInfo notesStorageFormatInProgress];
 	
 	if (returnCode != NSAlertAlternateReturn)
 		//didn't cancel
@@ -829,7 +828,7 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 	//then display warning
 	
 	NSArray *enabledValues = [[syncServiceAccounts allValues] objectsFromDictionariesForKey:@"enabled"];	
-	if ([enabledValues containsObject:[NSNumber numberWithBool:YES]] && SingleDatabaseFormat != notesStorageFormat) {
+	if ([enabledValues containsObject:@YES] && NVDatabaseFormatSingle != notesStorageFormat) {
 		//this DB is syncing with a service and is storing separate files; could it be syncing with anything else, too?
 		
 		//this logic will need to be more sophisticated anyway when multiple sync services are supported
@@ -856,20 +855,20 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 
 + (NSString*)pathExtensionForFormat:(NSInteger)format {
     switch (format) {
-	case SingleDatabaseFormat:
-	case PlainTextFormat:
+	case NVDatabaseFormatSingle:
+	case NVDatabaseFormatPlainText:
 	    
 	    return @"txt";
-	case RTFTextFormat:
+	case NVDatabaseFormatRTF:
 	    
 	    return @"rtf";
-	case HTMLFormat:
+	case NVDatabaseFormatHTML:
 	    
 	    return @"html";
-	case WordDocFormat:
+	case NVDatabaseFormatDOC:
 		
 		return @"doc";
-	case WordXMLFormat:
+	case NVDatabaseFormatDOCX:
 		
 		return @"docx";
 	default:

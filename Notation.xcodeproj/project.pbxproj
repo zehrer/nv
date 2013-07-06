@@ -262,6 +262,7 @@
 		D3EECA00106F66C70023D7F8 /* NVPasswordGenerator.m in Sources */ = {isa = PBXBuildFile; fileRef = D3EEC9FE106F66C70023D7F8 /* NVPasswordGenerator.m */; };
 		DB3CB57817810A2E0030EA13 /* NSMutableData+NVAESEncryption.m in Sources */ = {isa = PBXBuildFile; fileRef = DB83632E1780E9FE001D4DC2 /* NSMutableData+NVAESEncryption.m */; };
 		DB924C58177D327E00E96033 /* Quartz.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB924C57177D327E00E96033 /* Quartz.framework */; };
+		DB9FB5C11787A134001DC987 /* NotationTypes.m in Sources */ = {isa = PBXBuildFile; fileRef = DB9FB5C01787A134001DC987 /* NotationTypes.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -742,6 +743,8 @@
 		DB83632D1780E9FE001D4DC2 /* NSMutableData+NVAESEncryption.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSMutableData+NVAESEncryption.h"; sourceTree = "<group>"; };
 		DB83632E1780E9FE001D4DC2 /* NSMutableData+NVAESEncryption.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSMutableData+NVAESEncryption.m"; sourceTree = "<group>"; };
 		DB924C57177D327E00E96033 /* Quartz.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Quartz.framework; path = System/Library/Frameworks/Quartz.framework; sourceTree = SDKROOT; };
+		DB9FB5BF1787A134001DC987 /* NotationTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NotationTypes.h; sourceTree = "<group>"; };
+		DB9FB5C01787A134001DC987 /* NotationTypes.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NotationTypes.m; sourceTree = "<group>"; };
 		F0E01EE812DB95F40000B192 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/Preferences.xib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -847,6 +850,8 @@
 				2191930609CFBED200586B15 /* View Classes */,
 				21A73DC6099712A8009F8A6C /* WALController.h */,
 				21A73DC7099712A8009F8A6C /* WALController.m */,
+				DB9FB5BF1787A134001DC987 /* NotationTypes.h */,
+				DB9FB5C01787A134001DC987 /* NotationTypes.m */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -1601,6 +1606,7 @@
 				21A3913A12EB4C2F00CEB5F0 /* Spaces.m in Sources */,
 				DB3CB57817810A2E0030EA13 /* NSMutableData+NVAESEncryption.m in Sources */,
 				5CBA7A981305E38C004ADEBB /* TagEditingManager.m in Sources */,
+				DB9FB5C11787A134001DC987 /* NotationTypes.m in Sources */,
 				5CC2DF0B13083BCF006772D9 /* StatusItemView.m in Sources */,
 				5CF33C721308B478002B5499 /* NotesTableHeaderCell.m in Sources */,
 				5CCEEF1D130B599B00E15B77 /* DFView.m in Sources */,

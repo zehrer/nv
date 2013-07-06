@@ -164,7 +164,7 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t nu
 }
 
 - (BOOL)synchronizeNotesFromDirectory {
-    if ([self currentNoteStorageFormat] == SingleDatabaseFormat) {
+    if ([self currentNoteStorageFormat] == NVDatabaseFormatSingle) {
 		//NSLog(@"%s: called when storage format is singledatabase", _cmd);
 		return NO;
 	}

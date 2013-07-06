@@ -25,6 +25,7 @@
 #import "NotationController.h"
 #import "BufferUtils.h"
 #import "SynchronizedNoteProtocol.h"
+#import "NotationTypes.h"
 
 @class LabelObject;
 @class WALStorageController;
@@ -71,7 +72,7 @@ typedef struct _NoteFilterContext {
 @property (nonatomic) CFAbsoluteTime modifiedDate;
 @property (nonatomic) CFAbsoluteTime createdDate;
 @property (nonatomic, readonly) BOOL contentsWere7Bit;
-@property (nonatomic, readonly) NSInteger currentFormatID;
+@property (nonatomic, readonly) NVDatabaseFormat currentFormatID;
 @property (nonatomic, readonly) UInt32 logicalSize;
 
 @property (nonatomic, readonly) UTCDateTime fileModifiedDate;
@@ -98,7 +99,7 @@ NSInteger compareNodeID(id *a, id *b);
 NSInteger compareFileSize(id *a, id *b);
 
 	//syncing w/ files in directory
-	NSInteger storageFormatOfNote(NoteObject *note) DEPRECATED_ATTRIBUTE;
+	NVDatabaseFormat storageFormatOfNote(NoteObject *note) DEPRECATED_ATTRIBUTE;
 	NSString* filenameOfNote(NoteObject *note) DEPRECATED_ATTRIBUTE;
 	UInt32 fileNodeIDOfNote(NoteObject *note);
 	UInt32 fileSizeOfNote(NoteObject *note) DEPRECATED_ATTRIBUTE;
@@ -136,7 +137,7 @@ NSInteger compareFileSize(id *a, id *b);
 - (id)delegate;
 - (void)setDelegate:(id)theDelegate;
 - (id)initWithNoteBody:(NSAttributedString *)bodyText title:(NSString *)aNoteTitle
-              delegate:(id)aDelegate format:(NSInteger)formatID labels:(NSString*)aLabelString;
+              delegate:(id)aDelegate format:(NVDatabaseFormat)formatID labels:(NSString*)aLabelString;
 - (id)initWithCatalogEntry:(NoteCatalogEntry*)entry delegate:(id)aDelegate;
 
 - (NSSet*)labelSet;
@@ -166,7 +167,7 @@ NSInteger compareFileSize(id *a, id *b);
 - (BOOL)upgradeEncodingToUTF8;
 - (BOOL)updateFromFile;
 - (BOOL)updateFromCatalogEntry:(NoteCatalogEntry*)catEntry;
-- (BOOL)updateFromData:(NSMutableData *)data inFormat:(NSInteger)fmt;
+- (BOOL)updateFromData:(NSMutableData *)data inFormat:(NVDatabaseFormat)fmt;
 
 - (OSStatus)writeFileDatesAndUpdateTrackingInfo;
 
@@ -185,7 +186,7 @@ NSInteger compareFileSize(id *a, id *b);
 - (void)removeFileFromDirectory;
 - (BOOL)removeUsingJournal:(WALStorageController*)wal;
 
-- (OSStatus)exportToDirectoryRef:(FSRef *)directoryRef withFilename:(NSString *)userFilename usingFormat:(NSInteger)storageFormat overwrite:(BOOL)overwrite;
+- (OSStatus)exportToDirectoryRef:(FSRef *)directoryRef withFilename:(NSString *)userFilename usingFormat:(NVDatabaseFormat)storageFormat overwrite:(BOOL)overwrite;
 - (NSRange)nextRangeForWords:(NSArray*)words options:(unsigned)opts range:(NSRange)inRange;
 - (void)editExternallyUsingEditor:(ExternalEditor*)ed;
 - (void)abortEditingInExternalEditor;

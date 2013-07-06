@@ -825,7 +825,7 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 		for (i=0;i<[notes count]; i++) {
 			NoteObject *note = [notes objectAtIndex:i];
 			//for now, allow option-dragging-out only for notes with separate file-backing stores
-			if (storageFormatOfNote(note) != SingleDatabaseFormat) {
+			if (storageFormatOfNote(note) != NVDatabaseFormatSingle) {
 				NSString *aPath = [note noteFilePath];
 				if (aPath) [paths addObject:aPath];
 			}

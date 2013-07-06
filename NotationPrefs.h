@@ -18,13 +18,12 @@
 
 #import <Cocoa/Cocoa.h>
 #import "NotationController.h"
+#import "NotationTypes.h"
 
 /* this class is responsible for managing all preferences specific to a notational database,
 including encryption, file formats, synchronization, passwords management, and others */
 
 #define EPOC_ITERATION 4
-
-enum { SingleDatabaseFormat = 0, PlainTextFormat, RTFTextFormat, HTMLFormat, WordDocFormat, WordXMLFormat };
 
 extern NSString *NotationPrefsDidChangeNotification;
 
@@ -50,7 +49,7 @@ extern NSString *NotationPrefsDidChangeNotification;
 @property (nonatomic, readonly) BOOL preferencesChanged;
 
 @property (nonatomic) BOOL storesPasswordInKeychain;
-@property (nonatomic) NSInteger notesStorageFormat;
+@property (nonatomic) NVDatabaseFormat notesStorageFormat;
 @property (nonatomic, readonly) BOOL confirmFileDeletion;
 @property (nonatomic) BOOL doesEncryption;
 @property (nonatomic, readonly) NSDictionary *syncServiceAccounts;

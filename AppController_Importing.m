@@ -304,7 +304,7 @@
 		NSArray *unknownPaths = files;
 		NSUInteger i;
 		
-		if ([notationController currentNoteStorageFormat] != SingleDatabaseFormat) {
+		if ([notationController currentNoteStorageFormat] != NVDatabaseFormatSingle) {
 			//notes are stored as separate files, so if these paths are in the notes folder then NV can create double-bracketed-links to them instead
 			
 			NSSet *existingNotes = [notationController notesWithFilenames:files unknownFiles:&unknownPaths];
