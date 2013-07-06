@@ -2646,7 +2646,7 @@ void outletObjectAwoke(id sender) {
     - (void)updateColorScheme{
             [mainView setBackgroundColor:backgrndColor];
         [notesTableView setBackgroundColor:backgrndColor];
-        [NotesTableHeaderCell setForegroundColor:foregrndColor];
+		[notesTableView setForegroundColor:foregrndColor];
         [notationController setForegroundTextColor:foregrndColor];
         
         [textView setBackgroundColor:backgrndColor];

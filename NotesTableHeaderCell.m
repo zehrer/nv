@@ -8,10 +8,6 @@
 #import "NotesTableHeaderCell.h"
 #import <objc/runtime.h>
 
-static const void *NotesTableHeaderBackgroundColorKey = &NotesTableHeaderBackgroundColorKey;
-static const void *NotesTableHeaderHighlightColorKey = &NotesTableHeaderHighlightColorKey;
-static const void *NotesTableHeaderTextColorKey = &NotesTableHeaderTextColorKey;
-
 @implementation NotesTableHeaderCell {
 	NSGradient *_gradient;
 }
@@ -27,7 +23,7 @@ static const void *NotesTableHeaderTextColorKey = &NotesTableHeaderTextColorKey;
 		}
 		@finally {			
 			if (text == nil || [text isEqualToString:@""]) {
-				[self setTitle:@"Title"];
+				[self setTitle:@"Title"]; 
 			}
 			attrs = [[NSMutableDictionary dictionaryWithDictionary:
 					  [[self attributedStringValue] 
@@ -41,40 +37,20 @@ static const void *NotesTableHeaderTextColorKey = &NotesTableHeaderTextColorKey;
     return nil;
 }
 
-+ (NSColor *)backgroundColor
+- (void)setBackgroundColor:(NSColor *)color
 {
-	return objc_getAssociatedObject(self, NotesTableHeaderBackgroundColorKey) ?: [NSColor whiteColor];
-}
-
-+ (NSColor *)highlightColor
-{
-	return objc_getAssociatedObject(self, NotesTableHeaderHighlightColorKey) ?: [NSColor grayColor];
-}
-
-+ (void)setBackgroundColor:(NSColor *)inColor{
-	objc_setAssociatedObject(self, NotesTableHeaderBackgroundColorKey, inColor, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-
 	CGFloat fWhite;
 	CGFloat endWhite;
 	CGFloat fAlpha;
-	NSColor	*gBack = [inColor colorUsingColorSpaceName:NSCalibratedWhiteColorSpace];
+	NSColor	*gBack = [color colorUsingColorSpaceName:NSCalibratedWhiteColorSpace];
 	[gBack getWhite:&fWhite alpha:&fAlpha];
 	if (fWhite<0.5f) {
 		endWhite = fWhite + .4f;
-	}else {		
+	}else {
 		endWhite = fWhite - .27f;
 	}
-	
-	objc_setAssociatedObject(self, NotesTableHeaderHighlightColorKey, [inColor blendedColorWithFraction:0.60f ofColor:[NSColor colorWithCalibratedWhite:endWhite alpha:0.98f]], OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-}
-
-+ (NSColor *)foregroundColor
-{
-	return objc_getAssociatedObject(self, NotesTableHeaderTextColorKey) ?: [NSColor blackColor];
-}
-
-+ (void)setForegroundColor:(NSColor *)inColor{
-	objc_setAssociatedObject(self, NotesTableHeaderTextColorKey, inColor, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+	self.highlightColor = [color blendedColorWithFraction:0.60f ofColor:[NSColor colorWithCalibratedWhite:endWhite alpha:0.98f]];
+	[super setBackgroundColor:color];
 }
 
 - (NSRect)drawingRectForBounds:(NSRect)theRect {
@@ -83,7 +59,7 @@ static const void *NotesTableHeaderTextColorKey = &NotesTableHeaderTextColorKey;
 
 - (void)drawWithFrame:(NSRect)inFrame inView:(NSView*)inView
 {
-	NSColor *bColor = [[self class] backgroundColor], *tColor = [[self class] foregroundColor];
+	NSColor *bColor = self.backgroundColor, *tColor = self.textColor;
 	
 	[bColor setFill];
 	NSRectFill(inFrame);
@@ -116,14 +92,12 @@ static const void *NotesTableHeaderTextColorKey = &NotesTableHeaderTextColorKey;
 	
 }
 
-- (void)drawSortIndicatorWithFrame:(NSRect)cellFrame inView:(NSView *)controlView ascending:(BOOL)ascending priority:(NSInteger)priority{
-	NSLog(@"draw sort");
-}
+- (void)drawSortIndicatorWithFrame:(NSRect)cellFrame inView:(NSView *)controlView ascending:(BOOL)ascending priority:(NSInteger)priority {}
 
 - (void)highlight:(BOOL)hBool withFrame:(NSRect)inFrame inView:(NSView *)controlView{
-	NSColor *bColor = [[self class] backgroundColor],
-	*tColor = [[self class] foregroundColor],
-	*hColor = [[self class] highlightColor];
+	NSColor *bColor = self.backgroundColor,
+	*tColor = self.textColor,
+	*hColor = self.highlightColor;
 	
 	if (hBool) {
 		[hColor setFill];

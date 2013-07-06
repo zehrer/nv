@@ -106,6 +106,8 @@ typedef struct _ViewLocationContext {
 
 - (SEL)attributeSetterForColumn:(NoteAttributeColumn*)col;
 
+@property (nonatomic, retain) NSColor *foregroundColor;
+
 @end
 
 @interface NSTableView (Private)

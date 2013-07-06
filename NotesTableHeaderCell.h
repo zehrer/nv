@@ -15,7 +15,8 @@
 - (void)drawSortIndicatorWithFrame:(NSRect)cellFrame inView:(NSView *)controlView ascending:(BOOL)ascending priority:(NSInteger)priority;
 //- (void)drawInteriorWithFrame:(NSRect)inFrame inView:(NSView *)controlView;
 - (void)highlight:(BOOL)hBool withFrame:(NSRect)inFrame inView:(NSView *)controlView;
-+ (void)setBackgroundColor:(NSColor *)inColor;
-+ (void)setForegroundColor:(NSColor *)inColor;
+
+@property (nonatomic, retain) NSColor *highlightColor;
+
 
 @end

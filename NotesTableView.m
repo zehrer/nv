@@ -113,9 +113,10 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 			NoteAttributeColumn *column = [[NoteAttributeColumn alloc] initWithIdentifier:colStrings[i]];
 			[column setEditable:(colMutators[i] != NULL)];
 			[column setHeaderCell:[[[NotesTableHeaderCell alloc] initTextCell:[[NSBundle mainBundle] localizedStringForKey:colStrings[i] value:@"" table:nil]] autorelease]];
+			//[column.headerCell setStringValue:[[NSBundle mainBundle] localizedStringForKey:colStrings[i] value:@"" table:nil]];
 			
-			[column setMutatingSelector:colMutators[i]];
-			[column setDereferencingFunction:colReferencors[i]];
+			column.columnAttributeMutator = colMutators[i];
+			column.objectAttributeFunction = colReferencors[i];
 			column.comparator = comparators[i];
 			column.reverseComparator = reverseComparators[i];
 			[column setResizingMask:NSTableColumnUserResizingMask];
@@ -251,8 +252,8 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 	activeStyle = YES;
 #endif
 	isActiveStyle = activeStyle;
-	[col setDereferencingFunction: [globalPrefs horizontalLayout] ? ([globalPrefs tableColumnsShowPreview] ? unifiedCellForNote : unifiedCellSingleLineForNote) : 
-	 ([globalPrefs tableColumnsShowPreview] ? (activeStyle ? properlyHighlightingTableTitleOfNote : tableTitleOfNote) : titleOfNote2)];
+	col.objectAttributeFunction = [globalPrefs horizontalLayout] ? ([globalPrefs tableColumnsShowPreview] ? unifiedCellForNote : unifiedCellSingleLineForNote) :
+	([globalPrefs tableColumnsShowPreview] ? (activeStyle ? properlyHighlightingTableTitleOfNote : tableTitleOfNote) : titleOfNote2);
 }
 
 - (void)updateTitleDereferencorState {
@@ -1168,7 +1169,7 @@ enum { kNext_Tag = 'j', kPrev_Tag = 'k' };
 	if ([globalPrefs horizontalLayout] && [self columnWithIdentifier:[col identifier]] == 0) {
 		return lastEventActivatedTagEdit ? @selector(setLabelString:) : @selector(setTitleString:);
 	}
-	return columnAttributeMutator(col);
+	return col.columnAttributeMutator;
 }
 
 - (BOOL)lastEventActivatedTagEdit {
@@ -1334,7 +1335,10 @@ enum { kNext_Tag = 'j', kPrev_Tag = 'k' };
 
 - (void)setBackgroundColor:(NSColor *)color{
     if (![[color colorSpaceName] isEqualToString:@"NSNamedColorSpace"]) {
-        [NotesTableHeaderCell setBackgroundColor:color];
+		[[[self tableColumns] valueForKeyPath:@"headerCell"] enumerateObjectsUsingBlock:^(NotesTableHeaderCell *obj, NSUInteger idx, BOOL *stop) {
+			obj.backgroundColor = color;
+		}];
+		[[self headerView] setNeedsDisplay:YES];
         CGFloat fWhite;		
         fWhite = [[color colorUsingColorSpaceName:NSCalibratedWhiteColorSpace] whiteComponent];
         if (fWhite<0.25f) {
@@ -1346,8 +1350,23 @@ enum { kNext_Tag = 'j', kPrev_Tag = 'k' };
         }
         [self setGridColor:[NSColor colorWithCalibratedWhite:fWhite alpha:1.0f]];
         [super setBackgroundColor:color];
+		[self setNeedsDisplay:YES];
     }
    
+}
+
+- (NSColor *)foregroundColor
+{
+	return [[[[self tableColumns] firstObject] headerCell] textColor];
+}
+
+- (void)setForegroundColor:(NSColor *)foregroundColor
+{
+	
+	[[[self tableColumns] valueForKeyPath:@"headerCell"] enumerateObjectsUsingBlock:^(NotesTableHeaderCell *obj, NSUInteger idx, BOOL *stop) {
+		obj.textColor = foregroundColor;
+	}];
+	[[self headerView] setNeedsDisplay:YES];
 }
 
 # pragma mark alternating rows (Brett)
