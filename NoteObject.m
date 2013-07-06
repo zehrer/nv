@@ -198,83 +198,6 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 	
 }
 
-NSInteger compareFilename(id *one, id *two) {
-    
-    return (NSInteger)CFStringCompare((CFStringRef)((*(NoteObject**)one)->filename), 
-				(CFStringRef)((*(NoteObject**)two)->filename), kCFCompareCaseInsensitive);
-}
-
-NSInteger compareDateModified(id *a, id *b) {
-    return (*(NoteObject**)a)->modifiedDate - (*(NoteObject**)b)->modifiedDate;
-}
-NSInteger compareDateCreated(id *a, id *b) {
-    return (*(NoteObject**)a)->createdDate - (*(NoteObject**)b)->createdDate;
-}
-NSInteger compareLabelString(id *aPtr, id *bPtr) {
-	NoteObject *a = *(NoteObject**)aPtr;
-	NoteObject *b = *(NoteObject**)bPtr;
-	return [a.labelString caseInsensitiveCompare:b.labelString];
-}
-NSInteger compareTitleString(id *aPtr, id *bPtr) {
-	NoteObject *a = *(NoteObject**)aPtr;
-	NoteObject *b = *(NoteObject**)bPtr;
-	
-	NSComparisonResult stringResult = [a.titleString caseInsensitiveCompare:b.titleString];
-	if (stringResult == NSOrderedSame) {
-		
-		NSInteger dateResult = compareDateCreated(aPtr, bPtr);
-		if (!dateResult)
-			return compareUniqueNoteIDBytes(aPtr, bPtr);
-		
-		return dateResult;
-	}
-	
-	return (NSInteger)stringResult;
-}
-NSInteger compareUniqueNoteIDBytes(id *a, id *b) {
-	return memcmp((&(*(NoteObject**)a)->uniqueNoteIDBytes), (&(*(NoteObject**)b)->uniqueNoteIDBytes), sizeof(CFUUIDBytes));
-}
-
-
-NSInteger compareDateModifiedReverse(id *a, id *b) {
-    return (*(NoteObject**)b)->modifiedDate - (*(NoteObject**)a)->modifiedDate;
-}
-NSInteger compareDateCreatedReverse(id *a, id *b) {
-    return (*(NoteObject**)b)->createdDate - (*(NoteObject**)a)->createdDate;
-}
-NSInteger compareLabelStringReverse(id *aPtr, id *bPtr) {
-	NoteObject *a = *(NoteObject**)aPtr;
-	NoteObject *b = *(NoteObject**)bPtr;
-	return [b.labelString caseInsensitiveCompare:a.labelString];
-}
-NSInteger compareTitleStringReverse(id *aPtr, id *bPtr) {
-	NoteObject *a = *(NoteObject**)aPtr;
-	NoteObject *b = *(NoteObject**)bPtr;
-	
-	NSComparisonResult stringResult = [b.titleString caseInsensitiveCompare:a.titleString];
-	if (stringResult == NSOrderedSame) {
-		
-		NSInteger dateResult = compareDateCreatedReverse(aPtr, bPtr);
-		if (!dateResult)
-			return compareUniqueNoteIDBytes(bPtr, aPtr);
-		
-		return dateResult;
-	}
-	
-	return (NSInteger)stringResult;
-}
-
-NSInteger compareNodeID(id *aPtr, id *bPtr) {
-	NoteObject *a = *(NoteObject**)aPtr;
-	NoteObject *b = *(NoteObject**)bPtr;
-    return a.nodeID - b.nodeID;
-}
-NSInteger compareFileSize(id *aPtr, id *bPtr) {
-	NoteObject *a = *(NoteObject**)aPtr;
-	NoteObject *b = *(NoteObject**)bPtr;
-    return a.logicalSize - b.logicalSize;
-}
-
 - (void)setSyncObjectAndKeyMD:(NSDictionary*)aDict forService:(NSString*)serviceName {
 	NSMutableDictionary *dict = [syncServicesMD objectForKey:serviceName];
 	if (!dict) {
@@ -1872,5 +1795,39 @@ BOOL noteTitleIsAPrefixOfOtherNoteTitle(NoteObject *longerNote, NoteObject *shor
     //queue note to be synchronized to disk (and network if necessary)
 }
 
+#pragma mark - Comparators
+
+- (NSComparisonResult)compare:(NoteObject *)other
+{
+	NSComparisonResult stringResult = [self.titleString caseInsensitiveCompare:other.titleString];
+	if (stringResult == NSOrderedSame) {
+		
+		NSComparisonResult dateResult = [self compareCreatedDate:other];
+		if (dateResult == NSOrderedSame)
+			return [self compareUniqueNoteID:other];
+		
+		return dateResult;
+	}
+	
+	return (NSInteger)stringResult;
+}
+
+- (NSComparisonResult)compareCreatedDate:(NoteObject *)other
+{
+	return NVComparisonResult(self.createdDate - other.createdDate);
+}
+
+- (NSComparisonResult)compareModifiedDate:(NoteObject *)other
+{
+	return NVComparisonResult(self.modifiedDate - other.modifiedDate);
+	
+}
+
+- (NSComparisonResult)compareUniqueNoteID:(NoteObject *)other
+{
+	CFUUIDBytes left = self.uniqueNoteIDBytes;
+	CFUUIDBytes right = other.uniqueNoteIDBytes;
+	return memcmp(&left, &right, sizeof(CFUUIDBytes));
+}
 
 @end

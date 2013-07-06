@@ -62,18 +62,9 @@
 }
 
 - (BOOL)noteFileIsAlreadyDeleted:(NoteObject*)aNote {
-	NSUInteger count = [deletedNotes count];
-	if (count > 0) {
-		
-		unsigned int i;
-		for (i=0; i<count; i++) {
-			NoteObject *curNote = [deletedNotes objectAtIndex:i];
-			if (compareFilename(&curNote, &aNote) == kCFCompareEqualTo) {
-				return YES;
-			}
-		}
-	}
-	return NO;
+	return ([deletedNotes indexOfObjectPassingTest:^BOOL(NoteObject *curNote, NSUInteger idx, BOOL *stop) {
+		return ([curNote.filename caseInsensitiveCompare:aNote.filename] == NSOrderedSame);
+	}] != NSNotFound);
 }
 
 - (void)addDeletedNotes:(NSArray*)array {
@@ -200,7 +191,7 @@ void updateForVerifiedExistingNote(DeletionManager *self, NoteObject *goodNote) 
 	
 	//sort notes by title
 	[deletedNotes sortWithOptions:NSSortConcurrent usingComparator:^(NoteObject *obj1, NoteObject *obj2) {
-		return NVComparisonResult(compareTitleString(&obj1, &obj2));
+		return [obj1 compare:obj2];
 	}];
 	
 	[window setFrame:[self windowSizeForNotesFromSender:window] display:NO];

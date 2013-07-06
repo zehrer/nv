@@ -356,7 +356,7 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t nu
     NSUInteger bSize = catCount;
     
 	NSArray *currentNotes = [allNotes sortedArrayWithOptions:NSSortConcurrent|NSSortStable usingComparator:^(NoteObject *obj1, NoteObject *obj2) {
-		return NVComparisonResult(compareFilename(&obj1, &obj2));
+		return [obj1.filename caseInsensitiveCompare:obj2.filename];
 	}];
 
 	mergesort((void *)catEntriesPtrs, (size_t)bSize, sizeof(NoteCatalogEntry*), (int (*)(const void *, const void *))compareCatalogEntryName);

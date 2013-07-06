@@ -77,9 +77,36 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 		NSString *colStrings[] = { NoteTitleColumnString, NoteLabelsColumnString, NoteDateModifiedColumnString, NoteDateCreatedColumnString };
 		SEL colMutators[] = { @selector(setTitleString:), @selector(setLabelString:), NULL, NULL };
 		id (*colReferencors[])(id, id, NSInteger) = {titleReferencor, labelColumnCellForNote, dateModifiedStringOfNote, dateCreatedStringOfNote };
-		NSInteger (*sortFunctions[])(id*, id*) = { compareTitleString, compareLabelString, compareDateModified, compareDateCreated };
-		NSInteger (*reverseSortFunctions[])(id*, id*) = { compareTitleStringReverse, compareLabelStringReverse, compareDateModifiedReverse, 
-			compareDateCreatedReverse };
+		
+		NSComparisonResult (^comparators[])(NoteObject *, NoteObject *) = {
+			^(NoteObject *obj1, NoteObject *obj2){
+				return [obj1 compare:obj2];
+			},
+			^(NoteObject *obj1, NoteObject *obj2){
+				return [obj1.labelString caseInsensitiveCompare:obj2.labelString];
+			},
+			^(NoteObject *obj1, NoteObject *obj2){
+				return [obj1 compareModifiedDate:obj2];
+			},
+			^(NoteObject *obj1, NoteObject *obj2){
+				return [obj1 compareCreatedDate:obj2];
+			}
+		};
+		
+		NSComparisonResult (^reverseComparators[])(NoteObject *, NoteObject *) = {
+			^(NoteObject *obj1, NoteObject *obj2){
+				return [obj2 compare:obj1];
+			},
+			^(NoteObject *obj1, NoteObject *obj2){
+				return [obj2.labelString caseInsensitiveCompare:obj1.labelString];
+			},
+			^(NoteObject *obj1, NoteObject *obj2){
+				return [obj2 compareModifiedDate:obj1];
+			},
+			^(NoteObject *obj1, NoteObject *obj2){
+				return [obj2 compareCreatedDate:obj1];
+			}
+		};
 		
 		unsigned int i;
 		for (i=0; i<sizeof(colStrings)/sizeof(NSString*); i++) {
@@ -89,8 +116,8 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 			
 			[column setMutatingSelector:colMutators[i]];
 			[column setDereferencingFunction:colReferencors[i]];
-			[column setSortingFunction:sortFunctions[i]];
-			[column setReverseSortingFunction:reverseSortFunctions[i]];
+			column.comparator = comparators[i];
+			column.reverseComparator = reverseComparators[i];
 			[column setResizingMask:NSTableColumnUserResizingMask];
 			
 			[allColsDict setObject:column forKey:colStrings[i]];

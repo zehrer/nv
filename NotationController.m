@@ -762,19 +762,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	
 	//sort alphabetically to find shorter prefixes first
 	NSArray *allNotesAlpha = [allNotes sortedArrayWithOptions:NSSortStable|NSSortConcurrent usingComparator:^(NoteObject *obj1, NoteObject *obj2) {
-		NSString *title1 = obj1.titleString;
-		NSString *title2 = obj2.titleString;
-		
-		NSComparisonResult result = [title1 compare:title2 options:NSCaseInsensitiveSearch];
-		
-		if (result == NSOrderedSame) {
-			NSComparisonResult dateResult = NVComparisonResult(compareDateCreated(&obj1, &obj2));
-			if (dateResult == NSOrderedSame) {
-				return NVComparisonResult(compareUniqueNoteIDBytes(&obj1, &obj2));
-			}
-		}
-		
-		return result;
+		return [obj1 compare:obj2];
 	}];
 	[allNotes makeObjectsPerformSelector:@selector(removeAllPrefixParentNotes)];
 
@@ -1421,29 +1409,25 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 
 	NoteAttributeColumn *col = sortColumn;
 	if (col) {
+		BOOL isStringSort = [col.identifier isEqualToString:NoteTitleColumnString];
 		BOOL reversed = [prefsController tableIsReverseSorted];
-		NSInteger (*sortFunction) (id *, id *) = (reversed ? [col reverseSortFunction] : [col sortFunction]);
-		NSInteger (*stringSortFunction) (id*, id*) = (reversed ? compareTitleStringReverse : compareTitleString);
+		NSComparisonResult(^comparator)(id, id) = reversed ? col.reverseComparator : col.comparator;
 		
 		[allNotes sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:^(NoteObject *obj1, NoteObject *obj2) {
-			return NVComparisonResult(stringSortFunction(&obj1, &obj2));
+			return reversed ? [obj2 compare:obj1] : [obj1 compare:obj2];
 		}];
 		
-		if (sortFunction != stringSortFunction) {
-			[allNotes sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:^(NoteObject *obj1, NoteObject *obj2) {
-				return NVComparisonResult(sortFunction(&obj1, &obj2));
-			}];
+		if (!isStringSort) {
+			[allNotes sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:comparator];
 		}
 		
 		if ([notesList count] != [allNotes count]) {
 			[notesList sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:^(NoteObject *obj1, NoteObject *obj2) {
-				return NVComparisonResult(stringSortFunction(&obj1, &obj2));
+				return reversed ? [obj2 compare:obj1] : [obj1 compare:obj2];
 			}];
 			
-			if (sortFunction != stringSortFunction) {
-				[notesList sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:^(NoteObject *obj1, NoteObject *obj2) {
-					return NVComparisonResult(sortFunction(&obj1, &obj2));
-				}];
+			if (!isStringSort) {
+				[notesList sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:comparator];
 			}
 			
 		} else {
@@ -1461,18 +1445,16 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	
 	if (col) {
 		BOOL reversed = [prefsController tableIsReverseSorted];
-	
-		NSInteger (*sortFunction) (id*, id*) = (reversed ? [col reverseSortFunction] : [col sortFunction]);
-		NSInteger (*stringSortFunction) (id*, id*) = (reversed ? compareTitleStringReverse : compareTitleString);
+		BOOL isStringSort = [col.identifier isEqualToString:NoteTitleColumnString];
+
+		NSComparisonResult(^comparator)(id, id) = reversed ? col.reverseComparator : col.comparator;
 		
 		[allNotes sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:^(NoteObject *obj1, NoteObject *obj2) {
-			return NVComparisonResult(stringSortFunction(&obj1, &obj2));
+			return reversed ? [obj2 compare:obj1] : [obj1 compare:obj2];
 		}];
 		
-		if (sortFunction != stringSortFunction) {
-			[allNotes sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:^(NoteObject *obj1, NoteObject *obj2) {
-				return NVComparisonResult(sortFunction(&obj1, &obj2));
-			}];
+		if (!isStringSort) {
+			[allNotes sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:comparator];
 		}
 	}
 }

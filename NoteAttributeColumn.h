@@ -15,18 +15,10 @@
 #import <Cocoa/Cocoa.h>
 
 @class NotesTableView;
-/*
-@interface NoteTableHeaderCell : NSTableHeaderCell {
-	
-}
 
-@end
-*/
+
 @interface NoteAttributeColumn : NSTableColumn {
-	
-    NSInteger (*sortFunction) (id*, id*);
-    NSInteger (*reverseSortFunction) (id*, id*);
-    id (*objectAttribute) (id, id, NSInteger);
+	id (*objectAttribute) (id, id, NSInteger);
 	SEL mutateObjectSelector;
 	float absoluteMinimumWidth;
 }
@@ -40,10 +32,9 @@ id columnAttributeForObject(NotesTableView *tv, NoteAttributeColumn *col, id obj
 
 id (*dereferencingFunction(NoteAttributeColumn *col))(id, id, NSInteger);
 - (void)setDereferencingFunction:(id (*)(id, id, NSInteger))attributeFunction;
-- (void)setSortingFunction:(NSInteger (*)(id*, id*))sortFunction;
-- (NSInteger (*)(id*, id*))sortFunction;
-- (void)setReverseSortingFunction:(NSInteger (*)(id*, id*))aFunction;
-- (NSInteger (*)(id*, id*))reverseSortFunction;
+
+@property (nonatomic, copy) NSComparisonResult(^comparator)(id, id);
+@property (nonatomic, copy) NSComparisonResult(^reverseComparator)(id, id);
 
 - (void)setResizingMaskNumber:(NSNumber*)resizingMaskNumber;
 

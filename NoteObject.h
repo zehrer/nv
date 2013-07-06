@@ -82,22 +82,6 @@ typedef struct _NoteFilterContext {
 @property (nonatomic, assign) UTCDateTime *attrsModifiedDate;
 @property (nonatomic, retain) NSMutableArray *prefixParentNotes;
 
-NSInteger compareDateModified(id *a, id *b);
-NSInteger compareDateCreated(id *a, id *b);
-NSInteger compareLabelString(id *a, id *b);
-NSInteger compareTitleString(id *a, id *b);
-NSInteger compareUniqueNoteIDBytes(id *a, id *b);
-
-
-NSInteger compareDateModifiedReverse(id *a, id *b);
-NSInteger compareDateCreatedReverse(id *a, id *b);
-NSInteger compareLabelStringReverse(id *a, id *b);
-NSInteger compareTitleStringReverse(id *a, id *b);
-
-NSInteger compareFilename(id *a, id *b);
-NSInteger compareNodeID(id *a, id *b);
-NSInteger compareFileSize(id *a, id *b);
-
 #define DefColAttrAccessor(__FName, __IVar) force_inline id __FName(NotesTableView *tv, NoteObject *note, NSInteger row) { return note->__IVar; }
 
 	//return types are NSString or NSAttributedString, satisifying NSTableDataSource protocol otherwise
@@ -194,6 +178,13 @@ NSInteger compareFileSize(id *a, id *b);
 
 - (NSUndoManager*)undoManager;
 - (void)_undoManagerDidChange:(NSNotification *)notification;
+
+#pragma mark - Comparators
+
+- (NSComparisonResult)compare:(NoteObject *)other;
+- (NSComparisonResult)compareCreatedDate:(NoteObject *)other;
+- (NSComparisonResult)compareModifiedDate:(NoteObject *)other;
+- (NSComparisonResult)compareUniqueNoteID:(NoteObject *)other;
 
 @end
 

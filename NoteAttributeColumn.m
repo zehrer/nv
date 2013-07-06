@@ -13,15 +13,6 @@
 #import "NoteAttributeColumn.h"
 #import "NotesTableView.h"
 
-/*
-@implementation NoteTableHeaderCell
-
-- (NSRect)drawingRectForBounds:(NSRect)theRect {
-	return NSInsetRect(theRect, 6.0f, 0.0);
-}
-
-@end
-*/
 @implementation NoteAttributeColumn
 
 - (id)initWithIdentifier:(id)anObject {
@@ -69,21 +60,6 @@ id columnAttributeForObject(NotesTableView *tv, NoteAttributeColumn *col, id obj
     objectAttribute = attributeFunction;
 }
 
-- (void)setSortingFunction:(NSInteger (*)(id *, id *))aFunction {
-    sortFunction = aFunction;
-}
-
-- (NSInteger (*)(id *, id *))sortFunction {
-    return sortFunction;
-}
-
-- (void)setReverseSortingFunction:(NSInteger (*)(id*, id*))aFunction {
-    reverseSortFunction = aFunction;
-}
-
-- (NSInteger (*)(id*, id*))reverseSortFunction {
-    return reverseSortFunction;
-}
 id (*dereferencingFunction(NoteAttributeColumn *col))(id, id, NSInteger) {
 	return col->objectAttribute;
 }
