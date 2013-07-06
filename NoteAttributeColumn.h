@@ -18,24 +18,17 @@
 
 
 @interface NoteAttributeColumn : NSTableColumn {
-	id (*objectAttribute) (id, id, NSInteger);
 	SEL mutateObjectSelector;
 	float absoluteMinimumWidth;
 }
 
 + (NSDictionary*)standardDictionary;
-SEL columnAttributeMutator(NoteAttributeColumn *col);
-- (void)setMutatingSelector:(SEL)selector;
-id columnAttributeForObject(NotesTableView *tv, NoteAttributeColumn *col, id object, NSInteger row);
 - (void)updateWidthForHighlight;
 
-
-id (*dereferencingFunction(NoteAttributeColumn *col))(id, id, NSInteger);
-- (void)setDereferencingFunction:(id (*)(id, id, NSInteger))attributeFunction;
+@property (nonatomic) id(*objectAttributeFunction)(id, id, NSInteger);
+@property (nonatomic) SEL columnAttributeMutator;
 
 @property (nonatomic, copy) NSComparisonResult(^comparator)(id, id);
 @property (nonatomic, copy) NSComparisonResult(^reverseComparator)(id, id);
-
-- (void)setResizingMaskNumber:(NSNumber*)resizingMaskNumber;
 
 @end

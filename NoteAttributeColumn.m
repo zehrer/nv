@@ -34,38 +34,8 @@
 	return standardDictionary;
 }
 
-- (void)sizeToFit{
-    NSLog(@"tablecolumn size to fit");
-    [super sizeToFit];
-}
-
 - (void)updateWidthForHighlight {
 	[self setMinWidth:absoluteMinimumWidth + ([[self tableView] highlightedTableColumn] == self ? 10 : 0)];
-  
-}
-
-SEL columnAttributeMutator(NoteAttributeColumn *col) {
-	return col->mutateObjectSelector;
-}
-
-- (void)setMutatingSelector:(SEL)selector {
-	mutateObjectSelector = selector;
-}
-
-id columnAttributeForObject(NotesTableView *tv, NoteAttributeColumn *col, id object, NSInteger row) {
-	return col->objectAttribute(tv, object, row);
-}
-
-- (void)setDereferencingFunction:(id (*)(id, id, NSInteger))attributeFunction {
-    objectAttribute = attributeFunction;
-}
-
-id (*dereferencingFunction(NoteAttributeColumn *col))(id, id, NSInteger) {
-	return col->objectAttribute;
-}
-
-- (void)setResizingMaskNumber:(NSNumber*)resizingMaskNumber {
-	[self setResizingMask:[resizingMaskNumber unsignedIntValue]];
 }
 
 @end

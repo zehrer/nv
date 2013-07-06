@@ -1631,11 +1631,11 @@ forTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex {
 	//allow the tableview to override the selector destination for this object value
 	SEL colAttributeMutator = [(NotesTableView*)aTableView attributeSetterForColumn:(NoteAttributeColumn*)aTableColumn];
 	
-	[notesList[rowIndex] performSelector:colAttributeMutator ? colAttributeMutator : columnAttributeMutator((NoteAttributeColumn*)aTableColumn) withObject:anObject];
+	[notesList[rowIndex] performSelector:colAttributeMutator withObject:anObject];
 }
 	
 - (id)tableView:(NSTableView *)aTableView objectValueForTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex {
-	return columnAttributeForObject((NotesTableView*)aTableView, (NoteAttributeColumn*)aTableColumn, notesList[rowIndex], rowIndex);
+	return ((NoteAttributeColumn *)aTableColumn).objectAttributeFunction(aTableView, notesList[rowIndex], rowIndex);
 }
 	
 - (NSInteger)numberOfRowsInTableView:(NSTableView *)aTableView {

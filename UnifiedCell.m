@@ -21,7 +21,6 @@
 #import "GlobalPrefs.h"
 #import "NSBezierPath_NV.h"
 #import "NSString_CustomTruncation.h"
-#import "NoteAttributeColumn.h"
 
 @implementation UnifiedCell
 
