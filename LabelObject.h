@@ -22,19 +22,15 @@
 @class NoteObject;
 
 @interface LabelObject : NSObject {
-    NSString *labelName, *lowercaseName;
+    NSString *lowercaseName;
     NSMutableSet *notes;
     
     NSUInteger lowercaseHash;
 }
 
-NSString* titleOfLabel(LabelObject *label);
-int compareLabel(const void *one, const void *two);
-
 - (id)initWithTitle:(NSString*)name;
-- (NSString*)title;
+@property (nonatomic, copy) NSString *title;
 - (NSString*)associativeIdentifier;
-- (void)setTitle:(NSString*)title;
 - (void)addNote:(NoteObject*)note;
 - (void)addNoteSet:(NSSet*)noteSet;
 - (void)removeNote:(NoteObject*)note;

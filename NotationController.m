@@ -1556,14 +1556,14 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	NSMutableArray *titles = [NSMutableArray arrayWithCapacity:[self.allLabels count]];
 	
 	[objs sortWithOptions:NSSortConcurrent usingComparator:^(LabelObject *obj1, LabelObject *obj2) {
-		return [titleOfLabel(obj1) caseInsensitiveCompare:titleOfLabel(obj2)];
+		return [obj1.title caseInsensitiveCompare:obj2.title];
 	}];
 	
 	CFStringRef prefix = (CFStringRef)prefixString;
 	NSUInteger i, titleLen, j = 0, shortestTitleLen = UINT_MAX;
 	
 	for (i=0; i<[objs count]; i++) {
-		CFStringRef title = (CFStringRef)titleOfLabel((LabelObject*)[objs objectAtIndex:i]);
+		CFStringRef title = (CFStringRef)[(LabelObject*)[objs objectAtIndex:i] title];
 		
 		if (CFStringFindWithOptions(title, prefix, CFRangeMake(0, CFStringGetLength(prefix)), kCFCompareAnchored | kCFCompareCaseInsensitive, NULL)) {
 			

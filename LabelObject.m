@@ -23,6 +23,8 @@
 
 @implementation LabelObject
 
+@synthesize title = labelName;
+
 - (id)initWithTitle:(NSString*)name {
     if ((self = [super init])) {
 		labelName = [name retain];
@@ -36,26 +38,11 @@
     return self;
 }
 
-force_inline NSString* titleOfLabel(LabelObject *label) {
-    return label->labelName;
-}
-
-int compareLabel(const void *one, const void *two) {
-	
-    return (int)CFStringCompare((CFStringRef)titleOfLabel(*(LabelObject**)one),
-								(CFStringRef)titleOfLabel(*(LabelObject**)two), kCFCompareCaseInsensitive);
-}
-
-- (NSString*)title {
-    return labelName;
-}
-
 - (NSString*)associativeIdentifier {
     return lowercaseName;
 }
 
 - (void)dealloc {
- 
     [notes release];
     [labelName release];
     [lowercaseName release];
@@ -64,10 +51,10 @@ int compareLabel(const void *one, const void *two) {
 
 - (void)setTitle:(NSString*)title {
     [labelName release];
-    labelName = [title retain];
+    labelName = [title copy];
     
     [lowercaseName release];
-    lowercaseName = [[title lowercaseString] retain];
+    lowercaseName = [[title lowercaseString] copy];
     
     lowercaseHash = [lowercaseName hash];
 }
@@ -94,14 +81,6 @@ int compareLabel(const void *one, const void *two) {
 - (NSString*)description {
 	return [labelName stringByAppendingFormat:@" (used by %@)", notes];
 }
-
-/*- (NSArray*)notesSharedWithSet:(NSSet*)filteredSet {
-    NSMutableSet *intersectedSet = [NSMutableSet setWithSet:notes]; 
-
-    [intersectedSet intersectSet:filteredSet];
-    
-    return [intersectedSet allObjects];
-}*/
 
 - (BOOL)isEqual:(id)anObject {
     return [lowercaseName isEqualToString:[anObject associativeIdentifier]];
