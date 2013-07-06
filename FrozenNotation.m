@@ -23,11 +23,13 @@
 
 @implementation FrozenNotation
 
+@synthesize allNotes = allNotes, deletedNoteSet = deletedNoteSet, notesData = notesData, prefs = prefs;
+
 - (id)initWithCoder:(NSCoder*)decoder {
-	if ([decoder containsValueForKey:VAR_STR(prefs)]) {
-		prefs = [[decoder decodeObjectForKey:VAR_STR(prefs)] retain];
-		notesData = [[decoder decodeObjectForKey:VAR_STR(notesData)] retain];
-		deletedNoteSet = [[decoder decodeObjectForKey:VAR_STR(deletedNoteSet)] retain];
+	if ([decoder containsValueForKey:@keypath(self.prefs)]) {
+		prefs = [[decoder decodeObjectForKey:@keypath(self.prefs)] retain];
+		notesData = [[decoder decodeObjectForKey:@keypath(self.notesData)] retain];
+		deletedNoteSet = [[decoder decodeObjectForKey:@keypath(self.deletedNoteSet)] retain];
 	} else {
 		NSLog(@"FrozenNotation: decoding legacy %@", decoder);
 		prefs = [[decoder decodeObject] retain];
@@ -39,9 +41,9 @@
 
 - (void)encodeWithCoder:(NSCoder *)coder {
 	if ([coder allowsKeyedCoding]) {
-		[coder encodeObject:prefs forKey:VAR_STR(prefs)];
-		[coder encodeObject:notesData forKey:VAR_STR(notesData)];
-		[coder encodeObject:deletedNoteSet forKey:VAR_STR(deletedNoteSet)];
+		[coder encodeObject:prefs forKey:@keypath(self.prefs)];
+		[coder encodeObject:notesData forKey:@keypath(self.notesData)];
+		[coder encodeObject:deletedNoteSet forKey:@keypath(self.deletedNoteSet)];
 	} else {
 		[coder encodeObject:prefs];
 		[coder encodeObject:notesData];

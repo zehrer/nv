@@ -33,12 +33,6 @@
 #define COMPILE_ASSERT(test, msg) \
 typedef char _COMPILE_ASSERT_SYMBOL(__LINE__, msg) [ ((test) ? 1 : -1) ]
 
-#define GCC_VERSION (__GNUC__ * 10000 \
-+ __GNUC_MINOR__ * 100 \
-+ __GNUC_PATCHLEVEL__)
-
-#define VAR_STR(x) @#x
-
 #define SEL_STR(name) NSStringFromSelector(@selector(name))
 
 #define force_inline __attribute__((always_inline))

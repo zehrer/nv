@@ -62,7 +62,7 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 		noteObject = [aNote retain];
 		searchString = [aString copy];
 		
-		CFUUIDBytes *bytes = [aNote uniqueNoteIDBytes];
+		CFUUIDBytes *bytes = [aNote uniqueNoteIDBytesPtr];
 		if (!bytes) {
 			NSLog(@"NoteBookmark init: no cfuuidbytes pointer from note %@", titleOfNote(aNote));
 			[self release];

@@ -38,12 +38,11 @@ typedef struct _NoteFilterContext {
 
 @interface NoteObject : NSObject <NSCoding, SynchronizedNote> {
 	NSAttributedString *tableTitleString;
-	NSMutableAttributedString *contentString;
 	
 	//caching/searching purposes only -- created at runtime
 	char *cTitle, *cContents, *cLabels, *cTitleFoundPtr, *cContentsFoundPtr, *cLabelsFoundPtr;
 	NSMutableSet *labelSet;
-	BOOL contentsWere7Bit, contentCacheNeedsUpdate;
+	BOOL contentCacheNeedsUpdate;
 	//if this note's title is "Chicken Shack menu listing", its prefix parent might have the title "Chicken Shack"
 	
 //	NSString *wordCountString;
@@ -53,20 +52,11 @@ typedef struct _NoteFilterContext {
 	
 	//for syncing to text file
 	UInt32 nodeID;
-	PerDiskInfo *perDiskInfoGroups;
 	NSUInteger perDiskInfoGroupCount;
 	BOOL shouldWriteToFile, didUnarchive;
 	
-	//for storing in write-ahead-log
-	unsigned int logSequenceNumber;
-	
 	//not determined until it's time to read to or write from a text file
 	FSRef *noteFileRef;
-
-	//the first for syncing w/ NV server, as the ID cannot be encrypted
-	CFUUIDBytes uniqueNoteIDBytes;
-	
-	NSMutableDictionary *syncServicesMD;
 	
 	//more metadata
 	NSRange selectedRange;
@@ -75,15 +65,21 @@ typedef struct _NoteFilterContext {
 	NSUndoManager *undoManager;
 @public
 	NSMutableArray *prefixParentNotes;
-	NSString *filename;
-	NSString *titleString, *labelString;
-	UInt32 logicalSize;
-	UTCDateTime fileModifiedDate, *attrsModifiedDate;
-	NSStringEncoding fileEncoding;
-	NSInteger currentFormatID;
-	CFAbsoluteTime modifiedDate, createdDate;
+	UTCDateTime *attrsModifiedDate;
 }
 
+@property (nonatomic) CFAbsoluteTime modifiedDate;
+@property (nonatomic) CFAbsoluteTime createdDate;
+@property (nonatomic, readonly) BOOL contentsWere7Bit;
+@property (nonatomic, readonly) NSInteger currentFormatID;
+@property (nonatomic, readonly) UInt32 logicalSize;
+
+@property (nonatomic, readonly) UTCDateTime fileModifiedDate;
+
+@property (nonatomic, copy) NSAttributedString *contentString;
+@property (nonatomic, copy, readonly) NSString *filename;
+@property (nonatomic, copy) NSString *titleString;
+@property (nonatomic, copy) NSString *labelString;
 
 NSInteger compareDateModified(id *a, id *b);
 NSInteger compareDateCreated(id *a, id *b);
@@ -101,28 +97,20 @@ NSInteger compareFilename(id *a, id *b);
 NSInteger compareNodeID(id *a, id *b);
 NSInteger compareFileSize(id *a, id *b);
 
-//syncing w/ server and from journal
-- (CFUUIDBytes *)uniqueNoteIDBytes;
-- (NSDictionary*)syncServicesMD;
-- (unsigned int)logSequenceNumber;
-- (void)incrementLSN;
-
-- (BOOL)youngerThanLogObject:(id<SynchronizedNote>)obj;
-
 	//syncing w/ files in directory
-	NSInteger storageFormatOfNote(NoteObject *note);
-	NSString* filenameOfNote(NoteObject *note);
+	NSInteger storageFormatOfNote(NoteObject *note) DEPRECATED_ATTRIBUTE;
+	NSString* filenameOfNote(NoteObject *note) DEPRECATED_ATTRIBUTE;
 	UInt32 fileNodeIDOfNote(NoteObject *note);
-	UInt32 fileSizeOfNote(NoteObject *note);
-	UTCDateTime fileModifiedDateOfNote(NoteObject *note);
+	UInt32 fileSizeOfNote(NoteObject *note) DEPRECATED_ATTRIBUTE;
+	UTCDateTime fileModifiedDateOfNote(NoteObject *note) DEPRECATED_ATTRIBUTE;
 	UTCDateTime *attrsModifiedDateOfNote(NoteObject *note);
-	CFAbsoluteTime modifiedDateOfNote(NoteObject *note);
-	CFAbsoluteTime createdDateOfNote(NoteObject *note);
+	CFAbsoluteTime modifiedDateOfNote(NoteObject *note) DEPRECATED_ATTRIBUTE;
+	CFAbsoluteTime createdDateOfNote(NoteObject *note) DEPRECATED_ATTRIBUTE;
 
-	NSStringEncoding fileEncodingOfNote(NoteObject *note);
+	NSStringEncoding fileEncodingOfNote(NoteObject *note) DEPRECATED_ATTRIBUTE;
 	
-	NSString* titleOfNote(NoteObject *note);
-	NSString* labelsOfNote(NoteObject *note);
+	NSString* titleOfNote(NoteObject *note) DEPRECATED_ATTRIBUTE;
+	NSString* labelsOfNote(NoteObject *note) DEPRECATED_ATTRIBUTE;
 
 	NSMutableArray* prefixParentsOfNote(NoteObject *note);
 
@@ -158,7 +146,6 @@ NSInteger compareFileSize(id *a, id *b);
 - (void)updateLabelConnections;
 - (void)disconnectLabels;
 - (BOOL)_setLabelString:(NSString*)newLabelString;
-- (void)setLabelString:(NSString*)newLabels;
 - (NSMutableSet*)labelSetFromCurrentString;
 - (NSArray*)orderedLabelTitles;
 - (NSSize)sizeOfLabelBlocks;
@@ -171,6 +158,7 @@ NSInteger compareFileSize(id *a, id *b);
 - (void)updateWithSyncBody:(NSString*)newBody andTitle:(NSString*)newTitle;
 - (void)registerModificationWithOwnedServices;
 
+@property (nonatomic, readonly) NSStringEncoding fileEncoding;
 - (OSStatus)writeCurrentFileEncodingToFSRef:(FSRef*)fsRef;
 - (void)_setFileEncoding:(NSStringEncoding)encoding;
 - (BOOL)setFileEncodingAndReinterpret:(NSStringEncoding)encoding;
@@ -209,8 +197,6 @@ NSInteger compareFileSize(id *a, id *b);
 - (void)updateTablePreviewString;
 - (void)initContentCacheCString;
 - (void)updateContentCacheCStringIfNecessary;
-- (void)setContentString:(NSAttributedString*)attributedString;
-- (NSAttributedString*)contentString;
 - (NSAttributedString*)printableStringRelativeToBodyFont:(NSFont*)bodyFont;
 - (NSString*)combinedContentWithContextSeparator:(NSString*)sepWContext;
 - (void)setForegroundTextColorOnly:(NSColor*)aColor;
@@ -221,7 +207,6 @@ NSInteger compareFileSize(id *a, id *b);
 - (void)setDateAdded:(CFAbsoluteTime)newTime;
 - (void)setSelectedRange:(NSRange)newRange;
 - (NSRange)lastSelectedRange;
-- (BOOL)contentsWere7Bit;
 - (void)addPrefixParentNote:(NoteObject*)aNote;
 - (void)removeAllPrefixParentNotes;
 - (void)previewUsingMarked;

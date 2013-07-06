@@ -18,14 +18,12 @@
 #import <Cocoa/Cocoa.h>
 
 
-@interface DiskUUIDEntry : NSObject {
-
-	NSDate *lastAccessed;
-	CFUUIDRef uuidRef;
-}
+@interface DiskUUIDEntry : NSObject
 
 - (id)initWithUUIDRef:(CFUUIDRef)aUUIDRef;
 - (void)see;
-- (CFUUIDRef)uuidRef;
-- (NSDate*)lastAccessed;
+
+@property (nonatomic, readonly) CFUUIDRef uuidRef;
+@property (nonatomic, readonly) NSDate *lastAccessed;
+
 @end

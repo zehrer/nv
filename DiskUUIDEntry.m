@@ -21,6 +21,8 @@
 
 @implementation DiskUUIDEntry
 
+@synthesize lastAccessed = lastAccessed, uuidRef = uuidRef;
+
 - (id)initWithUUIDRef:(CFUUIDRef)aUUIDRef {
 	if ((self = [super init])) {
 		NSAssert(aUUIDRef != nil, @"need a real UUID");
@@ -39,10 +41,10 @@
 - (void)encodeWithCoder:(NSCoder *)coder {
 	NSAssert([coder allowsKeyedCoding], @"keyed-encoding only!");
 	
-	[coder encodeObject:lastAccessed forKey:VAR_STR(lastAccessed)];
+	[coder encodeObject:lastAccessed forKey:@keypath(self.lastAccessed)];
 	
 	CFUUIDBytes bytes = CFUUIDGetUUIDBytes(uuidRef);
-	[coder encodeBytes:(const uint8_t *)&bytes length:sizeof(CFUUIDBytes) forKey:VAR_STR(uuidRef)];
+	[coder encodeBytes:(const uint8_t *)&bytes length:sizeof(CFUUIDBytes) forKey:@keypath(self.uuidRef)];
 
 }
 - (id)initWithCoder:(NSCoder*)decoder {
@@ -50,10 +52,10 @@
 	
     if ((self = [super init])) {
 
-		lastAccessed = [[decoder decodeObjectForKey:VAR_STR(lastAccessed)] retain];
+		lastAccessed = [[decoder decodeObjectForKey:@keypath(self.lastAccessed)] retain];
 		
 		NSUInteger decodedByteCount = 0;
-		const uint8_t *bytes = [decoder decodeBytesForKey:VAR_STR(uuidRef) returnedLength:&decodedByteCount];
+		const uint8_t *bytes = [decoder decodeBytesForKey:@keypath(self.uuidRef) returnedLength:&decodedByteCount];
 		if (bytes && decodedByteCount)  {
 			uuidRef = CFUUIDCreateFromUUIDBytes(NULL, *(CFUUIDBytes*)bytes);
 		}

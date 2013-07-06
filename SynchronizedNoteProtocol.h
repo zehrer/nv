@@ -19,10 +19,13 @@
 
 @protocol SynchronizedNote <NSCoding, NSObject>
 
-- (CFUUIDBytes *)uniqueNoteIDBytes;
-- (NSDictionary *)syncServicesMD;
-//need methods to modify parts of syncServicesMD
-- (unsigned int)logSequenceNumber;
+- (CFUUIDBytes *)uniqueNoteIDBytesPtr;
+@property (nonatomic, readonly) CFUUIDBytes uniqueNoteIDBytes;
+
+@property (nonatomic, readonly) NSMutableDictionary *syncServicesMD;
+
+@property (nonatomic, readonly) unsigned int logSequenceNumber;
+
 - (void)incrementLSN;
 - (BOOL)youngerThanLogObject:(id<SynchronizedNote>)obj;
 

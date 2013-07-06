@@ -281,7 +281,6 @@ enum {VERIFY_NOT_ATTEMPTED, VERIFY_FAILED, VERIFY_IN_PROGRESS, VERIFY_SUCCESS};
     
     int bits = [keyLengthStepper intValue];
     [keyLengthField setIntValue:bits];
-    [notationPrefs setKeyLengthInBits:bits];
 }
 
 - (IBAction)changedKeychainSettings:(id)sender {

@@ -136,7 +136,7 @@
 	NSUInteger i;
     for (i=0; i<[self count]; i++) {
 		NoteObject *note = [self objectAtIndex:i];
-		CFUUIDBytes *noteBytes = [note uniqueNoteIDBytes];
+		CFUUIDBytes *noteBytes = [note uniqueNoteIDBytesPtr];
 		if (!memcmp(noteBytes, bytes, sizeof(CFUUIDBytes)))
 			return i;
     }

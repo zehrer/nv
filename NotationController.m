@@ -262,8 +262,8 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	}
 	//notes were unpacked--now roughly compare notesToVerify with allNotes, plus deletedNotes and notationPrefs
 	if (!notesToVerify || [notesToVerify count] != [allNotes count] || [[frozenNotation deletedNotes] count] != [deletedNotes  count] || 
-		[[frozenNotation notationPrefs] notesStorageFormat] != [notationPrefs notesStorageFormat] ||
-		[[frozenNotation notationPrefs] hashIterationCount] != [notationPrefs hashIterationCount]) {
+		[frozenNotation.prefs notesStorageFormat] != [notationPrefs notesStorageFormat] ||
+		[frozenNotation.prefs hashIterationCount] != [notationPrefs hashIterationCount]) {
 		if (notesData) free(notesData);
 		return @(kItemVerifyErr);
 	}
@@ -315,7 +315,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	
 	[notationPrefs release];
 	
-	if (!(notationPrefs = [[frozenNotation notationPrefs] retain]))
+	if (!(notationPrefs = [frozenNotation.prefs retain]))
 		notationPrefs = [[NotationPrefs alloc] init];
 	[notationPrefs setDelegate:self];
 
@@ -1192,8 +1192,8 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	NSAssert(fgColor != nil, @"foreground color cannot be nil");
 
 	[allNotes makeObjectsPerformSelector:@selector(setForegroundTextColorOnly:) withObject:fgColor];
-	
-	[notationPrefs setForegroundTextColor:fgColor];
+
+    [notationPrefs setForegroundColor:fgColor];
 }
 
 - (void)restyleAllNotes {

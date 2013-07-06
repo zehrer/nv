@@ -513,7 +513,7 @@ static NSString *SynchronizedNoteDescription(const void *o) {
     do {
 		if ((obj = [self recoverNextObject])) {
 			if ([obj conformsToProtocol:@protocol(SynchronizedNote)]) {
-				objUUIDBytes = [obj uniqueNoteIDBytes];
+				objUUIDBytes = [obj uniqueNoteIDBytesPtr];
 				id <SynchronizedNote> foundNote = nil;
 				
 				//if the note already exists, then insert this note only if it's newer, and always insert it if it doesn't exist

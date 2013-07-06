@@ -19,18 +19,18 @@
 
 @class NotationPrefs;
 
-@interface FrozenNotation : NSObject <NSCoding> {
-	NSMutableArray *allNotes;
-	NSMutableSet *deletedNoteSet;
-	NSMutableData *notesData;
-	NotationPrefs *prefs;
-}
+@interface FrozenNotation : NSObject <NSCoding>
+
 - (id)initWithNotes:(NSMutableArray*)notes deletedNotes:(NSMutableSet*)antiNotes prefs:(NotationPrefs*)prefs;
 
 + (NSData*)frozenDataWithExistingNotes:(NSMutableArray*)notes deletedNotes:(NSMutableSet*)antiNotes prefs:(NotationPrefs*)prefs;
 - (NSMutableArray*)unpackedNotesWithPrefs:(NotationPrefs*)somePrefs returningError:(OSStatus*)err;
 - (NSMutableArray*)unpackedNotesReturningError:(OSStatus*)err;
 - (NSMutableSet*)deletedNotes; //these won't need to be encrypted
-- (NotationPrefs*)notationPrefs;
+
+@property (nonatomic, readonly) NSMutableArray *allNotes;
+@property (nonatomic, readonly) NSMutableSet *deletedNoteSet;
+@property (nonatomic, readonly) NSMutableData *notesData;
+@property (nonatomic, readonly) NotationPrefs *prefs;
 
 @end

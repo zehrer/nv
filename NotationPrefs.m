@@ -37,13 +37,43 @@
 
 NSString *NotationPrefsDidChangeNotification = @"NotationPrefsDidChangeNotification";
 
+@interface NotationPrefs ()
+
+@property (nonatomic, retain) NSMutableArray *seenDiskUUIDEntries;
+@property (nonatomic, retain) NSData *masterSalt;
+@property (nonatomic, retain) NSData *dataSessionSalt;
+@property (nonatomic, retain) NSData *verifierKey;
+@property (nonatomic, retain) NSMutableDictionary *mutableSyncServiceAccounts;
+
+@end
+
 @implementation NotationPrefs
 
+@synthesize epochIteration = epochIteration;
+@synthesize doesEncryption = doesEncryption;
+@synthesize storesPasswordInKeychain = storesPasswordInKeychain;
+@synthesize secureTextEntry = secureTextEntry;
+@synthesize keyLengthInBits = keyLengthInBits;
+@synthesize hashIterationCount = hashIterationCount;
+@synthesize baseBodyFont = baseBodyFont;
+@synthesize foregroundColor = foregroundColor;
+@synthesize confirmFileDeletion = confirmFileDeletion;
+@synthesize keychainDatabaseIdentifier = keychainDatabaseIdentifier;
+@synthesize seenDiskUUIDEntries = seenDiskUUIDEntries;
+@synthesize masterSalt = masterSalt;
+@synthesize dataSessionSalt = dataSessionSalt;
+@synthesize verifierKey = verifierKey;
+@synthesize delegate = delegate;
+@synthesize mutableSyncServiceAccounts = syncServiceAccounts;
+@synthesize firstTimeUsed = firstTimeUsed;
+@synthesize preferencesChanged = preferencesChanged;
+@synthesize notesStorageFormat = notesStorageFormat;
+
 static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSString* serviceName) {
-	NSMutableDictionary *accountDict = [prefs->syncServiceAccounts objectForKey:serviceName];
+	NSMutableDictionary *accountDict = prefs.mutableSyncServiceAccounts[serviceName];
 	if (!accountDict) {
 		accountDict = [[NSMutableDictionary alloc] init];
-		[prefs->syncServiceAccounts setObject:accountDict forKey:serviceName];
+		prefs.mutableSyncServiceAccounts[accountDict] = serviceName;
 		[accountDict release];
 	}
 	return accountDict;
@@ -72,7 +102,6 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 		hashIterationCount = DEFAULT_HASH_ITERATIONS;
 		keyLengthInBits = DEFAULT_KEY_LENGTH;
 		baseBodyFont = [[[GlobalPrefs defaultPrefs] noteBodyFont] retain];
-		//foregroundColor = [[[GlobalPrefs defaultPrefs] foregroundTextColor] retain];
 		foregroundColor = [[[NSApp delegate] foregrndColor]retain];
 		epochIteration = 0;
 		
@@ -93,19 +122,19 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 		
 		preferencesChanged = NO;
 		
-		epochIteration = [decoder decodeInt32ForKey:VAR_STR(epochIteration)];
-		notesStorageFormat = [decoder decodeIntForKey:VAR_STR(notesStorageFormat)];
-		doesEncryption = [decoder decodeBoolForKey:VAR_STR(doesEncryption)];
-		storesPasswordInKeychain = [decoder decodeBoolForKey:VAR_STR(storesPasswordInKeychain)];
-		secureTextEntry = [decoder decodeBoolForKey:VAR_STR(secureTextEntry)];
+		epochIteration = [decoder decodeInt32ForKey:@keypath(self.epochIteration)];
+		notesStorageFormat = [decoder decodeIntForKey:@keypath(self.notesStorageFormat)];
+		doesEncryption = [decoder decodeBoolForKey:@keypath(self.doesEncryption)];
+		storesPasswordInKeychain = [decoder decodeBoolForKey:@keypath(self.storesPasswordInKeychain)];
+		secureTextEntry = [decoder decodeBoolForKey:@keypath(self.secureTextEntry)];
 		
-		if (!(hashIterationCount = [decoder decodeIntForKey:VAR_STR(hashIterationCount)]))
+		if (!(hashIterationCount = [decoder decodeIntForKey:@keypath(self.hashIterationCount)]))
 			hashIterationCount = DEFAULT_HASH_ITERATIONS;
-		if (!(keyLengthInBits = [decoder decodeIntForKey:VAR_STR(keyLengthInBits)]))
+		if (!(keyLengthInBits = [decoder decodeIntForKey:@keypath(self.keyLengthInBits)]))
 			keyLengthInBits = DEFAULT_KEY_LENGTH;
 		
 		@try {
-			baseBodyFont = [[decoder decodeObjectForKey:VAR_STR(baseBodyFont)] retain];
+			baseBodyFont = [[decoder decodeObjectForKey:@keypath(self.baseBodyFont)] retain];
 		} @catch (NSException *e) {
 			NSLog(@"Error trying to unarchive default base body font (%@, %@)", [e name], [e reason]);
 		}
@@ -117,7 +146,7 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 		//foregroundColor does not receive the same treatment as basebodyfont; in the event of a discrepancy between global and per-db settings,
 		//the former is applied to the notes in the database, while the latter is restored from the database itself
 		@try {
-			foregroundColor = [[decoder decodeObjectForKey:VAR_STR(foregroundColor)] retain];
+			foregroundColor = [[decoder decodeObjectForKey:@keypath(self.foregroundColor)] retain];
 		} @catch (NSException *e) {
 			NSLog(@"Error trying to unarchive foreground text color (%@, %@)", [e name], [e reason]);
 		}
@@ -128,27 +157,28 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 			preferencesChanged = YES;
 		}
 		
-		confirmFileDeletion = [decoder decodeBoolForKey:VAR_STR(confirmFileDeletion)];
+		confirmFileDeletion = [decoder decodeBoolForKey:@keypath(self.confirmFileDeletion)];
 		
 		unsigned int i;
 		for (i=0; i<4; i++) {
-			if (!(typeStrings[i] = [[decoder decodeObjectForKey:[VAR_STR(typeStrings) stringByAppendingFormat:@".%d",i]] retain]))
+			
+			if (!(typeStrings[i] = [[decoder decodeObjectForKey:[NSString stringWithFormat:@"typeStrings.%d", i]] retain]))
 				typeStrings[i] = [[NotationPrefs defaultTypeStringsForFormat:i] retain];
-			if (!(pathExtensions[i] = [[decoder decodeObjectForKey:[VAR_STR(pathExtensions) stringByAppendingFormat:@".%d",i]] retain]))
+			if (!(pathExtensions[i] = [[decoder decodeObjectForKey:[NSString stringWithFormat:@"pathExtensions.%d", i]] retain]))
 				pathExtensions[i] = [[NotationPrefs defaultPathExtensionsForFormat:i] retain];
-			chosenExtIndices[i] = [decoder decodeIntForKey:[VAR_STR(chosenExtIndices) stringByAppendingFormat:@".%d",i]];
+			chosenExtIndices[i] = [decoder decodeIntForKey:[NSString stringWithFormat:@"chosenExtIndices.%d", i]];
 		}
 		
-		if (!(syncServiceAccounts = [[decoder decodeObjectForKey:VAR_STR(syncServiceAccounts)] retain]))
+		if (!(syncServiceAccounts = [[decoder decodeObjectForKey:@keypath(self.syncServiceAccounts)] mutableCopy]))
 			syncServiceAccounts = [[NSMutableDictionary alloc] init];
-		keychainDatabaseIdentifier = [[decoder decodeObjectForKey:VAR_STR(keychainDatabaseIdentifier)] retain];
+		keychainDatabaseIdentifier = [[decoder decodeObjectForKey:@keypath(self.keychainDatabaseIdentifier)] retain];
 		
-		if (!(seenDiskUUIDEntries = [[decoder decodeObjectForKey:VAR_STR(seenDiskUUIDEntries)] retain]))
+		if (!(seenDiskUUIDEntries = [[decoder decodeObjectForKey:@keypath(self.seenDiskUUIDEntries)] retain]))
 			seenDiskUUIDEntries = [[NSMutableArray alloc] init];
 		
-		masterSalt = [[decoder decodeObjectForKey:VAR_STR(masterSalt)] retain];
-		dataSessionSalt = [[decoder decodeObjectForKey:VAR_STR(dataSessionSalt)] retain];
-		verifierKey = [[decoder decodeObjectForKey:VAR_STR(verifierKey)] retain];
+		masterSalt = [[decoder decodeObjectForKey:@keypath(self.masterSalt)] retain];
+		dataSessionSalt = [[decoder decodeObjectForKey:@keypath(self.dataSessionSalt)] retain];
+		verifierKey = [[decoder decodeObjectForKey:@keypath(self.verifierKey)] retain];
 		
 		doesEncryption = doesEncryption && verifierKey && masterSalt;
 		
@@ -167,35 +197,35 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 	 2: First syncServicesMD and date created/modified syncing to files
 	 3: tracking of file size and attribute mod dates, font foreground colors, openmeta labels
 	 */
-	[coder encodeInt32:EPOC_ITERATION forKey:VAR_STR(epochIteration)];
+	[coder encodeInt32:EPOC_ITERATION forKey:@keypath(self.epochIteration)];
 	
-	[coder encodeInteger:notesStorageFormat forKey:VAR_STR(notesStorageFormat)];
-	[coder encodeBool:doesEncryption forKey:VAR_STR(doesEncryption)];
-	[coder encodeBool:storesPasswordInKeychain forKey:VAR_STR(storesPasswordInKeychain)];
-	[coder encodeInteger:hashIterationCount forKey:VAR_STR(hashIterationCount)];
-	[coder encodeInteger:keyLengthInBits forKey:VAR_STR(keyLengthInBits)];
-	[coder encodeBool:secureTextEntry forKey:VAR_STR(secureTextEntry)];
+	[coder encodeInteger:notesStorageFormat forKey:@keypath(self.notesStorageFormat)];
+	[coder encodeBool:doesEncryption forKey:@keypath(self.doesEncryption)];
+	[coder encodeBool:storesPasswordInKeychain forKey:@keypath(self.storesPasswordInKeychain)];
+	[coder encodeInteger:hashIterationCount forKey:@keypath(self.hashIterationCount)];
+	[coder encodeInteger:keyLengthInBits forKey:@keypath(self.keyLengthInBits)];
+	[coder encodeBool:secureTextEntry forKey:@keypath(self.secureTextEntry)];
 	
-	[coder encodeBool:confirmFileDeletion forKey:VAR_STR(confirmFileDeletion)];
-	[coder encodeObject:baseBodyFont forKey:VAR_STR(baseBodyFont)];
-	[coder encodeObject:foregroundColor forKey:VAR_STR(foregroundColor)];
+	[coder encodeBool:confirmFileDeletion forKey:@keypath(self.confirmFileDeletion)];
+	[coder encodeObject:baseBodyFont forKey:@keypath(self.baseBodyFont)];
+	[coder encodeObject:foregroundColor forKey:@keypath(self.foregroundColor)];
 	
 	NSUInteger i;
 	for (i=0; i<4; i++) {	
-		[coder encodeObject:typeStrings[i] forKey:[VAR_STR(typeStrings) stringByAppendingFormat:@".%lu",(unsigned long)i]];
-		[coder encodeObject:pathExtensions[i] forKey:[VAR_STR(pathExtensions) stringByAppendingFormat:@".%lu",(unsigned long)i]];
-		[coder encodeInteger:chosenExtIndices[i] forKey:[VAR_STR(chosenExtIndices) stringByAppendingFormat:@".%lu",(unsigned long)i]];
+		[coder encodeObject:typeStrings[i] forKey:[NSString stringWithFormat:@"typeStrings.%lu", (unsigned long)i]];
+		[coder encodeObject:pathExtensions[i] forKey:[NSString stringWithFormat:@"pathExtensions.%lu", (unsigned long)i]];
+		[coder encodeInteger:chosenExtIndices[i] forKey:[NSString stringWithFormat:@"chosenExtIndices.%lu",(unsigned long)i]];
 	}
 	
-	[coder encodeObject:[self syncServiceAccountsForArchiving] forKey:VAR_STR(syncServiceAccounts)];
+	[coder encodeObject:[self syncServiceAccountsForArchiving] forKey:@keypath(self.syncServiceAccounts)];
 	
-	[coder encodeObject:keychainDatabaseIdentifier forKey:VAR_STR(keychainDatabaseIdentifier)];
+	[coder encodeObject:keychainDatabaseIdentifier forKey:@keypath(self.keychainDatabaseIdentifier)];
 	
-	[coder encodeObject:seenDiskUUIDEntries forKey:VAR_STR(seenDiskUUIDEntries)];
+	[coder encodeObject:seenDiskUUIDEntries forKey:@keypath(self.seenDiskUUIDEntries)];
 	
-	[coder encodeObject:masterSalt forKey:VAR_STR(masterSalt)];
-	[coder encodeObject:dataSessionSalt forKey:VAR_STR(dataSessionSalt)];
-	[coder encodeObject:verifierKey forKey:VAR_STR(verifierKey)];
+	[coder encodeObject:masterSalt forKey:@keypath(self.masterSalt)];
+	[coder encodeObject:dataSessionSalt forKey:@keypath(self.dataSessionSalt)];
+	[coder encodeObject:verifierKey forKey:@keypath(self.verifierKey)];
 }
 
 
@@ -259,31 +289,8 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
     return [NSMutableArray arrayWithCapacity:0];
 }
 
-- (BOOL)preferencesChanged {
-	return preferencesChanged;
-}
-
-- (BOOL)storesPasswordInKeychain {
-	return storesPasswordInKeychain;
-}
-
-- (NSInteger)notesStorageFormat {
-	return notesStorageFormat;
-}
-- (BOOL)confirmFileDeletion {
-    return confirmFileDeletion;
-}
-
-- (BOOL)doesEncryption {
-	return doesEncryption;
-}
-
-- (BOOL)secureTextEntry {
-	return secureTextEntry;
-}
-
 - (NSDictionary*)syncServiceAccounts {
-	return syncServiceAccounts;
+	return [[syncServiceAccounts copy] autorelease];
 }
 
 - (NSDictionary*)syncAccountForServiceName:(NSString*)serviceName {
@@ -353,35 +360,15 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 	return [[[self syncAccountForServiceName:serviceName] objectForKey:@"enabled"] boolValue];
 }
 
-- (NSUInteger)keyLengthInBits {
-    return keyLengthInBits;
-}
-
-- (NSUInteger)hashIterationCount {
-	return hashIterationCount;
-}
-
 - (void)setPreferencesAreStored {
 	preferencesChanged = NO;
 }
 
-- (UInt32)epochIteration {
-	return epochIteration;
-}
-
-- (BOOL)firstTimeUsed {
-	return firstTimeUsed;
-}
-
-- (void)setForegroundTextColor:(NSColor*)aColor {
+- (void)setForegroundColor:(NSColor*)aColor {
 	[foregroundColor autorelease];
 	foregroundColor = [aColor retain];
 	
 	preferencesChanged = YES;
-}
-
-- (NSColor*)foregroundColor {
-	return foregroundColor;
 }
 
 - (void)setBaseBodyFont:(NSFont*)aFont {
@@ -389,11 +376,6 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 	baseBodyFont = [aFont retain];
 		
 	preferencesChanged = YES;
-}
-
-- (NSFont*)baseBodyFont {
-	
-	return baseBodyFont;
 }
 
 - (void)forgetKeychainIdentifier {
@@ -404,22 +386,22 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 	preferencesChanged = YES;
 }
 
-- (const char *)setKeychainIdentifier {
+- (NSString *)setKeychainDatabaseIdentifier {
 	if (!keychainDatabaseIdentifier) {
-		CFUUIDRef uuidRef = CFUUIDCreate(kCFAllocatorDefault);
+		CFUUIDRef uuidRef = CFUUIDCreate(NULL);
 		keychainDatabaseIdentifier = (NSString*)CFUUIDCreateString(kCFAllocatorDefault, uuidRef);
 		CFRelease(uuidRef);
-
+		
 		preferencesChanged = YES;
 	}
 	
-	return [keychainDatabaseIdentifier UTF8String];
+	return [[keychainDatabaseIdentifier copy] autorelease];
 }
 
 - (SecKeychainItemRef)currentKeychainItem {
 	SecKeychainItemRef returnedItem = NULL;
 	
-	const char *accountName = [self setKeychainIdentifier];
+	const char *accountName = [[self setKeychainDatabaseIdentifier] UTF8String];
 	
 	OSStatus err = SecKeychainFindGenericPassword(NULL, strlen(KEYCHAIN_SERVICENAME), KEYCHAIN_SERVICENAME,
 											 (UInt32)strlen(accountName), accountName, NULL, NULL, &returnedItem);
@@ -442,7 +424,7 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 - (NSData*)passwordDataFromKeychain {
 	void *passwordData = NULL;
 	UInt32 passwordLength = 0;
-	const char *accountName = [self setKeychainIdentifier];
+	const char *accountName = [[self setKeychainDatabaseIdentifier] UTF8String];
 	SecKeychainItemRef returnedItem = NULL;	
 	
 	OSStatus err = SecKeychainFindGenericPassword(NULL,
@@ -471,7 +453,7 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 	if (itemRef) {
 		//modify existing data; item already exists
 		
-		const char *accountName = [self setKeychainIdentifier];
+		const char *accountName = [[self setKeychainDatabaseIdentifier] UTF8String];
 		
 		SecKeychainAttribute attrs[] = {
 		{ kSecAccountItemAttr, (UInt32)strlen(accountName), (char*)accountName },
@@ -486,7 +468,7 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 		CFRelease(itemRef);
 		
 	} else {
-		const char *accountName = [self setKeychainIdentifier];
+		const char *accountName = [[self setKeychainDatabaseIdentifier] UTF8String];
 		
 		//add new data; item does not exist
 		if (noErr != (status = SecKeychainAddGenericPassword(NULL, strlen(KEYCHAIN_SERVICENAME), KEYCHAIN_SERVICENAME,
@@ -872,13 +854,6 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 	}
 }
 
-- (void)setKeyLengthInBits:(unsigned int)newLength {
-	//can't do this because we don't have password string
-    /*keyLengthInBits = newLength;
-    preferencesChanged = YES;
-    */
-}
-
 + (NSString*)pathExtensionForFormat:(NSInteger)format {
     switch (format) {
 	case SingleDatabaseFormat:
@@ -1074,14 +1049,5 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
     return NO;
     
 }
-
-- (id)delegate {
-	return delegate;
-}
-
-- (void)setDelegate:(id)aDelegate {
-	delegate = aDelegate;
-}
-
 
 @end

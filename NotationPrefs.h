@@ -29,31 +29,10 @@ enum { SingleDatabaseFormat = 0, PlainTextFormat, RTFTextFormat, HTMLFormat, Wor
 extern NSString *NotationPrefsDidChangeNotification;
 
 @interface NotationPrefs : NSObject {
-	BOOL doesEncryption, storesPasswordInKeychain, secureTextEntry;
-	NSString *keychainDatabaseIdentifier;
-	
-	//password(s) stored in keychain or otherwise encrypted using notes password
-	NSMutableDictionary *syncServiceAccounts;
-	
-	NSUInteger hashIterationCount, keyLengthInBits;
-	
-	NSColor *foregroundColor;
-	NSFont *baseBodyFont;
-	NSInteger notesStorageFormat;
-	BOOL confirmFileDeletion;
 	
 	NSUInteger chosenExtIndices[4];
     NSMutableArray *typeStrings[4], *pathExtensions[4];
     OSType *allowedTypes;
-	
-	NSData *masterSalt, *dataSessionSalt, *verifierKey;
-	
-	NSMutableArray *seenDiskUUIDEntries;
-	
-	UInt32 epochIteration;
-	BOOL firstTimeUsed;
-	BOOL preferencesChanged;
-	id delegate;
 	
 	@private 
 	//masterKey is not to be stored anywhere
@@ -64,30 +43,31 @@ extern NSString *NotationPrefsDidChangeNotification;
 + (NSMutableArray*)defaultTypeStringsForFormat:(int)formatID;
 + (NSMutableArray*)defaultPathExtensionsForFormat:(int)formatID;
 - (BOOL)preferencesChanged;
-- (void)setForegroundTextColor:(NSColor*)aColor;
-- (NSColor*)foregroundColor;
-- (void)setBaseBodyFont:(NSFont*)aFont;
-- (NSFont*)baseBodyFont;
+@property (nonatomic, retain) NSColor *foregroundColor;
+@property (nonatomic, retain) NSFont *baseBodyFont;
 
-- (BOOL)storesPasswordInKeychain;
-- (NSInteger)notesStorageFormat;
-- (BOOL)confirmFileDeletion;
-- (BOOL)doesEncryption;
-- (NSDictionary*)syncServiceAccounts;
-- (NSDictionary*)syncServiceAccountsForArchiving;
+@property (nonatomic, readonly) BOOL firstTimeUsed;
+@property (nonatomic, readonly) BOOL preferencesChanged;
+
+@property (nonatomic) BOOL storesPasswordInKeychain;
+@property (nonatomic) NSInteger notesStorageFormat;
+@property (nonatomic, readonly) BOOL confirmFileDeletion;
+@property (nonatomic) BOOL doesEncryption;
+@property (nonatomic, readonly) NSDictionary *syncServiceAccounts;
 - (NSDictionary*)syncAccountForServiceName:(NSString*)serviceName;
 - (NSString*)syncPasswordForServiceName:(NSString*)serviceName;
 - (NSUInteger)syncFrequencyInMinutesForServiceName:(NSString*)serviceName;
 - (BOOL)syncNotesShouldMergeForServiceName:(NSString*)serviceName;
 - (BOOL)syncServiceIsEnabled:(NSString*)serviceName;
-- (NSUInteger)keyLengthInBits;
-- (NSUInteger)hashIterationCount;
-- (UInt32)epochIteration;
+@property (nonatomic, readonly) NSUInteger keyLengthInBits;
+@property (nonatomic, readonly) NSUInteger hashIterationCount;
+@property (nonatomic, readonly) UInt32 epochIteration;
 - (BOOL)firstTimeUsed;
-- (BOOL)secureTextEntry;
+@property (nonatomic) BOOL secureTextEntry;
 
 - (void)forgetKeychainIdentifier;
-- (const char *)setKeychainIdentifier;
+@property (nonatomic, readonly) NSString *keychainDatabaseIdentifier;
+- (NSString *)setKeychainDatabaseIdentifier;
 - (SecKeychainItemRef)currentKeychainItem;
 - (NSData*)passwordDataFromKeychain;
 - (void)removeKeychainData;
@@ -103,12 +83,9 @@ extern NSString *NotationPrefsDidChangeNotification;
 - (BOOL)decryptDataWithCurrentSettings:(NSMutableData*)data;
 - (NSData*)WALSessionKey;
 
-- (void)setNotesStorageFormat:(NSInteger)formatID;
 - (BOOL)shouldDisplaySheetForProposedFormat:(NSInteger)proposedFormat;
 - (void)noteFilesCleanupSheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo;
 - (void)setConfirmsFileDeletion:(BOOL)value;
-- (void)setDoesEncryption:(BOOL)value;
-- (void)setSecureTextEntry:(BOOL)value;
 - (const char*)keychainSyncAccountNameForService:(NSString*)serviceName;
 - (void)setSyncUsername:(NSString*)username forService:(NSString*)serviceName;
 - (void)setSyncPassword:(NSString*)password forService:(NSString*)serviceName;
@@ -116,7 +93,6 @@ extern NSString *NotationPrefsDidChangeNotification;
 - (void)setSyncEnabled:(BOOL)isEnabled forService:(NSString*)serviceName;
 - (void)setSyncShouldMerge:(BOOL)shouldMerge inCurrentAccountForService:(NSString*)serviceName;
 - (void)removeSyncPasswordForService:(NSString*)serviceName;
-- (void)setKeyLengthInBits:(unsigned int)newLength;
 
 - (UInt32)tableIndexOfDiskUUID:(CFUUIDRef)UUIDRef;
 - (void)checkForKnownRedundantSyncConduitsAtPath:(NSString*)dbPath;
@@ -146,8 +122,7 @@ extern NSString *NotationPrefsDidChangeNotification;
 - (void)updateOSTypesArray;
 - (BOOL)catalogEntryAllowed:(NoteCatalogEntry*)catEntry;
 
-- (id)delegate;
-- (void)setDelegate:(id)aDelegate;
+@property (nonatomic, assign) id delegate;
 
 @end
 

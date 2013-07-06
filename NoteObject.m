@@ -53,7 +53,27 @@ typedef struct NSRange32 {
 typedef NSRange NSRange32;
 #endif
 
+@interface NoteObject () {
+	PerDiskInfo *perDiskInfoGroups;
+	NSMutableAttributedString *contentString;
+}
+
+@end
+
 @implementation NoteObject
+
+@synthesize modifiedDate = modifiedDate, createdDate = createdDate;
+@synthesize contentsWere7Bit = contentsWere7Bit;
+@synthesize logSequenceNumber = logSequenceNumber;
+@synthesize currentFormatID = currentFormatID;
+@synthesize logicalSize = logicalSize;
+@synthesize fileModifiedDate = fileModifiedDate;
+@synthesize fileEncoding = fileEncoding;
+@synthesize syncServicesMD = syncServicesMD;
+@synthesize uniqueNoteIDBytes = uniqueNoteIDBytes;
+@synthesize filename = filename;
+@synthesize titleString = titleString;
+@synthesize labelString = labelString;
 
 static FSRef *noteFileRefInit(NoteObject* obj);
 static void setAttrModifiedDate(NoteObject *note, UTCDateTime *dateTime);
@@ -114,7 +134,7 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid);
 		delegate = theDelegate;
 		
 		//do things that ought to have been done during init, but were not possible due to lack of delegate information
-		if (!filename) filename = [[delegate uniqueFilenameForTitle:titleString fromNote:self] retain];
+		if (!filename) filename = [[delegate uniqueFilenameForTitle:titleString fromNote:self] copy];
 		if (!tableTitleString && !didUnarchive) [self updateTablePreviewString];
 		if (!labelSet && !didUnarchive) [self updateLabelConnectionsAfterDecoding];
 	}
@@ -152,7 +172,8 @@ UTCDateTime *attrsModifiedDateOfNote(NoteObject *note) {
 			}
 		}
 		//this note doesn't have a file-modified date, so initialize a fairly reasonable one here
-		setAttrModifiedDate(note, &(note->fileModifiedDate));
+		UTCDateTime date = note.fileModifiedDate;
+		setAttrModifiedDate(note, &date);
 	}
 	return note->attrsModifiedDate;
 }
@@ -233,7 +254,7 @@ NSInteger compareTitleStringReverse(id *a, id *b) {
 		
 		return dateResult;
 	}
-	return (NSInteger)stringResult;	
+	return (NSInteger)stringResult;
 }
 
 NSInteger compareNodeID(id *a, id *b) {
@@ -244,20 +265,95 @@ NSInteger compareFileSize(id *a, id *b) {
 }
 
 
-#include "SynchronizedNoteMixIns.h"
+- (void)setSyncObjectAndKeyMD:(NSDictionary*)aDict forService:(NSString*)serviceName {
+	NSMutableDictionary *dict = [syncServicesMD objectForKey:serviceName];
+	if (!dict) {
+		dict = [[NSMutableDictionary alloc] initWithDictionary:aDict];
+		if (!syncServicesMD) syncServicesMD = [[NSMutableDictionary alloc] init];
+		[syncServicesMD setObject:dict forKey:serviceName];
+		[dict release];
+	} else {
+		[dict addEntriesFromDictionary:aDict];
+	}
+}
+- (void)removeAllSyncMDForService:(NSString*)serviceName {
+	[syncServicesMD removeObjectForKey:serviceName];
+}
+//- (void)removeKey:(NSString*)aKey forService:(NSString*)serviceName {
+//	[[syncServicesMD objectForKey:serviceName] removeObjectForKey:aKey];
+//}
+
+- (CFUUIDBytes *)uniqueNoteIDBytesPtr {
+    return &uniqueNoteIDBytes;
+}
+- (NSDictionary*)syncServicesMD {
+    return syncServicesMD;
+}
+- (unsigned int)logSequenceNumber {
+    return logSequenceNumber;
+}
+- (void)incrementLSN {
+    logSequenceNumber++;
+}
+- (BOOL)youngerThanLogObject:(id<SynchronizedNote>)obj {
+	return [self logSequenceNumber] < [obj logSequenceNumber];
+}
+
+- (NSUInteger)hash {
+	//XOR successive native-WORDs of CFUUIDBytes
+	NSUInteger finalHash = 0;
+	NSUInteger i, *noteIDBytesPtr = (NSUInteger *)&uniqueNoteIDBytes;
+	for (i = 0; i<sizeof(CFUUIDBytes) / sizeof(NSUInteger); i++) {
+		finalHash ^= *noteIDBytesPtr++;
+	}
+	return finalHash;
+}
+- (BOOL)isEqual:(id)otherNote {
+	CFUUIDBytes *otherBytes = [(id <SynchronizedNote>)otherNote uniqueNoteIDBytesPtr];
+	return memcmp(otherBytes, &uniqueNoteIDBytes, sizeof(CFUUIDBytes)) == 0;
+}
 
 //syncing w/ server and from journal;
 
-DefModelAttrAccessor(filenameOfNote, filename)
-DefModelAttrAccessor(fileSizeOfNote, logicalSize)
-DefModelAttrAccessor(titleOfNote, titleString)
-DefModelAttrAccessor(labelsOfNote, labelString)
-DefModelAttrAccessor(fileModifiedDateOfNote, fileModifiedDate)
-DefModelAttrAccessor(modifiedDateOfNote, modifiedDate)
-DefModelAttrAccessor(createdDateOfNote, createdDate)
-DefModelAttrAccessor(storageFormatOfNote, currentFormatID)
-DefModelAttrAccessor(fileEncodingOfNote, fileEncoding)
 DefModelAttrAccessor(prefixParentsOfNote, prefixParentNotes)
+
+force_inline CFAbsoluteTime modifiedDateOfNote(NoteObject *note){
+	return note.modifiedDate;
+}
+
+force_inline CFAbsoluteTime createdDateOfNote(NoteObject *note){
+	return note.createdDate;
+}
+
+force_inline NSInteger storageFormatOfNote(NoteObject *note){
+	return note.currentFormatID;
+}
+
+force_inline UInt32 fileSizeOfNote(NoteObject *note){
+	return note.logicalSize;
+}
+
+force_inline UTCDateTime fileModifiedDateOfNote(NoteObject *note){
+	return note.fileModifiedDate;
+}
+
+force_inline NSString *filenameOfNote(NoteObject *note){
+	return note.filename;
+}
+
+force_inline NSStringEncoding fileEncodingOfNote(NoteObject *note){
+	return note.fileEncoding;
+}
+
+force_inline NSString *titleOfNote(NoteObject *note){
+	return note.titleString;
+}
+
+force_inline NSString *labelsOfNote(NoteObject *note){
+	return note.labelString;
+}
+
+
 
 //DefColAttrAccessor(wordCountOfNote, wordCountString)
 DefColAttrAccessor(titleOfNote2, titleString)
@@ -329,38 +425,38 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 			//for knowing when to delay certain initializations during launch (e.g., preview generation)
 			didUnarchive = YES;
 			
-			modifiedDate = [decoder decodeDoubleForKey:VAR_STR(modifiedDate)];
-			createdDate = [decoder decodeDoubleForKey:VAR_STR(createdDate)];
+			modifiedDate = [decoder decodeDoubleForKey:@keypath(self.modifiedDate)];
+			createdDate = [decoder decodeDoubleForKey:@keypath(self.createdDate)];
 			selectedRange.location = [decoder decodeInt32ForKey:@"selectionRangeLocation"];
 			selectedRange.length = [decoder decodeInt32ForKey:@"selectionRangeLength"];
-			contentsWere7Bit = [decoder decodeBoolForKey:VAR_STR(contentsWere7Bit)];
+			contentsWere7Bit = [decoder decodeBoolForKey:@keypath(self.contentsWere7Bit)];
 			
-			logSequenceNumber = [decoder decodeInt32ForKey:VAR_STR(logSequenceNumber)];
+			logSequenceNumber = [decoder decodeInt32ForKey:@keypath(self.logSequenceNumber)];
 
-			currentFormatID = [decoder decodeInt32ForKey:VAR_STR(currentFormatID)];
-			logicalSize = [decoder decodeInt32ForKey:VAR_STR(logicalSize)];
+			currentFormatID = [decoder decodeInt32ForKey:@keypath(self.currentFormatID)];
+			logicalSize = [decoder decodeInt32ForKey:@keypath(self.logicalSize)];
 			
-			int64_t fileModifiedDate64 = [decoder decodeInt64ForKey:VAR_STR(fileModifiedDate)];
+			int64_t fileModifiedDate64 = [decoder decodeInt64ForKey:@keypath(self.fileModifiedDate)];
 			memcpy(&fileModifiedDate, &fileModifiedDate64, sizeof(int64_t));
 						
 			NSUInteger decodedPerDiskByteCount = 0;
-			const uint8_t *decodedPerDiskBytes = [decoder decodeBytesForKey:VAR_STR(perDiskInfoGroups) returnedLength:&decodedPerDiskByteCount];
+			const uint8_t *decodedPerDiskBytes = [decoder decodeBytesForKey:@"perDiskInfoGroups" returnedLength:&decodedPerDiskByteCount];
 			if (decodedPerDiskBytes && decodedPerDiskByteCount) {
 				CopyPerDiskInfoGroupsToOrder(&perDiskInfoGroups, &perDiskInfoGroupCount, (PerDiskInfo *)decodedPerDiskBytes, decodedPerDiskByteCount, 1);
 			}
 			
-			fileEncoding = [decoder decodeInt32ForKey:VAR_STR(fileEncoding)];
+			fileEncoding = [decoder decodeInt32ForKey:@keypath(self.fileEncoding)];
 
 			NSUInteger decodedUUIDByteCount = 0;
-			const uint8_t *decodedUUIDBytes = [decoder decodeBytesForKey:VAR_STR(uniqueNoteIDBytes) returnedLength:&decodedUUIDByteCount];
+			const uint8_t *decodedUUIDBytes = [decoder decodeBytesForKey:@keypath(self.uniqueNoteIDBytes) returnedLength:&decodedUUIDByteCount];
 			if (decodedUUIDBytes) memcpy(&uniqueNoteIDBytes, decodedUUIDBytes, MIN(decodedUUIDByteCount, sizeof(CFUUIDBytes)));
 			
-			syncServicesMD = [[decoder decodeObjectForKey:VAR_STR(syncServicesMD)] retain];
+			syncServicesMD = [[decoder decodeObjectForKey:@keypath(self.syncServicesMD)] retain];
 			
-			titleString = [[decoder decodeObjectForKey:VAR_STR(titleString)] retain];
-			labelString = [[decoder decodeObjectForKey:VAR_STR(labelString)] retain];
-			contentString = [[NSMutableAttributedString alloc] initWithAttributedString: [decoder decodeObjectForKey:VAR_STR(contentString)]];
-			filename = [[decoder decodeObjectForKey:VAR_STR(filename)] retain];
+			titleString = [[decoder decodeObjectForKey:@keypath(self.titleString)] retain];
+			labelString = [[decoder decodeObjectForKey:@keypath(self.labelString)] retain];
+			contentString = [[NSMutableAttributedString alloc] initWithAttributedString: [decoder decodeObjectForKey:@keypath(self.contentString)]];
+			filename = [[decoder decodeObjectForKey:@keypath(self.filename)] copy];
 			
 		} else {
             NSRange32 range32;
@@ -408,8 +504,8 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 			
 			titleString = [[decoder decodeObject] retain];
 			labelString = [[decoder decodeObject] retain];
-			contentString = [[[decoder decodeObject] mutableCopy] retain];
-			filename = [[decoder decodeObject] retain];
+			contentString = [[NSMutableAttributedString alloc] initWithAttributedString:[decoder decodeObject]];
+			filename = [[decoder decodeObject] copy];
 #else 
 			[decoder decodeValuesOfObjCTypes: "dd{NSRange=ii}fIiI{UTCDateTime=SIS}I[16C]I@@@@", &modifiedDate, &createdDate, &range32, 
 				&scrolledProportion, &logSequenceNumber, &currentFormatID, &nodeID, &fileModifiedDate, &fileEncoding, &uniqueNoteIDBytes, 
@@ -437,33 +533,33 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		
 	if ([coder allowsKeyedCoding]) {
 		
-		[coder encodeDouble:modifiedDate forKey:VAR_STR(modifiedDate)];
-		[coder encodeDouble:createdDate forKey:VAR_STR(createdDate)];
+		[coder encodeDouble:modifiedDate forKey:@keypath(self.modifiedDate)];
+		[coder encodeDouble:createdDate forKey:@keypath(self.createdDate)];
 		[coder encodeInt32:(unsigned int)selectedRange.location forKey:@"selectionRangeLocation"];
 		[coder encodeInt32:(unsigned int)selectedRange.length forKey:@"selectionRangeLength"];
-		[coder encodeBool:contentsWere7Bit forKey:VAR_STR(contentsWere7Bit)];
+		[coder encodeBool:contentsWere7Bit forKey:@keypath(self.contentsWere7Bit)];
 		
-		[coder encodeInt32:logSequenceNumber forKey:VAR_STR(logSequenceNumber)];
-        		
-		[coder encodeInteger:currentFormatID forKey:VAR_STR(currentFormatID)];
-		[coder encodeInt32:logicalSize forKey:VAR_STR(logicalSize)];
+		[coder encodeInt32:logSequenceNumber forKey:@keypath(self.logSequenceNumber)];
+        
+		[coder encodeInteger:currentFormatID forKey:@keypath(self.currentFormatID)];
+		[coder encodeInt32:logicalSize forKey:@keypath(self.logicalSize)];
 
 		PerDiskInfo *flippedPerDiskInfoGroups = calloc(perDiskInfoGroupCount, sizeof(PerDiskInfo));
 		CopyPerDiskInfoGroupsToOrder((PerDiskInfo**)&flippedPerDiskInfoGroups, &perDiskInfoGroupCount, perDiskInfoGroups, perDiskInfoGroupCount * sizeof(PerDiskInfo), 0);
 		
-		[coder encodeBytes:(const uint8_t *)flippedPerDiskInfoGroups length:perDiskInfoGroupCount * sizeof(PerDiskInfo) forKey:VAR_STR(perDiskInfoGroups)];
+		[coder encodeBytes:(const uint8_t *)flippedPerDiskInfoGroups length:perDiskInfoGroupCount * sizeof(PerDiskInfo) forKey:@"perDiskInfoGroups"];
 		free(flippedPerDiskInfoGroups);
 		
-		[coder encodeInt64:*(int64_t*)&fileModifiedDate forKey:VAR_STR(fileModifiedDate)];
-		[coder encodeInteger:fileEncoding forKey:VAR_STR(fileEncoding)];
+		[coder encodeInt64:*(int64_t*)&fileModifiedDate forKey:@keypath(self.fileModifiedDate)];
+		[coder encodeInteger:fileEncoding forKey:@keypath(self.fileEncoding)];
 		
-		[coder encodeBytes:(const uint8_t *)&uniqueNoteIDBytes length:sizeof(CFUUIDBytes) forKey:VAR_STR(uniqueNoteIDBytes)];
-		[coder encodeObject:syncServicesMD forKey:VAR_STR(syncServicesMD)];
+		[coder encodeBytes:(const uint8_t *)&uniqueNoteIDBytes length:sizeof(CFUUIDBytes) forKey:@keypath(self.uniqueNoteIDBytes)];
+		[coder encodeObject:syncServicesMD forKey:@keypath(self.syncServicesMD)];
 		
-		[coder encodeObject:titleString forKey:VAR_STR(titleString)];
-		[coder encodeObject:labelString forKey:VAR_STR(labelString)];
-		[coder encodeObject:contentString forKey:VAR_STR(contentString)];
-		[coder encodeObject:filename forKey:VAR_STR(filename)];
+		[coder encodeObject:titleString forKey:@keypath(self.titleString)];
+		[coder encodeObject:labelString forKey:@keypath(self.labelString)];
+		[coder encodeObject:contentString forKey:@keypath(self.contentString)];
+		[coder encodeObject:filename forKey:@keypath(self.filename)];
 		
 	} else {
 // 64bit encoding would break 32bit reading - keyed archives should be used
@@ -528,7 +624,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		}
 		
 		currentFormatID = formatID;
-		filename = [[delegate uniqueFilenameForTitle:titleString fromNote:nil] retain];
+		filename = [[delegate uniqueFilenameForTitle:titleString fromNote:nil] copy];
 		
 		CFUUIDRef uuidRef = CFUUIDCreate(kCFAllocatorDefault);
 		uniqueNoteIDBytes = CFUUIDGetUUIDBytes(uuidRef);
@@ -609,7 +705,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	}
 }
 - (NSAttributedString*)contentString {
-	return contentString;
+	return [[contentString copy] autorelease];
 }
 
 - (void)updateContentCacheCStringIfNecessary {
@@ -1849,7 +1945,6 @@ BOOL noteTitleIsAPrefixOfOtherNoteTitle(NoteObject *longerNote, NoteObject *shor
 	[self makeNoteDirtyUpdateTime:YES updateFile:YES];
     //queue note to be synchronized to disk (and network if necessary)
 }
-
 
 
 @end

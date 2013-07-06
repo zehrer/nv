@@ -846,7 +846,7 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
 	
 	[defaults setObject:stringMinusBreak forKey:LastSearchStringKey];
 	
-	CFUUIDBytes *bytes = [aNote uniqueNoteIDBytes];
+	CFUUIDBytes *bytes = [aNote uniqueNoteIDBytesPtr];
 	NSString *uuidString = nil;
 	if (bytes) uuidString = [NSString uuidStringWithBytes:*bytes];
 
