@@ -19,9 +19,9 @@ typedef enum {
 } RBSVCursorType;
 
 @interface RBSplitView : RBSplitSubview {
-    // Subclasses normally should use setter methods instead of changing instance variables by assignment.
-    // Most getter methods simply return the corresponding instance variable, so with some care, subclasses
-    // could reference them directly.
+// Subclasses normally should use setter methods instead of changing instance variables by assignment.
+// Most getter methods simply return the corresponding instance variable, so with some care, subclasses
+// could reference them directly.
 	IBOutlet id delegate;		// The delegate (may be nil).
 	NSString* autosaveName;		// This name is used for storing subview proportions in user defaults.
 	NSColor* background;		// The color used to paint the view's background (may be nil).
@@ -58,11 +58,6 @@ typedef enum {
 // Saves the current state of the subviews if there's a valid autosave name set. If the argument
 // is YES, it's then also called recursively for nested RBSplitViews. Returns YES if successful.
 - (BOOL)saveState:(BOOL)recurse;
-
-// Restores the saved state of the subviews if there's a valid autosave name set. If the argument
-// is YES, it's first called recursively for nested RBSplitViews. Returns YES if successful.
-// You need to call adjustSubviews after calling this.
-- (BOOL)restoreState:(BOOL)recurse;
 
 // Returns a string encoding the current state of all direct subviews. Does not check for nesting.
 - (NSString*)stringWithSavedState;

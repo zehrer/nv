@@ -9,11 +9,10 @@
 
 #import "RBSplitView.h"
 #import "RBSplitViewPrivateDefines.h"
-#import "AppController.h"
 
 // Please don't remove this copyright notice!
 static const unsigned char RBSplitView_Copyright[] __attribute__ ((used)) =
-"RBSplitView 1.2 Copyright(c)2004-2009 by Rainer Brockerhoff <rainer@brockerhoff.net>.";
+	"RBSplitView 1.2 Copyright(c)2004-2009 by Rainer Brockerhoff <rainer@brockerhoff.net>.";
 
 // This vector keeps currently used cursors. nil means the default cursor.
 static NSCursor* cursors[RBSVCursorTypeCount] = {nil};
@@ -27,12 +26,16 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 	return a>b?a:b;
 }
 
+@implementation RBSubviewCache
+
+@end
+
 @implementation RBSplitView
 
 // These class methods get and set the cursor used for each type.
 // Pass in nil to reset to the default cursor for that type.
 + (NSCursor*)cursor:(RBSVCursorType)type {
-	if (type && (type<RBSVCursorTypeCount)) {
+	if (type &&(type<RBSVCursorTypeCount)) {
 		NSCursor* result = cursors[type];
 		if (result) {
 			return result;
@@ -54,9 +57,8 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 }
 
 + (void)setCursor:(RBSVCursorType)type toCursor:(NSCursor*)cursor {
-	if (type && (type<RBSVCursorTypeCount)) {
-		[cursors[type] release];
-		cursors[type] = [cursor retain];
+	if (type &&(type<RBSVCursorTypeCount)) {
+		cursors[type] = cursor;
 	}
 }
 
@@ -91,8 +93,7 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 		aString = @"";
 	}
 	[RBSplitView removeStateUsingName:autosaveName];
-	[autosaveName autorelease];
-	autosaveName = [aString retain];
+	autosaveName = aString;
 	if (flag) {
 		NSArray* subviews = [self subviews];
 		NSUInteger subcount = [subviews count];
@@ -100,7 +101,7 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 		for (i=0;i<subcount;i++) {
 			RBSplitView* sv = [[subviews objectAtIndex:i] asSplitView];
 			if (sv) {
-				NSString* subst = clear?@"":[aString stringByAppendingFormat:@"[%lu]",(unsigned long)i];
+				NSString* subst = clear?@"":[aString stringByAppendingFormat:@"[%ld]",(unsigned long)i];
 				[sv setAutosaveName:subst recursively:YES];
 			}
 		}
@@ -109,36 +110,13 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 
 // Saves the current state of the subviews if there's a valid autosave name set. If the argument
 // is YES, it's then also called recursively for nested RBSplitViews. Returns YES if successful.
-// You must call restoreState explicity at least once before saveState will begin working.
 - (BOOL)saveState:(BOOL)recurse {
-    // Saving the state is also disabled while dragging.
-	if (canSaveState&&![self isDragging]&&[autosaveName length]) {
-		[[NSUserDefaults standardUserDefaults] setObject:[self stringWithSavedState] forKey:[[self class] defaultsKeyForName:autosaveName isHorizontal:[self isHorizontal]]];
-		if (recurse) {
-			for (RBSplitSubview* sub in [self subviews]){
-				[[sub asSplitView] saveState:YES];
-			}
-		}
-		return YES;
-	}
-	return NO;
-}
-
-// Restores the saved state of the subviews if there's a valid autosave name set. If the argument
-// is YES, it's also called recursively for nested RBSplitViews. Returns YES if successful.
-// It's good policy to call adjustSubviews immediately after calling restoreState.
-- (BOOL)restoreState:(BOOL)recurse {
-	BOOL result = NO;
-	if ([autosaveName length]) {
-		result = [self setStateFromString:[[NSUserDefaults standardUserDefaults] stringForKey:[[self class] defaultsKeyForName:autosaveName isHorizontal:[self isHorizontal]]]];
-		if (result&&recurse) {
-			for (RBSplitSubview* sub in [self subviews]){
-				[[sub asSplitView] restoreState:YES];
-			}
-		}
-	}
-	canSaveState = YES;
-	return result;
+// Saving the state is also disabled while dragging.
+	[self invalidateRestorableState];
+	if (recurse)
+		for (RBSplitSubview* sub in [self subviews])
+			[[sub asSplitView] saveState:YES];
+	return YES;
 }
 
 // Returns an array with complete state information for the receiver and all subviews, taking
@@ -193,7 +171,7 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 // be negative for collapsed subviews), all separated by blanks.
 - (NSString*)stringWithSavedState {
 	NSArray* subviews = [self subviews];
-	NSMutableString* result = [NSMutableString stringWithFormat:@"%lu",(unsigned long)[subviews count]];
+	NSMutableString* result = [NSMutableString stringWithFormat:@"%lu",(unsigned long)subviews.count];
 	for (RBSplitSubview* sub in [self subviews]){
 		double size = [sub dimension];
 		if ([sub isCollapsed]) {
@@ -244,6 +222,20 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 	return NO;
 }
 
+// interface for 10.7 state restoration
+- (void)encodeRestorableStateWithCoder:(NSCoder*)coder {
+	[super encodeRestorableStateWithCoder:coder];
+	[coder encodeObject:[self stringWithSavedState] forKey:@"RBSplitView"];
+}
+
+// interface for 10.7 state restoration
+- (void)restoreStateWithCoder:(NSCoder*)coder {
+	[super restoreStateWithCoder:coder];
+	NSString *state = [coder decodeObjectForKey:@"RBSplitView"];
+	if(state)
+		[self setStateFromString:state];
+}
+
 // This is the designated initializer for creating RBSplitViews programmatically. You can set the
 // divider image and other parameters afterwards.
 - (id)initWithFrame:(NSRect)frame {
@@ -267,7 +259,7 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 	self = [self initWithFrame:frame];
 	if (self) {
 		while (count-->0) {
-			[self addSubview:[[[RBSplitSubview alloc] initWithFrame:frame] autorelease]];
+			[self addSubview:[[RBSplitSubview alloc] initWithFrame:frame]];
 		}
 		[self setMustAdjust];
 	}
@@ -279,10 +271,6 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 	if (dividers) {
 		free(dividers);
 	}
-	[autosaveName release];
-	[divider release];
-	[background release];
-	[super dealloc];
 }
 
 // Sets and gets the coupling between the view and its containing RBSplitView (if any). Coupled
@@ -291,7 +279,7 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 - (void)setCoupled:(BOOL)flag {
 	if (flag!=isCoupled) {
 		isCoupled = flag;
-        // If we've just been uncoupled and there's no divider image, we copy it from the containing view. 
+// If we've just been uncoupled and there's no divider image, we copy it from the containing view. 
 		if (!isCoupled&&!divider) {
 			[self setDivider:[[self splitView] divider]];
 		}
@@ -374,8 +362,7 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 
 - (void)setBackground:(NSColor*)color {
 	if (![self couplingSplitView]) {
-		[background release];
-		background = color?([color alphaComponent]>0.0?[color retain]:nil):nil;
+		background = color?([color alphaComponent]>0.0?color:nil):nil;
 		[self setNeedsDisplay:YES];
 	}
 }
@@ -395,7 +382,6 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 // but verticality is used for setting to conform to the NSSplitView convention.
 // For a nested RBSplitView, orientation is perpendicular to the containing RBSplitView, and
 // setting it has no effect.
-// After changing the orientation you may want to restore the state with restoreState:.
 - (BOOL)isHorizontal {
 	RBSplitView* sv = [self splitView];
 	return sv?[sv isVertical]:isHorizontal;
@@ -458,16 +444,15 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 
 - (void)setDivider:(NSImage*)image {
 	if (![self couplingSplitView]) {
-		[divider release];
 		if ([image isFlipped]) {
-            // If the image is flipped, we just retain it.
-			divider = [image retain];
+// If the image is flipped, we just retain it.
+			divider = image;
 		} else {
-            // if the image isn't flipped, we copy the image instead of retaining it, and flip the copy.
+// if the image isn't flipped, we copy the image instead of retaining it, and flip the copy.
 			divider = [image copy];
 			[divider setFlipped:YES];
 		}
-        // We set the thickness to 0.0 so the image dimension will prevail.
+// We set the thickness to 0.0 so the image dimension will prevail.
 		[self setDividerThickness:0.0];
 		[self setMustAdjust];
 	}
@@ -503,7 +488,7 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 		[super addSubview:aView];
 	} else {
 		[aView setFrameOrigin:NSZeroPoint];
-		RBSplitSubview* sub = [[[RBSplitSubview alloc] initWithFrame:[aView frame]] autorelease];
+		RBSplitSubview* sub = [[RBSplitSubview alloc] initWithFrame:[aView frame]];
 		[aView setAutoresizingMask:NSViewWidthSizable|NSViewHeightSizable];
 		[sub addSubview:aView];
 		[super addSubview:sub];
@@ -516,7 +501,7 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 		[super addSubview:aView positioned:place relativeTo:otherView];
 	} else {
 		[aView setFrameOrigin:NSZeroPoint];
-		RBSplitSubview* sub = [[[RBSplitSubview alloc] initWithFrame:[aView frame]] autorelease];
+		RBSplitSubview* sub = [[RBSplitSubview alloc] initWithFrame:[aView frame]];
 		[aView setAutoresizingMask:NSViewWidthSizable|NSViewHeightSizable];
 		[sub addSubview:aView];
 		[super addSubview:sub positioned:place relativeTo:otherView];
@@ -558,7 +543,7 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 // This adjusts the subviews when the size is set. setFrame: calls this, so all is well. It calls
 // the delegate if implemented.
 - (void)setFrameSize:(NSSize)size {
-    //	NSLog(@"setFrameSize of %@ to %@",self,NSStringFromSize(size));
+//	NSLog(@"setFrameSize of %@ to %@",self,NSStringFromSize(size));
 	NSSize oldsize = [self frame].size;
 	[super setFrameSize:size];
 	[self setMustAdjust];
@@ -566,12 +551,12 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 		BOOL ishor = [self isHorizontal];
 		CGFloat olddim = DIM(oldsize);
 		CGFloat newdim = DIM(size);
-        // The delegate is not called if the dimension hasn't changed.
+// The delegate is not called if the dimension hasn't changed.
 		if (((NSInteger)newdim!=(NSInteger)olddim)) {
 			[delegate splitView:self wasResizedFrom:olddim to:newdim];
 		}
 	}
-    // We adjust the subviews only if the delegate didn't.
+// We adjust the subviews only if the delegate didn't.
 	if (mustAdjust&&!isAdjusting) {
 		[self adjustSubviews];
 	}
@@ -581,7 +566,6 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 // "closed hand" cursor is shown. Double clicks are handled separately. Nothing will happen if
 // no divider image is set.
 - (void)mouseDown:(NSEvent*)theEvent {
-    
 	if (!dividers) {
 		return;
 	}
@@ -590,34 +574,31 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 	if (subcount<2) {
 		return;
 	}
-    // If the mousedown was in an alternate dragview, or if there's no divider image, handle it in RBSplitSubview.
+// If the mousedown was in an alternate dragview, or if there's no divider image, handle it in RBSplitSubview.
 	if ((actDivider<NSNotFound)||![self divider]) {
 		[super mouseDown:theEvent];
 		return;
 	}
-    
-    NSPoint where = [self convertPoint:[theEvent locationInWindow] fromView:nil];
-    BOOL ishor = [self isHorizontal];
-    NSUInteger i;
-   
+	NSPoint where = [self convertPoint:[theEvent locationInWindow] fromView:nil];
+	BOOL ishor = [self isHorizontal];
+	NSUInteger i;
 	--subcount;
-    // Loop over the divider rectangles.
+// Loop over the divider rectangles.
 	for (i=0;i<subcount;i++) {
-        
 		NSRect* divdr = &dividers[i];
 		if ([self mouse:where inRect:*divdr]) {
-            // leading points at the subview immediately leading the divider being tracked.
+// leading points at the subview immediately leading the divider being tracked.
 			RBSplitView* leading = [subviews objectAtIndex:i];
-            // trailing points at the subview immediately trailing the divider being tracked.
+// trailing points at the subview immediately trailing the divider being tracked.
 			RBSplitView* trailing = [subviews objectAtIndex:i+1];
 			if ([delegate respondsToSelector:@selector(splitView:shouldHandleEvent:inDivider:betweenView:andView:)]) {
 				if (![delegate splitView:self shouldHandleEvent:theEvent inDivider:i betweenView:leading andView:trailing]) {
 					return;
 				}
 			}
-            // If it's a double click, try to expand or collapse one of the neighboring subviews.
+// If it's a double click, try to expand or collapse one of the neighboring subviews.
 			if ([theEvent clickCount]>1) {
-                // If both are collapsed, we do nothing. If one of them is collapsed, we try to expand it.
+// If both are collapsed, we do nothing. If one of them is collapsed, we try to expand it.
 				if ([trailing isCollapsed]) {
 					if (![leading isCollapsed]) {
 						[self RB___tryToExpandTrailing:trailing leading:leading delta:-[trailing dimension]];
@@ -626,33 +607,33 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 					if ([leading isCollapsed]) {
 						[self RB___tryToExpandLeading:leading divider:i trailing:trailing delta:[leading dimension]];
 					} else {
-                        // If neither are collapsed, we check if both are collapsible.
+// If neither are collapsed, we check if both are collapsible.
 						BOOL lcan = [leading canCollapse];
 						BOOL tcan = [trailing canCollapse];
 						CGFloat ldim = [leading dimension];
 						if (lcan&&tcan) {
-                            // If both are collapsible, we try asking the delegate.
+// If both are collapsible, we try asking the delegate.
 							if ([delegate respondsToSelector:@selector(splitView:collapseLeading:orTrailing:)]) {
 								RBSplitSubview* sub = [delegate splitView:self collapseLeading:leading orTrailing:trailing];
-                                // If the delegate returns nil, neither view will collapse.
+// If the delegate returns nil, neither view will collapse.
 								lcan = sub==leading;
 								tcan = sub==trailing;
 							} else {
-                                // Otherwise we try collapsing the smaller one. If they're equal, the trailing one will be collapsed.
+// Otherwise we try collapsing the smaller one. If they're equal, the trailing one will be collapsed.
 								lcan = ldim<[trailing dimension];
 							}
 						}
-                        // At this point, we'll try to collapse the leading subview.
+// At this point, we'll try to collapse the leading subview.
 						if (lcan) {
 							[self RB___tryToShortenLeading:leading divider:i trailing:trailing delta:-ldim always:NO];
 						}
-                        // If the leading subview didn't collapse for some reason, we try to collapse the trailing one.
+// If the leading subview didn't collapse for some reason, we try to collapse the trailing one.
 						if (!mustAdjust&&tcan) {
 							[self RB___tryToShortenTrailing:trailing divider:i leading:leading delta:[trailing dimension] always:NO];
 						}
 					}
 				}
-                // If the subviews have changed, clear the fractions, adjust and redisplay
+// If the subviews have changed, clear the fractions, adjust and redisplay
 				if (mustAdjust) {
 					[self RB___setMustClearFractions];
 					RBSplitView* sv = [self splitView];
@@ -660,10 +641,10 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 					[super display];
 				}
 			} else {
-                // Single click; record the offsets within the divider rectangle and check for nesting.
+// Single click; record the offsets within the divider rectangle and check for nesting.
 				CGFloat divt = [self dividerThickness];
 				CGFloat offset = DIM(where)-DIM(divdr->origin);
-                // Check if the leading subview is nested and if yes, if one of its two-axis thumbs was hit.
+// Check if the leading subview is nested and if yes, if one of its two-axis thumbs was hit.
 				NSInteger ldivdr = NSNotFound;
 				CGFloat loffset = 0.0;
 				NSPoint lwhere = where;
@@ -675,7 +656,7 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 						loffset = OTHER(lwhere)-OTHER(lrect.origin);
 					}
 				}
-                // Check if the trailing subview is nested and if yes, if one of its two-axis thumbs was hit.
+// Check if the trailing subview is nested and if yes, if one of its two-axis thumbs was hit.
 				NSInteger tdivdr = NSNotFound;
 				CGFloat toffset = 0.0;
 				NSPoint twhere = where;
@@ -687,48 +668,48 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 						toffset = OTHER(twhere)-OTHER(trect.origin);
 					}
 				}
-                // Now we loop handling mouse events until we get a mouse up event, while showing the drag cursor.
+// Now we loop handling mouse events until we get a mouse up event, while showing the drag cursor.
 				[[RBSplitView cursor:RBSVDragCursor] push];
 				[self RB___setDragging:YES];
 				while ((theEvent = [NSApp nextEventMatchingMask:NSLeftMouseDownMask|NSLeftMouseDraggedMask|NSLeftMouseUpMask untilDate:[NSDate distantFuture] inMode:NSEventTrackingRunLoopMode dequeue:YES])&&([theEvent type]!=NSLeftMouseUp)) {
-                    // Set up a local autorelease pool for the loop to prevent buildup of temporary objects.
-					NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-					NSDisableScreenUpdates();
-                    // Track the mouse along the main coordinate. 
-					[self RB___trackMouseEvent:theEvent from:where withBase:NSZeroPoint inDivider:i];
-					if (ldivdr!=NSNotFound) {
-                        // Track any two-axis thumbs for the leading nested RBSplitView.
-						[leading RB___trackMouseEvent:theEvent from:[self convertPoint:lwhere toView:leading] withBase:NSZeroPoint inDivider:ldivdr];
-					}
-					if (tdivdr!=NSNotFound) {
-                        // Track any two-axis thumbs for the trailing nested RBSplitView.
-						[trailing RB___trackMouseEvent:theEvent from:[self convertPoint:twhere toView:trailing] withBase:NSZeroPoint inDivider:tdivdr];
-					}
-					if (mustAdjust||[leading mustAdjust]||[trailing mustAdjust]) {
-                        // The mouse was dragged and the subviews changed, so we must redisplay, as
-                        // several divider rectangles may have changed.
-						RBSplitView* sv = [self splitView];
-						[sv?sv:self adjustSubviews];
-						[super display];
-						divdr = &dividers[i];
-                        // Adjust to the new cursor coordinates.
-						DIM(where) = DIM(divdr->origin)+offset;
-						if ((ldivdr!=NSNotFound)&&![leading isCollapsed]) {
-                            // Adjust for the leading nested RBSplitView's thumbs while it's not collapsed.
-							lrect = [leading RB___dividerRect:ldivdr relativeToView:self];
-							OTHER(lwhere) = OTHER(lrect.origin)+loffset;
+// Set up a local autorelease pool for the loop to prevent buildup of temporary objects.
+					@autoreleasepool {
+						NSDisableScreenUpdates();
+// Track the mouse along the main coordinate. 
+						[self RB___trackMouseEvent:theEvent from:where withBase:NSZeroPoint inDivider:i];
+						if (ldivdr!=NSNotFound) {
+// Track any two-axis thumbs for the leading nested RBSplitView.
+							[leading RB___trackMouseEvent:theEvent from:[self convertPoint:lwhere toView:leading] withBase:NSZeroPoint inDivider:ldivdr];
 						}
-						if ((tdivdr!=NSNotFound)&&![trailing isCollapsed]) {
-                            // Adjust for the trailing nested RBSplitView's thumbs while it's not collapsed.
-							trect = [trailing RB___dividerRect:tdivdr relativeToView:self];
-							OTHER(twhere) = OTHER(trect.origin)+toffset;
+						if (tdivdr!=NSNotFound) {
+// Track any two-axis thumbs for the trailing nested RBSplitView.
+							[trailing RB___trackMouseEvent:theEvent from:[self convertPoint:twhere toView:trailing] withBase:NSZeroPoint inDivider:tdivdr];
 						}
+						if (mustAdjust||[leading mustAdjust]||[trailing mustAdjust]) {
+// The mouse was dragged and the subviews changed, so we must redisplay, as
+// several divider rectangles may have changed.
+							RBSplitView* sv = [self splitView];
+							[sv?sv:self adjustSubviews];
+							[super display];
+							divdr = &dividers[i];
+// Adjust to the new cursor coordinates.
+							DIM(where) = DIM(divdr->origin)+offset;
+							if ((ldivdr!=NSNotFound)&&![leading isCollapsed]) {
+// Adjust for the leading nested RBSplitView's thumbs while it's not collapsed.
+								lrect = [leading RB___dividerRect:ldivdr relativeToView:self];
+								OTHER(lwhere) = OTHER(lrect.origin)+loffset;
+							}
+							if ((tdivdr!=NSNotFound)&&![trailing isCollapsed]) {
+// Adjust for the trailing nested RBSplitView's thumbs while it's not collapsed.
+								trect = [trailing RB___dividerRect:tdivdr relativeToView:self];
+								OTHER(twhere) = OTHER(trect.origin)+toffset;
+							}
+						}
+						NSEnableScreenUpdates();
 					}
-					NSEnableScreenUpdates();
-					[pool drain];
 				}
 				[self RB___setDragging:NO];
-                // Redisplay the previous cursor.
+// Redisplay the previous cursor.
 				[NSCursor pop];
 			}
 		}
@@ -742,17 +723,6 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 		return YES;
 	}
 	return [super needsDisplay];
-}
-
-// We implement awakeFromNib to restore the state. This works if an autosaveName is set in the nib.
-- (void)awakeFromNib {
-	if ([RBSplitSubview instancesRespondToSelector:@selector(awakeFromNib)]) {
-		[super awakeFromNib];
-	}
-	//if (![self splitView]) {
-	//	[self restoreState:YES];
-	//}
-    outletObjectAwoke(self);
 }
 
 // We check if subviews must be adjusted before redisplaying programmatically.
@@ -771,33 +741,33 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 	}
 	NSArray* subviews = [self RB___subviews];
 	NSUInteger subcount = [subviews count];
-    // Return if there are no dividers to draw.
+// Return if there are no dividers to draw.
 	if (subcount<2) {
 		return;
 	}
 	--subcount;
 	NSUInteger i;
-    // Cache the divider image.
+// Cache the divider image.
 	NSImage* divdr = [self divider];
 	CGFloat divt = [self dividerThickness];
-    // Loop over the divider rectangles.
+// Loop over the divider rectangles.
 	for (i=0;i<subcount;i++) {
-        // Check if we need to draw this particular divider.
+// Check if we need to draw this particular divider.
 		if ([self needsToDrawRect:dividers[i]]) {
 			RBSplitView* leading = [subviews objectAtIndex:i];
 			RBSplitView* trailing = [subviews objectAtIndex:i+1];
 			BOOL lexp = divdr?![leading isCollapsed]:NO;
 			BOOL texp = divdr?![trailing isCollapsed]:NO;
-            // We don't draw the divider image if either of the neighboring subviews is a non-collapsed
-            // nested split view.
+// We don't draw the divider image if either of the neighboring subviews is a non-collapsed
+// nested split view.
 			BOOL nodiv = (lexp&&[leading coupledSplitView])||(texp&&[trailing coupledSplitView]);
 			[self drawDivider:nodiv?nil:divdr inRect:dividers[i] betweenView:leading andView:trailing];
 			if (divdr) {
-                // Draw the corresponding two-axis thumbs if the leading view is a nested RBSplitView.
+// Draw the corresponding two-axis thumbs if the leading view is a nested RBSplitView.
 				if ((leading = [leading coupledSplitView])&&lexp) {
 					[leading RB___drawDividersIn:self forDividerRect:dividers[i] thickness:divt];
 				}
-                // Draw the corresponding two-axis thumbs if the trailing view is a nested RBSplitView.
+// Draw the corresponding two-axis thumbs if the trailing view is a nested RBSplitView.
 				if ((trailing = [trailing coupledSplitView])&&texp) {
 					[trailing RB___drawDividersIn:self forDividerRect:dividers[i] thickness:divt];
 				}
@@ -813,13 +783,8 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 // If there are nested split views this will be called once to draw the main divider rect,
 // and again for every thumb.
 - (void)drawDivider:(NSImage*)anImage inRect:(NSRect)rect betweenView:(RBSplitSubview*)leading andView:(RBSplitSubview*)trailing {
-    // Fill the view with the background color (if there's any). Don't draw the background again for
-    // thumbs.
-	if ((rect.origin.x==0)&&(rect.origin.y==0)) {
-		[self setDividerThickness:7.0];
-	}else {
-		[self setDividerThickness:8.75f];// [self isVertical] ? 9.0f : 9.0f];		
-	}
+// Fill the view with the background color (if there's any). Don't draw the background again for
+// thumbs.
 	if (leading||trailing) {
 		NSColor* bg = [self background];
 		if (bg) {
@@ -827,7 +792,7 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 			NSRectFillUsingOperation(rect,NSCompositeSourceOver);
 		}
 	}
-    // Center the image, if there is one.
+// Center the image, if there is one.
 	NSRect imrect = NSZeroRect;
 	NSRect dorect = NSZeroRect;
 	if (anImage) {
@@ -835,11 +800,11 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 		dorect.origin = NSMakePoint(floor(rect.origin.x+(rect.size.width-dorect.size.width)/2),
 									floor(rect.origin.y+(rect.size.height-dorect.size.height)/2));
 	}
-    // Ask the delegate for the final rect where the image should be drawn.
+// Ask the delegate for the final rect where the image should be drawn.
 	if ([delegate respondsToSelector:@selector(splitView:willDrawDividerInRect:betweenView:andView:withProposedRect:)]) {
 		dorect = [delegate splitView:self willDrawDividerInRect:rect betweenView:leading andView:trailing withProposedRect:dorect];
 	}
-    // Draw the image if the delegate returned a non-empty rect.
+// Draw the image if the delegate returned a non-empty rect.
 	if (!NSIsEmptyRect(dorect)) {
 		[anImage drawInRect:dorect fromRect:imrect operation:NSCompositeSourceOver fraction:1.0];
 	}
@@ -874,16 +839,16 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 	CGFloat divt = [self dividerThickness];
 	for (i=0;i<divcount;i++) {
 		RBSplitView* sub = [[subviews objectAtIndex:i] coupledSplitView];
-        // If the leading subview is a nested RBSplitView, add the thumb rectangles first.
+// If the leading subview is a nested RBSplitView, add the thumb rectangles first.
 		if (sub) {
 			[sub  RB___addCursorRectsTo:self forDividerRect:dividers[i] thickness:divt];
 		}
 		sub = [[subviews objectAtIndex:i+1] coupledSplitView];
-        // If the trailing subview is a nested RBSplitView, add the thumb rectangles first.
+// If the trailing subview is a nested RBSplitView, add the thumb rectangles first.
 		if (sub) {
 			[sub  RB___addCursorRectsTo:self forDividerRect:dividers[i] thickness:divt];
 		}
-        // Now add the divider rectangle.
+// Now add the divider rectangle.
 		NSRect divrect = dividers[i];
 		if (del) {
 			divrect = [del splitView:self cursorRect:divrect forDivider:i];
@@ -947,7 +912,7 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 		dividers = NULL;
 		if (data) {
 			NSBitmapImageRep* rep = [NSBitmapImageRep imageRepWithData:data];
-			NSImage* image = [[[NSImage alloc] initWithSize:[rep size]] autorelease];
+			NSImage* image = [[NSImage alloc] initWithSize:[rep size]];
 			[image setFlipped:YES];
 			[image addRepresentation:rep];
 			[self setDivider:image];
@@ -1086,10 +1051,10 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 	NSRect frame = NSZeroRect;
 	NSRect screen = NSMakeRect(0,0,WAYOUT,WAYOUT);
 	BOOL ishor = NO;
-    // First we ask the delegate, if there's any, if the window should resize.
+// First we ask the delegate, if there's any, if the window should resize.
 	BOOL dowin = ([self RB___shouldResizeWindowForDivider:indx betweenView:leading andView:trailing willGrow:YES]);
 	if (dowin) {
-        // We initialize the other local variables only if we need them for the window.
+// We initialize the other local variables only if we need them for the window.
 		ishor = [self isHorizontal];
 		document = [[self enclosingScrollView] documentView];
 		if (document) {
@@ -1101,8 +1066,8 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 			screen = [[NSScreen mainScreen] visibleFrame];
 		}
 	}
-    // The mouse has to move over half of the expanded size (plus hysteresis) and the expansion shouldn't
-    // reduce the trailing subview to less than its minimum size (or grow the window beyond its maximum).
+// The mouse has to move over half of the expanded size (plus hysteresis) and the expansion shouldn't
+// reduce the trailing subview to less than its minimum size (or grow the window beyond its maximum).
 	CGFloat limit = [leading minDimension];
 	CGFloat dimension = 0.0;
 	if (dowin) {
@@ -1117,8 +1082,8 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 	if (!dowin&&trailing) {
 		limit += [trailing minDimension];
 		if (limit>dimension) {
-            // If the trailing subview is going below its minimum, we try to collapse it first.
-            // However, we don't collapse if that would cause the leading subview to become larger than its maximum.
+// If the trailing subview is going below its minimum, we try to collapse it first.
+// However, we don't collapse if that would cause the leading subview to become larger than its maximum.
 			if (([trailing canCollapse])&&(delta>(0.5+HYSTERESIS)*dimension)&&([leading maxDimension]<=dimension)) {
 				delta = -[trailing RB___collapse];
 				[leading changeDimensionBy:delta mayCollapse:NO move:NO];
@@ -1126,10 +1091,10 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 			return;
 		}
 	}
-    // The leading subview may be expanded normally.
+// The leading subview may be expanded normally.
 	delta = -[leading changeDimensionBy:delta mayCollapse:NO move:NO];
 	if (dowin) {
-        // If it does expand, we widen the window.
+// If it does expand, we widen the window.
 		DIM(frame.size) -= delta;
 		if (ishor) {
 			DIM(frame.origin) += delta;
@@ -1142,7 +1107,7 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 		}
 		[self setMustAdjust];
 	} else {
-        // If it does expand, we shorten the trailing subview.
+// If it does expand, we shorten the trailing subview.
 		[trailing changeDimensionBy:delta mayCollapse:NO move:YES];
 	}
 }
@@ -1156,10 +1121,10 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 	NSSize minsize = NSZeroSize;
 	NSRect frame = NSZeroRect;
 	BOOL ishor = NO;
-    // First we ask the delegate, if there's any, if the window should resize.
+// First we ask the delegate, if there's any, if the window should resize.
 	BOOL dowin = ([self RB___shouldResizeWindowForDivider:indx betweenView:leading andView:trailing willGrow:NO]);
 	if (dowin) {
-        // We initialize the other local variables only if we need them for the window.
+// We initialize the other local variables only if we need them for the window.
 		ishor = [self isHorizontal];
 		document = [[self enclosingScrollView] documentView];
 		if (document) {
@@ -1170,7 +1135,7 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 			minsize = [window minSize];
 		}
 	}
-    // We avoid making the trailing subview larger than its maximum, or the window smaller than its minimum.
+// We avoid making the trailing subview larger than its maximum, or the window smaller than its minimum.
 	CGFloat limit = 0.0;
 	if (dowin) {
 		limit = DIM(frame.size)-DIM(minsize);
@@ -1186,10 +1151,10 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 	}
 	BOOL okl = limit>=[leading dimension];
 	if (always||okl) {
-        // Resize leading.
+// Resize leading.
 		delta = -[leading changeDimensionBy:delta mayCollapse:okl move:NO];
 		if (dowin) {
-            // Resize the window.
+// Resize the window.
 			DIM(frame.size) -= delta;
 			if (ishor) {
 				DIM(frame.origin) += delta;
@@ -1202,7 +1167,7 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 			}
 			[self setMustAdjust];
 		} else {
-            // Otherwise, resize trailing.
+// Otherwise, resize trailing.
 			[trailing changeDimensionBy:delta mayCollapse:NO move:YES];
 		}
 	}
@@ -1218,10 +1183,10 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 	NSRect frame = NSZeroRect;
 	NSRect screen = NSMakeRect(0,0,WAYOUT,WAYOUT);
 	BOOL ishor = NO;
-    // First we ask the delegate, if there's any, if the window should resize.
+// First we ask the delegate, if there's any, if the window should resize.
 	BOOL dowin = ([self RB___shouldResizeWindowForDivider:indx betweenView:leading andView:trailing willGrow:YES]);
 	if (dowin) {
-        // We initialize the other local variables only if we need them for the window.
+// We initialize the other local variables only if we need them for the window.
 		ishor = [self isHorizontal];
 		document = [[self enclosingScrollView] documentView];
 		if (document) {
@@ -1233,7 +1198,7 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 			screen = [[NSScreen mainScreen] visibleFrame];
 		}
 	}
-    // We avoid making the leading subview larger than its maximum, or the window larger than its maximum.
+// We avoid making the leading subview larger than its maximum, or the window larger than its maximum.
 	CGFloat limit = 0.0;
 	if (dowin) {
 		CGFloat maxd = fMAX(0.0,(ishor?frame.origin.y-screen.origin.y:(screen.origin.x+screen.size.width)-(frame.origin.x+frame.size.width)));
@@ -1251,7 +1216,7 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 	BOOL okl = dowin||(limit>=(trailing?[trailing dimension]:WAYOUT));
 	if (always||okl) {
 		if (dowin) {
-            // If we should resize the window, resize leading, then the window.
+// If we should resize the window, resize leading, then the window.
 			delta = [leading changeDimensionBy:delta mayCollapse:NO move:NO];
 			DIM(frame.size) += delta;
 			if (ishor) {
@@ -1265,7 +1230,7 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 			}
 			[self setMustAdjust];
 		} else {
-            // Otherwise, resize trailing, then leading.
+// Otherwise, resize trailing, then leading.
 			if (trailing) {
 				delta = -[trailing changeDimensionBy:-delta mayCollapse:okl move:YES];
 			}
@@ -1276,9 +1241,9 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 
 // This method tries to expand the trailing subview (which is assumed to be collapsed).
 - (void)RB___tryToExpandTrailing:(RBSplitSubview*)trailing leading:(RBSplitSubview*)leading delta:(CGFloat)delta {
-    // The mouse has to move over half of the expanded size (plus hysteresis) and the expansion shouldn't
-    // reduce the leading subview to less than its minimum size. If it does, we try to collapse it first.
-    // However, we don't collapse if that would cause the trailing subview to become larger than its maximum.
+// The mouse has to move over half of the expanded size (plus hysteresis) and the expansion shouldn't
+// reduce the leading subview to less than its minimum size. If it does, we try to collapse it first.
+// However, we don't collapse if that would cause the trailing subview to become larger than its maximum.
 	CGFloat limit = trailing?[trailing minDimension]:0.0;
 	CGFloat dimension = [leading dimension];
 	if (limit>dimension) {
@@ -1292,7 +1257,7 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 		}
 		return;
 	}
-    // The trailing subview may be expanded normally. If it does expand, we shorten the leading subview.
+// The trailing subview may be expanded normally. If it does expand, we shorten the leading subview.
 	if (trailing) {
 		delta = -[trailing changeDimensionBy:-delta mayCollapse:NO move:YES];
 	}
@@ -1311,28 +1276,28 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 - (void)RB___trackMouseEvent:(NSEvent*)theEvent from:(NSPoint)where withBase:(NSPoint)base inDivider:(NSUInteger)indx {
 	NSArray* subviews = [self RB___subviews];
 	NSUInteger subcount = [subviews count];
-    // Make sure that the divider number is valid.
+// Make sure that the divider number is valid.
 	if (indx>=subcount) {
 		return;
 	}
 	NSPoint result;
 	NSUInteger k;
-    // leading and trailing point at the subviews immediately leading and trailing the divider being tracked
+// leading and trailing point at the subviews immediately leading and trailing the divider being tracked
 	RBSplitSubview* leading = [subviews objectAtIndex:indx];
 	RBSplitSubview* trailing = [subviews objectAtIndex:indx+1];
-    // Convert the mouse coordinates to apply to the same system the divider rects are in.
+// Convert the mouse coordinates to apply to the same system the divider rects are in.
 	NSPoint mouse = [self convertPoint:[theEvent locationInWindow] fromView:nil];
 	mouse.x -= base.x;
 	mouse.y -= base.y;
 	result.x = mouse.x-where.x;
 	result.y = mouse.y-where.y;
-    // delta is the actual amount the mouse has moved in the relevant coordinate since the last event.
+// delta is the actual amount the mouse has moved in the relevant coordinate since the last event.
 	BOOL ishor = [self isHorizontal];
 	CGFloat delta = DIM(result);
 	if (delta<0.0) {
-        // Negative delta means the mouse is being moved left or upwards.
-        // firstLeading will point at the first expanded subview to the left (or upwards) of the divider.
-        // If there's none (all subviews are collapsed) it will point at the nearest subview.
+// Negative delta means the mouse is being moved left or upwards.
+// firstLeading will point at the first expanded subview to the left (or upwards) of the divider.
+// If there's none (all subviews are collapsed) it will point at the nearest subview.
 		RBSplitSubview* firstLeading = leading;
 		k = indx;
 		while (![firstLeading canShrink]) {
@@ -1342,19 +1307,29 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 			}
 			firstLeading = [subviews objectAtIndex:--k];
 		}
+		RBSplitSubview* firstTrailing = trailing;
+		k = indx+1;
+		while (![firstTrailing canExpand]) {
+			if (k==subcount) {
+				firstTrailing = trailing;
+				break;
+			}
+			firstTrailing = [subviews objectAtIndex:++k];
+		}
+		
 		if (isInScrollView) {
 			trailing = nil;
 		}
-        // If the trailing subview is collapsed, it might be expanded if some conditions are met.
-		if ([trailing isCollapsed]) {
-			[self RB___tryToExpandTrailing:trailing leading:firstLeading delta:delta];
+// If the trailing subview is collapsed, it might be expanded if some conditions are met.
+		if ([firstTrailing isCollapsed]) {
+			[self RB___tryToExpandTrailing:firstTrailing leading:firstLeading delta:delta];
 		} else {
-			[self RB___tryToShortenLeading:firstLeading divider:indx trailing:trailing delta:delta always:YES];
+			[self RB___tryToShortenLeading:firstLeading divider:indx trailing:firstTrailing delta:delta always:YES];
 		}
 	} else if (delta>0.0) {
-        // Positive delta means the mouse is being moved right or downwards.
-        // firstTrailing will point at the first expanded subview to the right (or downwards) of the divider.
-        // If there's none (all subviews are collapsed) it will point at the nearest subview.
+// Positive delta means the mouse is being moved right or downwards.
+// firstTrailing will point at the first expanded subview to the right (or downwards) of the divider.
+// If there's none (all subviews are collapsed) it will point at the nearest subview.
 		RBSplitSubview* firstTrailing = nil;
 		if (!isInScrollView) {
 			firstTrailing = trailing;
@@ -1367,12 +1342,22 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 				firstTrailing = [subviews objectAtIndex:k];
 			}
 		}
-        // If the leading subview is collapsed, it might be expanded if some conditions are met.
-		if ([leading isCollapsed]) {
-			[self RB___tryToExpandLeading:leading divider:indx trailing:firstTrailing delta:delta];
+		RBSplitSubview* firstLeading = leading;
+		k = indx;
+		while (![firstLeading canExpand]) {
+			if (k==0) {
+				firstLeading = leading;
+				break;
+			}
+			firstLeading = [subviews objectAtIndex:--k];
+		}
+		
+// If the leading subview is collapsed, it might be expanded if some conditions are met.
+		if ([firstLeading isCollapsed]) {
+			[self RB___tryToExpandLeading:firstLeading divider:indx trailing:firstTrailing delta:delta];
 		} else {
-            // The leading subview is not collapsed, so we try to shorten or even collapse it
-			[self RB___tryToShortenTrailing:firstTrailing divider:indx leading:leading delta:delta always:YES];
+// The leading subview is not collapsed, so we try to shorten or even collapse it
+			[self RB___tryToShortenTrailing:firstTrailing divider:indx leading:firstLeading delta:delta always:YES];
 		}
 	}
 }
@@ -1388,8 +1373,8 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 		NSInteger i;
 		NSCursor* cursor = [RBSplitView cursor:RBSV2WayCursor];
 		BOOL ishor = [self isHorizontal];
-        // Loop over the divider rectangles, intersect them with the view's own, and add the thumb rectangle
-        // to the containing split view.
+// Loop over the divider rectangles, intersect them with the view's own, and add the thumb rectangle
+// to the containing split view.
 		for (i=0;i<divcount;i++) {
 			NSRect divdr = dividers[i];
 			divdr.origin = [self convertPoint:divdr.origin toView:masterView];
@@ -1415,9 +1400,9 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 	}
 	NSInteger i;
 	BOOL ishor = [self isHorizontal];
-    // Get the outer split view's divider image.
+// Get the outer split view's divider image.
 	NSImage* image = [masterView divider];
-    // Loop over the divider rectangles, intersect them with the view's own, and draw the thumb there.
+// Loop over the divider rectangles, intersect them with the view's own, and draw the thumb there.
 	for (i=0;i<divcount;i++) {
 		NSRect divdr = dividers[i];
 		divdr.origin = [self convertPoint:divdr.origin toView:masterView];
@@ -1456,292 +1441,287 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 		return;
 	}
 	NSRect bounds = [self bounds];
-    // Never adjust if the splitview itself is collapsed.
+	// Never adjust if the splitview itself is collapsed.
 	if ((bounds.size.width<1.0)||(bounds.size.height<1.0)) {
 		return;
 	}
-    // Prevents adjustSubviews being called recursively, which unfortunately may happen otherwise.
+	// Prevents adjustSubviews being called recursively, which unfortunately may happen otherwise.
 	if (isAdjusting) {
 		return;
 	}
 	isAdjusting = YES;
-    // Tell the delegate we're about to adjust subviews.
+	// Tell the delegate we're about to adjust subviews.
 	if ([delegate respondsToSelector:@selector(willAdjustSubviews:)]) {
 		[delegate willAdjustSubviews:self];
 		bounds = [self bounds];
 	}
 	NSUInteger divcount = subcount-1;
 	if (divcount<1) {
-        // No dividers at all.
+		// No dividers at all.
 		if (dividers) {
 			free(dividers);
 			dividers = NULL;
 		}
 	} else {
-        // Try to allocate or resize if we already have a dividers array.
-		NSUInteger divsiz = sizeof(NSRect)*divcount;
-		dividers = (NSRect*)(dividers?reallocf(dividers,divsiz):malloc(divsiz));
+		// Try to allocate or resize if we already have a dividers array.
+		dividers = reallocf(dividers, sizeof(NSRect)*divcount);
 		if (!dividers) {
 			return;
 		}
 	}
-    // This C array of subviewCaches is used to cache the subview information.
-	subviewCache* caches = (subviewCache*)malloc(sizeof(subviewCache)*subcount);
+	
+	// This array of RBSubviewCaches is used to cache subview information.
+	NSArray *cachesArr = [[subviews valueForKey: @"RB___newCache"] copy];
+	
 	double realsize = 0.0;
-	double expsize = 0.0;
+	__block double expsize = 0.0;
 	CGFloat newsize = 0.0;
 	CGFloat effsize = 0.0;
-	CGFloat limit;
-	subviewCache* curr;
-	NSUInteger i;
+	__block CGFloat limit = 0.0;
 	BOOL ishor = [self isHorizontal];
 	CGFloat divt = [self dividerThickness];
-    // First we loop over subviews and cache their information.
-	for (i=0;i<subcount;i++) {
-		curr = &caches[i];
-		[[subviews objectAtIndex:i] RB___copyIntoCache:curr];
-	}
-    // This is a counter to limit the outer loop to three iterations (six if excepting is non-nil).
-	NSInteger sanity = excepting?-3:0;
-	while (sanity++<3) {
-        // We try to accomodate the exception for the first group of loops, turn it off for the second.
+	
+	// This is a counter to limit the outer loop to three iterations (six if excepting is non-nil).
+	for (NSInteger sanity = excepting ? -3 : 0; sanity < 3; sanity++) {
+		// We try to accomodate the exception for the first group of loops, turn it off for the second.
 		if (sanity==1) {
 			excepting = nil;
 		}
-        // newsize is the available space for actual subviews (so dividers don't count). It will be an integer.
-        // Same as calling [self RB___dimensionWithoutDividers].
-		NSUInteger smallest = 0;
-		CGFloat smalldim = -1.0;
-		BOOL haveexp = NO;
-        // Loop over subviews and sum the expanded dimensions into expsize, including fractions.
-        // Also find the collapsed subview with the smallest minimum dimension.
-		for (i=0;i<subcount;i++) {
-			curr = &caches[i];
-			curr->constrain = NO;
-			if (curr->size>0.0) {
-				expsize += curr->size;
+		
+		// newsize is the available space for actual subviews (so dividers don't count). It will be an integer.
+		// Same as calling [self RB___dimensionWithoutDividers].
+		__block NSUInteger smallest = 0;
+		__block CGFloat smalldim = -1.0;
+		__block BOOL haveexp = NO;
+		
+		// Loop over subviews and sum the expanded dimensions into expsize, including fractions.
+		// Also find the collapsed subview with the smallest minimum dimension.
+		[cachesArr enumerateObjectsUsingBlock:^(RBSubviewCache *curr, NSUInteger i, BOOL *stop) {
+			curr.constrain = NO;
+			if (curr.size > 0.0) {
+				expsize += curr.size;
 				if (!isInScrollView) {
-                    // ignore fractions if we're in a NSScrollView, however.
-					expsize += curr->fraction;
+					// ignore fractions if we're in a NSScrollView, however.
+					expsize += curr.fraction;
 				}
 				haveexp = YES;
 			} else {
-				limit = [curr->sub minDimension];
+				limit = curr.subview.minDimension;
 				if (smalldim>limit) {
 					smalldim = limit;
 					smallest = i;
 				}
 			}
-		}
-        // haveexp should be YES at this point. If not, all subviews were collapsed; can't have that, so we 
-        // expand the smallest subview (or the first, if all have the same minimum).
-		curr = &caches[smallest];
+		}];
+		
+		// haveexp should be YES at this point. If not, all subviews were collapsed; can't have that, so we
+		// expand the smallest subview (or the first, if all have the same minimum).
+		RBSubviewCache *smallestCache = cachesArr[smallest];
 		if (!haveexp) {
-			curr->size = [curr->sub minDimension];
-			curr->fraction = 0.0;
-			expsize += curr->size;
+			smallestCache.size = smallestCache.subview.minDimension;
+			smallestCache.fraction = 0.0;
+			expsize += smallestCache.size;
 		}
+		
 		if (isInScrollView) {
-            // If we're inside an NSScrollView, we just grow the view to accommodate the subviews, instead of 
-            // the other way around.
+			// If we're inside an NSScrollView, we just grow the view to accommodate the subviews, instead of
+			// the other way around.
 			DIM(bounds.size) = expsize;
 			break;
 		} else {
-            // If the total dimension of all expanded subviews is less than 1.0 we set the dimension of the smallest
-            // subview (which we're sure is expanded at this point) to the available space.
+			// If the total dimension of all expanded subviews is less than 1.0 we set the dimension of the smallest
+			// subview (which we're sure is expanded at this point) to the available space.
 			newsize = DIM(bounds.size)-divcount*divt;
-			if (expsize<1.0) {
-				curr->size = newsize;
-				curr->fraction = 0.0;
+			if (expsize < 1.0) {
+				smallestCache.size = newsize;
+				smallestCache.fraction = 0.0;
 				expsize = newsize;
 			}
-            // Loop over the subviews and check if they're within the limits after scaling. We also recalculate the
-            // exposed size and repeat until no more subviews hit the constraints during that loop.
+			// Loop over the subviews and check if they're within the limits after scaling. We also recalculate the
+			// exposed size and repeat until no more subviews hit the constraints during that loop.
 			BOOL constrained;
 			effsize = newsize;// we're caching newsize here, this is an integer.
 			do {
-                // scale is the scalefactor by which all views should be scaled - assuming none have constraints.
-                // It's a double to (hopefully) keep rounding errors small enough for all practical purposes.
+				// scale is the scalefactor by which all views should be scaled - assuming none have constraints.
+				// It's a double to (hopefully) keep rounding errors small enough for all practical purposes.
 				double scale = newsize/expsize;
 				constrained = NO;
 				realsize = 0.0;
 				expsize = 0.0;
-				for (i=0;i<subcount;i++) {
-                    // Loop over the cached subview info.
-					curr = &caches[i];
-					if (curr->size>0.0) {
-                        // Check non-collapsed subviews only.
-						if (!curr->constrain) {
-                            // Check non-constrained subviews only; calculate the proposed new size.
-							CGFloat cursize = (curr->size+curr->fraction)*scale;
-                            // Check if we hit a limit. limit will contain either the max or min dimension, whichever was hit.
-							if (([curr->sub RB___animationData:NO resize:NO]&&((limit = curr->size)>=0.0))||
-								((curr->sub==excepting)&&((limit = [curr->sub dimension])>0.0))||
-								(cursize<(limit = [curr->sub minDimension]))||
-								(cursize>(limit = [curr->sub maxDimension]))) {
-                                // If we hit a limit, we mark the view and set to repeat the loop; non-constrained subviews will
-                                // have to be recalculated.
-								curr->constrain = constrained = YES;
-                                // We set the new size to the limit we hit, and subtract it from the total size to be subdivided.
-								cursize = limit;
-								curr->fraction = 0.0;
-								newsize -= cursize;
-							} else {
-                                // If we didn't hit a limit, we round the size to the nearest integer and recalculate the fraction. 
-								double rem = fmod(cursize,1.0);
-								cursize -= rem;
-								if (rem>0.5) {
-									++cursize;
-									--rem;
-								}
-								expsize += cursize;
-								curr->fraction = rem;
+				
+				// Loop over the cached subview info.
+				for (RBSubviewCache *curr in cachesArr) {
+					// Check non-collapsed subviews only.
+					if (curr.size <= 0.0) continue;
+					
+					if (!curr.constrain) {
+						// Check non-constrained subviews only; calculate the proposed new size.
+						CGFloat cursize = (curr.size+curr.fraction)*scale;
+						// Check if we hit a limit. limit will contain either the max or min dimension, whichever was hit.
+						if (([curr.subview RB___animationData:NO resize:NO]&&((limit = curr.size)>=0.0))||
+							((curr.subview==excepting)&&((limit = curr.subview.dimension)>0.0))||
+							(cursize<(limit = curr.subview.minDimension))||
+							(cursize>(limit = curr.subview.maxDimension))) {
+							// If we hit a limit, we mark the view and set to repeat the loop; non-constrained subviews will
+							// have to be recalculated.
+							curr.constrain = constrained = YES;
+							// We set the new size to the limit we hit, and subtract it from the total size to be subdivided.
+							cursize = limit;
+							curr.fraction = 0.0;
+							newsize -= cursize;
+						} else {
+							// If we didn't hit a limit, we round the size to the nearest integer and recalculate the fraction.
+							double rem = fmod(cursize,1.0);
+							cursize -= rem;
+							if (rem>0.5) {
+								++cursize;
+								--rem;
 							}
-                            // We store the new size in the cache.
-							curr->size = cursize;
+							expsize += cursize;
+							curr.fraction = rem;
 						}
-                        // And add the full size with fraction to the actual sum of all expanded subviews.
-						realsize += curr->size+curr->fraction;
+						// We store the new size in the cache.
+						curr.size = cursize;
 					}
+					// And add the full size with fraction to the actual sum of all expanded subviews.
+					realsize += curr.size+curr.fraction;
 				}
-                // At this point, newsize will be the sum of the new dimensions of non-constrained views.
-                // expsize will be the sum of the recalculated dimensions of the same views, if any.
-                // We repeat the loop if any view has been recently constrained, and if there are any
-                // unconstrained views left.
+				
+				// At this point, newsize will be the sum of the new dimensions of non-constrained views.
+				// expsize will be the sum of the recalculated dimensions of the same views, if any.
+				// We repeat the loop if any view has been recently constrained, and if there are any
+				// unconstrained views left.
 			} while (constrained&&(expsize>0.0));
-            // At this point, the difference between realsize and effsize should be less than 1 pixel.
-            // realsize is the total size of expanded subviews as recalculated above, and
-            // effsize is the value realsize should have.
+			
+			// At this point, the difference between realsize and effsize should be less than 1 pixel.
+			// realsize is the total size of expanded subviews as recalculated above, and
+			// effsize is the value realsize should have.
 			limit = realsize-effsize;
 			if (limit>=1.0) {
-                // If realsize is larger than effsize by 1 pixel or more, we will need to collapse subviews to make room.
-                // This in turn might expand previously collapsed subviews. So, we'll try collapsing constrained subviews
-                // until we're back into range, and then recalculate everything from the beginning.
-				for (i=0;i<subcount;i++) {
-					curr = &caches[i];
-					if (curr->constrain&&(curr->sub!=excepting)&&([curr->sub RB___animationData:NO resize:NO]==nil)&&[curr->sub canCollapse]) {
-						realsize -= curr->size;
-						if (realsize<1.0) {
-							break;
-						}
-						curr->size = 0.0;
-						if ((realsize-effsize)<1.0) {
-							break;
-						}
-					}
+				// If realsize is larger than effsize by 1 pixel or more, we will need to collapse subviews to make room.
+				// This in turn might expand previously collapsed subviews. So, we'll try collapsing constrained subviews
+				// until we're back into range, and then recalculate everything from the beginning.
+				for (RBSubviewCache *curr in cachesArr) {
+					if (!curr.constrain || curr.subview == excepting || [curr.subview RB___animationData:NO resize:NO] || !curr.subview.canCollapse) continue;
+					
+					realsize -= curr.size;
+					if (realsize < 1.0) break;
+					curr.size = 0.0;
+					if ((realsize-effsize)<1.0) break;
 				}
 			} else if (limit<=-1.0) {
-                // If realsize is smaller than effsize by 1 pixel or more, we will need to expand subviews.
-                // This in turn might collapse previously expanded subviews. So, we'll try expanding collapsed subviews
-                // until we're back into range, and then recalculate everything from the beginning.
-				for (i=0;i<subcount;i++) {
-					curr = &caches[i];
-					if (curr->size<=0.0) {
-						curr->size = [curr->sub minDimension];
-						curr->fraction = 0.0;
-						realsize += curr->size;
-						if ((realsize-effsize)>-1.0) {
-							break;
-						}
-					}
+				// If realsize is smaller than effsize by 1 pixel or more, we will need to expand subviews.
+				// This in turn might collapse previously expanded subviews. So, we'll try expanding collapsed subviews
+				// until we're back into range, and then recalculate everything from the beginning.
+				for (RBSubviewCache *curr in cachesArr) {
+					if (curr.size > 0.0) continue;
+					
+					curr.size = curr.subview.minDimension;
+					curr.fraction = 0.0;
+					realsize += curr.size;
+					if ((realsize-effsize)>-1.0) break;
 				}
 			} else {
-                // The difference is less than 1 pixel, meaning that in all probability our calculations are
-                // exact or off by at most one pixel after rounding, so we break the loop here.
+				// The difference is less than 1 pixel, meaning that in all probability our calculations are
+				// exact or off by at most one pixel after rounding, so we break the loop here.
 				break;
 			}
 		}
-        // After passing through the outer loop a few times, the frames may still be wrong, but there's nothing
-        // else we can do about it. You probably should avoid this by some other means like setting a minimum
-        // or maximum size for the window, for instance, or leaving at least one unlimited subview.
+		// After passing through the outer loop a few times, the frames may still be wrong, but there's nothing
+		// else we can do about it. You probably should avoid this by some other means like setting a minimum
+		// or maximum size for the window, for instance, or leaving at least one unlimited subview.
 	}
-    // newframe is used to reset all subview frames. Subviews always fill the entire RBSplitView along the
-    // current orientation.
-	NSRect newframe = NSMakeRect(0.0,0.0,bounds.size.width,bounds.size.height);
-    // We now loop over the subviews yet again and set the definite frames, also recalculating the
-    // divider rectangles as we go along, and collapsing and expanding subviews whenever requested.
-	RBSplitSubview* last = nil;
-    // And we make a note if there's any nested RBSplitView.
-	NSInteger nested = NSNotFound;
-    //	newsize = DIM(bounds.size)-divcount*divt;
-	for (i=0;i<subcount;i++) {
-		curr = &caches[i];
-        // If we have a nested split view store its index.
-		if ((nested==NSNotFound)&&([curr->sub asSplitView]!=nil)) {
-			nested = i;
-		}
-        // Adjust the subview to the correct origin and resize it to fit into the "other" dimension.
-		curr->rect.origin = newframe.origin;
-		OTHER(curr->rect.size) = OTHER(newframe.size);
-		DIM(curr->rect.size) = curr->size;
-        // Clear fractions for expanded subviews if requested.
-		if ((curr->size>0.0)&&mustClearFractions) {
-			curr->fraction = 0.0;
-		}
-        // Ask the subview to do the actual moving/resizing etc. from the cache.
-		[curr->sub RB___updateFromCache:curr withTotalDimension:effsize];
-        // Step to the next position and record the subview if it's not collapsed.
-		DIM(newframe.origin) += curr->size;
-		if (curr->size>0.0) {
-			last = curr->sub;
-		}
-		if (i==divcount) {
-            // We're at the last subview, so we now check if the actual and calculated dimensions
-            // are the same.
+	
+	// newframe is used to reset all subview frames. Subviews always fill the entire RBSplitView along the
+	// current orientation.
+	__block NSRect newframe = NSMakeRect(0.0,0.0,bounds.size.width,bounds.size.height);
+	
+	// We now loop over the subviews yet again and set the definite frames, also recalculating the
+	// divider rectangles as we go along, and collapsing and expanding subviews whenever requested.
+	__block RBSplitSubview* last = nil;
+	
+	// And we make a note if there's any nested RBSplitView.
+	__block NSInteger nested = NSNotFound;
+	
+	[cachesArr enumerateObjectsUsingBlock:^(RBSubviewCache *curr, NSUInteger i, BOOL *stop) {
+		// If we have a nested split view store its index.
+		if (nested == NSNotFound && curr.subview.asSplitView) nested = i;
+		
+		// Adjust the subview to the correct origin and resize it to fit into the "other" dimension.
+		NSRect newRect = newframe;
+		OTHER(newRect.size) = OTHER(newframe.size);
+		DIM(newRect.size) = curr.size;
+		curr.rect = newRect;
+		
+		// Clear fractions for expanded subviews if requested.
+		if (curr.size > 0.0 && mustClearFractions) curr.fraction = 0.0;
+		
+		// Ask the subview to do the actual moving/resizing etc. from the cache.
+		[curr.subview RB___updateFromCache:curr withTotalDimension:effsize];
+		
+		// Step to the next position and record the subview if it's not collapsed.
+		DIM(newframe.origin) += curr.size;
+		if (curr.size > 0.0) last = curr.subview;
+		
+		if (i == divcount) {
+			// We're at the last subview, so we now check if the actual and calculated dimensions
+			// are the same.
 			CGFloat remain = DIM(bounds.size)-DIM(newframe.origin);
-			if (last&&(fabs(remain)>0.0)) {
-                // We'll resize the last expanded subview to whatever it takes to squeeze within the frame.
-                // Normally the change should be at most one pixel, but if too many subviews were constrained,
-                // this may be a large value, and the last subview may be resized beyond its constraints;
-                // there's nothing else to do at this point.
+			if (last && fabs(remain) > 0.0) {
+				// We'll resize the last expanded subview to whatever it takes to squeeze within the frame.
+				// Normally the change should be at most one pixel, but if too many subviews were constrained,
+				// this may be a large value, and the last subview may be resized beyond its constraints;
+				// there's nothing else to do at this point.
 				newframe = [last frame];
 				DIM(newframe.size) += remain;
 				[last RB___setFrameSize:newframe.size withFraction:[last RB___fraction]-remain];
-                // And we loop back over the rightmost dividers (if any) to adjust their offsets.
-                if (!dividers) break;
+				// And we loop back over the rightmost dividers (if any) to adjust their offsets.
 				while ((i>0)&&(last!=[subviews objectAtIndex:i])) {
 					DIM(dividers[--i].origin) += remain;
 				}
-				break;
+				
+				*stop = YES;
+				return;
 			}
 		} else {
-            // For any but the last subview, we just calculate the divider frame.
+			// For any but the last subview, we just calculate the divider frame.
 			DIM(newframe.size) = divt;
-			if (dividers) {		// test for NULL to satisfy the analyzer
-				dividers[i] = newframe;
-			}
+			if (dividers) dividers[i] = newframe;
 			DIM(newframe.origin) += divt;
 		}
-	}
-    // We resize our frame at this point, if we're inside an NSScrollView.
+	}];
+	
+	// We resize our frame at this point, if we're inside an NSScrollView.
 	if (isInScrollView) {
 		[super setFrameSize:bounds.size];
 	}
-    // If there was at least one nested RBSplitView, we loop over the subviews and adjust those that need it.
-	for (i=nested;i<subcount;i++) {
-		curr = &caches[i];
-		RBSplitView* sv = [curr->sub asSplitView];
-		if ([sv mustAdjust]) {
-			[sv adjustSubviews];
-		}
-	}
-    // Free the cache array.
-	free(caches);
-    // Clear cursor rects.
+	
+	// If there was at least one nested RBSplitView, we loop over the subviews and adjust those that need it.
+	NSIndexSet *nestedIndexes = [NSIndexSet indexSetWithIndexesInRange: NSMakeRange(nested, cachesArr.count - nested)];
+	[cachesArr enumerateObjectsAtIndexes: nestedIndexes options: 0 usingBlock:^(RBSubviewCache *curr, NSUInteger idx, BOOL *stop) {
+		RBSplitView* sv = curr.subview.asSplitView;
+		if ([sv mustAdjust]) [sv adjustSubviews];
+	}];
+	
+	
+	// Clear cursor rects.
 	mustAdjust = NO;
 	mustClearFractions = NO;
 	[[self window] invalidateCursorRectsForView:self];
-    // Save the state for all subviews.
+	
+	// Save the state for all subviews.
 	if (!isDragging) {
 		[self saveState:NO];
 	}
-    // If we're a nested RBSplitView, also invalidate cursorRects for the superview.
+	
+	// If we're a nested RBSplitView, also invalidate cursorRects for the superview.
 	RBSplitView* sv = [self couplingSplitView];
 	if (sv) {
 		[[self window] invalidateCursorRectsForView:sv];
 	}
 	isAdjusting = NO;
-    // Tell the delegate we're finished.
+	
+	// Tell the delegate we're finished.
 	if ([delegate respondsToSelector:@selector(didAdjustSubviews:)]) {
 		[delegate didAdjustSubviews:self];
 	}

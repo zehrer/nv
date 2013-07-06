@@ -27,26 +27,30 @@
 // This is the default framerate for collapse/expand animation.
 #define FRAMETIME (1.0/60.0)
 
-// This struct is used internally for speeding up adjustSubviews.
-typedef struct subviewCache {
-	NSRect rect;					// the subview's frame
-	double fraction;				// fractional extra
-	RBSplitSubview* sub;			// points at the subview
-	CGFloat size;					// current dimension
-	BOOL constrain;					// set if constrained
-} subviewCache;
+// Used for speeding up adjustSubviews.
+@interface RBSubviewCache : NSObject
 
-// This struct is used internally for doing collapse/expand animation.
-typedef struct animationData {
-	RBSplitSubview* owner;			// the subview being animated
-	CGFloat dimension;				// the subview's starting or ending dimension
-	int stepsDone;					// counts already done animation steps
-	NSTimeInterval elapsedTime;		// time already spent in resizing and adjusting subviews
-	NSTimeInterval finishTime;		// the animation should be finished at this time
-	NSTimeInterval totalTime;		// total time the animation should take
-	BOOL collapsing;				// YES if we're collapsing, NO if we're expanding
-	BOOL resizing;					// YES if we're resizing, NO if we're frozen
-} animationData;
+@property (nonatomic) NSRect rect;						// the subview's frame
+@property (nonatomic) double fraction;					// fractional extra
+@property (nonatomic, strong) RBSplitSubview *subview;	// points at the subview
+@property (nonatomic) CGFloat size;						// current dimension
+@property (nonatomic) BOOL constrain;					// set if constrained
+
+@end
+
+// Used internally for doing collapse/expand animation.
+@interface RBAnimationData : NSObject
+
+@property (nonatomic, strong) RBSplitSubview* owner;	// the subview being animated
+@property (nonatomic) CGFloat dimension;				// the subview's starting or ending dimension
+@property (nonatomic) int stepsDone;					// counts already done animation steps
+@property (nonatomic) NSTimeInterval elapsedTime;		// time already spent in resizing and adjusting subviews
+@property (nonatomic) NSTimeInterval finishTime;		// the animation should be finished at this time
+@property (nonatomic) NSTimeInterval totalTime;			// total time the animation should take
+@property (nonatomic) BOOL collapsing;					// YES if we're collapsing, NO if we're expanding
+@property (nonatomic) BOOL resizing;					// YES if we're resizing, NO if we're frozen
+
+@end
 
 // The following methods are for internal use, and you should never call or override them.
 // They'll probably vary wildy from version to version, too.
@@ -54,7 +58,7 @@ typedef struct animationData {
 @interface RBSplitSubview (RB___SubviewAdditions)
 
 - (void)RB___setHidden:(BOOL)flag;
-- (animationData*)RB___animationData:(BOOL)start resize:(BOOL)resize;
+- (RBAnimationData *)RB___animationData:(BOOL)start resize:(BOOL)resize;
 - (void)RB___stepAnimation;
 - (BOOL)RB___stopAnimation;
 - (CGFloat)RB___visibleDimension;
@@ -66,8 +70,8 @@ typedef struct animationData {
 - (void)RB___setFrameSize:(NSSize)size withFraction:(double)value;
 - (void)RB___setFrame:(NSRect)rect withFraction:(double)value notify:(BOOL)notify;
 - (double)RB___fraction;
-- (void)RB___copyIntoCache:(subviewCache*)cache;
-- (void)RB___updateFromCache:(subviewCache*)cache withTotalDimension:(CGFloat)value;
+- (RBSubviewCache *)RB___newCache;
+- (void)RB___updateFromCache:(RBSubviewCache *)cache withTotalDimension:(CGFloat)value;
 - (BOOL)RB___clearResponder;
 
 @end
