@@ -8,6 +8,7 @@
 #if __OBJC__
 #import <Foundation/Foundation.h>
 #import <Cocoa/Cocoa.h>
+#import <libextobjc/EXTKeyPathCoding.h>
 #endif
 
 #ifndef MAC_OS_X_VERSION_10_8
