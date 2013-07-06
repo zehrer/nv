@@ -178,14 +178,14 @@ static ODBEditor	*_sharedODBEditor;
 	}
 	
 	//now write aNote as text to path?
-	NSString *path = [self _nonexistingTemporaryPathForFilename:filenameOfNote(aNote)];	
+	NSString *path = [self _nonexistingTemporaryPathForFilename:aNote.filename];
 	NSError *error = nil;
 	if (![[[aNote contentString] string] writeToFile:path atomically:NO encoding:NSUTF8StringEncoding error:&error]) {
 		NSLog(@"not editing '%@' because it could not be written to '%@'", aNote, path);
 		return beepReturn();
 	}
 	
-	return [self editFile:path inEditor:ed options:[NSDictionary dictionaryWithObject:titleOfNote(aNote) forKey:ODBEditorCustomPathKey] forClient:aNote context:context];
+	return [self editFile:path inEditor:ed options:[NSDictionary dictionaryWithObject:aNote.titleString forKey:ODBEditorCustomPathKey] forClient:aNote context:context];
 }
 
 - (BOOL)editFile:(NSString *)path inEditor:(ExternalEditor*)ed options:(NSDictionary *)options forClient:(id)client context:(NSDictionary *)context {

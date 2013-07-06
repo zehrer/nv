@@ -652,7 +652,7 @@ void outletObjectAwoke(id sender) {
         
 	} else if (selector == @selector(fixFileEncoding:)) {
 		
-		return (currentNote != nil && storageFormatOfNote(currentNote) == NVDatabaseFormatPlainText && ![currentNote contentsWere7Bit]);
+		return (currentNote != nil && currentNote.currentFormatID == NVDatabaseFormatPlainText && ![currentNote contentsWere7Bit]);
     } else if (selector == @selector(editNoteExternally:)) {
         return (numberSelected > 0) && [[menuItem representedObject] canEditAllNotes:[notationController notesAtIndexes:[notesTableView selectedRowIndexes]]];
 	}else if (selector == @selector(previewNoteWithMarked:)){
@@ -820,7 +820,7 @@ void outletObjectAwoke(id sender) {
 			[deleteObj retain];
 			NSString *warningSingleFormatString = NSLocalizedString(@"Delete the note titled quotemark%@quotemark?", @"alert title when asked to delete a note");
 			NSString *warningMultipleFormatString = NSLocalizedString(@"Delete %d notes?", @"alert title when asked to delete multiple notes");
-			NSString *warnString = currentNote ? [NSString stringWithFormat:warningSingleFormatString, titleOfNote(currentNote)] :
+			NSString *warnString = currentNote ? [NSString stringWithFormat:warningSingleFormatString, currentNote.titleString] :
 			[NSString stringWithFormat:warningMultipleFormatString, [indexes count]];
 			
 			NSAlert *alert = [NSAlert alertWithMessageText:warnString defaultButton:NSLocalizedString(@"Delete", @"name of delete button")
@@ -1365,13 +1365,13 @@ void outletObjectAwoke(id sender) {
 				NSRange typingRange = [fieldEditor selectedRange];
 				
 				//fill in the remaining characters of the title and select
-				if ([field lastLengthReplaced] > 0 && typingRange.location < [titleOfNote(currentNote) length]) {
+				if ([field lastLengthReplaced] > 0 && typingRange.location < currentNote.titleString.length) {
 					
 					[self cacheTypedStringIfNecessary:fieldString];
 					
 					NSAssert([fieldString isEqualToString:[fieldEditor string]], @"I don't think it makes sense for fieldString to change");
 					
-					NSString *remainingTitle = [titleOfNote(currentNote) substringFromIndex:typingRange.location];
+					NSString *remainingTitle = [currentNote.titleString substringFromIndex:typingRange.location];
 					typingRange.length = [fieldString length] - typingRange.location;
 					typingRange.length = MAX(typingRange.length, 0U);
 					
@@ -1503,20 +1503,22 @@ void outletObjectAwoke(id sender) {
 				//while the user is typing and auto-completion is disabled, so should be OK
                 
 				if (!isFilteringFromTyping) {
-                    //	if ([toolbar isVisible]) {
+					NSString *str = currentNote.titleString;
+
                     if ([self dualFieldIsVisible]) {
 						if (fieldEditor) {
 							//the field editor has focus--select text, too
-							[fieldEditor setString:titleOfNote(currentNote)];
-							NSUInteger strLen = [titleOfNote(currentNote) length];
+							NSUInteger strLen = str.length;
+							
+							[fieldEditor setString:str];
 							if (strLen != [fieldEditor selectedRange].length)
 								[fieldEditor setSelectedRange:NSMakeRange(0, strLen)];
 						} else {
 							//this could be faster
-							[field setStringValue:titleOfNote(currentNote)];
+							[field setStringValue:str];
 						}
 					} else {
-						[window setTitle:titleOfNote(currentNote)];
+						[window setTitle:str];
 					}
 				}
 			}
@@ -1904,34 +1906,7 @@ void outletObjectAwoke(id sender) {
 	}
 	return proposedFrameSize;
 }
-/*
- - (void)_expandToolbar {
- if (![toolbar isVisible]) {
- [window setTitle:@"Notation"];
- if (currentNote)
- [field setStringValue:titleOfNote(currentNote)];
- [toolbar setVisible:YES];
- //[window toggleToolbarShown:nil];
- //	if (![splitView isDragging])
- //[[splitView subviewAtPosition:0] setDimension:100.0];
- //[[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"ToolbarHidden"];
- }
- //if ([[splitView subviewAtPosition:0] isCollapsed])
- //	[[splitView subviewAtPosition:0] expand];
- 
- }
- 
- - (void)_collapseToolbar {
- if ([toolbar isVisible]) {
- //	if (currentNote)
- //		[window setTitle:titleOfNote(currentNote)];
- //		[window toggleToolbarShown:nil];
- 
- [toolbar setVisible:NO];
- //[[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"ToolbarHidden"];
- }
- }
- */
+
 - (BOOL)splitView:(RBSplitView*)sender shouldResizeWindowForDivider:(NSUInteger)divider
 	  betweenView:(RBSplitSubview*)leading andView:(RBSplitSubview*)trailing willGrow:(BOOL)grow {
     
@@ -2044,11 +2019,11 @@ void outletObjectAwoke(id sender) {
 
 - (void)titleUpdatedForNote:(NoteObject*)aNoteObject {
     if (aNoteObject == currentNote) {
-        //	if ([toolbar isVisible]) {
+		NSString *string = currentNote.titleString;
         if ([self dualFieldIsVisible]) {
-			[field setStringValue:titleOfNote(currentNote)];
+			[field setStringValue:string];
 		} else {
-			[window setTitle:titleOfNote(currentNote)];
+			[window setTitle:string];
 		}
     }
 	[[prefsController bookmarksController] updateBookmarksUI];
@@ -2305,13 +2280,13 @@ void outletObjectAwoke(id sender) {
 	NSEnumerator *noteEnum = [[[notationController notesAtIndexes:selDexes] objectEnumerator] retain];
 	NoteObject *aNote;
 	aNote = [noteEnum nextObject];
-	NSString *existTags = labelsOfNote(aNote);
+	NSString *existTags = aNote.labelString;
 	if (existTags&&(existTags.length>0)) {
         NSMutableSet *commonTags = [NSMutableSet new];
         
         [commonTags addObjectsFromArray:[existTags labelCompatibleWords]];
 		while (((aNote = [noteEnum nextObject]))&&([commonTags count]>0)) {
-			existTags = labelsOfNote(aNote);
+			existTags = aNote.labelString;
 			if (!existTags||(existTags.length==0)) {
 				[commonTags removeAllObjects];
 				break;
@@ -2367,7 +2342,7 @@ void outletObjectAwoke(id sender) {
         NSMutableArray *finalTags = [NSMutableArray new];
         for (NoteObject *aNote in selNotes) {
             NSString *separator=@" ";
-            tagString=labelsOfNote(aNote);
+            tagString= aNote.labelString;
             NSArray *filteredTags;
             
             if (tagString&&(tagString.length>0)) {
@@ -2482,18 +2457,20 @@ void outletObjectAwoke(id sender) {
     if ([self dualFieldIsVisible]!=isVis) {
 		[toolbar setVisible:isVis];
     }
-    //        [[NSUserDefaults standardUserDefaults] setBool:!isVis forKey:@"ToolbarHidden"];
+
+	NSString *noteTitle = currentNote.titleString;
     if (isVis) {
         [window setTitle:@"nvALT"];
-        if (currentNote&&(![[field stringValue]isEqualToString:titleOfNote(currentNote)]))
-            [field setStringValue:titleOfNote(currentNote)];
+		
+        if (currentNote && (![[field stringValue] isEqualToString:noteTitle]))
+            [field setStringValue:noteTitle];
         
         
         [window setInitialFirstResponder:field];
         
     }else{
         if (currentNote)
-            [window setTitle:titleOfNote(currentNote)];
+            [window setTitle:noteTitle];
         
         
         [window setInitialFirstResponder:textView];

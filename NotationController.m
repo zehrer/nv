@@ -763,8 +763,8 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	
 	//sort alphabetically to find shorter prefixes first
 	NSArray *allNotesAlpha = [allNotes sortedArrayWithOptions:NSSortStable|NSSortConcurrent usingComparator:^(NoteObject *obj1, NoteObject *obj2) {
-		NSString *title1 = titleOfNote(obj1);
-		NSString *title2 = titleOfNote(obj2);
+		NSString *title1 = obj1.titleString;
+		NSString *title2 = obj2.titleString;
 		
 		NSComparisonResult result = [title1 compare:title2 options:NSCaseInsensitiveSearch];
 		
@@ -815,7 +815,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		//NSLog(@"registering %s", _cmd);
 		[undoManager registerUndoWithTarget:self selector:@selector(removeNote:) object:note];
 		if (! [[self undoManager] isUndoing] && ! [[self undoManager] isRedoing])
-			[undoManager setActionName:[NSString stringWithFormat:NSLocalizedString(@"Create Note quotemark%@quotemark",@"undo action name for creating a single note"), titleOfNote(note)]];
+			[undoManager setActionName:[NSString stringWithFormat:NSLocalizedString(@"Create Note quotemark%@quotemark",@"undo action name for creating a single note"), note.titleString]];
 	}
     
 	[self resortAllNotes];
@@ -1144,7 +1144,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 - (void)_registerDeletionUndoForNote:(NoteObject*)aNote {	
 	[undoManager registerUndoWithTarget:self selector:@selector(addNewNote:) object:aNote];			
 	if (![undoManager isUndoing] && ![undoManager isRedoing])
-		[undoManager setActionName:[NSString stringWithFormat:NSLocalizedString(@"Delete quotemark%@quotemark",@"undo action name for deleting a single note"), titleOfNote(aNote)]];				
+		[undoManager setActionName:[NSString stringWithFormat:NSLocalizedString(@"Delete quotemark%@quotemark",@"undo action name for deleting a single note"), aNote.titleString]];
 }			
 
 
@@ -1344,7 +1344,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 				//this note matches, but what if there are other note-titles that are prefixes of both this one and the search string?
 				//find the first prefix-parent of which searchString is also a prefix
 				NSUInteger j = 0, prefixParentIndex = NSNotFound;
-				NSArray *prefixParents = prefixParentsOfNote(notesBuffer[i]);
+				NSArray *prefixParents = [notesBuffer[i] prefixParentNotes];
 				
 				for (j=0; j<[prefixParents count]; j++) {
 					NoteObject *obj = [prefixParents objectAtIndex:j];
@@ -1383,8 +1383,9 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	for (i=0; i<[allNotes count]; i++) {
 		NoteObject *thisNote = [allNotes objectAtIndex:i];
 		if (noteTitleHasPrefixOfUTF8String(thisNote, searchString, strLen)) {
-			[objs addObject:titleOfNote(thisNote)];
-			if (anIndex && (titleLen = CFStringGetLength((CFStringRef)titleOfNote(thisNote))) < shortestTitleLen) {
+			NSString *title = thisNote.titleString;
+			[objs addObject:title];
+			if (anIndex && (titleLen = title.length) < shortestTitleLen) {
 				*anIndex = j;
 				shortestTitleLen = titleLen;
 			}

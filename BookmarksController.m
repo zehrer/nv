@@ -64,7 +64,7 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 		
 		CFUUIDBytes *bytes = [aNote uniqueNoteIDBytesPtr];
 		if (!bytes) {
-			NSLog(@"NoteBookmark init: no cfuuidbytes pointer from note %@", titleOfNote(aNote));
+			NSLog(@"NoteBookmark init: no cfuuidbytes pointer from note %@", aNote.titleString);
 			[self release];
 			return nil;
 		}
@@ -107,7 +107,8 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 - (NSString *)description {
 	NoteObject *note = [self noteObject];
 	if (note) {
-		return [searchString length] ? [NSString stringWithFormat:@"%@ [%@]", titleOfNote(note), searchString] : titleOfNote(note);
+		NSString *title = note.titleString;
+		return [searchString length] ? [NSString stringWithFormat:@"%@ [%@]", title, searchString] : title;
 	}
 	return nil;
 }

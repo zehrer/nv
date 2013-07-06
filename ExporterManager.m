@@ -85,7 +85,7 @@
 					overwriteNotes = YES;
 				}
 				
-				if ([filename compare:filenameOfNote([notes lastObject]) options:NSCaseInsensitiveSearch] != NSOrderedSame) {
+				if ([filename compare:[[notes lastObject] filename] options:NSCaseInsensitiveSearch] != NSOrderedSame) {
 					//undo any POSIX-safe crap NSSavePanel gave us--otherwise FSCreateFileUnicode will fail
 					filename = [filename stringByReplacingOccurrencesOfString:@":" withString:@"/"];
 				}
@@ -107,7 +107,7 @@
 				
 				if (err == dupFNErr) {
 					//ask about overwriting
-					NSString *existingName = filename ? filename : filenameOfNote(note);
+					NSString *existingName = filename ?: note.filename;
 					existingName = [[existingName stringByDeletingPathExtension] stringByAppendingPathExtension:[NotationPrefs pathExtensionForFormat:storageFormat]];
 					result = NSRunAlertPanel([NSString stringWithFormat:NSLocalizedString(@"A file named quotemark%@quotemark already exists.",nil), existingName],
 											 NSLocalizedString(@"Replace its current contents with that of the note?", @"replace the file's contents?"),
@@ -119,8 +119,7 @@
 				}
 				
 				if (err != noErr) {
-					NSString *exportErrorTitleString = [NSString stringWithFormat:NSLocalizedString(@"The note quotemark%@quotemark couldn't be exported because %@.",nil),
-														titleOfNote(note), [NSString reasonStringFromCarbonFSError:err]];
+					NSString *exportErrorTitleString = [NSString stringWithFormat:NSLocalizedString(@"The note quotemark%@quotemark couldn't be exported because %@.",nil), note.titleString, [NSString reasonStringFromCarbonFSError:err]];
 					if (!lastNote) {
 						NSRunAlertPanel(exportErrorTitleString, nil, NSLocalizedString(@"OK",nil), nil, nil, nil);
 					} else {
@@ -156,7 +155,7 @@
 		
 		[self formatSelectorChanged:formatSelectorPopup];
 		
-		NSString *filename = filenameOfNote([notes lastObject]);
+		NSString *filename = [[notes lastObject] filename];
 		filename = [filename stringByDeletingPathExtension];
 		filename = [filename stringByAppendingPathExtension:[NotationPrefs pathExtensionForFormat:[[formatSelectorPopup selectedItem] tag]]];
 		[savePanel setNameFieldStringValue:filename];

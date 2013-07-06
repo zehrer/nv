@@ -74,6 +74,10 @@ typedef NSRange NSRange32;
 @synthesize filename = filename;
 @synthesize titleString = titleString;
 @synthesize labelString = labelString;
+@synthesize nodeID = nodeID;
+
+@synthesize attrsModifiedDate = attrsModifiedDate;
+@synthesize prefixParentNotes = prefixParentNotes;
 
 static FSRef *noteFileRefInit(NoteObject* obj);
 static void setAttrModifiedDate(NoteObject *note, UTCDateTime *dateTime);
@@ -158,41 +162,44 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 	note->nodeID = cnid;
 }
 
-UTCDateTime *attrsModifiedDateOfNote(NoteObject *note) {
+- (UTCDateTime *)attrsModifiedDate
+{
 	//once unarchived, the disk UUID index won't change, so this pointer will always reflect the current attr mod time
-	if (!note->attrsModifiedDate) {
+	if (!attrsModifiedDate) {
 		//init from delegate based on disk table index
-		NSUInteger i, tableIndex = diskUUIDIndexForNotation(note->delegate);
+		NSUInteger i, tableIndex = diskUUIDIndexForNotation(delegate);
 		
-		for (i=0; i<note->perDiskInfoGroupCount; i++) {
+		for (i=0; i<perDiskInfoGroupCount; i++) {
 			//check if this date has actually been initialized; this entry could be here only because setCatalogNodeID was called
-			if (note->perDiskInfoGroups[i].diskIDIndex == tableIndex && !UTCDateTimeIsEmpty(note->perDiskInfoGroups[i].attrTime)) {
-				note->attrsModifiedDate = &(note->perDiskInfoGroups[i].attrTime);
-				return note->attrsModifiedDate;
+			if (perDiskInfoGroups[i].diskIDIndex == tableIndex && !UTCDateTimeIsEmpty(perDiskInfoGroups[i].attrTime)) {
+				attrsModifiedDate = &(perDiskInfoGroups[i].attrTime);
+				return attrsModifiedDate;
 			}
 		}
 		//this note doesn't have a file-modified date, so initialize a fairly reasonable one here
-		UTCDateTime date = note.fileModifiedDate;
-		setAttrModifiedDate(note, &date);
+		UTCDateTime date = fileModifiedDate;
+		setAttrModifiedDate(self, &date);
 	}
-	return note->attrsModifiedDate;
+	return attrsModifiedDate;
 }
 
-UInt32 fileNodeIDOfNote(NoteObject *note) {
-	if (!note->nodeID) {
-		NSUInteger i, tableIndex = diskUUIDIndexForNotation(note->delegate);
+- (UInt32)nodeID
+{
+	if (!nodeID) {
+		NSUInteger i, tableIndex = diskUUIDIndexForNotation(delegate);
 		
-		for (i=0; i<note->perDiskInfoGroupCount; i++) {
+		for (i=0; i<perDiskInfoGroupCount; i++) {
 			//check if this nodeID has actually been initialized; this entry could be here only because setAttrModifiedDate was called
-			if (note->perDiskInfoGroups[i].diskIDIndex == tableIndex && note->perDiskInfoGroups[i].nodeID != 0U) {
-				note->nodeID = note->perDiskInfoGroups[i].nodeID;
-				return note->nodeID;
+			if (perDiskInfoGroups[i].diskIDIndex == tableIndex && perDiskInfoGroups[i].nodeID != 0U) {
+				nodeID = perDiskInfoGroups[i].nodeID;
+				return nodeID;
 			}
 		}
 		//this note doesn't have a file-modified date, so initialize something that at least won't repeat this lookup
-		setCatalogNodeID(note, 1);
+		setCatalogNodeID(self, 1);
 	}
-	return note->nodeID;
+	return nodeID;
+	
 }
 
 NSInteger compareFilename(id *one, id *two) {
@@ -207,20 +214,21 @@ NSInteger compareDateModified(id *a, id *b) {
 NSInteger compareDateCreated(id *a, id *b) {
     return (*(NoteObject**)a)->createdDate - (*(NoteObject**)b)->createdDate;
 }
-NSInteger compareLabelString(id *a, id *b) {    
-    return (NSInteger)CFStringCompare((CFStringRef)(labelsOfNote(*(NoteObject **)a)), 
-								(CFStringRef)(labelsOfNote(*(NoteObject **)b)), kCFCompareCaseInsensitive);
+NSInteger compareLabelString(id *aPtr, id *bPtr) {
+	NoteObject *a = *(NoteObject**)aPtr;
+	NoteObject *b = *(NoteObject**)bPtr;
+	return [a.labelString caseInsensitiveCompare:b.labelString];
 }
-NSInteger compareTitleString(id *a, id *b) {
-	//add kCFCompareNumerically to options for natural order sort
-    CFComparisonResult stringResult = CFStringCompare((CFStringRef)(titleOfNote(*(NoteObject**)a)), 
-													  (CFStringRef)(titleOfNote(*(NoteObject**)b)), 
-													  kCFCompareCaseInsensitive);
-	if (stringResult == kCFCompareEqualTo) {
+NSInteger compareTitleString(id *aPtr, id *bPtr) {
+	NoteObject *a = *(NoteObject**)aPtr;
+	NoteObject *b = *(NoteObject**)bPtr;
+	
+	NSComparisonResult stringResult = [a.titleString caseInsensitiveCompare:b.titleString];
+	if (stringResult == NSOrderedSame) {
 		
-		NSInteger dateResult = compareDateCreated(a, b);
+		NSInteger dateResult = compareDateCreated(aPtr, bPtr);
 		if (!dateResult)
-			return compareUniqueNoteIDBytes(a, b);
+			return compareUniqueNoteIDBytes(aPtr, bPtr);
 		
 		return dateResult;
 	}
@@ -238,32 +246,38 @@ NSInteger compareDateModifiedReverse(id *a, id *b) {
 NSInteger compareDateCreatedReverse(id *a, id *b) {
     return (*(NoteObject**)b)->createdDate - (*(NoteObject**)a)->createdDate;
 }
-NSInteger compareLabelStringReverse(id *a, id *b) {    
-    return (NSInteger)CFStringCompare((CFStringRef)(labelsOfNote(*(NoteObject **)b)), 
-								(CFStringRef)(labelsOfNote(*(NoteObject **)a)), kCFCompareCaseInsensitive);
+NSInteger compareLabelStringReverse(id *aPtr, id *bPtr) {
+	NoteObject *a = *(NoteObject**)aPtr;
+	NoteObject *b = *(NoteObject**)bPtr;
+	return [b.labelString caseInsensitiveCompare:a.labelString];
 }
-NSInteger compareTitleStringReverse(id *a, id *b) {
-    CFComparisonResult stringResult = CFStringCompare((CFStringRef)(titleOfNote(*(NoteObject **)b)), 
-													  (CFStringRef)(titleOfNote(*(NoteObject **)a)), 
-													  kCFCompareCaseInsensitive);
+NSInteger compareTitleStringReverse(id *aPtr, id *bPtr) {
+	NoteObject *a = *(NoteObject**)aPtr;
+	NoteObject *b = *(NoteObject**)bPtr;
 	
-	if (stringResult == kCFCompareEqualTo) {
-		NSInteger dateResult = compareDateCreatedReverse(a, b);
+	NSComparisonResult stringResult = [b.titleString caseInsensitiveCompare:a.titleString];
+	if (stringResult == NSOrderedSame) {
+		
+		NSInteger dateResult = compareDateCreatedReverse(aPtr, bPtr);
 		if (!dateResult)
-			return compareUniqueNoteIDBytes(b, a);
+			return compareUniqueNoteIDBytes(bPtr, aPtr);
 		
 		return dateResult;
 	}
+	
 	return (NSInteger)stringResult;
 }
 
-NSInteger compareNodeID(id *a, id *b) {
-    return fileNodeIDOfNote(*(NoteObject**)a) - fileNodeIDOfNote(*(NoteObject**)b);
+NSInteger compareNodeID(id *aPtr, id *bPtr) {
+	NoteObject *a = *(NoteObject**)aPtr;
+	NoteObject *b = *(NoteObject**)bPtr;
+    return a.nodeID - b.nodeID;
 }
-NSInteger compareFileSize(id *a, id *b) {
-    return (*(NoteObject**)a)->logicalSize - (*(NoteObject**)b)->logicalSize;
+NSInteger compareFileSize(id *aPtr, id *bPtr) {
+	NoteObject *a = *(NoteObject**)aPtr;
+	NoteObject *b = *(NoteObject**)bPtr;
+    return a.logicalSize - b.logicalSize;
 }
-
 
 - (void)setSyncObjectAndKeyMD:(NSDictionary*)aDict forService:(NSString*)serviceName {
 	NSMutableDictionary *dict = [syncServicesMD objectForKey:serviceName];
@@ -313,56 +327,12 @@ NSInteger compareFileSize(id *a, id *b) {
 	return memcmp(otherBytes, &uniqueNoteIDBytes, sizeof(CFUUIDBytes)) == 0;
 }
 
-//syncing w/ server and from journal;
-
-DefModelAttrAccessor(prefixParentsOfNote, prefixParentNotes)
-
-force_inline CFAbsoluteTime modifiedDateOfNote(NoteObject *note){
-	return note.modifiedDate;
-}
-
-force_inline CFAbsoluteTime createdDateOfNote(NoteObject *note){
-	return note.createdDate;
-}
-
-force_inline NVDatabaseFormat storageFormatOfNote(NoteObject *note){
-	return note.currentFormatID;
-}
-
-force_inline UInt32 fileSizeOfNote(NoteObject *note){
-	return note.logicalSize;
-}
-
-force_inline UTCDateTime fileModifiedDateOfNote(NoteObject *note){
-	return note.fileModifiedDate;
-}
-
-force_inline NSString *filenameOfNote(NoteObject *note){
-	return note.filename;
-}
-
-force_inline NSStringEncoding fileEncodingOfNote(NoteObject *note){
-	return note.fileEncoding;
-}
-
-force_inline NSString *titleOfNote(NoteObject *note){
-	return note.titleString;
-}
-
-force_inline NSString *labelsOfNote(NoteObject *note){
-	return note.labelString;
-}
-
-
-
-//DefColAttrAccessor(wordCountOfNote, wordCountString)
 DefColAttrAccessor(titleOfNote2, titleString)
 DefColAttrAccessor(dateCreatedStringOfNote, dateCreatedString)
 DefColAttrAccessor(dateModifiedStringOfNote, dateModifiedString)
 
 force_inline id tableTitleOfNote(NotesTableView *tv, NoteObject *note, NSInteger row) {
-	if (note->tableTitleString) return note->tableTitleString;
-	return titleOfNote(note);
+	return note->tableTitleString ?: note.titleString;
 }
 force_inline id properlyHighlightingTableTitleOfNote(NotesTableView *tv, NoteObject *note, NSInteger row) {
 	if (note->tableTitleString) {
@@ -370,27 +340,19 @@ force_inline id properlyHighlightingTableTitleOfNote(NotesTableView *tv, NoteObj
 			return [note->tableTitleString string];
 		}
 		return note->tableTitleString;
-	}	
-	return titleOfNote(note);
+	}
+	return note.titleString;
 }
 
 force_inline id labelColumnCellForNote(NotesTableView *tv, NoteObject *note, NSInteger row) {
 	
 	LabelColumnCell *cell = [[tv tableColumnWithIdentifier:NoteLabelsColumnString] dataCellForRow:row];
 	[cell setNoteObject:note];
-	
-	return labelsOfNote(note);
+	return note.labelString;
 }
 
 force_inline id unifiedCellSingleLineForNote(NotesTableView *tv, NoteObject *note, NSInteger row) {
-	
-	id obj = note->tableTitleString ? (id)note->tableTitleString : (id)titleOfNote(note);
-	
-	UnifiedCell *cell = [[[tv tableColumns] objectAtIndex:0] dataCellForRow:row];
-	[cell setNoteObject:note];
-	[cell setPreviewIsHidden:YES];
-	
-	return obj;
+	return tableTitleOfNote(tv, note, row);
 }
 
 force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteger row) {
@@ -404,7 +366,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	BOOL rowSelected = [tv isRowSelected:row];
 	
 	id obj = note->tableTitleString ? (rowSelected ? (id)AttributedStringForSelection(note->tableTitleString, YES) :
-									   (id)note->tableTitleString) : (id)titleOfNote(note);
+									   (id)note->tableTitleString) : note.titleString;
 	
 	
 	return obj;

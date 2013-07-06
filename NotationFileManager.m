@@ -313,9 +313,9 @@ long BlockSizeForNotation(NotationController *controller) {
 	for (i=0; i<[allNotes count]; i++) {
 		NoteObject *obj = [allNotes objectAtIndex:i];
 		
-		if (!dbNote && [filenameOfNote(obj) isEqualToString:NotesDatabaseFileName])
+		if (!dbNote && [obj.filename isEqualToString:NotesDatabaseFileName])
 			dbNote = [[obj retain] autorelease];
-		if (!walNote && [filenameOfNote(obj) isEqualToString:@"Interim Note-Changes"])
+		if (!walNote && [obj.filename isEqualToString:@"Interim Note-Changes"])
 			walNote = [[obj retain] autorelease];
 	}
 	if (dbNote) {
@@ -414,12 +414,12 @@ long BlockSizeForNotation(NotationController *controller) {
 	uniqueFilename = [[sanitizedName copy] autorelease];
 	
 	//use the note's current format if the current default format is for a database; get the "ideal" extension for that format
-	NVDatabaseFormat noteFormat = [notationPrefs notesStorageFormat] || !note ? [notationPrefs notesStorageFormat] : storageFormatOfNote(note);
+	NVDatabaseFormat noteFormat = [notationPrefs notesStorageFormat] || !note ? [notationPrefs notesStorageFormat] : note.currentFormatID;
 	NSString *extension = [notationPrefs chosenPathExtensionForFormat:noteFormat];
 	
 	//if the note's current extension is compatible with the storage format above, then use the existing extension instead
-	if (note && filenameOfNote(note) && [notationPrefs pathExtensionAllowed:[filenameOfNote(note) pathExtension] forFormat:noteFormat])
-		extension = [filenameOfNote(note) pathExtension];
+	if (note && note.filename && [notationPrefs pathExtensionAllowed:note.filename.pathExtension forFormat:noteFormat])
+		extension = note.filename.pathExtension;
 	
 	//assume that we won't have more than 999 notes with the exact same name and of more than 247 chars
 	uniqueFilename = [uniqueFilename filenameExpectingAdditionalCharCount:3 + [extension length] + 2];
@@ -433,7 +433,7 @@ long BlockSizeForNotation(NotationController *controller) {
 		//also, it won't quite work right for filenames with no (real) extensions and periods in their names
 		for (i=0; i<[allNotes count]; i++) {
 			NoteObject *aNote = [allNotes objectAtIndex:i];
-			NSString *basefilename = [filenameOfNote(aNote) stringByDeletingPathExtension];
+			NSString *basefilename = aNote.filename.stringByDeletingPathExtension;
 			
 			if (note != aNote && [basefilename caseInsensitiveCompare:uniqueFilename] == NSOrderedSame) {
 				isUnique = NO;

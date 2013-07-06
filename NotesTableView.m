@@ -825,7 +825,7 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 		for (i=0;i<[notes count]; i++) {
 			NoteObject *note = [notes objectAtIndex:i];
 			//for now, allow option-dragging-out only for notes with separate file-backing stores
-			if (storageFormatOfNote(note) != NVDatabaseFormatSingle) {
+			if (note.currentFormatID != NVDatabaseFormatSingle) {
 				NSString *aPath = [note noteFilePath];
 				if (aPath) [paths addObject:aPath];
 			}
@@ -1178,22 +1178,9 @@ enum { kNext_Tag = 'j', kPrev_Tag = 'k' };
 		NoteObject *note = [(FastListDataSource*)[self dataSource] immutableObjects][rowIndex];
 		
 		NSTextView *editor = (NSTextView*)[self currentEditor];
-		[editor setString: tagsInTitleColumn ? labelsOfNote(note) : titleOfNote(note)];
+		[editor setString: tagsInTitleColumn ? note.labelString : note.titleString];
 		
 		NSRange range = NSMakeRange(0, [[editor string] length]);
-#if 0
-		NoteAttributeColumn *col = [self noteAttributeColumnForIdentifier:NoteTitleColumnString];
-		if (tagsInTitleColumn && dereferencingFunction(col) != unifiedCellSingleLineForNote) {
-			//the textview will comply! when editing tags, use a smaller font, right-aligned
-			[editor setAlignment:NSRightTextAlignment range:range];
-			NSFont *smallerFont = [NSFont systemFontOfSize:[globalPrefs tableFontSize] - 1.0];
-			[editor setFont:smallerFont range:range];
-			NSMutableParagraphStyle *pstyle = [[[NSMutableParagraphStyle alloc] init] autorelease];
-			[pstyle setAlignment:NSRightTextAlignment];
-			[editor setTypingAttributes:[NSDictionary dictionaryWithObjectsAndKeys:pstyle, NSParagraphStyleAttributeName, smallerFont, NSFontAttributeName, nil]];
-		}
-#endif
-		
 		if (flag) [editor setSelectedRange:range];
 	}	
 }

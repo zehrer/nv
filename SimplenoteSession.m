@@ -226,11 +226,12 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 	NSDictionary *aDict = [[aNote syncServicesMD] objectForKey:SimplenoteServiceName];
 	if (aDict) {
 		NSAssert([aNote isKindOfClass:[NoteObject class]], @"can't modify a non-note!");
-		NSNumber *modDate = [NSNumber numberWithDouble:modifiedDateOfNote((NoteObject*)aNote)];
+		CFAbsoluteTime modified = [(NoteObject*)aNote modifiedDate];
+		NSNumber *modDate = @(modified);
 		if ([modDate compare:[aDict objectForKey:@"modify"]] != NSOrderedSame) {
 			[aNote setSyncObjectAndKeyMD:[NSDictionary dictionaryWithObjectsAndKeys:
-									  [NSNumber numberWithDouble:modifiedDateOfNote((NoteObject*)aNote)], @"modify",
-									  [NSNumber numberWithBool:YES], @"dirty",
+									  modDate, @"modify",
+									  @YES, @"dirty",
 									  nil]
 						  forService:SimplenoteServiceName];
 		}
@@ -698,7 +699,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 			NSUInteger bodyLoc = 0;
 			NSString *separator = nil;
 			NSString *combinedContent = [info objectForKey:@"content"];
-			NSString *newTitle = [combinedContent syntheticTitleAndSeparatorWithContext:&separator bodyLoc:&bodyLoc oldTitle:titleOfNote(aNote) maxTitleLen:60];
+			NSString *newTitle = [combinedContent syntheticTitleAndSeparatorWithContext:&separator bodyLoc:&bodyLoc oldTitle:aNote.titleString maxTitleLen:60];
 			
 			[aNote updateWithSyncBody:[combinedContent substringFromIndex:bodyLoc] andTitle:newTitle];
 			NSMutableSet *labelTitles = [NSMutableSet setWithArray:[info objectForKey:@"tags"]];
@@ -735,8 +736,9 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 	//build two kinds of dicts:
 	for (i=0; i<[notes count]; i++) {
 		NoteObject *aNote = [notes objectAtIndex:i];
-		NSMutableString *combined = [[NSMutableString alloc] initWithCapacity:[[aNote contentString] length] + [titleOfNote(aNote) length] + [sep length]];
-		[combined appendString:titleOfNote(aNote)];
+		NSString *titleString = aNote.titleString;
+		NSMutableString *combined = [[NSMutableString alloc] initWithCapacity:[[aNote contentString] length] + titleString.length + [sep length]];
+		[combined appendString: titleString];
 		[combined appendString:sep];
 		[combined appendString:[[aNote contentString] string]];
 		[dict setObject:aNote forKey:[NSNumber numberWithUnsignedInteger:[combined hash]]];

@@ -114,7 +114,7 @@
   NSString *htmlString = [[PreviewController class] html];
   NSString *cssString = [[PreviewController class] css];
   NSMutableString *outputString = [NSMutableString stringWithString:(NSString *)htmlString];
-  NSString *noteTitle =  ([app selectedNoteObject]) ? [NSString stringWithFormat:@"%@",titleOfNote([app selectedNoteObject])] : @"";
+  NSString *noteTitle =  ([app selectedNoteObject]) ? [NSString stringWithFormat:@"%@", app.selectedNoteObject.titleString] : @"";
 		NSString *nvSupportPath = [[NSFileManager defaultManager] applicationSupportDirectory];
 
   [outputString replaceOccurrencesOfString:@"{%support%}" withString:nvSupportPath options:0 range:NSMakeRange(0, [outputString length])];

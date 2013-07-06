@@ -330,7 +330,7 @@
 	NSString *processedString = [NSString performSelector:mode withObject:rawString];
   NSString *previewString = processedString;
 	NSMutableString *outputString = [NSMutableString stringWithString:(NSString *)htmlString];
-	NSString *noteTitle =  ([app selectedNoteObject]) ? [NSString stringWithFormat:@"%@",titleOfNote([app selectedNoteObject])] : @"";
+	NSString *noteTitle =  ([app selectedNoteObject]) ? [NSString stringWithFormat:@"%@", app.selectedNoteObject.titleString] : @"";
 
 	if (lastNote == [app selectedNoteObject]) {
 		NSString *restoreScrollPosition = [NSString stringWithFormat:@"\n<script>var body = document.getElementsByTagName('body')[0],oldscroll = %@;body.scrollTop = oldscroll;</script>",lastScrollPosition];
@@ -448,7 +448,7 @@
 -(IBAction)shareNote:(id)sender
 {
   AppController *app = [NSApp delegate];
-	NSString *noteTitle = [NSString stringWithFormat:@"%@",titleOfNote([app selectedNoteObject])];
+	NSString *noteTitle = [NSString stringWithFormat:@"%@", app.selectedNoteObject.titleString];
   NSString *rawString = [app noteContent];
   SEL mode = [self markupProcessorSelector:[app currentPreviewMode]];
   NSString *processedString = [NSString performSelector:mode withObject:rawString];
@@ -536,7 +536,7 @@
     [templateNote setStringValue:@"Select this to embed the ouput within your current preview HTML and CSS"];
   }
 
-	NSString *noteTitle =  ([app selectedNoteObject]) ? [NSString stringWithFormat:@"%@",titleOfNote([app selectedNoteObject])] : @"";
+	NSString *noteTitle =  ([app selectedNoteObject]) ? [NSString stringWithFormat:@"%@", app.selectedNoteObject.titleString] : @"";
 	[savePanel setNameFieldStringValue:noteTitle];
 	[savePanel beginSheetModalForWindow:self.window completionHandler:^(NSInteger result) {
 		if (result == NSFileHandlingPanelOKButton) {

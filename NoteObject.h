@@ -52,7 +52,6 @@ typedef struct _NoteFilterContext {
 	id delegate; //the notes controller
 	
 	//for syncing to text file
-	UInt32 nodeID;
 	NSUInteger perDiskInfoGroupCount;
 	BOOL shouldWriteToFile, didUnarchive;
 	
@@ -64,9 +63,6 @@ typedef struct _NoteFilterContext {
 	
 	//each note has its own undo manager--isn't that nice?
 	NSUndoManager *undoManager;
-@public
-	NSMutableArray *prefixParentNotes;
-	UTCDateTime *attrsModifiedDate;
 }
 
 @property (nonatomic) CFAbsoluteTime modifiedDate;
@@ -74,6 +70,7 @@ typedef struct _NoteFilterContext {
 @property (nonatomic, readonly) BOOL contentsWere7Bit;
 @property (nonatomic, readonly) NVDatabaseFormat currentFormatID;
 @property (nonatomic, readonly) UInt32 logicalSize;
+@property (nonatomic, readonly) UInt32 nodeID;
 
 @property (nonatomic, readonly) UTCDateTime fileModifiedDate;
 
@@ -81,6 +78,9 @@ typedef struct _NoteFilterContext {
 @property (nonatomic, copy, readonly) NSString *filename;
 @property (nonatomic, copy) NSString *titleString;
 @property (nonatomic, copy) NSString *labelString;
+
+@property (nonatomic, assign) UTCDateTime *attrsModifiedDate;
+@property (nonatomic, retain) NSMutableArray *prefixParentNotes;
 
 NSInteger compareDateModified(id *a, id *b);
 NSInteger compareDateCreated(id *a, id *b);
@@ -98,25 +98,7 @@ NSInteger compareFilename(id *a, id *b);
 NSInteger compareNodeID(id *a, id *b);
 NSInteger compareFileSize(id *a, id *b);
 
-	//syncing w/ files in directory
-	NVDatabaseFormat storageFormatOfNote(NoteObject *note) DEPRECATED_ATTRIBUTE;
-	NSString* filenameOfNote(NoteObject *note) DEPRECATED_ATTRIBUTE;
-	UInt32 fileNodeIDOfNote(NoteObject *note);
-	UInt32 fileSizeOfNote(NoteObject *note) DEPRECATED_ATTRIBUTE;
-	UTCDateTime fileModifiedDateOfNote(NoteObject *note) DEPRECATED_ATTRIBUTE;
-	UTCDateTime *attrsModifiedDateOfNote(NoteObject *note);
-	CFAbsoluteTime modifiedDateOfNote(NoteObject *note) DEPRECATED_ATTRIBUTE;
-	CFAbsoluteTime createdDateOfNote(NoteObject *note) DEPRECATED_ATTRIBUTE;
-
-	NSStringEncoding fileEncodingOfNote(NoteObject *note) DEPRECATED_ATTRIBUTE;
-	
-	NSString* titleOfNote(NoteObject *note) DEPRECATED_ATTRIBUTE;
-	NSString* labelsOfNote(NoteObject *note) DEPRECATED_ATTRIBUTE;
-
-	NSMutableArray* prefixParentsOfNote(NoteObject *note);
-
 #define DefColAttrAccessor(__FName, __IVar) force_inline id __FName(NotesTableView *tv, NoteObject *note, NSInteger row) { return note->__IVar; }
-#define DefModelAttrAccessor(__FName, __IVar) force_inline typeof (((NoteObject *)0)->__IVar) __FName(NoteObject *note) { return note->__IVar; }
 
 	//return types are NSString or NSAttributedString, satisifying NSTableDataSource protocol otherwise
 	id titleOfNote2(NotesTableView *tv, NoteObject *note, NSInteger row);

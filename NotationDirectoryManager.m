@@ -71,7 +71,7 @@ NSInteger compareCatalogValueFileSize(id *a, id *b) {
 	
 	for (i=0; i<[allNotes count]; i++) {
 		NoteObject *aNote = [allNotes objectAtIndex:i];
-		NSString *existingRequestedFilename = [filenameOfNote(aNote) lowercaseString];
+		NSString *existingRequestedFilename = aNote.filename.lowercaseString;
 		if (existingRequestedFilename && [lcNamesDict objectForKey:existingRequestedFilename]) {
 			[foundNotes addObject:aNote];
 			//remove paths from the dict as they are matched to existing notes; those left over will be new ("unknown") files
@@ -302,8 +302,8 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t nu
 
 - (BOOL)modifyNoteIfNecessary:(NoteObject*)aNoteObject usingCatalogEntry:(NoteCatalogEntry*)catEntry {
 	//check dates
-	UTCDateTime lastReadDate = fileModifiedDateOfNote(aNoteObject);
-	UTCDateTime *lastAttrModDate = attrsModifiedDateOfNote(aNoteObject);
+	UTCDateTime lastReadDate = aNoteObject.fileModifiedDate;
+	UTCDateTime *lastAttrModDate = aNoteObject.attrsModifiedDate;
 	
 	//should we always update the note's stored inode here regardless?
 //	NSLog(@"content mod: %d,%d,%d, attr mod: %d,%d,%d", catEntry->lastModified.highSeconds,catEntry->lastModified.lowSeconds,catEntry->lastModified.fraction,
@@ -311,7 +311,7 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t nu
 	
 	updateForVerifiedExistingNote(deletionManager, aNoteObject);
 	
-	if (fileSizeOfNote(aNoteObject) != catEntry->logicalSize ||
+	if (aNoteObject.logicalSize != catEntry->logicalSize ||
 		*(int64_t*)&lastReadDate != *(int64_t*)&(catEntry->lastModified) ||
 		*(int64_t*)lastAttrModDate != *(int64_t*)&(catEntry->lastAttrModified)) {
 
@@ -375,13 +375,12 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t nu
 		for (j=lastInserted; j<bSize; j++) {
 			
 			CFComparisonResult order = CFStringCompare((CFStringRef)(catEntriesPtrs[j]->filename),
-													   (CFStringRef)filenameOfNote(currentNotes[i]), 
+													   (CFStringRef)[currentNotes[i] filename],
 													   kCFCompareCaseInsensitive);
 			if (order == kCFCompareGreaterThan) {    //if (A[i] < B[j])
 				lastInserted = j;
 				exitedEarly = YES;
 				
-				//NSLog(@"FILE DELETED (during): %@", filenameOfNote(currentNotes[i]));
 				[removedEntries addObject:currentNotes[i]];
 				break;
 			} else if (order == kCFCompareEqualTo) {			//if (A[i] == B[j])
@@ -402,12 +401,11 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t nu
 		if (!exitedEarly) {
 			
 			//element A[i] "appended" to the end of list B
-			if (CFStringCompare((CFStringRef)filenameOfNote(currentNotes[i]),
+			if (CFStringCompare((CFStringRef)[currentNotes[i] filename],
 								(CFStringRef)(catEntriesPtrs[MIN(lastInserted, bSize-1)]->filename), 
 								kCFCompareCaseInsensitive) == kCFCompareGreaterThan) {
 				lastInserted = bSize;
 				
-				//NSLog(@"FILE DELETED (after): %@", filenameOfNote(currentNotes[i]));
 				[removedEntries addObject:currentNotes[i]];
 			}
 		}
@@ -450,7 +448,7 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t nu
 	}];
 	
 	[removedEntries sortWithOptions:NSSortConcurrent usingComparator:^(NoteObject *obj1, NoteObject *obj2) {
-		return NVComparisonResult(fileNodeIDOfNote(obj1) - fileNodeIDOfNote(obj2));
+		return NVComparisonResult(obj1.nodeID - obj2.nodeID);
 	}];
 	
 	NSMutableArray *hfsAddedEntries = [NSMutableArray array];
@@ -468,13 +466,13 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t nu
 		for (j=lastInserted; j<bSize; j++) {
 			
 			NoteCatalogEntry *catEntry = (NoteCatalogEntry *)[[addedEntries objectAtIndex:j] pointerValue];
-			int order = catEntry->nodeID - fileNodeIDOfNote(currentNote);
+			int order = catEntry->nodeID - currentNote.nodeID;
 			
 			if (order > 0) {    //if (A[i] < B[j])
 				lastInserted = j;
 				exitedEarly = YES;
 				
-				NSLog(@"File deleted as per CNID: %@", filenameOfNote(currentNote));
+				NSLog(@"File deleted as per CNID: %@", currentNote.filename);
 				[hfsRemovedEntries addObject:currentNote];
 				
 				break;
@@ -484,7 +482,7 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t nu
 				
 				
 				//note was renamed!
-				NSLog(@"File %@ renamed as per CNID to %@", filenameOfNote(currentNote), catEntry->filename);
+				NSLog(@"File %@ renamed as per CNID to %@", currentNote.filename, catEntry->filename);
 				if (![self modifyNoteIfNecessary:currentNote usingCatalogEntry:catEntry]) {
 					//at least update the file name, because we _know_ that changed
 					
@@ -507,11 +505,11 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t nu
 		if (!exitedEarly) {
 			
 			NoteCatalogEntry *appendedCatEntry = (NoteCatalogEntry *)[[addedEntries objectAtIndex:MIN(lastInserted, bSize-1)] pointerValue];
-			if (fileNodeIDOfNote(currentNote) - appendedCatEntry->nodeID > 0) {
+			if (currentNote.nodeID - appendedCatEntry->nodeID > 0) {
 				lastInserted = bSize;
 				
 				//file deleted from disk; 
-				NSLog(@"File deleted as per CNID: %@", filenameOfNote(currentNote));
+				NSLog(@"File deleted as per CNID: %@", currentNote.filename);
 				[hfsRemovedEntries addObject:currentNote];
 			}
 		}
@@ -571,7 +569,7 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t nu
 	
 	for (i=0; i<[removedEntries count]; i++) {
 		NoteObject *removedObj = [removedEntries objectAtIndex:i];
-		NSNumber *sizeKey = [NSNumber numberWithUnsignedInt:fileSizeOfNote(removedObj)];
+		NSNumber *sizeKey = @(removedObj.logicalSize);
 		BOOL foundMatchingContent = NO;
 		
 		//does any added item have the same size as removedObj?
@@ -590,12 +588,12 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t nu
 			if ([[[addedObjToCompare contentString] string] isEqualToString:[[removedObj contentString] string]]) {
 				//process this pair as a modification
 				
-				NSLog(@"File %@ renamed as per content to %@", filenameOfNote(removedObj), filenameOfNote(addedObjToCompare));
+				NSLog(@"File %@ renamed as per content to %@", removedObj.filename, addedObjToCompare.filename);
 				if (![self modifyNoteIfNecessary:removedObj usingCatalogEntry:[val pointerValue]]) {
 					//at least update the file name, because we _know_ that changed
 					directoryChangesFound = YES;
 					notesChanged = YES;
-					[removedObj setFilename:filenameOfNote(addedObjToCompare) withExternalTrigger:YES];
+					[removedObj setFilename:addedObjToCompare.filename withExternalTrigger:YES];
 				}
 				
 				if ([sameSizeObj isKindOfClass:[NSArray class]]) {
@@ -611,7 +609,7 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t nu
 		}
 		
 		if (!foundMatchingContent) {
-			NSLog(@"File %@ _actually_ removed (size: %u)", filenameOfNote(removedObj), fileSizeOfNote(removedObj));
+			NSLog(@"File %@ _actually_ removed (size: %u)", removedObj.filename, removedObj.logicalSize);
 			[deletionManager addDeletedNote:removedObj];
 		}
 	}

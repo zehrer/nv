@@ -255,7 +255,7 @@
 	NSDictionary *info = [[aNote syncServicesMD] objectForKey:SimplenoteServiceName];
 	//following assertion tests the efficacy our queued invocations system
 	NSAssert(doesCreate == (nil == info), @"noteobject has MD for this service when it was attempting to be created or vise versa!");
-	CFAbsoluteTime modNum = doesCreate ? modifiedDateOfNote(aNote) : [[info objectForKey:@"modify"] doubleValue];
+	CFAbsoluteTime modNum = doesCreate ? aNote.modifiedDate : [[info objectForKey:@"modify"] doubleValue];
 	
 	//always set the mod date, set created date if we are creating, set the key if we are updating
 	NSMutableString *noteBody = [[[aNote combinedContentWithContextSeparator: /* explicitly assume default separator if creating */
@@ -266,7 +266,7 @@
 	NSMutableDictionary *rawObject = [NSMutableDictionary dictionaryWithCapacity: 8];
 	if (modNum > 0.0) [rawObject setObject:[NSNumber numberWithDouble:[[NSDate dateWithTimeIntervalSinceReferenceDate:modNum] timeIntervalSince1970]] forKey:@"modificationDate"];
 	if (doesCreate) {
-		[rawObject setObject:[NSNumber numberWithDouble:[[NSDate dateWithTimeIntervalSinceReferenceDate:createdDateOfNote(aNote)] timeIntervalSince1970]] forKey:@"creationDate"];
+		[rawObject setObject:[NSNumber numberWithDouble:[[NSDate dateWithTimeIntervalSinceReferenceDate:aNote.createdDate] timeIntervalSince1970]] forKey:@"creationDate"];
 		[rawObject setObject:[NSMutableArray array] forKey:@"systemTags"];
 		[rawObject setObject:@"" forKey:@"shareURL"];
 		[rawObject setObject:@"" forKey:@"publishURL"];
@@ -351,7 +351,7 @@
 	if ([entriesToCollect count] == 1) {
 		NoteObject *aNote = [currentFetcher representedObject];
 		if ([aNote isKindOfClass:[NoteObject class]]) {
-			return [NSString stringWithFormat:NSLocalizedString(@"%@ quot%@quot...",@"example: Updating 'joe shmoe note'"), opName, titleOfNote(aNote)];
+			return [NSString stringWithFormat:NSLocalizedString(@"%@ quot%@quot...",@"example: Updating 'joe shmoe note'"), opName, aNote.titleString];
 		} else {
 			return [NSString stringWithFormat:NSLocalizedString(@"%@ a note...", @"e.g., 'Deleting a note...'"), opName];
 		}
@@ -427,7 +427,7 @@
 					NSUInteger bodyLoc = 0;
 					NSString *separator = nil;
 					NSString *combinedContent = [rawObject objectForKey:@"content"];
-					NSString *newTitle = [combinedContent syntheticTitleAndSeparatorWithContext:&separator bodyLoc:&bodyLoc oldTitle:titleOfNote(aNote) maxTitleLen:60];
+					NSString *newTitle = [combinedContent syntheticTitleAndSeparatorWithContext:&separator bodyLoc:&bodyLoc oldTitle:[(NoteObject *)aNote titleString] maxTitleLen:60];
 				
 					[(NoteObject *)aNote updateWithSyncBody:[combinedContent substringFromIndex:bodyLoc] andTitle:newTitle];
 				}
