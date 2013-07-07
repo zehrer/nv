@@ -1611,7 +1611,8 @@ forTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex {
 	//allow the tableview to override the selector destination for this object value
 	SEL colAttributeMutator = [(NotesTableView*)aTableView attributeSetterForColumn:(NoteAttributeColumn*)aTableColumn];
 	
-	[notesList[rowIndex] performSelector:colAttributeMutator withObject:anObject];
+#warning TODO - replace
+	objc_msgSend(notesList[rowIndex], colAttributeMutator, anObject);
 }
 	
 - (id)tableView:(NSTableView *)aTableView objectValueForTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex {

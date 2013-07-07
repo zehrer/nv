@@ -24,7 +24,7 @@
 #import "SynchronizedNoteProtocol.h"
 #import "NoteObject.h"
 #import "DeletedNoteObject.h"
-
+#import <objc/message.h>
 
 @implementation SimplenoteEntryCollector
 
@@ -196,7 +196,9 @@
 	if (entryFinishedCount >= [entriesToCollect count] || stopped) {
 		//no more entries to collect!
 		currentFetcher = nil;
-		[collectionDelegate performSelector:entriesFinishedCallback withObject:self];
+		
+#warning TODO - replace
+		objc_msgSend(collectionDelegate, entriesFinishedCallback, self);
 	} else {
 		//queue next entry
 		[(currentFetcher = [self fetcherForEntry:[entriesToCollect objectAtIndex:entryFinishedCount++]]) start];
@@ -233,7 +235,8 @@
 }
 
 - (SyncResponseFetcher*)fetcherForEntry:(id)anEntry {
-	return [self performSelector:fetcherOpSEL withObject:anEntry];
+#warning TODO - replace
+	return objc_msgSend(self, fetcherOpSEL, anEntry);
 }
 
 - (SyncResponseFetcher*)_fetcherForNote:(NoteObject*)aNote creator:(BOOL)doesCreate {

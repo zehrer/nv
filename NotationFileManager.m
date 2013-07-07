@@ -28,6 +28,7 @@
 #import <CommonCrypto/CommonCrypto.h>
 #include <sys/param.h>
 #include <sys/mount.h>
+#import <objc/message.h>
 
 NSString *NotesDatabaseFileName = @"Notes & Settings";
 
@@ -561,7 +562,8 @@ long BlockSizeForNotation(NotationController *controller) {
 	//before we try to swap the data contents of this temp file with the (possibly even soon-to-be-created) Notes & Settings file,
 	//try to read it back and see if it can be decrypted and decoded:
 	if (verifyDelegate && verificationSel) {
-		if (noErr != (err = [[verifyDelegate performSelector:verificationSel withObject:[NSValue valueWithPointer:&tempFileRef] withObject:filename] intValue])) {
+#warning TODO - replace
+		if (noErr != (err = [objc_msgSend(verifyDelegate, verificationSel, [NSValue valueWithPointer:&tempFileRef], filename) intValue])) {
 			NSLog(@"couldn't verify written notes, so not continuing to save");
 			(void)FSDeleteObject(&tempFileRef);
 			return err;

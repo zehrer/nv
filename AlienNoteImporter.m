@@ -28,6 +28,7 @@
 #import "NotationPrefs.h"
 #import "NotationController.h"
 #import "NoteObject.h"
+#import <objc/message.h>
 #import <Quartz/Quartz.h>
 
 NSString *PasswordWasRetrievedFromKeychainKey = @"PasswordRetrievedFromKeychain";
@@ -215,8 +216,9 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 }
 
 - (NSArray*)importedNotes {
+#warning TODO - replace
 	if (!importerSelector) return nil;
-	return [self performSelector:importerSelector withObject:source];
+	return objc_msgSend(self, importerSelector, source);
 }
 
 - (NSArray*)notesWithPaths:(NSArray*)paths {
