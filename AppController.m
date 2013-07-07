@@ -51,6 +51,7 @@
 #import "nvaDevConfig.h"
 #import "NSString_CustomTruncation.h"
 #import "WordCountToken.h"
+#import "NVViewLocationContext.h"
 #import <Sparkle/SUUpdater.h>
 
 #define kSparkleUpdateFeedForLions @"http://abyss.designheresy.com/nvalt2/nvalt2main.xml"
@@ -738,7 +739,9 @@ void outletObjectAwoke(id sender) {
     if ([self isInFullScreen]) {
         wasVert = YES;
     }
-	ViewLocationContext ctx = [notesTableView viewingLocation];
+
+	NVViewLocationContext *ctx = [notesTableView viewingLocation];
+
 	ctx.pivotRowWasEdge = NO;
 	CGFloat colW = [notesSubview dimension];
     if (![splitView isVertical]) {
@@ -969,7 +972,7 @@ void outletObjectAwoke(id sender) {
 		NoteAttributeColumn *newSortCol = [notesTableView noteAttributeColumnForIdentifier:[prefsController sortedTableColumnKey]];
 		BOOL changedColumns = oldSortCol != newSortCol;
 		
-		ViewLocationContext ctx;
+		NVViewLocationContext *ctx = nil;
 		if (changedColumns) {
 			ctx = [notesTableView viewingLocation];
 			ctx.pivotRowWasEdge = NO;
@@ -977,7 +980,9 @@ void outletObjectAwoke(id sender) {
 		
 		[notationController setSortColumn:newSortCol];
 		
-		if (changedColumns) [notesTableView setViewingLocation:ctx];
+		if (changedColumns) {
+			[notesTableView setViewingLocation:ctx];
+		}
 		
 	} else if ([selectorString isEqualToString:SEL_STR(setNoteBodyFont:sender:)]) {
 		
@@ -1987,7 +1992,7 @@ void outletObjectAwoke(id sender) {
 				savedSelectedNotes = [[someNotation notesAtIndexes:indexSet] retain];
 			}
 			
-			listUpdateViewCtx = [notesTableView viewingLocation];
+			listUpdateViewContext = [notesTableView viewingLocation];
 		}
 	}
 }
@@ -2009,7 +2014,7 @@ void outletObjectAwoke(id sender) {
 				[notesTableView selectRowIndexes:indexes byExtendingSelection:NO];
 			}
 			
-			[notesTableView setViewingLocation:listUpdateViewCtx];
+			[notesTableView setViewingLocation:listUpdateViewContext];
 		}
 	}
 }

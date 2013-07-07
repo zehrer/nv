@@ -21,13 +21,7 @@
 @class HeaderViewWithMenu;
 @class NoteAttributeColumn;
 @class GlobalPrefs;
-
-typedef struct _ViewLocationContext {
-	BOOL pivotRowWasEdge;
-	id nonRetainedPivotObject;
-	float verticalDistanceToPivotRow;
-} ViewLocationContext;
-
+@class NVViewLocationContext;
 
 @interface NotesTableView : NSTableView {
 	NSTimer *modifierTimer;
@@ -64,8 +58,8 @@ typedef struct _ViewLocationContext {
 - (void)noteFirstVisibleRow;
 - (void)makeFirstPreviouslyVisibleRowVisibleIfNecessary;
 
-- (ViewLocationContext)viewingLocation;
-- (void)setViewingLocation:(ViewLocationContext)ctx;
+@property (nonatomic, retain) NVViewLocationContext *viewingLocation;
+
 - (double)distanceFromRow:(NSUInteger)aRow forVisibleArea:(NSRect)visibleRect;
 - (void)scrollRowToVisible:(NSInteger)rowIndex withVerticalOffset:(float)offset;
 - (void)selectRowAndScroll:(NSInteger)row;

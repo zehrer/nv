@@ -35,6 +35,7 @@
 @class WordCountToken;
 @class ETContentView;
 @class ETScrollView;
+@class NVViewLocationContext;
 
 #ifndef MarkdownPreview
 #define MarkdownPreview 13371
@@ -101,7 +102,8 @@
   NotationController *notationController;
 	
 	SpaceSwitchingContext spaceSwitchCtx;
-	ViewLocationContext listUpdateViewCtx;
+	
+	NVViewLocationContext *listUpdateViewContext;
 	BOOL isFilteringFromTyping, typedStringIsCached;
 	BOOL isCreatingANote;
 	NSString *typedString;

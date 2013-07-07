@@ -30,6 +30,7 @@
 #import "NotesTableHeaderCell.h"
 #import "LinkingEditor.h"
 #import "AppController.h"
+#import "NVViewLocationContext.h"
 //#import "NotesTableCornerView.h"
 
 #define STATUS_STRING_FONT_SIZE 16.0f
@@ -383,13 +384,12 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 	return [self rectOfRow:aRow].origin.y - visibleRect.origin.y;
 }
 
-- (ViewLocationContext)viewingLocation {
-	ViewLocationContext ctx;
+- (NVViewLocationContext *)viewingLocation
+{
+	NVViewLocationContext *ctx = [NVViewLocationContext new];
 	
 	NSUInteger pivotRow = [[self selectedRowIndexes] firstIndex];
-	
-	NSUInteger nRows = (NSUInteger)[self numberOfRows];
-	
+	NSUInteger nRows = [self numberOfRows];
 	NSRect visibleRect = [self visibleRect];
 	NSRange range = [self rowsInRect:visibleRect];
 	
@@ -402,36 +402,35 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 	}
 	
 	ctx.pivotRowWasEdge = (pivotRow == 0 || pivotRow == nRows - 1);
-	
-	ctx.nonRetainedPivotObject = nil;
-	ctx.verticalDistanceToPivotRow = 0;
+		ctx.verticalDistanceToPivotRow = 0;
 	
 	if (pivotRow < nRows) {
-		if ((ctx.nonRetainedPivotObject = [(NotationController *)[self dataSource] noteObjectAtFilteredIndex:pivotRow])) {
+		if ((ctx.pivotObject = [(NotationController *)[self dataSource] noteObjectAtFilteredIndex:pivotRow])) {
 			ctx.verticalDistanceToPivotRow = [self distanceFromRow:pivotRow forVisibleArea:visibleRect];
 		}
 	}
-	return ctx;
+	
+	return [ctx autorelease];
 }
 
-- (void)setViewingLocation:(ViewLocationContext)ctx {
-	if (ctx.nonRetainedPivotObject) {
+- (void)setViewingLocation:(NVViewLocationContext *)viewingLocation
+{
+	if (!viewingLocation.pivotObject) return;
+	
+	NSInteger pivotIndex = [(NotationController*)[self dataSource] indexInFilteredListForNoteIdenticalTo:viewingLocation.pivotObject];
+	if (pivotIndex != NSNotFound) {
+		//figure out how to determine top/bottom condition:
+		//if pivotRow was 0 or nRows-1, and pivotIndex is not either, then scroll maximally in the nearest direction?
+		NSInteger lastRow = [self numberOfRows] - 1;
 		
-		NSInteger pivotIndex = [(NotationController*)[self dataSource] indexInFilteredListForNoteIdenticalTo:ctx.nonRetainedPivotObject];
-		if (pivotIndex != NSNotFound) {
-			//figure out how to determine top/bottom condition:
-			//if pivotRow was 0 or nRows-1, and pivotIndex is not either, then scroll maximally in the nearest direction?
-			NSInteger lastRow = [self numberOfRows] - 1;
-			
-			if (ctx.pivotRowWasEdge && (pivotIndex != 0 && pivotIndex != lastRow)) {
-				pivotIndex = labs(pivotIndex - 0) < labs(pivotIndex - lastRow) ? 0 : lastRow;
-				ctx.verticalDistanceToPivotRow = 0;
-				//NSLog(@"edge pivot dislodged!");
-			}
-			//(scroll pivotNote by verticalDistanceToPivotRow from the top)
-			[self scrollRowToVisible:pivotIndex withVerticalOffset:ctx.verticalDistanceToPivotRow];	
+		if (viewingLocation.pivotRowWasEdge && (pivotIndex != 0 && pivotIndex != lastRow)) {
+			pivotIndex = labs(pivotIndex - 0) < labs(pivotIndex - lastRow) ? 0 : lastRow;
+			viewingLocation.verticalDistanceToPivotRow = 0;
+			//NSLog(@"edge pivot dislodged!");
 		}
-	}	
+		//(scroll pivotNote by verticalDistanceToPivotRow from the top)
+		[self scrollRowToVisible:pivotIndex withVerticalOffset:viewingLocation.verticalDistanceToPivotRow];
+	}
 }
 
 - (void)scrollRowToVisible:(NSInteger)rowIndex withVerticalOffset:(float)offset {

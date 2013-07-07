@@ -262,6 +262,7 @@
 		DB3CB57817810A2E0030EA13 /* NSMutableData+NVAESEncryption.m in Sources */ = {isa = PBXBuildFile; fileRef = DB83632E1780E9FE001D4DC2 /* NSMutableData+NVAESEncryption.m */; };
 		DB924C58177D327E00E96033 /* Quartz.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB924C57177D327E00E96033 /* Quartz.framework */; };
 		DB9FB5C11787A134001DC987 /* NotationTypes.m in Sources */ = {isa = PBXBuildFile; fileRef = DB9FB5C01787A134001DC987 /* NotationTypes.m */; };
+		DBAE5926178915C9007A387D /* NVViewLocationContext.m in Sources */ = {isa = PBXBuildFile; fileRef = DBAE5925178915C9007A387D /* NVViewLocationContext.m */; };
 		DBC49A0717888A7B008463F7 /* NSMutableOrderedSet+NVFiltering.m in Sources */ = {isa = PBXBuildFile; fileRef = DBC49A0617888A7B008463F7 /* NSMutableOrderedSet+NVFiltering.m */; };
 /* End PBXBuildFile section */
 
@@ -743,6 +744,8 @@
 		DB924C57177D327E00E96033 /* Quartz.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Quartz.framework; path = System/Library/Frameworks/Quartz.framework; sourceTree = SDKROOT; };
 		DB9FB5BF1787A134001DC987 /* NotationTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NotationTypes.h; sourceTree = "<group>"; };
 		DB9FB5C01787A134001DC987 /* NotationTypes.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NotationTypes.m; sourceTree = "<group>"; };
+		DBAE5924178915C9007A387D /* NVViewLocationContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NVViewLocationContext.h; sourceTree = "<group>"; };
+		DBAE5925178915C9007A387D /* NVViewLocationContext.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NVViewLocationContext.m; sourceTree = "<group>"; };
 		DBC49A0517888A7A008463F7 /* NSMutableOrderedSet+NVFiltering.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSMutableOrderedSet+NVFiltering.h"; sourceTree = "<group>"; };
 		DBC49A0617888A7B008463F7 /* NSMutableOrderedSet+NVFiltering.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSMutableOrderedSet+NVFiltering.m"; sourceTree = "<group>"; };
 		F0E01EE812DB95F40000B192 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/Preferences.xib; sourceTree = "<group>"; };
@@ -850,6 +853,8 @@
 				21A73DC7099712A8009F8A6C /* WALController.m */,
 				DB9FB5BF1787A134001DC987 /* NotationTypes.h */,
 				DB9FB5C01787A134001DC987 /* NotationTypes.m */,
+				DBAE5924178915C9007A387D /* NVViewLocationContext.h */,
+				DBAE5925178915C9007A387D /* NVViewLocationContext.m */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -1562,6 +1567,7 @@
 				212DCA470A6AD28700F74E46 /* EncodingsManager.m in Sources */,
 				212DCF610A6DEECB00F74E46 /* DeletionManager.m in Sources */,
 				218D43330AA2ABC600F36CCA /* NotesTableView.m in Sources */,
+				DBAE5926178915C9007A387D /* NVViewLocationContext.m in Sources */,
 				214495130ADC8A6600E2A2B6 /* PassphrasePicker.m in Sources */,
 				219739FB0AFE42A10046683E /* PassphraseRetriever.m in Sources */,
 				21544FC10B06332600C0D1D5 /* KeyDerivationManager.m in Sources */,
