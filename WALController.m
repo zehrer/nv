@@ -514,10 +514,11 @@ static NSString *SynchronizedNoteDescription(const void *o) {
 		if ((obj = [self recoverNextObject])) {
 			if ([obj conformsToProtocol:@protocol(SynchronizedNote)]) {
 				objUUIDBytes = [obj uniqueNoteIDBytesPtr];
-				id <SynchronizedNote> foundNote = nil;
+				void *foundNotePtr = NULL;
 				
 				//if the note already exists, then insert this note only if it's newer, and always insert it if it doesn't exist
-				if (NSMapMember(recoveredNotesTable, objUUIDBytes, NULL, (void **)&foundNote)) {
+				if (NSMapMember(recoveredNotesTable, objUUIDBytes, NULL, &foundNotePtr)) {
+					id <SynchronizedNote> foundNote = (id)foundNotePtr;
 					
 					//note is already here, overwrite it only if our LSN is greater or equal
 					if (foundNote && ![foundNote youngerThanLogObject:obj])
@@ -525,7 +526,7 @@ static NSString *SynchronizedNoteDescription(const void *o) {
 					
 				}
 				
-				NSMapInsert(recoveredNotesTable, objUUIDBytes, obj);
+				NSMapInsert(recoveredNotesTable, objUUIDBytes, (__bridge void *)obj);
 			} else {
 				NSLog(@"object of class %@ recovered that doesn't conform to SynchronizedNote protocol", [(NSObject*)obj className]);
 			}

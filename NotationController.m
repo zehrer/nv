@@ -440,9 +440,10 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 - (void)processRecoveredNotes:(NSMapTable *)table {
 	NSMapEnumerator enumerator = NSEnumerateMapTable(table);
 	CFUUIDBytes *objUUIDBytes = NULL;
-	id<SynchronizedNote> obj = nil;
+	void *objectPtr = NULL;
 	
-	while (NSNextMapEnumeratorPair(&enumerator, (void **)&objUUIDBytes, (void **)&obj)) {
+	while (NSNextMapEnumeratorPair(&enumerator, (void **)&objUUIDBytes, &objectPtr)) {
+		id<SynchronizedNote> obj = (id)objectPtr;
 		NSUInteger existingNoteIndex = [allNotes indexOfNoteWithUUIDBytes:objUUIDBytes];
 		
 		if ([obj isKindOfClass:[DeletedNoteObject class]]) {
