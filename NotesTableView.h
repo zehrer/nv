@@ -58,7 +58,7 @@
 - (void)noteFirstVisibleRow;
 - (void)makeFirstPreviouslyVisibleRowVisibleIfNecessary;
 
-@property (nonatomic, retain) NVViewLocationContext *viewingLocation;
+@property (nonatomic, strong) NVViewLocationContext *viewingLocation;
 
 - (double)distanceFromRow:(NSUInteger)aRow forVisibleArea:(NSRect)visibleRect;
 - (void)scrollRowToVisible:(NSInteger)rowIndex withVerticalOffset:(float)offset;
@@ -100,7 +100,7 @@
 
 - (SEL)attributeSetterForColumn:(NoteAttributeColumn*)col;
 
-@property (nonatomic, retain) NSColor *foregroundColor;
+@property (nonatomic, strong) NSColor *foregroundColor;
 
 @end
 

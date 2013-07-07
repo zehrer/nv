@@ -27,7 +27,7 @@
 @synthesize originalNote = originalNote;
 
 + (id)deletedNoteWithNote:(id <SynchronizedNote>)aNote {
-	return [[[DeletedNoteObject alloc] initWithExistingObject:aNote] autorelease];
+	return [[DeletedNoteObject alloc] initWithExistingObject:aNote];
 }
 
 - (id)initWithExistingObject:(id<SynchronizedNote>)note {
@@ -37,7 +37,7 @@
 		syncServicesMD = [[note syncServicesMD] mutableCopy];
 		logSequenceNumber = [note logSequenceNumber];
 		//not serialized: for runtime lookup purposes only
-		originalNote = [note retain];
+		originalNote = note;
     }
     return self;
 }
@@ -48,11 +48,11 @@
 			NSUInteger decodedByteCount;
 			const uint8_t *decodedBytes = [decoder decodeBytesForKey:@keypath(self.uniqueNoteIDBytes) returnedLength:&decodedByteCount];
 			memcpy(&uniqueNoteIDBytes, decodedBytes, MIN(decodedByteCount, sizeof(CFUUIDBytes)));
-			syncServicesMD = [[decoder decodeObjectForKey:@keypath(self.syncServicesMD)] retain];
+			syncServicesMD = [decoder decodeObjectForKey:@keypath(self.syncServicesMD)];
 			logSequenceNumber = [decoder decodeInt32ForKey:@keypath(self.logSequenceNumber)];
 		} else {
 			[decoder decodeValueOfObjCType:@encode(CFUUIDBytes) at:&uniqueNoteIDBytes];
-			syncServicesMD = [[decoder decodeObject] retain];
+			syncServicesMD = [decoder decodeObject];
 			[decoder decodeValueOfObjCType:@encode(unsigned int) at:&logSequenceNumber];
 		}
     }
@@ -82,7 +82,6 @@
 		dict = [[NSMutableDictionary alloc] initWithDictionary:aDict];
 		if (!syncServicesMD) syncServicesMD = [[NSMutableDictionary alloc] init];
 		[syncServicesMD setObject:dict forKey:serviceName];
-		[dict release];
 	} else {
 		[dict addEntriesFromDictionary:aDict];
 	}
@@ -114,10 +113,5 @@
 	return memcmp(otherBytes, &uniqueNoteIDBytes, sizeof(CFUUIDBytes)) == 0;
 }
 
-- (void)dealloc {
-	[syncServicesMD release];
-	[originalNote release];
-	[super dealloc];
-}
 
 @end

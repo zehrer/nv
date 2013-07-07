@@ -86,9 +86,9 @@ static int dayFromAbsoluteTime(CFAbsoluteTime absTime) {
     }
     
     if (!days[ThisDay]) {
-		days[ThisDay] = [NSLocalizedString(@"Today", nil) retain];
-		days[NextDay] = [NSLocalizedString(@"Tomorrow", nil) retain];
-		days[PriorDay] = [NSLocalizedString(@"Yesterday", nil) retain];
+		days[ThisDay] = NSLocalizedString(@"Today", nil);
+		days[NextDay] = NSLocalizedString(@"Tomorrow", nil);
+		days[PriorDay] = NSLocalizedString(@"Yesterday", nil);
     }
 
     CFStringRef dateString = CFDateFormatterCreateStringWithDate(kCFAllocatorDefault, timeOnlyFormatter, date);
@@ -99,7 +99,7 @@ static int dayFromAbsoluteTime(CFAbsoluteTime absTime) {
             CFRelease(dateString);
 			return days[day];
         }
-		return [(id)dateString autorelease];
+		return (__bridge_transfer NSString *)dateString;
 	}
     
     NSString *relativeTimeString = [days[day] stringByAppendingFormat:@"  %@", dateString];
@@ -137,7 +137,7 @@ static int dayFromAbsoluteTime(CFAbsoluteTime absTime) {
 		CFDateRef date = CFDateCreate(kCFAllocatorDefault, absTime);
 		
 		if (day == NoSpecialDay) {
-			dateString = [(NSString*)CFDateFormatterCreateStringWithDate(kCFAllocatorDefault, dateAndTimeFormatter, date) autorelease];
+			dateString = (__bridge_transfer NSString*)CFDateFormatterCreateStringWithDate(kCFAllocatorDefault, dateAndTimeFormatter, date);
 		} else {
 			dateString = [NSString relativeTimeStringWithDate:date relativeDay:day];
 		}
@@ -174,15 +174,15 @@ CFDateFormatterRef simplenoteDateFormatter(int lowPrecision) {
 // TODO: possibly obsolete? SN api2 formats dates as doubles from start of unix epoch
 + (NSString*)simplenoteDateWithAbsoluteTime:(CFAbsoluteTime)absTime {
 	CFStringRef str = CFDateFormatterCreateStringWithAbsoluteTime(NULL, simplenoteDateFormatter(0), absTime);
-	return [(id)str autorelease];
+	return (__bridge_transfer NSString *)str;
 }
 
 // TODO: possibly obsolete? SN api2 formats dates as doubles from start of unix epoch
 - (CFAbsoluteTime)absoluteTimeFromSimplenoteDate {
 	
 	CFAbsoluteTime absTime = 0;
-	if (!CFDateFormatterGetAbsoluteTimeFromString(simplenoteDateFormatter(0), (CFStringRef)self, NULL, &absTime)) {
-		if (!CFDateFormatterGetAbsoluteTimeFromString(simplenoteDateFormatter(1), (CFStringRef)self, NULL, &absTime)) {
+	if (!CFDateFormatterGetAbsoluteTimeFromString(simplenoteDateFormatter(0), (__bridge CFStringRef)self, NULL, &absTime)) {
+		if (!CFDateFormatterGetAbsoluteTimeFromString(simplenoteDateFormatter(1), (__bridge CFStringRef)self, NULL, &absTime)) {
 			NSLog(@"can't get date from %@; returning current time instead", self);
 			return 0;
 		}
@@ -201,11 +201,8 @@ CFDateFormatterRef simplenoteDateFormatter(int lowPrecision) {
             }
         }
         if (titles&&([titles count]>0)) {
-            NSArray *retArray=[NSArray arrayWithArray:titles];
-            [titles release];
-            return retArray;
+			return [titles copy];
         }
-        [titles release];
     }
 	return [NSArray array];
 }
@@ -262,7 +259,7 @@ CFDateFormatterRef simplenoteDateFormatter(int lowPrecision) {
 }
 
 - (BOOL)isAMachineDirective {
-	return [self hasPrefix:@"#!"] || [self hasPrefix:@"#import "] || [self hasPrefix:@"#include "] || 
+	return [self hasPrefix:@"#!"] || [self hasPrefix:@"#import "] || [self hasPrefix:@"#include "] ||
 	[self hasPrefix:@"<!DOCTYPE "] || [self hasPrefix:@"<?xml "] || [self hasPrefix:@"<html "] || 
 	[self hasPrefix:@"@import "] || [self hasPrefix:@"<?php"] || [self hasPrefix:@"bplist0"]; 
 	
@@ -271,8 +268,8 @@ CFDateFormatterRef simplenoteDateFormatter(int lowPrecision) {
 - (NSString*)fourCharTypeString {
 	if ([[self dataUsingEncoding:NSMacOSRomanStringEncoding allowLossyConversion:YES] length] >= 4) {
 		//only truncate; don't return a string containing null characters for the last few bytes
-		OSType type = UTGetOSTypeFromString((CFStringRef)self);
-		return [(id)UTCreateStringForOSType(type) autorelease];
+		OSType type = UTGetOSTypeFromString((__bridge CFStringRef)self);
+		return (__bridge_transfer id)UTCreateStringForOSType(type);
 	}
 	return self;
 }
@@ -308,7 +305,7 @@ CFDateFormatterRef simplenoteDateFormatter(int lowPrecision) {
 											  [NSString stringWithFormat:@"\n\r\t%C%C", (unichar)NSLineSeparatorCharacter, (unichar)NSParagraphSeparatorCharacter]];
 	
 	NSScanner *scanner = [NSScanner scannerWithString:self];
-	[scanner setCharactersToBeSkipped:[[[NSMutableCharacterSet alloc] init] autorelease]];
+	[scanner setCharactersToBeSkipped:[[NSMutableCharacterSet alloc] init]];
 	
 	//skip any blank space before the title; this will not be preserved for round-tripped syncing
 	BOOL didSkipInitialWS = [scanner scanCharactersFromSet:[NSCharacterSet whitespaceAndNewlineCharacterSet] intoString:NULL];
@@ -484,18 +481,18 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, unsigned charIndex) {
 }
 
 - (NSString *)stringByReplacingPercentEscapes {
-    return [(NSString*) CFURLCreateStringByReplacingPercentEscapes(NULL, (CFStringRef) self, CFSTR("")) autorelease];
+    return (__bridge_transfer NSString *)CFURLCreateStringByReplacingPercentEscapes(NULL, (CFStringRef) self, CFSTR(""));
 }
 
 - (NSString*)stringWithPercentEscapes {
-	return [(NSString *) CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)self, NULL, CFSTR("=,!$&'()*+;@?\n\"<>#\t :/"),kCFStringEncodingUTF8) autorelease];
+	return (__bridge_transfer NSString *)CFURLCreateStringByAddingPercentEscapes(NULL, (CFStringRef)self, NULL, CFSTR("=,!$&'()*+;@?\n\"<>#\t :/"),kCFStringEncodingUTF8);
 }
 
 + (NSString*)reasonStringFromCarbonFSError:(OSStatus)err {
 	static NSDictionary *reasons = nil;
 	if (!reasons) {
 		NSString *path = [[NSBundle mainBundle] pathForResource:@"CarbonErrorStrings" ofType:@"plist"];
-		reasons = [[NSDictionary dictionaryWithContentsOfFile:path] retain];
+		reasons = [NSDictionary dictionaryWithContentsOfFile:path];
 	}
 	
 	NSString *reason = [reasons objectForKey:[[NSNumber numberWithInt:(int)err] stringValue]];
@@ -511,7 +508,7 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, unsigned charIndex) {
 	if (FSPathMakeRef((const UInt8 *)[self fileSystemRepresentation], &fileRef, NULL) == noErr) {
 		if (LSCopyItemAttribute(&fileRef, kLSRolesAll, kLSItemContentType, (CFTypeRef*)&fileUTI) == noErr) {
 			if (fileUTI) {
-				BOOL conforms = UTTypeConformsTo(fileUTI, (CFStringRef)type);
+				BOOL conforms = UTTypeConformsTo(fileUTI, (__bridge CFStringRef)type);
 				CFRelease(fileUTI);
 				return conforms;
 			}
@@ -533,14 +530,14 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, unsigned charIndex) {
 
 + (NSString*)uuidStringWithBytes:(CFUUIDBytes)bytes {
 	CFUUIDRef uuidRef = CFUUIDCreateFromUUIDBytes(NULL, bytes);
-	CFStringRef uuidString = NULL;
+	NSString *uuidString = NULL;
 	
 	if (uuidRef) {
-		uuidString = CFUUIDCreateString(NULL, uuidRef);
+		uuidString = (__bridge_transfer NSString *)CFUUIDCreateString(NULL, uuidRef);
 		CFRelease(uuidRef);
 	}
 	
-	return [(NSString*)uuidString autorelease];	
+	return uuidString;	
 }
 
 - (NSString *)nv_stringByBase64Encoding {
@@ -651,7 +648,6 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, unsigned charIndex) {
 			}
 			
 			[self replaceCharactersInRange:tabRange withString:spacesString];
-			[spacesString release];
 			
 			NSUInteger rangeLoc = MIN((tabRange.location + numberOfSpacesPerTab), [self length]);
 			nextRange = NSMakeRange(rangeLoc, [self length] - rangeLoc);
@@ -770,7 +766,7 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, unsigned charIndex) {
 + (NSCharacterSet*)labelSeparatorCharacterSet {
 	static NSMutableCharacterSet *charSet = nil;
 	if (!charSet) {
-		charSet = [[NSMutableCharacterSet whitespaceCharacterSet] retain];
+		charSet = [NSMutableCharacterSet whitespaceCharacterSet];
 		[charSet formUnionWithCharacterSet:[NSCharacterSet characterSetWithCharactersInString:@",;"]];
 	}
 
@@ -780,7 +776,7 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, unsigned charIndex) {
 + (NSCharacterSet*)listBulletsCharacterSet {
 	static NSCharacterSet *charSet = nil;
 	if (!charSet) {
-		charSet = [[NSCharacterSet characterSetWithCharactersInString:[NSString stringWithFormat:@"-+*!%C%C%C", (unichar)0x2022, (unichar)0x2014, (unichar)0x2013]] retain];
+		charSet = [NSCharacterSet characterSetWithCharactersInString:[NSString stringWithFormat:@"-+*!%C%C%C", (unichar)0x2022, (unichar)0x2014, (unichar)0x2013]];
 	}
 	
 	return charSet;

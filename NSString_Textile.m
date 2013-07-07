@@ -36,11 +36,10 @@
 	[stdinFileHandle closeFile];
 	
 	NSData* outputData = [stdoutFileHandle readDataToEndOfFile];
-	NSString* outputString = [[[NSString alloc] initWithData:outputData encoding:NSUTF8StringEncoding] autorelease];
+	NSString* outputString = [[NSString alloc] initWithData:outputData encoding:NSUTF8StringEncoding];
 	[stdoutFileHandle closeFile];
     
 	[task waitUntilExit];
-    [task release];
 
 	return outputString;
 }

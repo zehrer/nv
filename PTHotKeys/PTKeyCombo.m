@@ -19,7 +19,7 @@
 
 + (id)keyComboWithKeyCode:(NSInteger)keyCode modifiers: (NSInteger)modifiers
 {
-	return [[[self alloc] initWithKeyCode: keyCode modifiers: modifiers] autorelease];
+	return [[self alloc] initWithKeyCode: keyCode modifiers: modifiers];
 }
 
 - (id)initWithKeyCode:(NSInteger)keyCode modifiers: (NSInteger)modifiers
@@ -58,7 +58,7 @@
 
 - (id)copyWithZone:(NSZone*)zone;
 {
-	return [self retain];
+	return self;
 }
 
 - (BOOL)isEqual: (PTKeyCombo*)combo
@@ -99,7 +99,7 @@
 {
 	static NSDictionary* keyCodes = nil;
 	if( keyCodes == nil ) {
-		keyCodes = [[NSDictionary dictionaryWithContentsOfFile:[[NSBundle bundleForClass: self] pathForResource: @"PTKeyCodes" ofType: @"plist"]] retain];
+		keyCodes = [NSDictionary dictionaryWithContentsOfFile:[[NSBundle bundleForClass: self] pathForResource: @"PTKeyCodes" ofType: @"plist"]];
 	}
 	
 	return keyCodes;

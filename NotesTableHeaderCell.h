@@ -16,7 +16,7 @@
 //- (void)drawInteriorWithFrame:(NSRect)inFrame inView:(NSView *)controlView;
 - (void)highlight:(BOOL)hBool withFrame:(NSRect)inFrame inView:(NSView *)controlView;
 
-@property (nonatomic, retain) NSColor *highlightColor;
+@property (nonatomic, strong) NSColor *highlightColor;
 
 
 @end

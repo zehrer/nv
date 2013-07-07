@@ -189,7 +189,7 @@
 
 - (void)awakeFromNib {
 	
-	NSCell *dualFieldCell = [[[DualFieldCell alloc] init] autorelease];
+	NSCell *dualFieldCell = [[DualFieldCell alloc] init];
 	[dualFieldCell setAction:[[self cell] action]];
 	[dualFieldCell setTarget:[[self cell] target]];
 	[self setCell:dualFieldCell];
@@ -206,7 +206,7 @@
 	[myCell setLineBreakMode:NSLineBreakByCharWrapping];
 	
 	//remember this now to make sure we always use the same one, in case +IBeamCursor just happens to return a different object later (hint hint)
-	IBeamCursor = [[NSCursor IBeamCursor] retain];
+	IBeamCursor = [NSCursor IBeamCursor];
 	
 	followedLinks = [[NSMutableArray alloc] init];
 }
@@ -218,11 +218,8 @@
 }
 
 - (void)dealloc {
-	[snapbackString release];
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
-	[followedLinks release];
 	
-	[super dealloc];
 }
 
 - (NSString *)view:(NSView *)view stringForToolTip:(NSToolTipTag)tag point:(NSPoint)point userData:(void *)userData {
@@ -305,14 +302,14 @@
 
 - (NoteBookmark*)popLastFollowedLink {
 	
-	NoteBookmark *aBookmark = [[followedLinks lastObject] retain];
+	NoteBookmark *aBookmark = [followedLinks lastObject];
 	[followedLinks removeLastObject];
 	 
 	[[NSApp delegate] searchForString:[aBookmark searchString]];
 	[[NSApp delegate] revealNote:[aBookmark noteObject] options:0];
 	[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(clearFollowedLinks) object:nil];
 
-	return [aBookmark autorelease];
+	return aBookmark;
 }
 
 - (void)clearFollowedLinks {
@@ -324,7 +321,6 @@
 	NSString *proposedString = string ? [string stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] : nil;
 	
 	if (proposedString != snapbackString /*the nil == nil case*/ && ![proposedString isEqualToString:snapbackString]) {
-		[snapbackString release];
 		snapbackString = [proposedString copy];		
 	}
 	if (![proposedString length]) {
@@ -383,9 +379,9 @@
 	static NSDictionary *smallTextAttrs = nil;
 	static NSMutableDictionary *smallTextBackAttrs = nil;
 	if (!smallTextAttrs) {
-		smallTextAttrs = [[NSDictionary dictionaryWithObjectsAndKeys:
+		smallTextAttrs = [NSDictionary dictionaryWithObjectsAndKeys:
 						   [NSFont systemFontOfSize:[NSFont smallSystemFontSize]], NSFontAttributeName, 
-						   [NSColor whiteColor], NSForegroundColorAttributeName, nil] retain];
+						   [NSColor whiteColor], NSForegroundColorAttributeName, nil];
 		[(smallTextBackAttrs = [smallTextAttrs mutableCopy]) setObject:[NSColor colorWithCalibratedWhite:0.44 alpha:1.0] forKey:NSForegroundColorAttributeName];
 	}
 	
@@ -419,7 +415,7 @@
 	[string drawAtPoint:textOffset withAttributes:smallTextAttrs];
 	
 	[image unlockFocus];
-	return [image autorelease];
+	return image;
 }
 
 - (void)drawRect:(NSRect)rect {

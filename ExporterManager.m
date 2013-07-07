@@ -56,7 +56,13 @@
 		return;
 	}
 	
-	__block NSPanel *sheet = nil;
+	NSOpenPanel *openPanel = nil;
+	NSSavePanel *savePanel = nil;
+	if (isOpen) {
+		openPanel = [NSOpenPanel openPanel];
+	} else {
+		savePanel = [NSSavePanel savePanel];
+	}
 	
 	void (^completion)(NSInteger) = ^(NSInteger returnCode){
 		if (returnCode == NSFileHandlingPanelOKButton && notes) {
@@ -69,12 +75,9 @@
 			BOOL overwriteNotes = NO;
 			
 			if (isOpen) {
-				NSOpenPanel *openSheet = (NSOpenPanel *)sheet;
-				directory = [openSheet URL];
+				directory = [openPanel URL];
 			} else {
-				NSSavePanel *saveSheet = (NSSavePanel *)sheet;
-				
-				NSURL *URL = [saveSheet URL];
+				NSURL *URL = [savePanel URL];
 				filename = [URL lastPathComponent];
 				directory = [URL URLByDeletingLastPathComponent];
 				
@@ -132,12 +135,10 @@
 			
 			FNNotify(&directoryRef, kFNDirectoryModifiedMessage, kFNNoImplicitAllSubscription);
 			
-			[notes release];
 		}
 	};
 	
 	if (isOpen) {
-		NSOpenPanel *openPanel = [NSOpenPanel openPanel];
 		[openPanel setAccessoryView:accessoryView];
 		[openPanel setCanCreateDirectories:YES];
 		[openPanel setCanChooseFiles:NO];
@@ -145,10 +146,8 @@
 		[openPanel setPrompt:NSLocalizedString(@"Export",@"title of button to export notes from folder selection dialog")];
 		[openPanel setTitle:NSLocalizedString(@"Export Notes", @"title of export notes dialog")];
 		[openPanel setMessage:[NSString stringWithFormat:NSLocalizedString(@"Choose a folder into which %d notes will be exported",nil), [notes count]]];
-		sheet = openPanel;
 		[openPanel beginSheetModalForWindow:window completionHandler:completion];
 	} else {
-		NSSavePanel *savePanel = [NSSavePanel savePanel];
 		[savePanel setAccessoryView:accessoryView];
 		[savePanel setCanCreateDirectories:YES];
 		[savePanel setCanSelectHiddenExtension:YES];
@@ -160,7 +159,6 @@
 		filename = [filename stringByAppendingPathExtension:[NotationPrefs pathExtensionForFormat:[[formatSelectorPopup selectedItem] tag]]];
 		[savePanel setNameFieldStringValue:filename];
 		
-		sheet = savePanel;
 		[savePanel beginSheetModalForWindow:window completionHandler:completion];
 	}
 }

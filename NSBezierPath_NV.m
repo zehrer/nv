@@ -61,7 +61,7 @@
     IconRef iconRef;
     if ((err = GetIconRefFromFileInfo(fsRef, 0, NULL, 0, NULL, kIconServicesNormalUsageFlag, &iconRef, NULL)) == noErr) {
     
-    NSImage *image = [[[NSImage alloc] initWithSize:NSMakeSize(16.0f, 16.0f)] autorelease];
+    NSImage *image = [[NSImage alloc] initWithSize:NSMakeSize(16.0f, 16.0f)];
     NSRect frame = NSMakeRect(0.0f,0.0f,16.0f,16.0f);
     
     [image lockFocus];

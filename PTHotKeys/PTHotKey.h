@@ -10,29 +10,13 @@
 #import <Carbon/Carbon.h>
 #import "PTKeyCombo.h"
 
-@interface PTHotKey : NSObject {
-	NSString*		mName;
-	PTKeyCombo*		mKeyCombo;
-	id				mTarget;
-	SEL				mAction;
-	EventHotKeyRef  carbonHotKey;
-}
+@interface PTHotKey : NSObject
 
-- (id)init;
-
-- (void)setName: (NSString*)name;
-- (NSString*)name;
-
-- (EventHotKeyRef)carbonHotKey;
-- (void)setCarbonHotKey:(EventHotKeyRef)hotKey;
-
-- (void)setKeyCombo: (PTKeyCombo*)combo;
-- (PTKeyCombo*)keyCombo;
-
-- (void)setTarget: (id)target;
-- (id)target;
-- (void)setAction: (SEL)action;
-- (SEL)action;
+@property (nonatomic, copy) NSString *name;
+@property (nonatomic) EventHotKeyRef carbonHotKey;
+@property (nonatomic, strong) PTKeyCombo *keyCombo;
+@property (nonatomic, weak) id target;
+@property (nonatomic) SEL action;
 
 - (void)invoke;
 

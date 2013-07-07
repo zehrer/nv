@@ -39,11 +39,11 @@ NSString *NotationPrefsDidChangeNotification = @"NotationPrefsDidChangeNotificat
 
 @interface NotationPrefs ()
 
-@property (nonatomic, retain) NSMutableArray *seenDiskUUIDEntries;
-@property (nonatomic, retain) NSData *masterSalt;
-@property (nonatomic, retain) NSData *dataSessionSalt;
-@property (nonatomic, retain) NSData *verifierKey;
-@property (nonatomic, retain) NSMutableDictionary *mutableSyncServiceAccounts;
+@property (nonatomic, strong) NSMutableArray *seenDiskUUIDEntries;
+@property (nonatomic, strong) NSData *masterSalt;
+@property (nonatomic, strong) NSData *dataSessionSalt;
+@property (nonatomic, strong) NSData *verifierKey;
+@property (nonatomic, strong) NSMutableDictionary *mutableSyncServiceAccounts;
 
 @end
 
@@ -74,7 +74,6 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 	if (!accountDict) {
 		accountDict = [[NSMutableDictionary alloc] init];
 		prefs.mutableSyncServiceAccounts[accountDict] = serviceName;
-		[accountDict release];
 	}
 	return accountDict;
 }
@@ -89,8 +88,8 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 		
 		unsigned int i;
 		for (i=0; i<4; i++) {
-			typeStrings[i] = [[NotationPrefs defaultTypeStringsForFormat:i] retain];
-			pathExtensions[i] = [[NotationPrefs defaultPathExtensionsForFormat:i] retain];
+			typeStrings[i] = [NotationPrefs defaultTypeStringsForFormat:i];
+			pathExtensions[i] = [NotationPrefs defaultPathExtensionsForFormat:i];
 			chosenExtIndices[i] = 0;
 		}
 		
@@ -101,8 +100,8 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 		notesStorageFormat = NVDatabaseFormatSingle;
 		hashIterationCount = DEFAULT_HASH_ITERATIONS;
 		keyLengthInBits = DEFAULT_KEY_LENGTH;
-		baseBodyFont = [[[GlobalPrefs defaultPrefs] noteBodyFont] retain];
-		foregroundColor = [[[NSApp delegate] foregrndColor]retain];
+		baseBodyFont = [[GlobalPrefs defaultPrefs] noteBodyFont];
+		foregroundColor = [[NSApp delegate] foregrndColor];
 		epochIteration = 0;
 		
 		[self updateOSTypesArray];
@@ -134,26 +133,26 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 			keyLengthInBits = DEFAULT_KEY_LENGTH;
 		
 		@try {
-			baseBodyFont = [[decoder decodeObjectForKey:@keypath(self.baseBodyFont)] retain];
+			baseBodyFont = [decoder decodeObjectForKey:@keypath(self.baseBodyFont)];
 		} @catch (NSException *e) {
 			NSLog(@"Error trying to unarchive default base body font (%@, %@)", [e name], [e reason]);
 		}
 		if (!baseBodyFont || ![baseBodyFont isKindOfClass:[NSFont class]]) {
-			baseBodyFont = [[[GlobalPrefs defaultPrefs] noteBodyFont] retain];
+			baseBodyFont = [[GlobalPrefs defaultPrefs] noteBodyFont];
 			NSLog(@"setting base body to current default: %@", baseBodyFont);
 			preferencesChanged = YES;
 		}
 		//foregroundColor does not receive the same treatment as basebodyfont; in the event of a discrepancy between global and per-db settings,
 		//the former is applied to the notes in the database, while the latter is restored from the database itself
 		@try {
-			foregroundColor = [[decoder decodeObjectForKey:@keypath(self.foregroundColor)] retain];
+			foregroundColor = [decoder decodeObjectForKey:@keypath(self.foregroundColor)];
 		} @catch (NSException *e) {
 			NSLog(@"Error trying to unarchive foreground text color (%@, %@)", [e name], [e reason]);
 		}
 		if (!foregroundColor || ![foregroundColor isKindOfClass:[NSColor class]]) {
 			//foregroundColor = [[[GlobalPrefs defaultPrefs] foregroundTextColor] retain];
 			
-			foregroundColor = [[[NSApp delegate] foregrndColor]retain];
+			foregroundColor = [[NSApp delegate] foregrndColor];
 			preferencesChanged = YES;
 		}
 		
@@ -162,23 +161,23 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 		unsigned int i;
 		for (i=0; i<4; i++) {
 			
-			if (!(typeStrings[i] = [[decoder decodeObjectForKey:[NSString stringWithFormat:@"typeStrings.%d", i]] retain]))
-				typeStrings[i] = [[NotationPrefs defaultTypeStringsForFormat:i] retain];
-			if (!(pathExtensions[i] = [[decoder decodeObjectForKey:[NSString stringWithFormat:@"pathExtensions.%d", i]] retain]))
-				pathExtensions[i] = [[NotationPrefs defaultPathExtensionsForFormat:i] retain];
+			if (!(typeStrings[i] = [decoder decodeObjectForKey:[NSString stringWithFormat:@"typeStrings.%d", i]]))
+				typeStrings[i] = [NotationPrefs defaultTypeStringsForFormat:i];
+			if (!(pathExtensions[i] = [decoder decodeObjectForKey:[NSString stringWithFormat:@"pathExtensions.%d", i]]))
+				pathExtensions[i] = [NotationPrefs defaultPathExtensionsForFormat:i];
 			chosenExtIndices[i] = [decoder decodeIntForKey:[NSString stringWithFormat:@"chosenExtIndices.%d", i]];
 		}
 		
 		if (!(syncServiceAccounts = [[decoder decodeObjectForKey:@keypath(self.syncServiceAccounts)] mutableCopy]))
 			syncServiceAccounts = [[NSMutableDictionary alloc] init];
-		keychainDatabaseIdentifier = [[decoder decodeObjectForKey:@keypath(self.keychainDatabaseIdentifier)] retain];
+		keychainDatabaseIdentifier = [decoder decodeObjectForKey:@keypath(self.keychainDatabaseIdentifier)];
 		
-		if (!(seenDiskUUIDEntries = [[decoder decodeObjectForKey:@keypath(self.seenDiskUUIDEntries)] retain]))
+		if (!(seenDiskUUIDEntries = [decoder decodeObjectForKey:@keypath(self.seenDiskUUIDEntries)]))
 			seenDiskUUIDEntries = [[NSMutableArray alloc] init];
 		
-		masterSalt = [[decoder decodeObjectForKey:@keypath(self.masterSalt)] retain];
-		dataSessionSalt = [[decoder decodeObjectForKey:@keypath(self.dataSessionSalt)] retain];
-		verifierKey = [[decoder decodeObjectForKey:@keypath(self.verifierKey)] retain];
+		masterSalt = [decoder decodeObjectForKey:@keypath(self.masterSalt)];
+		dataSessionSalt = [decoder decodeObjectForKey:@keypath(self.dataSessionSalt)];
+		verifierKey = [decoder decodeObjectForKey:@keypath(self.verifierKey)];
 		
 		doesEncryption = doesEncryption && verifierKey && masterSalt;
 		
@@ -230,22 +229,8 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 
 
 - (void)dealloc {
-    
-    unsigned int i;
-    for (i=0; i<4; i++) {
-	[typeStrings[i] release];
-	[pathExtensions[i] release];
-    }
     if (allowedTypes)
-	free(allowedTypes);
-	
-	[syncServiceAccounts release];
-	[seenDiskUUIDEntries release];
-	[keychainDatabaseIdentifier release];
-	[baseBodyFont release];
-	[foregroundColor release];
-    
-    [super dealloc];
+		free(allowedTypes);
 }
 
 + (NSMutableArray*)defaultTypeStringsForFormat:(int)formatID {
@@ -253,14 +238,14 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 	case NVDatabaseFormatSingle:
 	    return [NSMutableArray arrayWithCapacity:0];
 	case NVDatabaseFormatPlainText:
-	    return [NSMutableArray arrayWithObjects:[(id)UTCreateStringForOSType(TEXT_TYPE_ID) autorelease], 
-			[(id)UTCreateStringForOSType(UTXT_TYPE_ID) autorelease], nil];
+	    return [NSMutableArray arrayWithObjects:(__bridge_transfer id)UTCreateStringForOSType(TEXT_TYPE_ID),
+			(__bridge_transfer id)UTCreateStringForOSType(UTXT_TYPE_ID), nil];
 	case NVDatabaseFormatRTF:
-	    return [NSMutableArray arrayWithObjects:[(id)UTCreateStringForOSType(RTF_TYPE_ID) autorelease], nil];
+	    return [NSMutableArray arrayWithObjects:(__bridge_transfer id)UTCreateStringForOSType(RTF_TYPE_ID), nil];
 	case NVDatabaseFormatHTML:
-	    return [NSMutableArray arrayWithObjects:[(id)UTCreateStringForOSType(HTML_TYPE_ID) autorelease], nil];
+	    return [NSMutableArray arrayWithObjects:(__bridge_transfer id)UTCreateStringForOSType(HTML_TYPE_ID), nil];
 	case NVDatabaseFormatDOC:
-		return [NSMutableArray arrayWithObjects:[(id)UTCreateStringForOSType(WORD_DOC_TYPE_ID) autorelease], nil];
+		return [NSMutableArray arrayWithObjects:(__bridge_transfer id)UTCreateStringForOSType(WORD_DOC_TYPE_ID), nil];
 	default:
 	    NSLog(@"Unknown format ID: %d", formatID);
     }
@@ -290,7 +275,7 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 }
 
 - (NSDictionary*)syncServiceAccounts {
-	return [[syncServiceAccounts copy] autorelease];
+	return [syncServiceAccounts copy];
 }
 
 - (NSDictionary*)syncAccountForServiceName:(NSString*)serviceName {
@@ -319,7 +304,7 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 		NSLog(@"Error finding keychain password for service account %@: %d\n", serviceName, err);
 		return nil;
 	}
-	password = [[[NSString alloc] initWithBytes:passwordData length:passwordLength encoding:NSUTF8StringEncoding] autorelease];
+	password = [[NSString alloc] initWithBytes:passwordData length:passwordLength encoding:NSUTF8StringEncoding];
 	
 	//cache password found in keychain
 	[accountDict setObject:password forKey:@"password"];
@@ -329,7 +314,7 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 }
 
 - (NSDictionary*)syncServiceAccountsForArchiving {
-	NSMutableDictionary *tempDict = [[syncServiceAccounts mutableCopy] autorelease];
+	NSMutableDictionary *tempDict = [syncServiceAccounts mutableCopy];
 	
 	NSEnumerator *enumerator = [tempDict objectEnumerator];
 	NSMutableDictionary *account = nil;
@@ -365,22 +350,19 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 }
 
 - (void)setForegroundColor:(NSColor*)aColor {
-	[foregroundColor autorelease];
-	foregroundColor = [aColor retain];
+	foregroundColor = aColor;
 	
 	preferencesChanged = YES;
 }
 
 - (void)setBaseBodyFont:(NSFont*)aFont {
-	[baseBodyFont autorelease];
-	baseBodyFont = [aFont retain];
+	baseBodyFont = aFont;
 		
 	preferencesChanged = YES;
 }
 
 - (void)forgetKeychainIdentifier {
 	
-	[keychainDatabaseIdentifier release];
 	keychainDatabaseIdentifier = nil;
 	
 	preferencesChanged = YES;
@@ -389,13 +371,13 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 - (NSString *)setKeychainDatabaseIdentifier {
 	if (!keychainDatabaseIdentifier) {
 		CFUUIDRef uuidRef = CFUUIDCreate(NULL);
-		keychainDatabaseIdentifier = (NSString*)CFUUIDCreateString(kCFAllocatorDefault, uuidRef);
+		keychainDatabaseIdentifier = (__bridge_transfer NSString*)CFUUIDCreateString(NULL, uuidRef);
 		CFRelease(uuidRef);
 		
 		preferencesChanged = YES;
 	}
 	
-	return [[keychainDatabaseIdentifier copy] autorelease];
+	return [keychainDatabaseIdentifier copy];
 }
 
 - (SecKeychainItemRef)currentKeychainItem {
@@ -500,7 +482,7 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 	if ([computedVerifyKey isEqualToData:verifierKey]) {
 		//if computedMasterKey is good, and we don't already have a master key, then this is it
 		if (!masterKey)
-			masterKey = [computedMasterKey retain];
+			masterKey = computedMasterKey;
 		
 		return YES;
 	}
@@ -518,8 +500,7 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 	//and scale beyond with triplets, quintuplets, and septuplets--but key is not currently user-settable
 
 	//create new dataSessionSalt and key here
-	[dataSessionSalt release];
-	dataSessionSalt = [[NSData randomDataOfLength:256] retain];
+	dataSessionSalt = [NSData randomDataOfLength:256];
 	
 	NSData *dataSessionKey = [masterKey derivedKeyOfLength:keyLengthInBits/8 salt:dataSessionSalt iterations:1];
 	
@@ -542,17 +523,14 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 	NSUInteger keyLength = keyLengthInBits/8;
 	
 	//generate and set random salt
-	[masterSalt release];
-	masterSalt = [[NSData randomDataOfLength:256] retain];
+	masterSalt = [NSData randomDataOfLength:256];
 
 	//compute and set master key given salt and # of iterations
-	[masterKey release];
-	masterKey = [[passData derivedKeyOfLength:keyLength salt:masterSalt iterations:hashIterationCount] retain];
+	masterKey = [passData derivedKeyOfLength:keyLength salt:masterSalt iterations:hashIterationCount];
 	
 	//compute and set verify key from master key
-	[verifierKey release];
 	NSData *verifySalt = [NSData dataWithBytesNoCopy:VERIFY_SALT length:sizeof(VERIFY_SALT) freeWhenDone:NO];
-	verifierKey = [[masterKey derivedKeyOfLength:keyLength salt:verifySalt iterations:1] retain];
+	verifierKey = [masterKey derivedKeyOfLength:keyLength salt:verifySalt iterations:1];
 
 	//update keychain
 	[self setStoresPasswordInKeychain:inKeychain];
@@ -602,12 +580,13 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 }
 
 - (void)noteFilesCleanupSheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo {
+	id context = (__bridge id)contextInfo;
 	
 	NSAssert(contextInfo, @"No contextInfo passed to noteFilesCleanupSheetDidEnd");
-	NSAssert([(id)contextInfo respondsToSelector:@selector(notesStorageFormatInProgress)],
+	NSAssert([context respondsToSelector:@selector(notesStorageFormatInProgress)],
 			 @"can't get notesStorageFormatInProgress method for changing");
 
-	NVDatabaseFormat newNoteStorageFormat = [(NotationPrefsViewController*)contextInfo notesStorageFormatInProgress];
+	NVDatabaseFormat newNoteStorageFormat = [(__bridge NotationPrefsViewController*)contextInfo notesStorageFormatInProgress];
 	
 	if (returnCode != NSAlertAlternateReturn)
 		//didn't cancel
@@ -619,15 +598,15 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 	//but what if the files remain after switching to a single-db format--and then the user deletes a bunch of the files themselves?
 	//should we switch the currentFormatIDs of those notes to single-db? I guess.
 	
-	if ([(id)contextInfo respondsToSelector:@selector(notesStorageFormatDidChange)])
-		[(NotationPrefsViewController*)contextInfo notesStorageFormatDidChange];
+	if ([context respondsToSelector:@selector(notesStorageFormatDidChange)])
+		[(NotationPrefsViewController*)context notesStorageFormatDidChange];
 	
 	if (returnCode != NSAlertAlternateReturn) {
 		//run queued method
-		NSAssert([(id)contextInfo respondsToSelector:@selector(runQueuedStorageFormatChangeInvocation)],
+		NSAssert([context respondsToSelector:@selector(runQueuedStorageFormatChangeInvocation)],
 				 @"can't get runQueuedStorageFormatChangeInvocation method for changing");
 
-		[(NotationPrefsViewController*)contextInfo runQueuedStorageFormatChangeInvocation];
+		[(NotationPrefsViewController*)context runQueuedStorageFormatChangeInvocation];
 	}
 }
 
@@ -646,8 +625,8 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 		[self removeKeychainData];
 	
 		//clear out the verifier key and salt?
-		[verifierKey release]; verifierKey = nil;
-		[masterKey release]; masterKey = nil;
+		 verifierKey = nil;
+		 masterKey = nil;
 	}
 	
 	if (oldValue != value) {
@@ -806,7 +785,7 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 - (UInt32)tableIndexOfDiskUUID:(CFUUIDRef)UUIDRef {
 	//if this UUID doesn't yet exist, then add it and return the last index
 	
-	DiskUUIDEntry *diskEntry = [[[DiskUUIDEntry alloc] initWithUUIDRef:UUIDRef] autorelease];
+	DiskUUIDEntry *diskEntry = [[DiskUUIDEntry alloc] initWithUUIDRef:UUIDRef];
 	
 	NSUInteger idx = [seenDiskUUIDEntries indexOfObject: diskEntry];
 	if (NSNotFound != idx) {
@@ -917,7 +896,7 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
     allowedTypes = (OSType*)realloc(allowedTypes, newSize);
 	
     for (i=0; i<[typeStrings[notesStorageFormat] count]; i++)
-		allowedTypes[i] = UTGetOSTypeFromString((CFStringRef)[typeStrings[notesStorageFormat] objectAtIndex:i]);
+		allowedTypes[i] = UTGetOSTypeFromString((__bridge CFStringRef)[typeStrings[notesStorageFormat] objectAtIndex:i]);
 }
 
 - (void)addAllowedPathExtension:(NSString*)extension {
@@ -999,7 +978,7 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 				
 			return YES;
 		}
-		if (!UTGetOSTypeFromString((CFStringRef)[typeStrings[notesStorageFormat] objectAtIndex:oldIndex])) {
+		if (!UTGetOSTypeFromString((__bridge CFStringRef)[typeStrings[notesStorageFormat] objectAtIndex:oldIndex])) {
 			return NO;
 		}
     }
@@ -1019,7 +998,7 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 }
 
 - (BOOL)catalogEntryAllowed:(NoteCatalogEntry*)catEntry {
-    NSString *filename = (NSString*)catEntry->filename;
+    NSString *filename = (__bridge NSString*)catEntry->filename;
 	
 	if (![filename length])
 		return NO;

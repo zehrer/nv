@@ -67,18 +67,12 @@ static void ColorBlendFunction(void *info, const CGFloat *in, CGFloat *out);
 
 	CGFunctionRelease(axialShadingFunction);
 	CGColorSpaceRelease(colorSpaceRef);
-	[dimpleImage release];
-	[borderCol release];	
-	[backCol release];
-	[super dealloc];
 }
 
 - (void)updateColors:(NSColor *)startColor{
     
     
-	[backCol release];
-	[borderCol release];
-	backCol = [startColor retain];
+	backCol = startColor;
 	borderCol = [startColor colorUsingColorSpaceName:NSCalibratedWhiteColorSpace];	
 	CGFloat fWhite;
 	fWhite = [borderCol whiteComponent];
@@ -87,7 +81,6 @@ static void ColorBlendFunction(void *info, const CGFloat *in, CGFloat *out);
 	//CGFloat fWhite;
 	//fWhite = [[startColor colorUsingColorSpaceName:NSCalibratedWhiteColorSpace] whiteComponent];
 	dimpleImage = nil;
-	[dimpleImage release];
 	if (fWhite < 0.75f) {
 		if (fWhite<0.15f) {
 			fWhite += 0.2f;
@@ -113,7 +106,7 @@ static void ColorBlendFunction(void *info, const CGFloat *in, CGFloat *out);
 		//dimpleImage = [[NSImage alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForImageResource:@"SplitViewDimple.tif"]];
 	}
     
-	borderCol = [[NSColor colorWithCalibratedWhite:fWhite alpha:1.0f] retain];
+	borderCol = [NSColor colorWithCalibratedWhite:fWhite alpha:1.0f];
 	colorSpaceRef = CGColorSpaceCreateDeviceRGB();
 	
 	[[startColor colorUsingColorSpaceName:NSDeviceRGBColorSpace] getRed: &colors.firstColor.redComp green:&colors.firstColor.greenComp
@@ -133,12 +126,12 @@ static void ColorBlendFunction(void *info, const CGFloat *in, CGFloat *out);
 
 - (void)drawDividerInRect:(NSRect)aRect withDimpleRect:(NSRect)dimpleRect blendVertically:(BOOL)v {
 	if (!borderCol) {
-		borderCol =[[NSColor grayColor] retain];
+		borderCol =[NSColor grayColor];
 	}
 	
 	if ((aRect.origin.x==0)&&(aRect.origin.y==0)) {
 		if (!backCol) {
-			backCol = [[NSColor lightGrayColor] retain];
+			backCol = [NSColor lightGrayColor];
 		}
 		[backCol set];
 		NSRectFill(aRect);
@@ -187,9 +180,7 @@ static void ColorBlendFunction(void *info, const CGFloat *in, CGFloat *out);
 }
 
 - (void)setBackColor:(NSColor *)inColor{
-	[backCol release];
-	[borderCol release];
-	backCol = [inColor retain];
+	backCol = inColor;
 	borderCol = [inColor colorUsingColorSpaceName:NSCalibratedWhiteColorSpace];	
 	CGFloat fWhite;
 	fWhite = [borderCol whiteComponent];
@@ -202,7 +193,7 @@ static void ColorBlendFunction(void *info, const CGFloat *in, CGFloat *out);
 	}else {
 		fWhite -= 0.25f;
 	}	
-	borderCol = [[NSColor colorWithCalibratedWhite:fWhite alpha:1.0f] retain];
+	borderCol = [NSColor colorWithCalibratedWhite:fWhite alpha:1.0f];
 }
 
 

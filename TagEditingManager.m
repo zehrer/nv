@@ -34,21 +34,10 @@
 	return self;
 }
 
-- (void)dealloc{
-    [tagFieldString release];
-    [commonTags release];
-	[tagPanel release];
-	[tagField release];
-	[super dealloc];
-}
 
 - (void)setCommonTags:(NSArray *)newTags{
-    if (commonTags) {
-        [commonTags release];
-        commonTags=nil;
-    }
-    
-    commonTags=[newTags retain];
+    commonTags=newTags;
+	
     if (isHappening) {
         NSString *newTagString=@"";
         if (commonTags&&([commonTags count]>0)) {

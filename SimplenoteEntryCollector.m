@@ -32,8 +32,8 @@
 
 - (id)initWithEntriesToCollect:(NSArray*)wantedEntries simperiumToken:(NSString*)aSimperiumToken {
 	if ((self = [super init])) {
-		simperiumToken = [aSimperiumToken retain];
-		entriesToCollect = [wantedEntries retain];
+		simperiumToken = aSimperiumToken;
+		entriesToCollect = wantedEntries;
 		entriesCollected = [[NSMutableArray alloc] init];
 		entriesInError = [[NSMutableArray alloc] init];
 		
@@ -65,22 +65,13 @@
 }
 
 - (void)setRepresentedObject:(id)anObject {
-	[representedObject autorelease];
-	representedObject = [anObject retain];
+	representedObject = anObject;
 }
 
 - (id)representedObject {
 	return representedObject;
 }
 
-- (void)dealloc {
-	[entriesCollected release];
-	[entriesToCollect release];
-	[entriesInError release];
-	[representedObject release];
-	[simperiumToken release];
-	[super dealloc];
-}
 
 - (NSString*)statusText {
 	return [NSString stringWithFormat:NSLocalizedString(@"Downloading %u of %u notes", @"status text when downloading a note from the remote sync server"), 
@@ -115,16 +106,15 @@
 	SyncResponseFetcher *fetcher = [[SyncResponseFetcher alloc] initWithURL:noteURL POSTData:nil headers:headers delegate:self];
 	//remember the note for later? why not.
 	if (originalNote) [fetcher setRepresentedObject:originalNote];
-	return [fetcher autorelease];
+	return fetcher;
 }
 
 - (void)startCollectingWithCallback:(SEL)aSEL collectionDelegate:(id)aDelegate {
 	NSAssert([aDelegate respondsToSelector:aSEL], @"delegate doesn't respond!");
 	NSAssert(![self collectionStarted], @"collection already started!");
 	entriesFinishedCallback = aSEL;
-	collectionDelegate = [aDelegate retain];
+	collectionDelegate = aDelegate;
 	
-	[self retain];
 	
 	[(currentFetcher = [self fetcherForEntry:[entriesToCollect objectAtIndex:entryFinishedCount++]]) start];
 }
@@ -207,8 +197,6 @@
 		//no more entries to collect!
 		currentFetcher = nil;
 		[collectionDelegate performSelector:entriesFinishedCallback withObject:self];
-		[self release];
-		[collectionDelegate release];
 	} else {
 		//queue next entry
 		[(currentFetcher = [self fetcherForEntry:[entriesToCollect objectAtIndex:entryFinishedCount++]]) start];
@@ -258,8 +246,8 @@
 	CFAbsoluteTime modNum = doesCreate ? aNote.modifiedDate : [[info objectForKey:@"modify"] doubleValue];
 	
 	//always set the mod date, set created date if we are creating, set the key if we are updating
-	NSMutableString *noteBody = [[[aNote combinedContentWithContextSeparator: /* explicitly assume default separator if creating */
-								   doesCreate ? nil : [info objectForKey:SimplenoteSeparatorKey]] mutableCopy] autorelease];
+	NSMutableString *noteBody = [[aNote combinedContentWithContextSeparator: /* explicitly assume default separator if creating */
+								   doesCreate ? nil : [info objectForKey:SimplenoteSeparatorKey]] mutableCopy];
 	//simpletext iPhone app loses any tab characters
 	[noteBody replaceTabsWithSpacesOfWidth:[[GlobalPrefs defaultPrefs] numberOfSpacesInTab]];
 	
@@ -285,7 +273,7 @@
 		CFStringRef string = CFUUIDCreateString(NULL, theUUID);
 		CFRelease(theUUID);
 
-		NSString *str = [(NSString *)string autorelease];
+		NSString *str = (__bridge_transfer NSString *)string;
 		str = [[str stringByReplacingOccurrencesOfString:@"-" withString:@""] lowercaseString];
 		noteURL = [SimplenoteSession simperiumURLWithPath:[NSString stringWithFormat:@"/Note/i/%@", str] parameters:params];
 	} else {
@@ -302,7 +290,7 @@
 	
 	SyncResponseFetcher *fetcher = [[SyncResponseFetcher alloc] initWithURL:noteURL POSTData:objectJSON headers:headers contentType:@"application/json" delegate:self];
 	[fetcher setRepresentedObject:aNote];
-	return [fetcher autorelease];
+	return fetcher;
 }
 
 - (SyncResponseFetcher*)fetcherForCreatingNote:(NoteObject*)aNote {
@@ -335,7 +323,7 @@
 	NSDictionary *headers = [NSDictionary dictionaryWithObject:simperiumToken forKey:@"X-Simperium-Token"];
 	SyncResponseFetcher *fetcher = [[SyncResponseFetcher alloc] initWithURL:noteURL POSTData:postData headers:headers contentType:@"application/json" delegate:self];
 	[fetcher setRepresentedObject:aDeletedNote];
-	return [fetcher autorelease];
+	return fetcher;
 	
 	return nil;
 }

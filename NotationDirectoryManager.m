@@ -86,7 +86,7 @@ NSInteger compareCatalogValueFileSize(id *a, id *b) {
 static void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t num_events, void* event_paths,
 					  const FSEventStreamEventFlags flags[],
                       const FSEventStreamEventId event_ids[]) {
-	NotationController* self = (NotationController*)info;
+	NotationController* self = (__bridge NotationController*)info;
 	
 	BOOL rootChanged = NO;
 	size_t i = 0;
@@ -125,9 +125,9 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t nu
 	
 	NSString *path = [[NSFileManager defaultManager] pathWithFSRef:&noteDirectoryRef];
 	
-	FSEventStreamContext context = { 0, self, CFRetain, CFRelease, CFCopyDescription };
+	FSEventStreamContext context = { 0, (__bridge void *)(self), CFRetain, CFRelease, CFCopyDescription };
 	
-	noteDirEventStreamRef = FSEventStreamCreate(NULL, &FSEventsCallback, &context, (CFArrayRef)[NSArray arrayWithObject:path], kFSEventStreamEventIdSinceNow, 
+	noteDirEventStreamRef = FSEventStreamCreate(NULL, &FSEventsCallback, &context, (__bridge CFArrayRef)[NSArray arrayWithObject:path], kFSEventStreamEventIdSinceNow, 
 												1.0, kFSEventStreamCreateFlagWatchRoot | 0x00000008 /*kFSEventStreamCreateFlagIgnoreSelf*/);
 	
 	FSEventStreamScheduleWithRunLoop(noteDirEventStreamRef, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
@@ -488,7 +488,7 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t nu
 					
 					directoryChangesFound = YES;
 					
-					[currentNote setFilename:(NSString*)catEntry->filename withExternalTrigger:YES];
+					[currentNote setFilename:(__bridge NSString*)catEntry->filename withExternalTrigger:YES];
 				}
 				
 				notesChanged = YES;
@@ -605,7 +605,6 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t nu
 				[addedEntries removeObjectIdenticalTo:val];
 				foundMatchingContent = YES;
 			}
-			[addedObjToCompare release];
 		}
 		
 		if (!foundMatchingContent) {

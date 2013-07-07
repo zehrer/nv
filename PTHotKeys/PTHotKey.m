@@ -7,9 +7,9 @@
 //
 
 #import "PTHotKey.h"
-
 #import "PTHotKeyCenter.h"
 #import "PTKeyCombo.h"
+#import <objc/message.h>
 
 @implementation PTHotKey
 
@@ -19,19 +19,12 @@
 	
 	if( self )
 	{
-		[self setKeyCombo: [PTKeyCombo clearKeyCombo]];
+		self.keyCombo = [PTKeyCombo clearKeyCombo];
 	}
 	
 	return self;
 }
 
-- (void)dealloc
-{
-	[mName release];
-	[mKeyCombo release];
-	
-	[super dealloc];
-}
 
 - (NSString*)description
 {
@@ -40,61 +33,11 @@
 
 #pragma mark -
 
-- (EventHotKeyRef)carbonHotKey {
-	return carbonHotKey;
-}
-
-- (void)setCarbonHotKey:(EventHotKeyRef)hotKey {
-	carbonHotKey = hotKey;
-}
-
-- (void)setKeyCombo: (PTKeyCombo*)combo
-{
-	[combo retain];
-	[mKeyCombo release];
-	mKeyCombo = combo;
-}
-
-- (PTKeyCombo*)keyCombo
-{
-	return mKeyCombo;
-}
-
-- (void)setName: (NSString*)name
-{
-	[name retain];
-	[mName release];
-	mName = name;
-}
-
-- (NSString*)name
-{
-	return mName;
-}
-
-- (void)setTarget: (id)target
-{
-	mTarget = target;
-}
-
-- (id)target
-{
-	return mTarget;
-}
-
-- (void)setAction: (SEL)action
-{
-	mAction = action;
-}
-
-- (SEL)action
-{
-	return mAction;
-}
-
 - (void)invoke
 {
-	[mTarget performSelector: mAction withObject: self];
+	if (self.target && self.action) {
+		objc_msgSend(self.target, self.action, self);
+	}
 }
 
 @end

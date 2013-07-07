@@ -37,15 +37,12 @@ static id _sharedKeyComboPanel = nil;
 - (void)dealloc
 {
 	[[NSNotificationCenter defaultCenter] removeObserver: self];
-	[mKeyName release];
-	[mTitleFormat release];
 
-	[super dealloc];
 }
 
 - (void)windowDidLoad
 {
-	mTitleFormat = [[mTitleField stringValue] retain];
+	mTitleFormat = [mTitleField stringValue];
 
 	[[NSNotificationCenter defaultCenter]
 		addObserver: self
@@ -66,7 +63,7 @@ static id _sharedKeyComboPanel = nil;
 }
 
 - (void)chooseHotKeyDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void  *)contextInfo {
-	PTHotKey *hotKey = (PTHotKey *)contextInfo;
+	PTHotKey *hotKey = (__bridge PTHotKey *)contextInfo;
 	
 	[[self window] close];
 	
@@ -79,8 +76,6 @@ static id _sharedKeyComboPanel = nil;
 			NSLog(@"currentModalDelegate doesn't respond to keyComboPanelEnded:!");
 	}
 	
-	[hotKey release];
-	[currentModalDelegate release];
 }
 
 - (void)showSheetForHotkey:(PTHotKey*)hotKey forWindow:(NSWindow*)mainWindow modalDelegate:(id)target {
@@ -89,11 +84,10 @@ static id _sharedKeyComboPanel = nil;
 	[self setKeyCombo: [hotKey keyCombo]];
 	[self setKeyBindingName: [hotKey name]];
 	
-	currentModalDelegate = [target retain];
-	[hotKey retain];
+	currentModalDelegate = target;
 
 	[NSApp beginSheet:[self window] modalForWindow:mainWindow modalDelegate:self 
-	   didEndSelector:@selector(chooseHotKeyDidEnd:returnCode:contextInfo:) contextInfo:hotKey];
+	   didEndSelector:@selector(chooseHotKeyDidEnd:returnCode:contextInfo:) contextInfo:(__bridge void *)hotKey];
 }
 
 - (void)runModalForHotKey: (PTHotKey*)hotKey {
@@ -117,10 +111,7 @@ static id _sharedKeyComboPanel = nil;
 {
     if (combo == nil)
         combo = [PTKeyCombo clearKeyCombo];
-    else
-        [combo retain];
     
-	[mKeyCombo release];
 	mKeyCombo = combo;
 	[self _refreshContents];
 }
@@ -132,8 +123,6 @@ static id _sharedKeyComboPanel = nil;
 
 - (void)setKeyBindingName: (NSString*)name
 {
-	[name retain];
-	[mKeyName release];
 	mKeyName = name;
 	[self _refreshContents];
 }

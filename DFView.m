@@ -22,15 +22,8 @@
     return self;
 }
 
-- (void)dealloc{
-	[vColor release];
-	[super dealloc];
-}
 
 - (void)setBackgroundColor:(NSColor *)inColor{
-    if (vColor) {
-        [vColor release];
-    }
     CGFloat fWhite;
 	
 	fWhite = [[inColor colorUsingColorSpaceName:NSCalibratedWhiteColorSpace] whiteComponent];
@@ -44,7 +37,6 @@
 		fWhite -= 0.20f;
 	}	
 	vColor = [NSColor colorWithCalibratedWhite:fWhite alpha:1.0f];
-	[vColor retain];
 }
 
 

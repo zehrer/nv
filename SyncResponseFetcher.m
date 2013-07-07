@@ -53,11 +53,11 @@
 - (id)initWithURL:(NSURL*)aURL POSTData:(NSData*)POSTData headers:(NSDictionary *)aHeaders contentType:(NSString*)contentType delegate:(id)aDelegate {
 	if ((self = [self init])) {
 		receivedData = [[NSMutableData alloc] init];
-		requestURL = [aURL retain];
+		requestURL = aURL;
 		delegate = aDelegate;
-		dataToSend = [POSTData retain];
+		dataToSend = POSTData;
 		dataToSendContentType = [contentType copy];
-		requestHeaders = [aHeaders retain];
+		requestHeaders = aHeaders;
 	}
 	return self;
 }
@@ -67,8 +67,7 @@
 }
 
 - (void)setRepresentedObject:(id)anObject {
-	[representedObject autorelease];
-	representedObject = [anObject retain];
+	representedObject = anObject;
 }
 
 - (id)representedObject {
@@ -77,7 +76,7 @@
 
 - (BOOL)startWithSuccessInvocation:(NSInvocation*)anInvocation {
 
-	successInvocation = [anInvocation retain];
+	successInvocation = anInvocation;
 	return [self start];
 }
 
@@ -109,8 +108,6 @@
 		[request setHTTPMethod:@"POST"];
 	}
 	
-	[self retain];
-	[delegate retain];
 	
 	didCancel = NO;
 	isRunning = YES;
@@ -119,8 +116,6 @@
 	if (!(urlConnection = [[NSURLConnection alloc] initWithRequest:request delegate:self])) {
 		NSLog(@"%@: Couldn't create NSURLConnection with URLRequest %@", NSStringFromSelector(_cmd), request);
 		isRunning = NO;
-		[self release];
-		[delegate release];
 		return NO;
 	}
 	
@@ -145,18 +140,6 @@
 													 @"Error string returned to indicate that the user cancelled a syncing service operation")];
 }
 
-- (void)dealloc {
-	
-	[dataToSend release];
-	[dataToSendContentType release];
-	[requestURL release];
-	[receivedData release];
-	[urlConnection release];
-	[headers release];
-	[representedObject release];
-	
-	[super dealloc];
-}
 
 - (id)delegate {
 	return delegate;
@@ -198,20 +181,15 @@
 	
 	if (!anErrString) [successInvocation invoke];
 	
-	[successInvocation release];
 	successInvocation = nil;
 	
-	[lastErrorMessage autorelease];
-	lastErrorMessage = [anErrString retain];
+	lastErrorMessage = anErrString;
 	
 	[receivedData setLength:0];
 	
-	[urlConnection release];
 	urlConnection = nil;
 	isRunning = NO;
 	
-	[delegate release];
-	[self release];
 }
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
@@ -224,7 +202,6 @@
 		[urlConnection cancel];
 		[self _fetchDidFinishWithError:[NSHTTPURLResponse localizedStringForStatusCode:lastStatusCode]];
 	} else if (responseValid) {
-		[headers autorelease];
 		headers = [[(NSHTTPURLResponse*)response allHeaderFields] copy];
 	}
 }

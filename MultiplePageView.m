@@ -62,7 +62,6 @@ static float defaultTextPadding(void) {
     if (padding < 0.0) {
         NSTextContainer *container = [[NSTextContainer alloc] init];
         padding = [container lineFragmentPadding];
-        [container release];
     }
     return padding;
 }
@@ -88,8 +87,7 @@ static float defaultTextPadding(void) {
 
 - (void)setPrintInfo:(NSPrintInfo *)anObject {
     if (printInfo != anObject) {
-        [printInfo autorelease];
-        printInfo = [anObject copyWithZone:[self zone]];
+        printInfo = [anObject copyWithZone:nil];
         [self updateFrame];
         [self setNeedsDisplay:YES];	/* Because the page size or margins might change (could optimize this) */
     }
@@ -120,11 +118,6 @@ static float defaultTextPadding(void) {
     return 5.0;
 }
 
-- (void)dealloc {
-	[textStorage release];
-    [printInfo release];
-    [super dealloc];
-}
 
 - (NSSize)documentSizeInPage {
     NSSize paperSize = [printInfo paperSize];
@@ -198,7 +191,6 @@ static float defaultTextPadding(void) {
 	float pageHeight = textSize.height - defaultTextPadding() * 2.0; //[info paperSize].height - ([info topMargin] + [info bottomMargin]);
 	
 	//NSLog(@"text height: %g, page height: %g", containerHeight, pageHeight);
-	[textView release];
 	
 	return (int)ceil(containerHeight/pageHeight);	
 }
@@ -209,16 +201,16 @@ static float defaultTextPadding(void) {
 	/// we make as many text containers as we have pages, and the typesetter will then force a page break at each form feed.  It's not clear from the docs that this won't
 	/// work without a scroll view, but I get an empty view without it.
 	
-	NSScrollView *theScrollView = [[[NSScrollView alloc] init] autorelease]; // this will retain the other views
+	NSScrollView *theScrollView = [[NSScrollView alloc] init]; // this will retain the other views
 	NSClipView *clipView = [[NSClipView alloc] init];
 	MultiplePageView *pagesView = [[MultiplePageView alloc] init];
 	NSTextStorage *pageStorage = [pagesView textStorage];
 	
 	[clipView setDocumentView:pagesView];
-	[pagesView release]; // retained by the clip view
+	 // retained by the clip view
 	
 	[theScrollView setContentView:clipView];
-	[clipView release]; // retained by the scroll view
+	 // retained by the scroll view
 	
 	[pagesView setPrintInfo:[NSPrintInfo sharedPrintInfo]];
 	
@@ -226,7 +218,7 @@ static float defaultTextPadding(void) {
 	//textStorage = [[NSTextStorage alloc] initWithAttributedString:[abstractView textStorage]];
 	NSLayoutManager *lm = [[NSLayoutManager alloc] init];
 	[pageStorage addLayoutManager:lm];
-	[lm release]; // owned by the text storage
+	 // owned by the text storage
 	
 	NSAttributedString *formfeed = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%C", (unichar)NSFormFeedCharacter] attributes:nil];
 	NSFont *bodyFont = [[GlobalPrefs defaultPrefs] noteBodyFont];
@@ -253,15 +245,12 @@ static float defaultTextPadding(void) {
 			
 			[[[pageStorage layoutManagers] objectAtIndex:0] addTextContainer:textContainer];
 			
-			[textView release];
-			[textContainer release];	
 			
 			//add per-page header/footers here
 		}
 		
 		totalPageCount += pageCount;
 	}
-	[formfeed release];
 	
 	// force layout before printing
 	NSUInteger len;

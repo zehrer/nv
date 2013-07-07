@@ -44,7 +44,6 @@ extern NSString *RetrievedPasswordKey;
 - (id)initWithStoragePaths:(NSArray*)filenames;
 - (id)initWithStoragePath:(NSString*)filename;
 + (void)importHelpFilesIfNecessaryIntoNotation:(NotationController*)notation;
-+ (AlienNoteImporter *)importerWithPath:(NSString*)path;
 - (void)importNotesFromDialogAroundWindow:(NSWindow*)mainWindow receptionDelegate:(id)receiver;
 - (void)importURLInBackground:(NSURL*)aURL linkTitle:(NSString*)linkTitle receptionDelegate:(id)receiver;
 

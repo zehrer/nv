@@ -20,17 +20,16 @@
 
 - (id)initWithNotationPrefs:(NotationPrefs*)prefs {
     if ((self = [self init])) {
-        notationPrefs = [prefs retain];
+        notationPrefs = prefs;
         
         //compute initial test duration for the current iteration number
-        crapData = [[@"random crap" dataUsingEncoding:NSASCIIStringEncoding] retain];
-        crapSalt = [[NSData randomDataOfLength:256] retain];
+        crapData = [@"random crap" dataUsingEncoding:NSASCIIStringEncoding];
+        crapSalt = [NSData randomDataOfLength:256];
         
         lastHashIterationCount = [notationPrefs hashIterationCount];
         lastHashDuration = [self delayForHashIterations:lastHashIterationCount];
         
         if (![self init]) {
-            [self release];
             return nil;
         }
     }
@@ -63,13 +62,6 @@
 	return self;
 }
 
-- (void)dealloc {
-	[notationPrefs release];
-	[crapData release];
-	[crapSalt release];
-	
-	[super dealloc];
-}
 
 - (NSView*)view {
 	return view;

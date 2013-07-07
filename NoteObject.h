@@ -49,7 +49,7 @@ typedef struct _NoteFilterContext {
 //	NSString *wordCountString;
 	NSString *dateModifiedString, *dateCreatedString;
 	
-	id delegate; //the notes controller
+	__weak id delegate; //the notes controller
 	
 	//for syncing to text file
 	NSUInteger perDiskInfoGroupCount;
@@ -80,7 +80,7 @@ typedef struct _NoteFilterContext {
 @property (nonatomic, copy) NSString *labelString;
 
 @property (nonatomic, assign) UTCDateTime *attrsModifiedDate;
-@property (nonatomic, retain) NSMutableArray *prefixParentNotes;
+@property (nonatomic, strong) NSMutableArray *prefixParentNotes;
 
 #define DefColAttrAccessor(__FName, __IVar) force_inline id __FName(NotesTableView *tv, NoteObject *note, NSInteger row) { return note->__IVar; }
 
@@ -98,7 +98,7 @@ typedef struct _NoteFilterContext {
 	BOOL noteTitleHasPrefixOfUTF8String(NoteObject *note, const char* fullString, size_t stringLen);
 	BOOL noteTitleIsAPrefixOfOtherNoteTitle(NoteObject *longerNote, NoteObject *shorterNote);
 
-@property (nonatomic, assign) id delegate;
+@property (nonatomic, weak) id delegate;
 
 - (id)initWithNoteBody:(NSAttributedString *)bodyText title:(NSString *)aNoteTitle
               delegate:(id)aDelegate format:(NVDatabaseFormat)formatID labels:(NSString*)aLabelString;

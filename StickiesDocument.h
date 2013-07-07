@@ -43,9 +43,6 @@ typedef NSRect NSRect32;
     NSDate *mModificationDate;	
 }
 
-- (void)dealloc;
-- (id)initWithCoder:(id)decoder;
-- (void)encodeWithCoder:(id)coder;
 - (NSDate *)creationDate;
 - (NSDate *)modificationDate;
 - (NSData*)RTFDData;

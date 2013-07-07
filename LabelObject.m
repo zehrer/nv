@@ -27,8 +27,8 @@
 
 - (id)initWithTitle:(NSString*)name {
     if ((self = [super init])) {
-		labelName = [name retain];
-		lowercaseName = [[name lowercaseString] retain];
+		labelName = name;
+		lowercaseName = [name lowercaseString];
 	
 		lowercaseHash = [lowercaseName hash];
 		
@@ -42,18 +42,10 @@
     return lowercaseName;
 }
 
-- (void)dealloc {
-    [notes release];
-    [labelName release];
-    [lowercaseName release];
-    [super dealloc];
-}
 
 - (void)setTitle:(NSString*)title {
-    [labelName release];
     labelName = [title copy];
     
-    [lowercaseName release];
     lowercaseName = [[title lowercaseString] copy];
     
     lowercaseHash = [lowercaseName hash];

@@ -42,23 +42,14 @@
 	NoteObject *noteDuringFind;
 	
 	IMP defaultIBeamCursorIMP, whiteIBeamCursorIMP;
-    
-    BOOL managesTextWidth;
-	NSString *beforeString;
-	NSString *afterString;
-    NSString *activeParagraph;
-    NSString *activeParagraphPastCursor;
-    NSString *activeParagraphBeforeCursor;
-//    BOOL clipboardHasLink;
 }
 
-@property (readonly) NSString *activeParagraphBeforeCursor;
-@property (readonly) NSString *activeParagraphPastCursor;
-@property (readonly) NSString *beforeString;
-@property (readonly) NSString *afterString;
-@property (readonly) NSString *activeParagraph;
-@property (readwrite) BOOL managesTextWidth;
-//@property (readonly) BOOL clipboardHasLink;
+@property (nonatomic, readonly) NSString *activeParagraphBeforeCursor;
+@property (nonatomic, readonly) NSString *activeParagraphPastCursor;
+@property (nonatomic, readonly) NSString *beforeString;
+@property (nonatomic, readonly) NSString *afterString;
+@property (nonatomic, readonly) NSString *activeParagraph;
+@property (nonatomic) BOOL managesTextWidth;
 
 
 - (NSColor*)_insertionPointColorForForegroundColor:(NSColor*)fgColor backgroundColor:(NSColor*)bgColor;

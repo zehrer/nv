@@ -181,11 +181,6 @@ static void sendCallbacksForGlobalPrefs(GlobalPrefs* self, SEL selector, id orig
 	return prefs;
 }
 
-- (void)dealloc {
-	
-	[tableColumns release];
-	[super dealloc];
-}
 
 - (void)registerWithTarget:(id)sender forChangesInSettings:(SEL)firstSEL, ... {
 	NSAssert(firstSEL != NULL, @"need at least one selector");
@@ -200,7 +195,7 @@ static void sendCallbacksForGlobalPrefs(GlobalPrefs* self, SEL selector, id orig
 			
 			NSMutableArray *senders = [selectorObservers objectForKey:selectorKey];
 			if (!senders) {
-				senders = [[[NSMutableArray alloc] initWithCapacity:1] autorelease];
+				senders = [[NSMutableArray alloc] initWithCapacity:1];
 				[selectorObservers setObject:senders forKey:selectorKey];
 			}
 			[senders addObject:sender];
@@ -249,8 +244,7 @@ static void sendCallbacksForGlobalPrefs(GlobalPrefs* self, SEL selector, id orig
 }
 
 - (void)setNotationPrefs:(NotationPrefs*)newNotationPrefs sender:(id)sender {
-	[notationPrefs autorelease];
-	notationPrefs = [newNotationPrefs retain];
+	notationPrefs = newNotationPrefs;
 	
 	[self resolveNoteBodyFontFromNotationPrefsFromSender:sender];
 	
@@ -321,8 +315,7 @@ static void sendCallbacksForGlobalPrefs(GlobalPrefs* self, SEL selector, id orig
 
 - (void)setAppActivationKeyCombo:(PTKeyCombo*)aCombo sender:(id)sender {
 	if (aCombo) {
-		[appActivationKeyCombo release];
-		appActivationKeyCombo = [aCombo retain];
+		appActivationKeyCombo = aCombo;
 		
 		[[self appActivationHotKey] setKeyCombo:appActivationKeyCombo];
 	
@@ -488,7 +481,6 @@ static void sendCallbacksForGlobalPrefs(GlobalPrefs* self, SEL selector, id orig
 - (void)setSearchTermHighlightColor:(NSColor*)color sender:(id)sender {
 	if (color) {
 		
-		[searchTermHighlightAttributes release];
 		searchTermHighlightAttributes = nil;
 		
 		[defaults setObject:[NSArchiver archivedDataWithRootObject:color] forKey:SearchTermHighlightColorKey];
@@ -517,7 +509,7 @@ static void sendCallbacksForGlobalPrefs(GlobalPrefs* self, SEL selector, id orig
 	NSColor *highlightColor = nil;
 	
 	if (!searchTermHighlightAttributes && (highlightColor = [self searchTermHighlightColorRaw:NO])) {
-		searchTermHighlightAttributes = [[NSDictionary dictionaryWithObjectsAndKeys:highlightColor, NSBackgroundColorAttributeName, nil] retain];
+		searchTermHighlightAttributes = [NSDictionary dictionaryWithObjectsAndKeys:highlightColor, NSBackgroundColorAttributeName, nil];
 	}
 	return searchTermHighlightAttributes;
 	
@@ -568,26 +560,23 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
 
 - (void)_setNoteBodyFont:(NSFont*)aFont {
 	NSFont *oldFont = noteBodyFont;
-	noteBodyFont = [aFont retain];
+	noteBodyFont = aFont;
 	
-	[noteBodyParagraphStyle release];
 	noteBodyParagraphStyle = nil;
 	
-	[noteBodyAttributes release];
 	noteBodyAttributes = nil; //cause method to re-update
 	
 	[defaults setObject:[NSArchiver archivedDataWithRootObject:noteBodyFont] forKey:NoteBodyFontKey]; 
 	
 	//restyle any PTF data on the clipboard to the new font
 	NSData *ptfData = [[NSPasteboard generalPasteboard] dataForType:NVPTFPboardType];
-	NSMutableAttributedString *newString = [[[NSMutableAttributedString alloc] initWithRTF:ptfData documentAttributes:nil] autorelease];
+	NSMutableAttributedString *newString = [[NSMutableAttributedString alloc] initWithRTF:ptfData documentAttributes:nil];
 	
 	[newString restyleTextToFont:noteBodyFont usingBaseFont:oldFont];
 	
 	if ((ptfData = [newString RTFFromRange:NSMakeRange(0, [newString length]) documentAttributes:nil])) {
 		[[NSPasteboard generalPasteboard] setData:ptfData forType:NVPTFPboardType];
 	}
-	[oldFont release];
 }
 
 - (void)setNoteBodyFont:(NSFont*)aFont sender:(id)sender {
@@ -605,7 +594,7 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
 	if (!noteBodyFont) {
 		while (1) {
 			@try {
-				noteBodyFont = [[NSUnarchiver unarchiveObjectWithData:[defaults objectForKey:NoteBodyFontKey]] retain];
+				noteBodyFont = [NSUnarchiver unarchiveObjectWithData:[defaults objectForKey:NoteBodyFontKey]];
 			} @catch (NSException *e) {
 				NSLog(@"Error trying to unarchive default note body font (%@, %@)", [e name], [e reason]);
 			}
@@ -627,7 +616,7 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
 	if (!noteBodyAttributes && bodyFont) {
 		//NSLog(@"notebody att2");
 		
-		NSMutableDictionary *attrs = [[NSMutableDictionary dictionaryWithObjectsAndKeys:bodyFont, NSFontAttributeName, nil] retain];
+		NSMutableDictionary *attrs = [NSMutableDictionary dictionaryWithObjectsAndKeys:bodyFont, NSFontAttributeName, nil];
 		
 		//not storing the foreground color in each note will make the database smaller, and black is assumed when drawing text
 		//NSColor *fgColor = [self foregroundTextColor];
@@ -649,7 +638,7 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
 		noteBodyAttributes = attrs;
 	}else {
 		//NSLog(@"notebody att4");
-		NSMutableDictionary *attrs = [[NSMutableDictionary dictionaryWithObjectsAndKeys:bodyFont, NSFontAttributeName, nil] retain];
+		NSMutableDictionary *attrs = [NSMutableDictionary dictionaryWithObjectsAndKeys:bodyFont, NSFontAttributeName, nil];
 		NSColor *fgColor = [[NSApp delegate] foregrndColor];
 		
 		//	if (!ColorsEqualWith8BitChannels([NSColor blackColor], fgColor)) {
@@ -678,8 +667,6 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
 		}
 		NSDictionary *sizeAttribute = [[NSDictionary alloc] initWithObjectsAndKeys:bodyFont, NSFontAttributeName, nil];
 		float sizeOfTab = [sizeString sizeWithAttributes:sizeAttribute].width;
-		[sizeAttribute release];
-		[sizeString release];
 		
 		noteBodyParagraphStyle = [[NSParagraphStyle defaultParagraphStyle] mutableCopy];
 		
@@ -698,7 +685,6 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
 
 - (void)setForegroundTextColor:(NSColor*)aColor sender:(id)sender {
 	if (aColor) {
-		[noteBodyAttributes release];
 		noteBodyAttributes = nil;
 		
 		[defaults setObject:[NSArchiver archivedDataWithRootObject:aColor] forKey:ForegroundTextColorKey];
@@ -719,7 +705,6 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
 		//highlight color is based on blended-alpha version of background color
 		//(because nslayoutmanager temporary attributes don't seem to like alpha components)
 		//so it's necessary to invalidate the effective cache of that computed highlight color
-		[searchTermHighlightAttributes release];
 		searchTermHighlightAttributes = nil;
 
 		[defaults setObject:[NSArchiver archivedDataWithRootObject:aColor] forKey:BackgroundTextColorKey];
@@ -778,7 +763,7 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
 
 - (NSArray*)visibleTableColumns {
 	if (!tableColumns) {
-		tableColumns = [[NSMutableArray arrayWithArray:[defaults arrayForKey:NoteAttributesVisibleKey]] retain];
+		tableColumns = [NSMutableArray arrayWithArray:[defaults arrayForKey:NoteAttributesVisibleKey]];
 		tableColsBitmap = 0U;
 	}
 	
@@ -840,7 +825,7 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
 
 - (void)setLastSearchString:(NSString*)string selectedNote:(id<SynchronizedNote>)aNote scrollOffsetForTableView:(NotesTableView*)tv sender:(id)sender {
 	
-	NSMutableString *stringMinusBreak = [[string mutableCopy] autorelease];
+	NSMutableString *stringMinusBreak = [string mutableCopy];
 	[stringMinusBreak replaceOccurrencesOfString:@"\n" withString:@" " options:NSLiteralSearch range:NSMakeRange(0, [stringMinusBreak length])];
 	
 	[defaults setObject:stringMinusBreak forKey:LastSearchStringKey];
@@ -913,7 +898,7 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
     }
     CFStringRef displayName = NULL;
     if (LSCopyDisplayNameForRef(fsRef, &displayName) == noErr) {
-	return [(NSString*)displayName autorelease];
+		return (__bridge_transfer NSString*)displayName;
     }
     return nil;
 }
@@ -937,8 +922,7 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
 		if ((err = LSCopyDisplayNameForRef(currentRef, &displayName)) == noErr) {
 		    
 		    if (displayName) {
-			[directoryNames insertObject:(id)displayName atIndex:0];
-			CFRelease(displayName);
+				[directoryNames insertObject:(__bridge_transfer NSString *)displayName atIndex:0];
 		    }
 		}
 		

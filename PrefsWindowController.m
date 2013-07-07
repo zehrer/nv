@@ -80,7 +80,7 @@
 }
 
 - (void)keyComboPanelEnded:(PTKeyComboPanel*)panel {
-	PTKeyCombo *oldKeyCombo = [[prefsController appActivationKeyCombo] retain];
+	PTKeyCombo *oldKeyCombo = [prefsController appActivationKeyCombo];
 	[prefsController setAppActivationKeyCombo:[panel keyCombo] sender:self];
 	
 	[appShortcutField setStringValue:[[prefsController appActivationKeyCombo] description]];
@@ -90,7 +90,6 @@
 		NSLog(@"reverting to old (hopefully working key combo");
 	}
 	
-	[oldKeyCombo release];
 }
 
 - (IBAction)changeBodyFont:(id)sender {
@@ -144,7 +143,6 @@
 	[[bodyTextFontField cell] setAttributedStringValue:attributedString];
     [bodyTextFontField updateCell:[bodyTextFontField cell]];
 	
-	[attributedString release];
 	
 }
 
@@ -252,7 +250,7 @@
 }
 
 - (NSMenu*)directorySelectionMenu {
-    NSMenu *theMenu = [[[NSMenu alloc] initWithTitle:@"Note Directory Menu"] autorelease];
+    NSMenu *theMenu = [[NSMenu alloc] initWithTitle:@"Note Directory Menu"];
     
     FSRef targetRef = {{0}};
     NSString *name = [prefsController displayNameForDefaultDirectoryWithFSRef:&targetRef];
@@ -263,7 +261,7 @@
 	if (!IsZeros(&targetRef, sizeof(FSRef)) || [[prefsController aliasDataForDefaultDirectory] fsRefAsAlias:&targetRef])
 	    iconImage = [NSImage smallIconForFSRef:&targetRef];
 	
-    NSMenuItem *theMenuItem = [[[NSMenuItem alloc] initWithTitle:name action:nil keyEquivalent:@""] autorelease];
+    NSMenuItem *theMenuItem = [[NSMenuItem alloc] initWithTitle:name action:nil keyEquivalent:@""];
     
     if (iconImage)
 		[theMenuItem setImage:iconImage];
@@ -272,8 +270,8 @@
     
     [theMenu addItem:[NSMenuItem separatorItem]];
     
-    theMenuItem = [[[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Other...", @"title of menu item for selecting a different notes folder")
-											  action:@selector(changeDefaultDirectory) keyEquivalent:@""] autorelease];
+    theMenuItem = [[NSMenuItem alloc] initWithTitle:NSLocalizedString(@"Other...", @"title of menu item for selecting a different notes folder")
+											  action:@selector(changeDefaultDirectory) keyEquivalent:@""];
     [theMenuItem setTarget:self];
     [theMenu addItem:theMenuItem];
     
@@ -354,7 +352,7 @@
 		if (!fileURL) return NO;
 		
 		if (path)
-			*path = [[[fileURL path] copy] autorelease];
+			*path = [[fileURL path] copy];
 		
 		if (!CFURLGetFSRef((CFURLRef)fileURL, notesDirectoryRef))
 			return NO;
@@ -386,11 +384,10 @@
     [item setPaletteLabel:localizedTitle];
     [item setLabel:localizedTitle];
     //[item setToolTip:@"General settings: appearance and behavior"];
-    [item setImage:[[[NSImage alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:name ofType:@"tiff"]] autorelease]];
+    [item setImage:[[NSImage alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:name ofType:@"tiff"]]];
     [item setTarget:self];
     [item setAction:@selector(switchViews:)];
     [items setObject:item forKey:name];
-    [item release];
 }
 
 - (void)awakeFromNib {
@@ -464,7 +461,7 @@
     [toolbar setAllowsUserCustomization:NO];
     [toolbar setAutosavesConfiguration:NO]; 
     [window setToolbar:toolbar];
-    [toolbar release];  //setToolbar retains the toolbar we pass, so release the one we used.
+      //setToolbar retains the toolbar we pass, so release the one we used.
 	
 	[window setShowsToolbarButton:NO];
     [self switchViews:nil];  //select last selected pane by default
@@ -528,7 +525,6 @@
 	NSRect windowContentFrame = [window.contentView frame];
     NSView *tempView = [[NSView alloc] initWithFrame:windowContentFrame];
     [window setContentView:tempView];
-    [tempView release];
 	
     NSRect newFrame = [window frame];
 	NSRect viewFrameForWindow = [prefsView frame];

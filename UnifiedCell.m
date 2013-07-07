@@ -32,9 +32,6 @@
 	return self;
 }
 
-- (void)dealloc {
-	[super dealloc];
-}
 
 - (void)selectWithFrame:(NSRect)aRect inView:(NSView *)controlView editor:(NSText *)textObj 
 			   delegate:(id)anObject start:(NSInteger)selStart length:(NSInteger)selLength {
@@ -81,8 +78,7 @@
 }
 
 - (void)setNoteObject:(NoteObject*)obj {
-	[noteObject autorelease];
-	noteObject = [obj retain];
+	noteObject = obj;
 }
 
 - (void)setPreviewIsHidden:(BOOL)value {
@@ -104,7 +100,6 @@
 			color = [NSColor grayColor];
 		}
 		lastTint = tint;
-		[color retain];
 	}
 	return color;
 }
@@ -132,7 +127,7 @@ NSAttributedString *AttributedStringForSelection(NSAttributedString *str, BOOL w
 	if (withShadow) {
 		[colorFreeStr addAttribute:NSShadowAttributeName value:ShadowForSnowLeopard() range:NSMakeRange(0, [str length])];
 	}
-	return [colorFreeStr autorelease];
+	return colorFreeStr;
 }
 
 - (NSMutableDictionary*)baseTextAttributes {
@@ -206,7 +201,6 @@ NSAttributedString *AttributedStringForSelection(NSAttributedString *str, BOOL w
 		[cloneStr addAttributes:LineTruncAttributesForTitle() range:NSMakeRange(0, noteObject.titleString.length)];
 		
 		[cloneStr drawWithRect:NSInsetRect([self titleRectForBounds:cellFrame], 2., 0.) options: NSStringDrawingTruncatesLastVisibleLine | NSStringDrawingUsesLineFragmentOrigin];
-		[cloneStr release];
 		
 		//draw a slightly different focus ring than what would have been drawn
 		NSRect rect = [tv lastEventActivatedTagEdit] ? [self nv_tagsRectForFrame:cellFrame] : [self nv_titleRectForFrame:cellFrame];

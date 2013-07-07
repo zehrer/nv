@@ -16,7 +16,7 @@
 {
     if ((self = [super initTextCell:text])) {
 		@try {
-			_gradient = [[[NSGradient alloc] initWithStartingColor:[NSColor colorWithCalibratedWhite:0.93f alpha:0.3f] endingColor:[NSColor colorWithCalibratedWhite:0.12f alpha:0.25f]] retain];
+			_gradient = [[NSGradient alloc] initWithStartingColor:[NSColor colorWithCalibratedWhite:0.93f alpha:0.3f] endingColor:[NSColor colorWithCalibratedWhite:0.12f alpha:0.25f]];
 		}
 		@catch (NSException * e) {
 			NSLog(@"init colors EXCEPT: %@",[e description]);
@@ -128,14 +128,6 @@
 		[attrs setValue:tColor forKey:@"NSColor"];
 		[[self stringValue] drawInRect:centeredRect withAttributes:attrs];				
 	}		
-}
-
-
-- (id)copyWithZone:(NSZone *)zone
-{
-    id newCopy = [super copyWithZone:zone];
-    [attrs retain];
-    return newCopy;
 }
 
 @end

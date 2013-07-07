@@ -61,7 +61,6 @@ static ODBEditor	*_sharedODBEditor;
 		UInt32  packageCreator = 0;
 		
 		if (_sharedODBEditor != nil) {
-			[self release];
 			[NSException raise: NSInternalInconsistencyException format: @"ODBEditor is a singleton - use [ODBEditor sharedODBEditor]"];
 			return nil;
 		}
@@ -87,15 +86,11 @@ static ODBEditor	*_sharedODBEditor;
 	NSAppleEventManager *appleEventManager = [NSAppleEventManager sharedAppleEventManager];
 	[appleEventManager removeEventHandlerForEventClass: kODBEditorSuite andEventID: kAEModifiedFile];
 	[appleEventManager removeEventHandlerForEventClass: kODBEditorSuite andEventID: kAEClosedFile];
-	[_filePathsBeingEdited release];
-	[editingSpacePreparer release];
-	[super dealloc];
 }
 
 - (void)initializeDatabase:(NotationPrefs*)prefs {
 	if (editingSpacePreparer) {
 		[editingSpacePreparer setDelegate:nil];
-		[editingSpacePreparer release];
 	}
 	[(editingSpacePreparer = [[TemporaryFileCachePreparer alloc] init]) setDelegate:self];
 	[editingSpacePreparer prepEditingSpaceIfNecessaryForNotationPrefs:prefs];
@@ -287,7 +282,7 @@ static ODBEditor	*_sharedODBEditor;
 	AESendMessage([appleEvent aeDesc], &reply, kAEWaitReply, kAEDefaultTimeout);
 	
 	if (status == noErr) {
-		replyDescriptor = [[[NSAppleEventDescriptor alloc] initWithAEDescNoCopy: &reply] autorelease];
+		replyDescriptor = [[NSAppleEventDescriptor alloc] initWithAEDescNoCopy: &reply];
 		errorDescriptor = [replyDescriptor paramDescriptorForKeyword: keyErrorNumber];
 		
 		if (errorDescriptor != nil) {
@@ -316,10 +311,10 @@ static ODBEditor	*_sharedODBEditor;
 
 - (void)handleModifiedFileEvent:(NSAppleEventDescriptor *)event withReplyEvent:(NSAppleEventDescriptor *)replyEvent {
 	NSAppleEventDescriptor *fpDescriptor = [[event paramDescriptorForKeyword: keyDirectObject] coerceToDescriptorType: typeFileURL];
-	NSString *urlString = [[[NSString alloc] initWithData: [fpDescriptor data] encoding: NSUTF8StringEncoding] autorelease];
+	NSString *urlString = [[NSString alloc] initWithData: [fpDescriptor data] encoding: NSUTF8StringEncoding];
 	NSString *path = [[[NSURL URLWithString: urlString] path] stringByResolvingSymlinksInPath];
 	NSAppleEventDescriptor	*nfpDescription = [[event paramDescriptorForKeyword: keyNewLocation] coerceToDescriptorType: typeFileURL];
-	NSString *newUrlString = [[[NSString alloc] initWithData: [nfpDescription data] encoding: NSUTF8StringEncoding] autorelease];
+	NSString *newUrlString = [[NSString alloc] initWithData: [nfpDescription data] encoding: NSUTF8StringEncoding];
 	NSString *newPath = [[NSURL URLWithString: newUrlString] path];
 	NSDictionary *dictionary = nil;
 	NSError *error = nil;
@@ -359,7 +354,7 @@ static ODBEditor	*_sharedODBEditor;
 
 - (void)handleClosedFileEvent:(NSAppleEventDescriptor *)event withReplyEvent:(NSAppleEventDescriptor *)replyEvent {
 	NSAppleEventDescriptor  *descriptor = [[event paramDescriptorForKeyword: keyDirectObject] coerceToDescriptorType: typeFileURL];
-	NSString				*urlString = [[[NSString alloc] initWithData: [descriptor data] encoding: NSUTF8StringEncoding] autorelease];
+	NSString				*urlString = [[NSString alloc] initWithData: [descriptor data] encoding: NSUTF8StringEncoding];
 	NSString				*fileName = [[[NSURL URLWithString: urlString] path] stringByResolvingSymlinksInPath];
 	NSDictionary			*dictionary = nil;
 	NSError *error = nil;

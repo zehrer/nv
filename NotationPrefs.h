@@ -42,8 +42,8 @@ extern NSString *NotationPrefsDidChangeNotification;
 + (NSMutableArray*)defaultTypeStringsForFormat:(int)formatID;
 + (NSMutableArray*)defaultPathExtensionsForFormat:(int)formatID;
 - (BOOL)preferencesChanged;
-@property (nonatomic, retain) NSColor *foregroundColor;
-@property (nonatomic, retain) NSFont *baseBodyFont;
+@property (nonatomic, strong) NSColor *foregroundColor;
+@property (nonatomic, strong) NSFont *baseBodyFont;
 
 @property (nonatomic, readonly) BOOL firstTimeUsed;
 @property (nonatomic, readonly) BOOL preferencesChanged;
@@ -121,7 +121,7 @@ extern NSString *NotationPrefsDidChangeNotification;
 - (void)updateOSTypesArray;
 - (BOOL)catalogEntryAllowed:(NoteCatalogEntry*)catEntry;
 
-@property (nonatomic, assign) id delegate;
+@property (nonatomic, weak) id delegate;
 
 @end
 

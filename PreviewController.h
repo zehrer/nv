@@ -47,7 +47,7 @@
 }
 
 @property (assign) BOOL isPreviewOutdated;
-@property (retain) WebView *preview;
+@property (strong) WebView *preview;
 @property (assign) BOOL isPreviewSticky;
 
 -(IBAction)saveHTML:(id)sender;

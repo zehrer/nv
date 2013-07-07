@@ -11,7 +11,7 @@
 @interface NVViewLocationContext : NSObject
 
 @property (nonatomic) BOOL pivotRowWasEdge;
-@property (nonatomic, assign) id pivotObject;
+@property (nonatomic, weak) id pivotObject;
 @property (nonatomic) CGFloat verticalDistanceToPivotRow;
 
 @end

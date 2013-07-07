@@ -98,7 +98,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 	
 	if ((reachableRef = SCNetworkReachabilityCreateWithName(NULL, [[[SimplenoteSession authURLWithPath:
 																   @"/" parameters:nil] host] UTF8String]))) {
-		SCNetworkReachabilityContext context = {0, aTarget, NULL, NULL, NULL};
+		SCNetworkReachabilityContext context = {0, (__bridge void *)aTarget, NULL, NULL, NULL};
 		if (SCNetworkReachabilitySetCallback(reachableRef, callout, &context)) {
 			if (!SCNetworkReachabilityScheduleWithRunLoop(reachableRef, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode)) {
 				NSLog(@"SCNetworkReachabilityScheduleWithRunLoop error: %d", SCError());
@@ -121,7 +121,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 
 static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkConnectionFlags flags, void * info) {
     
-	SimplenoteSession *self = (SimplenoteSession *)info;
+	SimplenoteSession *self = (__bridge SimplenoteSession *)info;
 	BOOL reachable = ((flags & kSCNetworkFlagsReachable) && (!(flags & kSCNetworkFlagsConnectionRequired) || (flags & kSCNetworkFlagsConnectionAutomatic)));
 	
 	self->reachabilityFailed = !reachable;
@@ -262,11 +262,11 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		lastSyncedTime = 0.0;
 		reachabilityFailed = NO;
 
-		if (![(emailAddress = [aUserString retain]) length]) {
+		if (![(emailAddress = aUserString) length]) {
 			NSLog(@"%@: empty email address", NSStringFromSelector(_cmd));
 			return nil;
 		}
-		if (![(password = [aPassString retain]) length]) {
+		if (![(password = aPassString) length]) {
 			return nil;
 		}
 		notesToSuppressPushing = [[NSCountedSet alloc] init];
@@ -278,7 +278,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 }
 
 - (NSString*)description {
-	return [NSString stringWithFormat:@"<%@: %p (%@)>", NSStringFromClass([self class]), (__unsafe_unretained void *)self, emailAddress];
+	return [NSString stringWithFormat:@"<%@: %p (%@)>", NSStringFromClass([self class]), (__bridge void *)self, emailAddress];
 }
 
 - (id)copyWithZone:(NSZone *)zone {
@@ -386,7 +386,6 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 
 
 - (void)_stoppedWithErrorString:(NSString*)aString {
-	[lastErrorString autorelease];
 	lastErrorString = [aString copy];
 	
 	if (!aString) {
@@ -414,15 +413,12 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 	[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(handleSyncServiceChanges:) object:nil];
 	[unsyncedServiceNotes removeAllObjects]; //caution: will cause NV not to wait before quitting regardless of unsynced changes
 	[queuedNoteInvocations removeAllObjects];
-	[[[collectorsInProgress copy] autorelease] makeObjectsPerformSelector:@selector(stop)];
+	[[collectorsInProgress copy] makeObjectsPerformSelector:@selector(stop)];
 	[loginFetcher cancel];
 	[listFetcher cancel];
 	[changesFetcher cancel];
-	[indexEntryBuffer release];
 	indexEntryBuffer = nil;
-	[indexMark release];
 	indexMark = nil;
-	[lastCV release];
 	lastCV = nil;
 }
 
@@ -533,18 +529,14 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 }
 
 - (void)_clearTokenAndDependencies {
-	[listFetcher release];
 	listFetcher = nil;
-	[changesFetcher release];
 	changesFetcher = nil;
-	[simperiumToken release];
 	simperiumToken = nil;
 }
 
 - (void)clearErrors {
 	//effectively reset what the session knows about itself, in preparation for another sync
 	lastIndexAuthFailed = NO;
-	[lastErrorString release];
 	lastErrorString = nil;
 	lastSyncedTime = 0.0;
 	lastCV = nil;
@@ -616,7 +608,6 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		
 		[collector startCollectingWithCallback:[notesToMerge count] ? 
 		 @selector(addedEntriesToMergeCollectorDidFinish:) : @selector(addedEntryCollectorDidFinish:) collectionDelegate:self];
-		[collector release];
 	}
 }
 
@@ -656,7 +647,6 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		SimplenoteEntryCollector *collector = [[SimplenoteEntryCollector alloc] initWithEntriesToCollect:entries simperiumToken:simperiumToken];
 		[self _registerCollector:collector];
 		[collector startCollectingWithCallback:@selector(changedEntryCollectorDidFinish:) collectionDelegate:self];
-		[collector release];
 	}
 }
 
@@ -742,7 +732,6 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		[combined appendString:sep];
 		[combined appendString:[[aNote contentString] string]];
 		[dict setObject:aNote forKey:[NSNumber numberWithUnsignedInteger:[combined hash]]];
-		[combined release];
 	}
 	return dict;
 }
@@ -852,7 +841,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		NSString *title = [fullContent syntheticTitleAndSeparatorWithContext:&separator bodyLoc:&bodyLoc oldTitle:nil maxTitleLen:60];
 		NSString *body = [fullContent substringFromIndex:bodyLoc];
 		//get title and body, incl. separator
-		NSMutableAttributedString *attributedBody = [[[NSMutableAttributedString alloc] initWithString:body attributes:[[GlobalPrefs defaultPrefs] noteBodyAttributes]] autorelease];
+		NSMutableAttributedString *attributedBody = [[NSMutableAttributedString alloc] initWithString:body attributes:[[GlobalPrefs defaultPrefs] noteBodyAttributes]];
 		[attributedBody addLinkAttributesForRange:NSMakeRange(0, [attributedBody length])];
 		[attributedBody addStrikethroughNearDoneTagsForRange:NSMakeRange(0, [attributedBody length])];
 		
@@ -866,7 +855,6 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 			[note setSyncObjectAndKeyMD:[NSDictionary dictionaryWithObjectsAndKeys:[info objectForKey:@"version"], @"version", modNum, @"modify", [info objectForKey:@"key"], @"key", separator, SimplenoteSeparatorKey, nil] forService:SimplenoteServiceName];
 			
 			[newNotes addObject:note];
-			[note release];
 		}
 	}
 
@@ -881,7 +869,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 
 - (void)_unregisterCollector:(SimplenoteEntryCollector*)collector {
 	
-	[collectorsInProgress removeObject:[[collector retain] autorelease]];
+	[collectorsInProgress removeObject:collector];
 	
 	if (![collector collectionStoppedPrematurely] && [[collector entriesInError] count] && ![[collector entriesCollected] count]) {
 		//failed! all failed!
@@ -916,14 +904,14 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 	
 	NSAssert([invocations count] != 0, @"invocations array is empty!");
 	
-	NSInvocation *invocation = [[invocations objectAtIndex:0] retain];
+	NSInvocation *invocation = [invocations objectAtIndex:0];
 	[invocations removeObjectAtIndex:0];
 	
 	if (![invocations count]) {
 		//this was the last queued invocation for aNote; dispose of up the array
 		[queuedNoteInvocations removeObjectForKey:uuidStr];
 	}
-	return [invocation autorelease];
+	return invocation;
 }
 
 - (void)_queueInvocation:(NSInvocation*)anInvocation forNote:(id<SynchronizedNote>)aNote {
@@ -955,7 +943,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 	} else {
 		
 		//ensure that remote mutation does not occur more than once for the same note(s) before the callback completes
-		NSMutableArray *currentlyIdleNotes = [[notes mutableCopy] autorelease];
+		NSMutableArray *currentlyIdleNotes = [notes mutableCopy];
 		[currentlyIdleNotes removeObjectsInArray:[notesBeingModified allObjects]];
 		
 		//get the notes currently progress that we need to queue: (it's important to remove notesBeingModified from notes and not the reverse)
@@ -987,7 +975,6 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 			
 			[self _registerCollector:modifier];
 			[modifier startCollectingWithCallback:callback collectionDelegate:self];
-			[modifier release];
 		}
 	}
 }
@@ -1004,7 +991,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 
 - (void)_finishModificationsFromModifier:(SimplenoteEntryModifier *)modifier {
 	
-	NSMutableArray *finishedNotes = [[[[modifier entriesCollected] objectsFromDictionariesForKey:@"NoteObject"] mutableCopy] autorelease];
+	NSMutableArray *finishedNotes = [[[modifier entriesCollected] objectsFromDictionariesForKey:@"NoteObject"] mutableCopy];
 	[finishedNotes addObjectsFromArray:[[modifier entriesInError] objectsFromDictionariesForKey:@"NoteObject"]];
 	
 	[notesBeingModified minusSet:[NSSet setWithArray:finishedNotes]];
@@ -1091,13 +1078,12 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		}
 
 		if ([responseDictionary objectForKey:@"access_token"]) {
-			[simperiumToken autorelease];
-			simperiumToken = [[responseDictionary objectForKey:@"access_token"] retain];
+			simperiumToken = [responseDictionary objectForKey:@"access_token"];
 		} else {
 			[self _stoppedWithErrorString:NSLocalizedString(@"No authorization token", @"Simplenote-specific error")];
 		}
 	} else if (fetcher == changesFetcher) {
-		NSString *bodyString = [[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] autorelease];
+		NSString *bodyString = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
 		bodyString = [NSString stringWithFormat:@"{\"changes\":%@}", bodyString];
 		data = [bodyString dataUsingEncoding:NSUTF8StringEncoding];
 		
@@ -1115,9 +1101,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		
 		if ([fetcher statusCode] == 400 || [fetcher statusCode] == 401 || [fetcher statusCode] == 404) {
 			NSLog(@"changes fetcher error code: %ld", (long)[fetcher statusCode]);
-			[lastCV release];
 			lastCV = nil;
-			[changesFetcher release];
 			changesFetcher = nil;
 			return;
 		}
@@ -1152,7 +1136,6 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		[self _updateSyncTime];
 		[delegate syncSession:self receivedPartialNoteList:entries withRemovedList:removedEntries];
 		if ([entries count] || [removedEntries count]) {
-			[changesFetcher release];
 			changesFetcher = nil;
 		}
 
@@ -1194,7 +1177,6 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 			}
 		}
 
-		[lastErrorString release];
 		lastErrorString = nil;
 		
 		reachabilityFailed = NO;
@@ -1220,23 +1202,17 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		//we can no longer rely on the URL for listFetcher remaining constant,
 		//so we don't reuse it. (we could consider extending SyncResponseFetcher to support
 		//dynamic URLS instead)
-		[listFetcher release];
 		listFetcher = nil;
-		[indexMark release];
 		indexMark = [[responseDictionary objectForKey:@"mark"] copy];
 
 		//'current' stores the most recent change marker, if it's different between index page loads,
 		//we need to start over trying to fetch the index
 		if (lastCV && [lastCV isEqualToString:[responseDictionary objectForKey:@"current"]] == NO) {
 			//someone has made a change to notes since we started fetching index, start over
-			[indexEntryBuffer release];
 			indexEntryBuffer = nil;
-			[indexMark release];
 			indexMark = nil;
-			[lastCV release];
 			lastCV = nil;
 		}
-		[lastCV release];
 		lastCV = [[responseDictionary objectForKey:@"current"] copy];
 
 		if (indexMark || !indexEntryBuffer) {
@@ -1244,7 +1220,6 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		} else {
 			[self _updateSyncTime];
 			[delegate syncSession:self receivedFullNoteList:indexEntryBuffer];
-			[indexEntryBuffer release];
 			indexEntryBuffer = nil;
 		}
 	} else {
@@ -1264,22 +1239,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 	
 	[self invalidateReachabilityRefs];
 	
-	[queuedNoteInvocations release];
-	[notesBeingModified release];
-	[notesToSuppressPushing release];
-	[unsyncedServiceNotes release];
-	[emailAddress release];
-	[password release];
-	[simperiumToken release];
-	[indexMark release];
-	[lastCV release];
-	[indexEntryBuffer release];
-	[listFetcher release];
-	[loginFetcher release];
-	[collectorsInProgress release];
-	[lastErrorString release];
 	
-	[super dealloc];
 }
 
 @end

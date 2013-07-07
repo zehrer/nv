@@ -49,6 +49,7 @@
 #import "NoteAttributeColumn.h"
 #import "nvaDevConfig.h"
 #import "NSMutableOrderedSet+NVFiltering.h"
+#import <objc/message.h>
 
 inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	if (result < 0) return NSOrderedAscending;
@@ -245,7 +246,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		if (notesData) free(notesData);
 		return @(eofErr);
 	}
-	NSData *archivedNotation = [[[NSData alloc] initWithBytesNoCopy:notesData length:fileSize freeWhenDone:NO] autorelease];
+	NSData *archivedNotation = [[NSData alloc] initWithBytesNoCopy:notesData length:fileSize freeWhenDone:NO];
 	@try {
 		frozenNotation = [NSKeyedUnarchiver unarchiveObjectWithData:archivedNotation];
 	} @catch (NSException *e) {
@@ -254,7 +255,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		return @(kCoderErr);
 	}
 	//unpack notes using the current NotationPrefs instance (not the just-unarchived one), with which we presumably just used to encrypt it
-	NSMutableArray *notesToVerify = [[frozenNotation unpackedNotesWithPrefs:notationPrefs returningError:&err] retain];	
+	NSMutableArray *notesToVerify = [frozenNotation unpackedNotesWithPrefs:notationPrefs returningError:&err];	
 	if (noErr != err) {
 		if (notesData) free(notesData);
 		return @(err);
@@ -308,13 +309,11 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 			return kCoderErr;
 		}
 	
-		[archivedNotation release];
 	}
 	
 	
-	[notationPrefs release];
 	
-	if (!(notationPrefs = [frozenNotation.prefs retain]))
+	if (!(notationPrefs = frozenNotation.prefs))
 		notationPrefs = [[NotationPrefs alloc] init];
 	[notationPrefs setDelegate:self];
 
@@ -322,12 +321,11 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	//which will be used to determine which attr-mod-time to use for each note after decoding
 	[self initializeDiskUUIDIfNecessary];
 	
-	[allNotes release];
 	
 	syncSessionController = [[SyncSessionController alloc] initWithSyncDelegate:self notationPrefs:notationPrefs];
 	
 	//frozennotation will work out passwords, keychains, decryption, etc...
-	if (!(allNotes = [[frozenNotation unpackedNotesReturningError:&err] retain])) {
+	if (!(allNotes = [frozenNotation unpackedNotesReturningError:&err])) {
 		//notes could be nil because the user cancelled password authentication
 		//or because they were corrupted, or for some other reason
 		if (err != noErr)
@@ -338,8 +336,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		[allNotes makeObjectsPerformSelector:@selector(setDelegate:) withObject:self];
 	}
 	
-	[deletedNotes release];
-	if (!(deletedNotes = [[frozenNotation deletedNotes] retain]))
+	if (!(deletedNotes = [frozenNotation deletedNotes]))
 	    deletedNotes = [[NSMutableSet alloc] init];
 			
 	[prefsController setNotationPrefs:notationPrefs sender:self];
@@ -371,7 +368,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		//initialize the journal if necessary
 		if (!(walWriter = [[WALStorageController alloc] initWithParentFSRep:convertedPath encryptionKey:walSessionKey])) {
 			//journal file probably already exists, so try to recover it
-			WALRecoveryController *walReader = [[[WALRecoveryController alloc] initWithParentFSRep:convertedPath encryptionKey:walSessionKey] autorelease];
+			WALRecoveryController *walReader = [[WALRecoveryController alloc] initWithParentFSRep:convertedPath encryptionKey:walSessionKey];
 			if (walReader) {
                 
 #if !kUseCachesFolderForInterimNoteChanges
@@ -443,7 +440,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	void *objectPtr = NULL;
 	
 	while (NSNextMapEnumeratorPair(&enumerator, (void **)&objUUIDBytes, &objectPtr)) {
-		id<SynchronizedNote> obj = (id)objectPtr;
+		id<SynchronizedNote> obj = (__bridge id)objectPtr;
 		NSUInteger existingNoteIndex = [allNotes indexOfNoteWithUUIDBytes:objUUIDBytes];
 		
 		if ([obj isKindOfClass:[DeletedNoteObject class]]) {
@@ -498,7 +495,6 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		if (![walWriter destroyLogFile])
 			NSLog(@"couldn't remove wal file--is this an error for note flushing?");
 		
-		[walWriter release];
 		walWriter = nil;	
     }
 }
@@ -650,7 +646,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		if ([notationPrefs notesStorageFormat] != NVDatabaseFormatSingle) {
 			//to avoid mutation enumeration if writing this file triggers a filename change which then triggers another makeNoteDirty which then triggers another scheduleWriteForNote:
 			//loose-coupling? what?
-			[[[unwrittenNotes copy] autorelease] makeObjectsPerformSelector:@selector(writeUsingCurrentFileFormatIfNecessary)];
+			[[unwrittenNotes copy] makeObjectsPerformSelector:@selector(writeUsingCurrentFileFormatIfNecessary)];
 			
 			//this always seems to call ourselves
 			FNNotify(&noteDirectoryRef, kFNDirectoryModifiedMessage, kFNNoImplicitAllSubscription);
@@ -670,7 +666,6 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
     
     if (changeWritingTimer) {
 		[changeWritingTimer invalidate];
-		[changeWritingTimer release];
 		changeWritingTimer = nil;
     }
 }
@@ -816,7 +811,6 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 - (NoteObject*)addNoteFromCatalogEntry:(NoteCatalogEntry*)catEntry {
 	NoteObject *newNote = [[NoteObject alloc] initWithCatalogEntry:catEntry delegate:self];
 	[self _addNote:newNote];
-	[newNote release];
 	
 	[self schedulePushToAllSyncServicesForNote:newNote];
 	
@@ -940,7 +934,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		}
 	}
 	//NSLog(@"paths not found in DB: %@", unknownPaths);
-	NSArray *createdNotes = [[[[AlienNoteImporter alloc] initWithStoragePaths:unknownPaths] autorelease] importedNotes];
+	NSArray *createdNotes = [[[AlienNoteImporter alloc] initWithStoragePaths:unknownPaths] importedNotes];
 	if (!createdNotes) return NO;
 	
 	[self addNotes:createdNotes];
@@ -993,9 +987,9 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		
 		//always synchronize absolutely no matter what 15 seconds after any change
 		if (!changeWritingTimer)
-			changeWritingTimer = [[NSTimer scheduledTimerWithTimeInterval:(immediately ? 0.0 : 15.0) target:self 
+			changeWritingTimer = [NSTimer scheduledTimerWithTimeInterval:(immediately ? 0.0 : 15.0) target:self 
 									 selector:@selector(synchronizeNoteChanges:)
-									 userInfo:nil repeats:NO] retain];
+									 userInfo:nil repeats:NO];
 		
 		//next user change always invalidates queued write from performSelector, but not queued write from timer
 		//this avoids excessive writing and any potential and unnecessary disk access while user types
@@ -1046,7 +1040,6 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 - (void)removeNote:(NoteObject*)aNoteObject {
     //reset linking labels and their notes
     
-	[aNoteObject retain];
 	
 	[aNoteObject disconnectLabels];
 	[aNoteObject abortEditingInExternalEditor];
@@ -1084,7 +1077,6 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	//rebuild the prefix tree, as this note may have been a prefix of another, or vise versa
 	[self updateTitlePrefixConnections];
     
-    [aNoteObject release];
     
     [self refilterNotes];
 }
@@ -1137,8 +1129,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 
 
 - (void)setUndoManager:(NSUndoManager*)anUndoManager {
-    [undoManager autorelease];
-    undoManager = [anUndoManager retain];
+    undoManager = anUndoManager;
 }
 
 - (NSUndoManager*)undoManager {
@@ -1371,7 +1362,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 //O(n^2) at best, but at least we're dealing with C arrays
 
 - (NSIndexSet*)indexesOfNotes:(NSArray*)noteArray {
-	NSMutableIndexSet *noteIndexes = [[[NSMutableIndexSet alloc] init] autorelease];
+	NSMutableIndexSet *noteIndexes = [[NSMutableIndexSet alloc] init];
 	
 	[noteArray enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
 		NSUInteger noteIndex = [notesList indexOfObject:obj];
@@ -1380,7 +1371,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 			[noteIndexes addIndex:noteIndex];
 	}];
 	
-	return [[noteIndexes copy] autorelease];
+	return [noteIndexes copy];
 }
 
 - (NSUInteger)indexInFilteredListForNoteIdenticalTo:(NoteObject*)note {
@@ -1397,8 +1388,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 
 - (void)setSortColumn:(NoteAttributeColumn*)col { 
 	
-    [sortColumn release];
-	sortColumn = [col retain];
+	sortColumn = col;
 	
 	[self sortAndRedisplayNotes];
 }
@@ -1509,19 +1499,8 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
     if (sortedCatalogEntries)
 		free(sortedCatalogEntries);
 	
-    [undoManager release];
-	[syncSessionController release];
-	[deletionManager release];
-    [allNotes release];
-    [notesList release];
-	[deletedNotes release];
-	[notationPrefs release];
-	[unwrittenNotes release];
 	
-	[_allLabels release];
-	[_labelImages release];
     
-    [super dealloc];
 }
 	
 	
@@ -1553,23 +1532,23 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	
 - (NSArray*)labelTitlesPrefixedByString:(NSString*)prefixString indexOfSelectedItem:(NSInteger *)anIndex minusWordSet:(NSSet*)antiSet {
 	
-	NSMutableArray *objs = [[[self.allLabels allObjects] mutableCopy] autorelease];
+	NSMutableArray *objs = [[self.allLabels allObjects] mutableCopy];
 	NSMutableArray *titles = [NSMutableArray arrayWithCapacity:[self.allLabels count]];
 	
 	[objs sortWithOptions:NSSortConcurrent usingComparator:^(LabelObject *obj1, LabelObject *obj2) {
 		return [obj1.title caseInsensitiveCompare:obj2.title];
 	}];
 	
-	CFStringRef prefix = (CFStringRef)prefixString;
+	CFStringRef prefix = (__bridge CFStringRef)prefixString;
 	NSUInteger i, titleLen, j = 0, shortestTitleLen = UINT_MAX;
 	
 	for (i=0; i<[objs count]; i++) {
-		CFStringRef title = (CFStringRef)[(LabelObject*)[objs objectAtIndex:i] title];
+		CFStringRef title = (__bridge CFStringRef)[(LabelObject*)[objs objectAtIndex:i] title];
 		
 		if (CFStringFindWithOptions(title, prefix, CFRangeMake(0, CFStringGetLength(prefix)), kCFCompareAnchored | kCFCompareCaseInsensitive, NULL)) {
 			
-			if (![antiSet containsObject:(id)title]) {
-				[titles addObject:(id)title];
+			if (![antiSet containsObject:(__bridge id)title]) {
+				[titles addObject:(__bridge id)title];
 				if (anIndex && (titleLen = CFStringGetLength(title)) < shortestTitleLen) {
 					*anIndex = j;
 					shortestTitleLen = titleLen;
@@ -1619,7 +1598,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		
 		[img unlockFocus];
 		
-		[self.labelImages setObject:[img autorelease] forKey:imgKey];
+		[self.labelImages setObject:img forKey:imgKey];
 	}
 	return img;
 }

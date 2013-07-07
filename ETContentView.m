@@ -20,18 +20,13 @@
 //    return self;
 //}
 //
-- (void)dealloc
-{
-    [backColor release];
-    [super dealloc];
-}
 
 
 - (void)drawRect:(NSRect)dirtyRect
 {
 //    [super drawRect:dirtyRect];
     if (!backColor) {
-        backColor = [[[NSApp delegate] backgrndColor] retain];
+        backColor = [[NSApp delegate] backgrndColor];
     }
     [backColor set];
     NSRectFill([self bounds]);
@@ -39,16 +34,12 @@
 }
 
 - (void)setBackgroundColor:(NSColor *)inCol{
-    if (backColor) {
-        [backColor release];
-    }
     backColor = inCol;
-    [backColor retain];
 }
 
 - (NSColor *)backgroundColor{    
     if (!backColor) {
-        backColor = [[[NSApp delegate] backgrndColor] retain];
+        backColor = [[NSApp delegate] backgrndColor];
     }
     return backColor;
 }

@@ -46,7 +46,6 @@ static NSString *TempDirectoryPathForEditing();
 
 - (void)dealloc {
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
-	[super dealloc];
 }
 
 static BOOL MountPointExists(const char *expectedMountPath) {
@@ -87,8 +86,7 @@ static NSString *TempDirectoryPathForEditing() {
 		return;
 	}
 	
-	[notationPrefs release];
-	notationPrefs = [prefs retain];
+	notationPrefs = prefs;
 	
 	/*
 		single-DB with encryption: use a mounted RAM disk
@@ -130,7 +128,6 @@ static NSString *TempDirectoryPathForEditing() {
 	NSAssert(attachTask == nil, @"attachTask was already used!");
 	NSAssert(numberOfMegabytes > 0 && numberOfMegabytes < 100, @"unreasonable capacity requested");
 
-	[self retain];
 	[(attachTask = [NSTask new]) setLaunchPath:@"/usr/bin/hdiutil"];
 	[attachTask setArguments:[NSArray arrayWithObjects:@"attach", @"-nomount", @"-nobrowse", [NSString stringWithFormat:@"ram://%lu", (2 * 1024 * numberOfMegabytes)], nil]];
 	[attachTask setStandardOutput:[NSPipe pipe]];
@@ -141,7 +138,6 @@ static NSString *TempDirectoryPathForEditing() {
 	NSAssert(newfsTask == nil, @"newfsTask was already used!");
 	NSAssert(aDeviceName != nil, @"no device name passed");
 	
-	[self retain];
 	[(newfsTask = [NSTask new]) setLaunchPath:@"/sbin/newfs_hfs"];
 	[newfsTask setArguments:[NSArray arrayWithObjects:@"-v", [RAMDiskMountPath() lastPathComponent], aDeviceName, nil]];
 	[newfsTask launch];
@@ -151,7 +147,6 @@ static NSString *TempDirectoryPathForEditing() {
 	NSAssert(mountTask == nil, @"mountTask was already used!");
 	NSAssert(aDeviceName != nil, @"no device name passed");
 	
-	[self retain];
 	[(mountTask = [NSTask new]) setLaunchPath:@"/sbin/mount"];
 	[mountTask setArguments:[NSArray arrayWithObjects:@"-t", @"hfs", @"-o", @"nobrowse", aDeviceName, RAMDiskMountPath(), nil]];
 	[mountTask launch];
@@ -169,7 +164,7 @@ static NSString *TempDirectoryPathForEditing() {
 	//funnel for the success delegate method
 	
 	NSAssert(preparedCachePath == nil, @"preparedCachePath already set?");
-	preparedCachePath = [aPath retain];
+	preparedCachePath = aPath;
 	
 	startedPreparing = NO;
 	
@@ -211,7 +206,6 @@ static NSString *TempDirectoryPathForEditing() {
 		
 		if (task == attachTask || task == newfsTask || task == mountTask) {
 			//each launched task retains self, so as long as each task triggers this method, then each retain should be balanced with an autorelease
-			[self release];
 			
 			if ([task terminationStatus]) {
 				//assume an exit status of 0 means success
@@ -226,11 +220,17 @@ static NSString *TempDirectoryPathForEditing() {
 			
 			NSData	*outData = [[[attachTask standardOutput] fileHandleForReading] readDataToEndOfFile];
 			if (outData) {
-				NSString *outString = [[[NSString alloc] initWithData:outData encoding:NSUTF8StringEncoding] autorelease];
+				NSString *outString = [[NSString alloc] initWithData:outData encoding:NSUTF8StringEncoding];
+				NSString *deviceNameOut = nil;
 				
 				[[NSScanner scannerWithString:outString] scanUpToCharactersFromSet:
-				 [NSCharacterSet whitespaceAndNewlineCharacterSet] intoString:&deviceName];
-				if (!deviceName) deviceName = [outString retain];
+				 [NSCharacterSet whitespaceAndNewlineCharacterSet] intoString:&deviceNameOut];
+				
+				if (deviceNameOut) {
+					deviceName = [deviceNameOut copy];
+				} else {
+					deviceName = outString;
+				}
 			}
 			if (![deviceName length]) {
 				NSLog(@"couldn't get device name from hdiutil attach");

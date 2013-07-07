@@ -139,14 +139,14 @@
 	if (SecRandomCopyBytes(kSecRandomDefault, len, data.mutableBytes) != noErr) {
 		return nil;
 	}
-	return [[data copy] autorelease];
+	return [data copy];
 }
 
 - (NSData *)derivedKeyOfLength:(NSUInteger)len salt:(NSData *)salt iterations:(NSUInteger)count {
 	NSMutableData *derivedKey = [NSMutableData dataWithLength:len];
 	if (CCKeyDerivationPBKDF(kCCPBKDF2, self.bytes, self.length, salt.bytes, salt.length, kCCPRFHmacAlgSHA1, (unsigned int)count, derivedKey.mutableBytes, derivedKey.length) != kCCSuccess)
 		return nil;
-	return [[derivedKey copy] autorelease];
+	return [derivedKey copy];
 }
 
 - (unsigned long)CRC32 {
@@ -157,19 +157,19 @@
 - (NSData*)SHA1Digest {
 	NSMutableData *mutableData = [NSMutableData dataWithLength:CC_SHA1_DIGEST_LENGTH];
 	CC_SHA1(self.bytes, (CC_LONG)self.length, mutableData.mutableBytes);
-	return [[mutableData copy] autorelease];
+	return [mutableData copy];
 }
 
 - (NSData*)MD5Digest {
 	NSMutableData *digest = [NSMutableData dataWithLength:CC_MD5_DIGEST_LENGTH];
 	CC_MD5(self.bytes, (unsigned int)self.length, digest.mutableBytes);
-	return [[digest copy] autorelease];
+	return [digest copy];
 }
 
 
 - (NSString*)pathURLFromWebArchive {
 
-	WebResource *resource = [[[[WebArchive alloc] initWithData:self] autorelease] mainResource];
+	WebResource *resource = [[[WebArchive alloc] initWithData:self] mainResource];
 	NSURL *url = [resource URL];
 	
 	//it's not any kind of URL we want to keep
@@ -276,7 +276,7 @@
 		}
 		
 		
-		string = (NSMutableString*)CFStringCreateMutableWithExternalCharactersNoCopy(NULL, (UniChar *)u, (CFIndex)len/2, (CFIndex)len/2, kCFAllocatorDefault);
+		string = (__bridge_transfer NSMutableString*)CFStringCreateMutableWithExternalCharactersNoCopy(NULL, (UniChar *)u, (CFIndex)len/2, (CFIndex)len/2, NULL);
 		if (string)
 			*encoding = NSUnicodeStringEncoding;
 		return string;
@@ -295,14 +295,13 @@ static NSData *NVCreateDataByTransformingData(NSData *data, SecTransformRef(*tra
 		SecTransformRef coder = transformCreateFunction(type, &error);
 		
 		if (!error) {
-			SecTransformSetAttribute(coder, kSecTransformInputAttributeName, (CFDataRef)data, &error);
+			SecTransformSetAttribute(coder, kSecTransformInputAttributeName, (__bridge CFDataRef)data, &error);
 			if (!error) {
-				NSData *output = (NSData *)SecTransformExecute(coder, &error);
+				NSData *output = (__bridge_transfer NSData *)SecTransformExecute(coder, &error);
 				if (output) {
 					if (error) {
-						[output release];
 					} else {
-						outputData = [output autorelease];
+						outputData = output;
 					}
 				}
 			}
@@ -316,13 +315,13 @@ static NSData *NVCreateDataByTransformingData(NSData *data, SecTransformRef(*tra
 - (NSString *)nv_stringByBase64Decoding {
 	NSData *output = [self nv_dataByBase64Decoding];
 	if (!output || !output.length) return [NSString string];
-	return [[[NSString alloc] initWithData:output encoding:NSUTF8StringEncoding] autorelease];
+	return [[NSString alloc] initWithData:output encoding:NSUTF8StringEncoding];
 }
 
 - (NSString *)nv_stringByBase64Encoding {
 	NSData *output = [self nv_dataByBase64Encoding];
 	if (!output || !output.length) return [NSString string];
-	return [[[NSString alloc] initWithData:output encoding:NSUTF8StringEncoding] autorelease];
+	return [[NSString alloc] initWithData:output encoding:NSUTF8StringEncoding];
 }
 
 - (NSData *)nv_dataByBase64Encoding {

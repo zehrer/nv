@@ -207,12 +207,9 @@
 				NSAttributedString *titleDesc = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@" (%@)", aNote.titleString] attributes:grayAttrs];
 				[titleString appendAttributedString:titleDesc];
 				[item setAttributedTitle:titleString];
-				[titleDesc release];
-				[titleString release];
 				[item setRepresentedObject:urlString];
 				[item setTarget:[item representedObject]];
 				[urlsMenu addItem:item];
-				[item release];
 			}
 		}
 	}
