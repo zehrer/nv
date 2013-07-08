@@ -121,8 +121,6 @@ extern NSString * const kSimperiumAPIKey;
 - (void)_queueInvocation:(NSInvocation*)anInvocation forNote:(id<SynchronizedNote>)aNote;
 - (NSInvocation*)_popNextInvocationForNote:(id<SynchronizedNote>)aNote;;
 
-- (void)_modifyNotes:(NSArray*)notes withOperation:(SEL)opSEL;
-
 - (void)startCollectingAddedNotesWithEntries:(NSArray*)entries mergingWithNotes:(NSArray*)notesToMerge;
 - (void)startCollectingChangedNotesWithEntries:(NSArray*)entries;
 

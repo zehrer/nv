@@ -29,8 +29,6 @@
 	NSMutableArray *entriesCollected, *entriesInError;
 	NSUInteger entryFinishedCount;
 	NSString *simperiumToken;
-	SEL entriesFinishedCallback;
-	id collectionDelegate;
 	BOOL stopped;
 	SyncResponseFetcher *currentFetcher;
 	
@@ -50,7 +48,7 @@
 
 - (NSString*)localizedActionDescription;
 
-- (void)startCollectingWithCallback:(SEL)aSEL collectionDelegate:(id)aDelegate;
+- (void)startCollectingWithCompletion:(void(^)(SimplenoteEntryCollector *))block;
 
 - (SyncResponseFetcher*)fetcherForEntry:(id)anEntry;
 
@@ -61,16 +59,18 @@
 
 @end
 
-@interface SimplenoteEntryModifier : SimplenoteEntryCollector {
-	SEL fetcherOpSEL;
-}
+typedef NS_ENUM(NSInteger, SimplenoteEntryModifierMode) {
+	SimplenoteEntryModifierModeCreating,
+	SimplenoteEntryModifierModeUpdating,
+	SimplenoteEntryModifierModeDeleting
+};
 
+@interface SimplenoteEntryModifier : SimplenoteEntryCollector
 
-- (id)initWithEntries:(NSArray*)wantedEntries operation:(SEL)opSEL simperiumToken:(NSString*)aSimperiumToken;
+@property (nonatomic, readonly) SimplenoteEntryModifierMode mode;
 
-- (SyncResponseFetcher*)_fetcherForNote:(NoteObject*)aNote creator:(BOOL)doesCreate;
-- (SyncResponseFetcher*)fetcherForCreatingNote:(NoteObject*)aNote;
-- (SyncResponseFetcher*)fetcherForUpdatingNote:(NoteObject*)aNote;
-- (SyncResponseFetcher*)fetcherForDeletingNote:(DeletedNoteObject*)aDeletedNote;
+- (id)initWithEntries:(NSArray*)wantedEntries operation:(SimplenoteEntryModifierMode)mode simperiumToken:(NSString*)aSimperiumToken;
+
+- (void)startCollectingWithCompletion:(void(^)(SimplenoteEntryModifier *))block;
 
 @end

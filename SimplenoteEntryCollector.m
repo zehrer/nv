@@ -26,6 +26,12 @@
 #import "DeletedNoteObject.h"
 #import <objc/message.h>
 
+@interface SimplenoteEntryCollector ()
+
+@property (nonatomic, copy) void(^entriesFinishedBlock)(id);
+
+@end
+
 @implementation SimplenoteEntryCollector
 
 //instances this short-lived class are intended to be started only once, and then deallocated
@@ -109,13 +115,10 @@
 	return fetcher;
 }
 
-- (void)startCollectingWithCallback:(SEL)aSEL collectionDelegate:(id)aDelegate {
-	NSAssert([aDelegate respondsToSelector:aSEL], @"delegate doesn't respond!");
+- (void)startCollectingWithCompletion:(void (^)(SimplenoteEntryCollector *))block
+{
 	NSAssert(![self collectionStarted], @"collection already started!");
-	entriesFinishedCallback = aSEL;
-	collectionDelegate = aDelegate;
-	
-	
+	self.entriesFinishedBlock = block;
 	[(currentFetcher = [self fetcherForEntry:[entriesToCollect objectAtIndex:entryFinishedCount++]]) start];
 }
 
@@ -197,8 +200,9 @@
 		//no more entries to collect!
 		currentFetcher = nil;
 		
-#warning TODO - replace
-		objc_msgSend(collectionDelegate, entriesFinishedCallback, self);
+		if (self.entriesFinishedBlock) {
+			self.entriesFinishedBlock(self);
+		}
 	} else {
 		//queue next entry
 		[(currentFetcher = [self fetcherForEntry:[entriesToCollect objectAtIndex:entryFinishedCount++]]) start];
@@ -220,26 +224,38 @@
 //modification times dates are set in case the app has been out of connectivity for a long time
 //and to ensure we know what the time was for the next time we compare dates
 
-- (id)initWithEntries:(NSArray*)wantedEntries operation:(SEL)opSEL simperiumToken:(NSString *)aSimperiumToken {
+- (id)initWithEntries:(NSArray*)wantedEntries operation:(SimplenoteEntryModifierMode)mode simperiumToken:(NSString *)aSimperiumToken {
 	if ((self = [super initWithEntriesToCollect:wantedEntries simperiumToken:aSimperiumToken])) {
 		//set creation and modification date when creating
 		//set modification date when updating
 		//need to check for success when deleting
-		if (![self respondsToSelector:opSEL]) {
-			NSLog(@"%@ doesn't respond to %@", self, NSStringFromSelector(opSEL));
-			return nil;
-		}
-		fetcherOpSEL = opSEL;
+		_mode = mode;
 	}
 	return self;
 }
 
 - (SyncResponseFetcher*)fetcherForEntry:(id)anEntry {
-#warning TODO - replace
-	return objc_msgSend(self, fetcherOpSEL, anEntry);
+	switch (self.mode) {
+		case SimplenoteEntryModifierModeCreating:
+			return [self fetcherForCreatingNote:anEntry];
+			break;
+		case SimplenoteEntryModifierModeUpdating:
+			return [self fetcherForUpdatingNote:anEntry];
+			break;
+		case SimplenoteEntryModifierModeDeleting:
+			return [self fetcherForDeletingNote:anEntry];
+			break;
+	}
 }
 
-- (SyncResponseFetcher*)_fetcherForNote:(NoteObject*)aNote creator:(BOOL)doesCreate {
+- (void)startCollectingWithCompletion:(void (^)(SimplenoteEntryModifier *))block
+{
+	NSAssert(![self collectionStarted], @"collection already started!");
+	self.entriesFinishedBlock = block;
+	[(currentFetcher = [self fetcherForEntry:[entriesToCollect objectAtIndex:entryFinishedCount++]]) start];
+}
+
+- (SyncResponseFetcher*)fetcherForNote:(NoteObject*)aNote creator:(BOOL)doesCreate {
 	NSAssert([aNote isKindOfClass:[NoteObject class]], @"need a real note to create");
 	
 	//if we're creating a note, grab the metadata directly from the note object itself, as it will not have a syncServiceMD dict
@@ -297,11 +313,11 @@
 }
 
 - (SyncResponseFetcher*)fetcherForCreatingNote:(NoteObject*)aNote {
-	return [self _fetcherForNote:aNote creator:YES];
+	return [self fetcherForNote:aNote creator:YES];
 }
 
 - (SyncResponseFetcher*)fetcherForUpdatingNote:(NoteObject*)aNote {
-	return [self _fetcherForNote:aNote creator:NO];
+	return [self fetcherForNote:aNote creator:NO];
 }
 
 - (SyncResponseFetcher*)fetcherForDeletingNote:(DeletedNoteObject*)aDeletedNote {
@@ -332,9 +348,12 @@
 }
 
 - (NSString*)localizedActionDescription {
-	return (@selector(fetcherForCreatingNote:) == fetcherOpSEL ? NSLocalizedString(@"Creating", nil) :
-			(@selector(fetcherForUpdatingNote:) == fetcherOpSEL ? NSLocalizedString(@"Updating",nil) : 
-			 (@selector(fetcherForDeletingNote:) == fetcherOpSEL ? NSLocalizedString(@"Deleting", nil) : NSLocalizedString(@"Processing", nil)) ));
+	switch (self.mode) {
+		case SimplenoteEntryModifierModeCreating:	return NSLocalizedString(@"Creating", nil);
+		case SimplenoteEntryModifierModeDeleting:	return NSLocalizedString(@"Deleting", nil);
+		case SimplenoteEntryModifierModeUpdating:	return NSLocalizedString(@"Updating", nil);
+		default:									return NSLocalizedString(@"Processing", nil);
+	}
 }
 
 - (NSString*)statusText {
@@ -390,63 +409,70 @@
 		id <SynchronizedNote> aNote = [fetcher representedObject];
 		[result setObject:aNote forKey:@"NoteObject"];
 		
-		if (@selector(fetcherForCreatingNote:) == fetcherOpSEL) {
-			//these entries were created because no metadata had existed, thus we must give them metadata now,
-			//which SHOULD be the same metadata we used when creating the note, but in theory the note could have changed in the meantime
-			//in that case the newer modification date should later cause a resynchronization
-			
-			//we are giving this note metadata immediately instead of waiting for the SimplenoteSession delegate to do it during the final callback
-			//to reduce the possibility of duplicates in the case of interruptions (where we might have forgotten that we had already created this)
-			
-			NSAssert([aNote isKindOfClass:[NoteObject class]], @"received a non-noteobject from a fetcherForCreatingNote: operation!");
-			//don't need to store a separator for newly-created notes; when nil it is presumed the default separator
-			if (rawObject) {
-				[aNote setSyncObjectAndKeyMD:syncMD forService:SimplenoteServiceName];
-			}
-
-			[(NoteObject*)aNote makeNoteDirtyUpdateTime:NO updateFile:NO];
-		} else if (@selector(fetcherForDeletingNote:) == fetcherOpSEL) {
-			//this note has been successfully deleted, and can now have its Simplenote syncServiceMD entry removed 
-			//so that _purgeAlreadyDistributedDeletedNotes can remove it permanently once the deletion has been synced with all other registered services
-			NSAssert([aNote isKindOfClass:[DeletedNoteObject class]], @"received a non-deletednoteobject from a fetcherForDeletingNote: operation");
-			[aNote removeAllSyncMDForService:SimplenoteServiceName];
-		} else if (@selector(fetcherForUpdatingNote:) == fetcherOpSEL) {
-			// SN api2 can return a content key in an update response containing
-			// the merged changes from other clients....
-			if (rawObject) {
-				if ([rawObject objectForKey:@"content"]) {
-					NSUInteger bodyLoc = 0;
-					NSString *separator = nil;
-					NSString *combinedContent = [rawObject objectForKey:@"content"];
-					NSString *newTitle = [combinedContent syntheticTitleAndSeparatorWithContext:&separator bodyLoc:&bodyLoc oldTitle:[(NoteObject *)aNote titleString] maxTitleLen:60];
+		switch (self.mode) {
+			case SimplenoteEntryModifierModeCreating: {
+				//these entries were created because no metadata had existed, thus we must give them metadata now,
+				//which SHOULD be the same metadata we used when creating the note, but in theory the note could have changed in the meantime
+				//in that case the newer modification date should later cause a resynchronization
 				
-					[(NoteObject *)aNote updateWithSyncBody:[combinedContent substringFromIndex:bodyLoc] andTitle:newTitle];
+				//we are giving this note metadata immediately instead of waiting for the SimplenoteSession delegate to do it during the final callback
+				//to reduce the possibility of duplicates in the case of interruptions (where we might have forgotten that we had already created this)
+				
+				NSAssert([aNote isKindOfClass:[NoteObject class]], @"received a non-noteobject from a fetcherForCreatingNote: operation!");
+				//don't need to store a separator for newly-created notes; when nil it is presumed the default separator
+				if (rawObject) {
+					[aNote setSyncObjectAndKeyMD:syncMD forService:SimplenoteServiceName];
 				}
-			
-				// Tags may have been changed by another client...
-				NSSet *localTags = [NSSet setWithArray:[(NoteObject *)aNote orderedLabelTitles]];
-				NSSet *remoteTags = [NSSet setWithArray:[rawObject objectForKey:@"tags"]];
-				if (![localTags isEqualToSet:remoteTags]) {
-					NSLog(@"Updating tags with remote values.");
-					NSString *newLabelString = [[remoteTags allObjects] componentsJoinedByString:@" "];
-					[(NoteObject *)aNote setLabelString:newLabelString];
+				
+				[(NoteObject*)aNote makeNoteDirtyUpdateTime:NO updateFile:NO];
+				break;
+			}
+			case SimplenoteEntryModifierModeUpdating: {
+				// SN api2 can return a content key in an update response containing
+				// the merged changes from other clients....
+				if (rawObject) {
+					if ([rawObject objectForKey:@"content"]) {
+						NSUInteger bodyLoc = 0;
+						NSString *separator = nil;
+						NSString *combinedContent = [rawObject objectForKey:@"content"];
+						NSString *newTitle = [combinedContent syntheticTitleAndSeparatorWithContext:&separator bodyLoc:&bodyLoc oldTitle:[(NoteObject *)aNote titleString] maxTitleLen:60];
+						
+						[(NoteObject *)aNote updateWithSyncBody:[combinedContent substringFromIndex:bodyLoc] andTitle:newTitle];
+					}
+					
+					// Tags may have been changed by another client...
+					NSSet *localTags = [NSSet setWithArray:[(NoteObject *)aNote orderedLabelTitles]];
+					NSSet *remoteTags = [NSSet setWithArray:[rawObject objectForKey:@"tags"]];
+					if (![localTags isEqualToSet:remoteTags]) {
+						NSLog(@"Updating tags with remote values.");
+						NSString *newLabelString = [[remoteTags allObjects] componentsJoinedByString:@" "];
+						[(NoteObject *)aNote setLabelString:newLabelString];
+					}
 				}
+				NSNumber *originalVersion = [[[aNote syncServicesMD] objectForKey:SimplenoteServiceName] objectForKey:@"version"];
+				// There have been changes besides ours if the new version number is more than 1 from what we posted to
+				BOOL merged = (version - [originalVersion integerValue]) > 1 ? YES : NO;
+				[aNote setSyncObjectAndKeyMD:syncMD forService: SimplenoteServiceName];
+				
+				//NSLog(@"note update:\n %@", [aNote syncServicesMD]);
+				if (merged) {
+					[[[(NoteObject *)aNote delegate] delegate] contentsUpdatedForNote:aNote];
+				}
+				break;
 			}
-			NSNumber *originalVersion = [[[aNote syncServicesMD] objectForKey:SimplenoteServiceName] objectForKey:@"version"];
-			// There have been changes besides ours if the new version number is more than 1 from what we posted to
-			BOOL merged = (version - [originalVersion integerValue]) > 1 ? YES : NO;
-			[aNote setSyncObjectAndKeyMD:syncMD forService: SimplenoteServiceName];
-
-			//NSLog(@"note update:\n %@", [aNote syncServicesMD]);
-			if (merged) {
-				[[[(NoteObject *)aNote delegate] delegate] contentsUpdatedForNote:aNote];
+			case SimplenoteEntryModifierModeDeleting: {
+				//this note has been successfully deleted, and can now have its Simplenote syncServiceMD entry removed
+				//so that _purgeAlreadyDistributedDeletedNotes can remove it permanently once the deletion has been synced with all other registered services
+				NSAssert([aNote isKindOfClass:[DeletedNoteObject class]], @"received a non-deletednoteobject from a fetcherForDeletingNote: operation");
+				[aNote removeAllSyncMDForService:SimplenoteServiceName];
+				break;
 			}
-		} else {
-			NSLog(@"%@ called with unknown opSEL: %@", NSStringFromSelector(_cmd), NSStringFromSelector(fetcherOpSEL));
+				
+			default:
+				break;
 		}
-		
 	} else {
-		NSLog(@"Hmmm. Fetcher %@ doesn't have a represented object. op = %@", fetcher, NSStringFromSelector(fetcherOpSEL));
+		NSLog(@"Hmmm. Fetcher %@ doesn't have a represented object.", fetcher);
 	}
 	
 	if (keyString) [result setObject:keyString forKey:@"key"];

@@ -606,8 +606,14 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		[collector setRepresentedObject:notesToMerge];
 		[self _registerCollector:collector];
 		
-		[collector startCollectingWithCallback:[notesToMerge count] ? 
-		 @selector(addedEntriesToMergeCollectorDidFinish:) : @selector(addedEntryCollectorDidFinish:) collectionDelegate:self];
+		BOOL plural = ([notesToMerge count]);
+		[collector startCollectingWithCompletion:^(SimplenoteEntryCollector *coll) {
+			if (plural) {
+				[self addedEntriesToMergeCollectorDidFinish:coll];
+			} else {
+				[self addedEntryCollectorDidFinish:coll];
+			}
+		}];
 	}
 }
 
@@ -646,7 +652,9 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 	} else {
 		SimplenoteEntryCollector *collector = [[SimplenoteEntryCollector alloc] initWithEntriesToCollect:entries simperiumToken:simperiumToken];
 		[self _registerCollector:collector];
-		[collector startCollectingWithCallback:@selector(changedEntryCollectorDidFinish:) collectionDelegate:self];
+		[collector startCollectingWithCompletion:^(SimplenoteEntryCollector *coll) {
+			[self changedEntryCollectorDidFinish:coll];
+		}];
 	}
 }
 
@@ -928,17 +936,18 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 	//NSLog(@"queued invocation for note %@, yielding %@", aNote, invocations);
 }
 
-- (void)_modifyNotes:(NSArray*)notes withOperation:(SEL)opSEL {
+- (void)_modifyNotes:(NSArray *)notes withMode:(SimplenoteEntryModifierMode)mode
+{
 	if (![notes count]) {
 		//NSLog(@"not doing %s because no notes specified", opSEL);
 		return;
 	}
-
+	
 	[unsyncedServiceNotes minusSet:[NSSet setWithArray:notes]];
-
+	
 	if (![self _checkToken]) {
 		InvocationRecorder *invRecorder = [InvocationRecorder invocationRecorder];
-		[[invRecorder prepareWithInvocationTarget:self] _modifyNotes:notes withOperation:opSEL];
+		[[invRecorder prepareWithInvocationTarget:self] _modifyNotes:notes withMode:mode];
 		[[self loginFetcher] startWithSuccessInvocation:[invRecorder invocation]];
 	} else {
 		
@@ -951,15 +960,14 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		NSMutableSet *redundantNotes = [[NSMutableSet setWithArray:notes] setIntersectedWithSet:notesBeingModified];
 		
 		//a note does not need to be created more than once; check for this explicitly and don't re-queue those
-		if (@selector(fetcherForCreatingNote:) != opSEL) {
+		if (mode != SimplenoteEntryModifierModeCreating) {
 			NSEnumerator *enumerator = [redundantNotes objectEnumerator];
 			id <SynchronizedNote> noteToQueue = nil;
 			while ((noteToQueue = [enumerator nextObject])) {
 				InvocationRecorder *invRecorder = [InvocationRecorder invocationRecorder];
-				[[invRecorder prepareWithInvocationTarget:self] _modifyNotes:[NSArray arrayWithObject:noteToQueue] withOperation:opSEL];
+				[[invRecorder prepareWithInvocationTarget:self] _modifyNotes:[NSArray arrayWithObject:noteToQueue] withMode:mode];
 				[self _queueInvocation:[invRecorder invocation] forNote:noteToQueue];
 			}
-			
 		}
 		
 		//mark the notes we're about to process as being in progress
@@ -968,25 +976,65 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		if ([currentlyIdleNotes count]) {
 			//NSLog(@"%s(%@)", opSEL, currentlyIdleNotes);
 			//now actually start processing those notes
-			SimplenoteEntryModifier *modifier = [[SimplenoteEntryModifier alloc] initWithEntries:currentlyIdleNotes operation:opSEL simperiumToken:simperiumToken];
-			SEL callback = (@selector(fetcherForCreatingNote:) == opSEL ? @selector(entryCreatorDidFinish:) :
-							(@selector(fetcherForUpdatingNote:) == opSEL ? @selector(entryUpdaterDidFinish:) : 
-							(@selector(fetcherForDeletingNote:) == opSEL ? @selector(entryDeleterDidFinish:) : NULL) ));
+			SimplenoteEntryModifier *modifier = [[SimplenoteEntryModifier alloc] initWithEntries:currentlyIdleNotes operation:mode simperiumToken:simperiumToken];
+			/*SEL callback = (@selector(fetcherForCreatingNote:) == opSEL ? @selector(entryCreatorDidFinish:) :
+							(@selector(fetcherForUpdatingNote:) == opSEL ? @selector(entryUpdaterDidFinish:) :
+							 (@selector(fetcherForDeletingNote:) == opSEL ? @selector(entryDeleterDidFinish:) : NULL) ));*/
 			
 			[self _registerCollector:modifier];
-			[modifier startCollectingWithCallback:callback collectionDelegate:self];
+			[modifier startCollectingWithCompletion:^(SimplenoteEntryModifier *coll) {
+				switch (mode) {
+					case SimplenoteEntryModifierModeCreating: {
+						//our inserts have been remotely applied
+						//SimplenoteEntryModifier should have taken care of adding the metadata
+						[self _finishModificationsFromModifier:coll];
+						
+						break;
+					}
+					case SimplenoteEntryModifierModeUpdating: {
+						//our changes have been remotely applied
+						//mod times should already have been updated
+						
+						//if some of these updates resulted in a 404, then they were probably deleted off the iPhone.
+						//we could allow them to be re-created by removing their syncMD, but that would not handle the general two-way sync case
+						
+						[self _finishModificationsFromModifier:modifier];
+						break;
+					}
+					case SimplenoteEntryModifierModeDeleting: {
+						//SimplenoteEntryModifier should have taken care of removing the metadata for *successful* deletions
+						
+						//however if the deletion resulted in a 404, ASSUME that the error was from the web application and not the web server,
+						//and thus that the note wasn't deleted because it didn't need be, so these deleted notes should also have their syncserviceMD removed
+						//to avoid repeated unsuccessful attempts at deletion. if a deletednoteobject was improperly removed, at the worst it will return on the next sync,
+						//and the user will have another opportunity to remove the note
+						NSUInteger i = 0;
+						for (i = 0; i<[[modifier entriesInError] count]; i++) {
+							NSDictionary *info = [[modifier entriesInError] objectAtIndex:i];
+							if ([[info objectForKey:@"StatusCode"] intValue] == 404) {
+								NSAssert([[info objectForKey:@"NoteObject"] isKindOfClass:[DeletedNoteObject class]], @"a deleted note that generated an error is not actually a deleted note");
+								[[info objectForKey:@"NoteObject"] removeAllSyncMDForService:SimplenoteServiceName];
+							}
+						}
+						break;
+					}
+				}
+				
+				[self _finishModificationsFromModifier:modifier];
+			}];
 		}
 	}
+	
 }
 
 - (void)startCreatingNotes:(NSArray*)notes {
-	[self _modifyNotes:notes withOperation:@selector(fetcherForCreatingNote:)];
+	[self _modifyNotes:notes withMode:SimplenoteEntryModifierModeCreating];
 }
 - (void)startModifyingNotes:(NSArray*)notes {
-	[self _modifyNotes:notes withOperation:@selector(fetcherForUpdatingNote:)];	
+	[self _modifyNotes:notes withMode:SimplenoteEntryModifierModeUpdating];
 }
 - (void)startDeletingNotes:(NSArray*)notes {
-	[self _modifyNotes:notes withOperation:@selector(fetcherForDeletingNote:)];
+	[self _modifyNotes:notes withMode:SimplenoteEntryModifierModeDeleting];
 }
 
 - (void)_finishModificationsFromModifier:(SimplenoteEntryModifier *)modifier {
@@ -1011,22 +1059,6 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 	//in case the operation actually succeeded and the error occurred outside of the simplenote server
 	
 	if ([[modifier entriesCollected] count]) [delegate syncSessionDidFinishRemoteModifications:self];
-}
-
-- (void)entryCreatorDidFinish:(SimplenoteEntryModifier *)modifier {
-	//our inserts have been remotely applied
-	//SimplenoteEntryModifier should have taken care of adding the metadata
-	[self _finishModificationsFromModifier:modifier];
-}
-
-- (void)entryUpdaterDidFinish:(SimplenoteEntryModifier *)modifier {
-	//our changes have been remotely applied
-	//mod times should already have been updated
-	
-	//if some of these updates resulted in a 404, then they were probably deleted off the iPhone.
-	//we could allow them to be re-created by removing their syncMD, but that would not handle the general two-way sync case
-	
-	[self _finishModificationsFromModifier:modifier];
 }
 
 - (void)entryDeleterDidFinish:(SimplenoteEntryModifier *)modifier {
