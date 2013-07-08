@@ -175,16 +175,6 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
     return self;
 }
 
-- (id)delegate {
-	return delegate;
-}
-
-- (void)setDelegate:(id)theDelegate {
-	
-	delegate = theDelegate;
-
-}
-
 - (void)upgradeDatabaseIfNecessary {
 	if (![notationPrefs firstTimeUsed]) {
 		
@@ -558,18 +548,18 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
     //we can be static because the resulting action (exit) is global to the app
     static BOOL displayedAlert = NO;
     
-    if (delegate && !displayedAlert) {
-	//we already have a delegate, so this must be a result of the format or file changing after initialization
-	
-	displayedAlert = YES;
-	
-	[self flushAllNoteChanges];
-	
-	NSRunAlertPanel(NSLocalizedString(@"Unable to create or access the Interim Note-Changes file. Is another copy of Notational Velocity currently running?",nil), 
-			NSLocalizedString(@"Open Console in /Applications/Utilities/ for more information.",nil), NSLocalizedString(@"Quit",nil), NULL, NULL);
-	
-	
-	exit(1);
+    if (self.delegate && !displayedAlert) {
+		//we already have a delegate, so this must be a result of the format or file changing after initialization
+		
+		displayedAlert = YES;
+		
+		[self flushAllNoteChanges];
+		
+		NSRunAlertPanel(NSLocalizedString(@"Unable to create or access the Interim Note-Changes file. Is another copy of Notational Velocity currently running?",nil), 
+				NSLocalizedString(@"Open Console in /Applications/Utilities/ for more information.",nil), NSLocalizedString(@"Quit",nil), NULL, NULL);
+		
+		
+		exit(1);
     }
 }
 
@@ -815,8 +805,9 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
     
 	[self resortAllNotes];
     [self refilterNotes];
-    
-    [delegate notation:self revealNote:note options:NVEditNoteToReveal | NVOrderFrontWindow];	
+	
+    id <NotationControllerDelegate> delegate = self.delegate;
+    if (delegate) [delegate notation:self revealNote:note options:NVEditNoteToReveal | NVOrderFrontWindow];
 }
 
 //do not update the view here (why not?)
@@ -890,18 +881,23 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	[self resortAllNotes];
 	[self refilterNotes];
 	
-	if ([noteArray count] > 1)
-		[delegate notation:self revealNotes:noteArray];
-	else
-		[delegate notation:self revealNote:[noteArray lastObject] options:NVOrderFrontWindow];
+	id <NotationControllerDelegate> delegate = self.delegate;
+	if (delegate) {
+		if ([noteArray count] > 1)
+			[delegate notation:self revealNotes:noteArray];
+		else
+			[delegate notation:self revealNote:[noteArray lastObject] options:NVOrderFrontWindow];
+	}
 }
 
 - (void)note:(NoteObject*)note attributeChanged:(NVUIAttribute)attribute {
+	id <NotationControllerDelegate> delegate = self.delegate;
+	
 	if (attribute == NVUIAttributeNotePreview) {
 		if ([prefsController tableColumnsShowPreview]) {
 			NSUInteger idx = [self.filteredNotesList indexOfObject:note];
 			if (NSNotFound != idx) {
-				[delegate rowShouldUpdate:idx];
+				if (delegate) [delegate rowShouldUpdate:idx];
 			}
 		}
 		//this attribute is not displayed as a column
@@ -914,7 +910,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	
 	//special case for title requires this method, as app controller needs to know a few note-specific things
 	if (attribute == NVUIAttributeTitle) {
-		[delegate titleUpdatedForNote:note];
+		if (delegate) [delegate titleUpdatedForNote:note];
 		
 		//also update notationcontroller's psuedo-prefix tree for autocompletion
 		[self updateTitlePrefixConnections];
@@ -937,11 +933,13 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		[self synchronizeNotesFromDirectory];
 		
 		NSSet *existingNotes = [self notesWithFilenames:filenames unknownFiles:&unknownPaths];
+		id <NotationControllerDelegate> delegate = self.delegate;
+		
 		if ([existingNotes count] > 1) {
-			[delegate notation:self revealNotes:[existingNotes allObjects]];
+			if (delegate) [delegate notation:self revealNotes:[existingNotes allObjects]];
 			return YES;
 		} else if ([existingNotes count] == 1) {
-			[delegate notation:self revealNote:[existingNotes anyObject] options:NVEditNoteToReveal];
+			if (delegate) [delegate notation:self revealNote:[existingNotes anyObject] options:NVEditNoteToReveal];
 			return YES;
 		}
 	}
@@ -957,8 +955,10 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 
 
 - (void)scheduleUpdateListForAttribute:(NVUIAttribute)attribute {
+	id <NotationControllerDelegate> delegate = self.delegate;
+	
 	if (self.sortAttribute == attribute) {
-		if ([delegate notationListShouldChange:self]) {
+		if (delegate && [delegate notationListShouldChange:self]) {
 			[self sortAndRedisplayNotes];
 		} else {
 			[NSObject nv_performBlock:^{
@@ -969,7 +969,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		//catch col updates even if they aren't the sort key
 		
 		if ([prefsController visibleTableColumnsIncludes:attribute]) {
-			if ([delegate notationListShouldChange:self]) {
+			if (delegate && [delegate notationListShouldChange:self]) {
 				[delegate notationListMightChange:self];
 				[delegate notationListDidChange:self];
 			} else {
@@ -1155,12 +1155,13 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		lastCheckedDateInHours = currentHours;
 		lastLayoutStyleGenerated = (int)isHorizontalLayout;
 		
-		[delegate notationListMightChange:self];
+		id <NotationControllerDelegate> delegate = self.delegate;
+		if (delegate) [delegate notationListMightChange:self];
 		resetCurrentDayTime();
 		for (NoteObject *note in self.notesList) {
 			[note updateDateStrings];
 		}
-		[delegate notationListDidChange:self];
+		if (delegate) [delegate notationListDidChange:self];
 	}
 }
 
@@ -1235,10 +1236,11 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 }
 
 - (BOOL)filterNotesFromString:(NSString*)string {
+	id <NotationControllerDelegate> delegate = self.delegate;
 	
-	[delegate notationListMightChange:self];
+	if (delegate) [delegate notationListMightChange:self];
 	if ([self _filterNotesFromString:string]) {
-		[delegate notationListDidChange:self];
+		if (delegate) [delegate notationListDidChange:self];
 		
 		return YES;
 	}
@@ -1247,10 +1249,10 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 }
 
 - (void)refilterNotes {
-	
-    [delegate notationListMightChange:self];
+	id <NotationControllerDelegate> delegate = self.delegate;
+    if (delegate) [delegate notationListMightChange:self];
     [self _filterNotesFromString:(currentFilter ?: @"")];
-    [delegate notationListDidChange:self];
+    if (delegate) [delegate notationListDidChange:self];
 }
 	
 - (BOOL)_filterNotesFromString:(NSString *)string
@@ -1408,7 +1410,9 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 
 //re-sort without refiltering, to avoid removing notes currently being edited
 - (void)sortAndRedisplayNotes {
-	[delegate notationListMightChange:self];
+	id <NotationControllerDelegate> delegate = self.delegate;
+	
+	if (delegate) [delegate notationListMightChange:self];
 	
 	BOOL isStringSort = (self.sortAttribute == NVUIAttributeTitle);
 	BOOL reversed = [prefsController tableIsReverseSorted];
@@ -1434,7 +1438,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		[self.filteredNotesList unionOrderedSet:self.notesList];
 	}
 	
-	[delegate notationListDidChange:self];
+	if (delegate) [delegate notationListDidChange:self];
 }
 
 - (void)resortAllNotes {

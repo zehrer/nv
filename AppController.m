@@ -66,7 +66,7 @@ int ModFlagger;
 int popped;
 BOOL splitViewAwoke;
 
-@interface AppController () <NSToolbarDelegate, NSTableViewDelegate, NSWindowDelegate, NSTextFieldDelegate, NSTextViewDelegate>
+@interface AppController () <NSToolbarDelegate, NSTableViewDelegate, NSWindowDelegate, NSTextFieldDelegate, NSTextViewDelegate, NotationControllerDelegate>
 
 @end
 
@@ -1782,24 +1782,6 @@ void outletObjectAwoke(id sender) {
 	}
 }
 
-- (void)notation:(NotationController*)notation revealNote:(NoteObject*)note options:(NSUInteger)opts {
-	[self revealNote:note options:opts];
-}
-
-- (void)notation:(NotationController*)notation revealNotes:(NSArray*)notes {
-	
-	NSIndexSet *indexes = [notation indexesOfNotes:notes];
-	if ([notes count] != [indexes count]) {
-		[self cancelOperation:nil];
-		
-		indexes = [notation indexesOfNotes:notes];
-	}
-	if ([indexes count]) {
-		[notesTableView selectRowIndexes:indexes byExtendingSelection:NO];
-		[notesTableView scrollRowToVisible:[indexes firstIndex]];
-	}
-}
-
 - (void)searchForString:(NSString*)string {
 	
 	if (string) {
@@ -1920,95 +1902,6 @@ void outletObjectAwoke(id sender) {
 		//return [prefsController horizontalLayout] && currentNote != nil;
 	}
 	return NO;
-}
-
-
-//the notationcontroller must call notationListShouldChange: first
-//if it's going to do something that could mess up the tableview's field eidtor
-- (BOOL)notationListShouldChange:(NotationController*)someNotation {
-	
-	if (someNotation == notationController) {
-		if ([notesTableView currentEditor])
-			return NO;
-	}
-	
-	return YES;
-}
-
-- (void)notationListMightChange:(NotationController*)someNotation {
-	
-	if (!isFilteringFromTyping) {
-		if (someNotation == notationController) {
-			//deal with one notation at a time
-			
-			if ([notesTableView numberOfSelectedRows] > 0) {
-				NSIndexSet *indexSet = [notesTableView selectedRowIndexes];
-                
-				savedSelectedNotes = [someNotation notesAtIndexes:indexSet];
-			}
-			
-			listUpdateViewContext = [notesTableView viewingLocation];
-		}
-	}
-}
-
-- (void)notationListDidChange:(NotationController*)someNotation {
-	
-	if (someNotation == notationController) {
-		//deal with one notation at a time
-        
-		[notesTableView reloadData];
-		//[notesTableView noteNumberOfRowsChanged];
-		
-		if (!isFilteringFromTyping) {
-			if (savedSelectedNotes) {
-				NSIndexSet *indexes = [someNotation indexesOfNotes:savedSelectedNotes];
-				savedSelectedNotes = nil;
-				
-				[notesTableView selectRowIndexes:indexes byExtendingSelection:NO];
-			}
-			
-			[notesTableView setViewingLocation:listUpdateViewContext];
-		}
-	}
-}
-
-- (void)titleUpdatedForNote:(NoteObject*)aNoteObject {
-    if (aNoteObject == currentNote) {
-		NSString *string = currentNote.titleString;
-        if ([self dualFieldIsVisible]) {
-			[field setStringValue:string];
-		} else {
-			[window setTitle:string];
-		}
-    }
-	[[prefsController bookmarksController] updateBookmarksUI];
-}
-
-- (void)contentsUpdatedForNote:(NoteObject*)aNoteObject {
-	if (aNoteObject == currentNote) {
-		NSArray *selRanges=[textView selectedRanges];
-		[[textView textStorage] setAttributedString:[aNoteObject contentString]];
-        if (![selRanges isEqualToArray:[textView selectedRanges]]) {
-            NSRange testEnd=[[selRanges lastObject] rangeValue];
-            NSUInteger test=testEnd.location+testEnd.length;
-            
-            if (test<=[textView string].length) {
-                [textView setSelectedRanges:selRanges];
-            }
-        }
-		[self postTextUpdate];
-		[self updateWordCount:(![prefsController showWordCount])];
-	}
-}
-
-- (void)rowShouldUpdate:(NSInteger)affectedRow {
-	NSRect rowRect = [notesTableView rectOfRow:affectedRow];
-	NSRect visibleRect = [notesTableView visibleRect];
-	
-	if (NSContainsRect(visibleRect, rowRect) || NSIntersectsRect(visibleRect, rowRect)) {
-		[notesTableView setNeedsDisplayInRect:rowRect];
-	}
 }
 
 - (void)syncSessionsChangedVisibleStatus:(NSNotification*)aNotification {
@@ -3055,5 +2948,115 @@ void outletObjectAwoke(id sender) {
         }
         return returnArray;
     }
+
+
+
+#pragma mark - Notation Controller Delegate
+
+//the notationcontroller must call notationListShouldChange: first
+//if it's going to do something that could mess up the tableview's field eidtor
+- (BOOL)notationListShouldChange:(NotationController*)someNotation {
+	
+	if (someNotation == notationController) {
+		if ([notesTableView currentEditor])
+			return NO;
+	}
+	
+	return YES;
+}
+
+- (void)notationListMightChange:(NotationController*)someNotation {
+	
+	if (!isFilteringFromTyping) {
+		if (someNotation == notationController) {
+			//deal with one notation at a time
+			
+			if ([notesTableView numberOfSelectedRows] > 0) {
+				NSIndexSet *indexSet = [notesTableView selectedRowIndexes];
+                
+				savedSelectedNotes = [someNotation notesAtIndexes:indexSet];
+			}
+			
+			listUpdateViewContext = [notesTableView viewingLocation];
+		}
+	}
+}
+
+- (void)notationListDidChange:(NotationController*)someNotation {
+	
+	if (someNotation == notationController) {
+		//deal with one notation at a time
+        
+		[notesTableView reloadData];
+		//[notesTableView noteNumberOfRowsChanged];
+		
+		if (!isFilteringFromTyping) {
+			if (savedSelectedNotes) {
+				NSIndexSet *indexes = [someNotation indexesOfNotes:savedSelectedNotes];
+				savedSelectedNotes = nil;
+				
+				[notesTableView selectRowIndexes:indexes byExtendingSelection:NO];
+			}
+			
+			[notesTableView setViewingLocation:listUpdateViewContext];
+		}
+	}
+}
+
+- (void)notation:(NotationController*)notation revealNote:(NoteObject*)note options:(NSUInteger)opts {
+	[self revealNote:note options:opts];
+}
+
+- (void)notation:(NotationController*)notation revealNotes:(NSArray*)notes {
+	
+	NSIndexSet *indexes = [notation indexesOfNotes:notes];
+	if ([notes count] != [indexes count]) {
+		[self cancelOperation:nil];
+		
+		indexes = [notation indexesOfNotes:notes];
+	}
+	if ([indexes count]) {
+		[notesTableView selectRowIndexes:indexes byExtendingSelection:NO];
+		[notesTableView scrollRowToVisible:[indexes firstIndex]];
+	}
+}
+
+- (void)contentsUpdatedForNote:(NoteObject*)aNoteObject {
+	if (aNoteObject == currentNote) {
+		NSArray *selRanges=[textView selectedRanges];
+		[[textView textStorage] setAttributedString:[aNoteObject contentString]];
+        if (![selRanges isEqualToArray:[textView selectedRanges]]) {
+            NSRange testEnd=[[selRanges lastObject] rangeValue];
+            NSUInteger test=testEnd.location+testEnd.length;
+            
+            if (test<=[textView string].length) {
+                [textView setSelectedRanges:selRanges];
+            }
+        }
+		[self postTextUpdate];
+		[self updateWordCount:(![prefsController showWordCount])];
+	}
+}
+
+- (void)titleUpdatedForNote:(NoteObject*)aNoteObject {
+    if (aNoteObject == currentNote) {
+		NSString *string = currentNote.titleString;
+        if ([self dualFieldIsVisible]) {
+			[field setStringValue:string];
+		} else {
+			[window setTitle:string];
+		}
+    }
+	[[prefsController bookmarksController] updateBookmarksUI];
+}
+
+- (void)rowShouldUpdate:(NSInteger)affectedRow {
+	NSRect rowRect = [notesTableView rectOfRow:affectedRow];
+	NSRect visibleRect = [notesTableView visibleRect];
+	
+	if (NSContainsRect(visibleRect, rowRect) || NSIntersectsRect(visibleRect, rowRect)) {
+		[notesTableView setNeedsDisplayInRect:rowRect];
+	}
+}
     
-    @end
+@end

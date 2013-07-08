@@ -22,6 +22,17 @@
 
 #import <CoreServices/CoreServices.h>
 
+@class NoteObject;
+@class DeletedNoteObject;
+@class SyncSessionController;
+@class NotationPrefs;
+@class NoteAttributeColumn;
+@class NoteBookmark;
+@class DeletionManager;
+@class GlobalPrefs;
+
+@protocol NotationControllerDelegate;
+
 extern inline NSComparisonResult NVComparisonResult(NSInteger result);
 
 typedef struct _NoteCatalogEntry {
@@ -35,20 +46,10 @@ typedef struct _NoteCatalogEntry {
     UniCharCount filenameCharCount;
 } NoteCatalogEntry;
 
-@class NoteObject;
-@class DeletedNoteObject;
-@class SyncSessionController;
-@class NotationPrefs;
-@class NoteAttributeColumn;
-@class NoteBookmark;
-@class DeletionManager;
-@class GlobalPrefs;
-
 @interface NotationController : NSObject {
 	GlobalPrefs *prefsController;
 	SyncSessionController *syncSessionController;
 	DeletionManager *deletionManager;
-	id delegate;
 	
 	float titleColumnWidth;
     
@@ -110,8 +111,7 @@ typedef struct _NoteCatalogEntry {
 
 - (void)upgradeDatabaseIfNecessary;
 
-- (id)delegate;
-- (void)setDelegate:(id)theDelegate;
+@property (nonatomic, weak) id <NotationControllerDelegate> delegate;
 
 - (void)databaseEncryptionSettingsChanged;
 - (void)databaseSettingsChangedFromOldFormat:(NVDatabaseFormat)oldFormat;
@@ -186,7 +186,8 @@ typedef struct _NoteCatalogEntry {
 
 enum { NVDefaultReveal = 0, NVDoNotChangeScrollPosition = 1, NVOrderFrontWindow = 2, NVEditNoteToReveal = 4 };
 
-@interface NSObject (NotationControllerDelegate)
+@protocol NotationControllerDelegate <NSObject>
+
 - (BOOL)notationListShouldChange:(NotationController*)someNotation;
 - (void)notationListMightChange:(NotationController*)someNotation;
 - (void)notationListDidChange:(NotationController*)someNotation;

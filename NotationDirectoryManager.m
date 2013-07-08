@@ -333,7 +333,10 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t nu
 			
 			[self note:aNoteObject attributeChanged:NVUIAttributeNotePreview];
 			
-			[delegate contentsUpdatedForNote:aNoteObject];
+			if (self.delegate) {
+				id <NotationControllerDelegate> delegate = self.delegate;
+				[delegate contentsUpdatedForNote:aNoteObject];
+			}
 			
 			[NSObject nv_performBlock:^{
 				[self scheduleUpdateListForAttribute:NVUIAttributeDateModified];

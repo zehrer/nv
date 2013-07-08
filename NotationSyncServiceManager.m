@@ -107,10 +107,14 @@
 - (void)syncSession:(id <SyncServiceSession>)syncSession didModifyNotes:(NSArray*)changedNotes {
 	//update the list of notes and the views as necessary
 	notesChanged = YES;
-	NSUInteger i = 0;
-	for (i = 0; i<[changedNotes count]; i++) {
-		[delegate contentsUpdatedForNote:[changedNotes objectAtIndex:i]];
+
+	id <NotationControllerDelegate> delegate = self.delegate;
+	if (delegate) {
+		for (NoteObject *note in changedNotes) {
+			[delegate contentsUpdatedForNote:note];
+		}
 	}
+	
 	[self resortAllNotes];
 	[self refilterNotes];
 }
