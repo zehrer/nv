@@ -24,16 +24,10 @@
 - (id)initWithAttribute:(NVUIAttribute)attribute;
 - (id)initWithIdentifier:(NSString *)identifier NS_UNAVAILABLE;
 
+- (void)setIdentifier:(NSString *)identifier NS_UNAVAILABLE;
+@property (nonatomic) NVUIAttribute attribute;
+
 + (NSDictionary*)standardDictionary;
 - (void)updateWidthForHighlight;
-
-@property (nonatomic) id(*objectAttributeFunction)(id, id, NSInteger);
-
-@property (nonatomic, copy) NSComparisonResult(^comparator)(id, id);
-@property (nonatomic, copy) NSComparisonResult(^reverseComparator)(id, id);
-
-- (void)setIdentifier:(NSString *)identifier NS_UNAVAILABLE;
-
-@property (nonatomic) NVUIAttribute attribute;
 
 @end

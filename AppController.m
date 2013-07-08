@@ -505,7 +505,7 @@ void outletObjectAwoke(id sender) {
 		}
 		
 		notationController = newNotation;
-		[notationController setSortColumn:[notesTableView columnForAttribute:[prefsController sortedTableColumn]]];
+		notationController.sortAttribute = prefsController.sortedTableColumn;
 		[notesTableView setDataSource:notationController];
 		[notesTableView setLabelsListSource:notationController];
 		[notationController setDelegate:self];
@@ -950,22 +950,21 @@ void outletObjectAwoke(id sender) {
 			}
 		}
     } else if ([selectorString isEqualToString:SEL_STR(setSortedTableColumn:reversed:sender:)]) {
-		NoteAttributeColumn *oldSortCol = [notationController sortColumn];
-		NoteAttributeColumn *newSortCol = [notesTableView columnForAttribute:prefsController.sortedTableColumn];
-		BOOL changedColumns = oldSortCol != newSortCol;
+		NVUIAttribute oldAttr = notationController.sortAttribute;
+		NVUIAttribute newAttr = prefsController.sortedTableColumn;
+		BOOL changed = (oldAttr != newAttr);
 		
 		NVViewLocationContext *ctx = nil;
-		if (changedColumns) {
+		if (changed) {
 			ctx = [notesTableView viewingLocation];
 			ctx.pivotRowWasEdge = NO;
 		}
 		
-		[notationController setSortColumn:newSortCol];
+		notationController.sortAttribute = newAttr;
 		
-		if (changedColumns) {
+		if (changed) {
 			[notesTableView setViewingLocation:ctx];
 		}
-		
 	} else if ([selectorString isEqualToString:SEL_STR(setNoteBodyFont:sender:)]) {
 		
 		[notationController restyleAllNotes];

@@ -79,6 +79,8 @@ typedef NSRange NSRange32;
 @synthesize attrsModifiedDate = attrsModifiedDate;
 @synthesize prefixParentNotes = prefixParentNotes;
 @synthesize delegate = delegate;
+@synthesize modifiedDateString = dateModifiedString, createdDateString = dateCreatedString;
+@synthesize tableTitleString = tableTitleString;
 
 static FSRef *noteFileRefInit(NoteObject* obj);
 static void setAttrModifiedDate(NoteObject *note, UTCDateTime *dateTime);
@@ -236,48 +238,9 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 	return memcmp(otherBytes, &uniqueNoteIDBytes, sizeof(CFUUIDBytes)) == 0;
 }
 
-DefColAttrAccessor(titleOfNote2, titleString)
-DefColAttrAccessor(dateCreatedStringOfNote, dateCreatedString)
-DefColAttrAccessor(dateModifiedStringOfNote, dateModifiedString)
-
-force_inline id tableTitleOfNote(NotesTableView *tv, NoteObject *note, NSInteger row) {
-	return note->tableTitleString ?: note.titleString;
-}
-force_inline id properlyHighlightingTableTitleOfNote(NotesTableView *tv, NoteObject *note, NSInteger row) {
-	if (note->tableTitleString) {
-		if ([tv isRowSelected:row]) {
-			return [note->tableTitleString string];
-		}
-		return note->tableTitleString;
-	}
-	return note.titleString;
-}
-
-force_inline id labelColumnCellForNote(NotesTableView *tv, NoteObject *note, NSInteger row) {
-	LabelColumnCell *cell = [[tv tableColumnWithAttribute:NVUIAttributeLabels] dataCellForRow:row];
-	[cell setNoteObject:note];
-	return note.labelString;
-}
-
-force_inline id unifiedCellSingleLineForNote(NotesTableView *tv, NoteObject *note, NSInteger row) {
-	return tableTitleOfNote(tv, note, row);
-}
-
-force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteger row) {
-	//snow leopard is stricter about applying the default highlight-attributes (e.g., no shadow unless no paragraph formatting)
-	//so add the shadow here for snow leopard on selected rows
-	
-	UnifiedCell *cell = [[[tv tableColumns] objectAtIndex:0] dataCellForRow:row];
-	[cell setNoteObject:note];
-	[cell setPreviewIsHidden:NO];
-
-	BOOL rowSelected = [tv isRowSelected:row];
-	
-	id obj = note->tableTitleString ? (rowSelected ? (id)AttributedStringForSelection(note->tableTitleString, YES) :
-									   (id)note->tableTitleString) : note.titleString;
-	
-	
-	return obj;
+- (NSAttributedString *)tableTitleString
+{
+	return tableTitleString ?: [[NSAttributedString alloc] initWithString:self.titleString];
 }
 
 //make notationcontroller should send setDelegate: and setLabelString: (if necessary) to each note when unarchiving this way
@@ -1787,6 +1750,49 @@ BOOL noteTitleIsAPrefixOfOtherNoteTitle(NoteObject *longerNote, NoteObject *shor
 	CFUUIDBytes left = self.uniqueNoteIDBytes;
 	CFUUIDBytes right = other.uniqueNoteIDBytes;
 	return memcmp(&left, &right, sizeof(CFUUIDBytes));
+}
+
++ (NSComparisonResult(^)(id, id))comparatorForAttribute:(NVUIAttribute)attribute reversed:(BOOL)reversed
+{
+	if (reversed) {
+		switch (attribute) {
+			case NVUIAttributeLabels:
+				return ^(NoteObject *obj1, NoteObject *obj2){
+					return [obj2.labelString caseInsensitiveCompare:obj1.labelString];
+				};
+			case NVUIAttributeDateModified:
+				return ^(NoteObject *obj1, NoteObject *obj2){
+					return [obj2 compareModifiedDate:obj1];
+				};
+			case NVUIAttributeDateCreated:
+				return ^(NoteObject *obj1, NoteObject *obj2){
+					return [obj2 compareCreatedDate:obj1];
+				};
+			default:
+				return ^(NoteObject *obj1, NoteObject *obj2){
+					return [obj2 compare:obj1];
+				};
+		}
+	} else {
+		switch (attribute) {
+			case NVUIAttributeLabels:
+				return ^(NoteObject *obj1, NoteObject *obj2){
+					return [obj1.labelString caseInsensitiveCompare:obj2.labelString];
+				};
+			case NVUIAttributeDateModified:
+				return ^(NoteObject *obj1, NoteObject *obj2){
+					return [obj1 compareModifiedDate:obj2];
+				};
+			case NVUIAttributeDateCreated:
+				return ^(NoteObject *obj1, NoteObject *obj2){
+					return [obj1 compareCreatedDate:obj2];
+				};
+			default:
+				return ^(NoteObject *obj1, NoteObject *obj2){
+					return [obj1 compare:obj2];
+				};
+		}
+	}
 }
 
 @end

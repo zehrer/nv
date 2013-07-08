@@ -38,16 +38,12 @@ typedef struct _NoteFilterContext {
 } NoteFilterContext;
 
 @interface NoteObject : NSObject <NSCoding, SynchronizedNote> {
-	NSAttributedString *tableTitleString;
-	
 	//caching/searching purposes only -- created at runtime
 	char *cTitle, *cContents, *cLabels;
 	NSMutableSet *labelSet;
 	BOOL contentCacheNeedsUpdate;
 	//if this note's title is "Chicken Shack menu listing", its prefix parent might have the title "Chicken Shack"
 	
-//	NSString *wordCountString;
-	NSString *dateModifiedString, *dateCreatedString;
 	
 	__weak id delegate; //the notes controller
 	
@@ -77,23 +73,14 @@ typedef struct _NoteFilterContext {
 @property (nonatomic, copy) NSAttributedString *contentString;
 @property (nonatomic, copy, readonly) NSString *filename;
 @property (nonatomic, copy) NSString *titleString;
+@property (nonatomic, copy, readonly) NSAttributedString *tableTitleString;
 @property (nonatomic, copy) NSString *labelString;
 
 @property (nonatomic, assign) UTCDateTime *attrsModifiedDate;
 @property (nonatomic, strong) NSMutableArray *prefixParentNotes;
 
-#define DefColAttrAccessor(__FName, __IVar) force_inline id __FName(NotesTableView *tv, NoteObject *note, NSInteger row) { return note->__IVar; }
-
-	//return types are NSString or NSAttributedString, satisifying NSTableDataSource protocol otherwise
-	id titleOfNote2(NotesTableView *tv, NoteObject *note, NSInteger row);
-	id tableTitleOfNote(NotesTableView *tv, NoteObject *note, NSInteger row);
-	id properlyHighlightingTableTitleOfNote(NotesTableView *tv, NoteObject *note, NSInteger row);
-	id unifiedCellSingleLineForNote(NotesTableView *tv, NoteObject *note, NSInteger row);
-	id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteger row);
-	id labelColumnCellForNote(NotesTableView *tv, NoteObject *note, NSInteger row);
-	id dateCreatedStringOfNote(NotesTableView *tv, NoteObject *note, NSInteger row);
-	id dateModifiedStringOfNote(NotesTableView *tv, NoteObject *note, NSInteger row);
-	id wordCountOfNote(NotesTableView *tv, NoteObject *note, NSInteger row);
+@property (nonatomic, readonly) NSString *modifiedDateString;
+@property (nonatomic, readonly) NSString *createdDateString;
 
 	BOOL noteTitleHasPrefixOfUTF8String(NoteObject *note, const char* fullString, size_t stringLen);
 	BOOL noteTitleIsAPrefixOfOtherNoteTitle(NoteObject *longerNote, NoteObject *shorterNote);
@@ -185,6 +172,8 @@ typedef struct _NoteFilterContext {
 - (NSComparisonResult)compareCreatedDate:(NoteObject *)other;
 - (NSComparisonResult)compareModifiedDate:(NoteObject *)other;
 - (NSComparisonResult)compareUniqueNoteID:(NoteObject *)other;
+
++ (NSComparisonResult(^)(id, id))comparatorForAttribute:(NVUIAttribute)attribute reversed:(BOOL)reversed;
 
 @end
 

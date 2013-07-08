@@ -34,7 +34,7 @@
 	
 	BOOL viewMenusValid;
 	BOOL hadHighlightInForeground, hadHighlightInBackground;
-	BOOL shouldUseSecondaryHighlightColor, isActiveStyle;
+	BOOL shouldUseSecondaryHighlightColor;
 	BOOL lastEventActivatedTagEdit, wasDeleting, isAutocompleting;
 	
 	id labelsListSource;
@@ -67,9 +67,8 @@
 
 - (float)tableFontHeight;
 
-- (BOOL)isActiveStyle;
 - (void)setShouldUseSecondaryHighlightColor:(BOOL)value;
-- (void)_setActiveStyleState:(BOOL)activeStyle;
+@property (nonatomic, getter = isActiveStyle) BOOL activeStyle;
 - (void)updateTitleDereferencorState;
 
 - (void)reloadDataIfNotEditing;
@@ -88,7 +87,6 @@
 - (NSMenu *)defaultNoteCommandsMenuWithTarget:(id)target;
 - (NSMenu *)menuForColumnSorting;
 - (NSMenu *)menuForColumnConfiguration:(NSTableColumn *)inSelectedColumn;
-- (NoteAttributeColumn *)columnForIdentifier:(NSString *)identifier;
 - (NoteAttributeColumn *)columnForAttribute:(NVUIAttribute)attribute;
 - (NSInteger)columnWithAttribute:(NVUIAttribute)attribute;
 - (NoteAttributeColumn *)tableColumnWithAttribute:(NVUIAttribute)attribute;
@@ -101,8 +99,6 @@
 - (NSArray *)labelCompletionsForString:(NSString *)fieldString index:(NSInteger)index;
 - (BOOL)needsGridLines;
 - (void)updateGrid;
-
-- (void(^)(NoteObject *, id))attributeSetterForColumn:(NoteAttributeColumn *)col;
 
 @property (nonatomic, strong) NSColor *foregroundColor;
 

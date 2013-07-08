@@ -53,7 +53,6 @@ typedef struct _NoteCatalogEntry {
 	id delegate;
 	
 	float titleColumnWidth;
-	NoteAttributeColumn* sortColumn;
     
     NSUInteger selectedNoteIndex;
     NSString *currentFilter;
@@ -162,8 +161,7 @@ typedef struct _NoteCatalogEntry {
 - (NSUInteger)totalNoteCount;
 
 - (void)scheduleUpdateListForAttribute:(NVUIAttribute)attribute;
-- (NoteAttributeColumn*)sortColumn;
-- (void)setSortColumn:(NoteAttributeColumn*)col;
+@property (nonatomic) NVUIAttribute sortAttribute;
 - (void)resortAllNotes;
 - (void)sortAndRedisplayNotes;
 

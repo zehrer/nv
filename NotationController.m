@@ -50,6 +50,8 @@
 #import "nvaDevConfig.h"
 #import "NSMutableOrderedSet+NVFiltering.h"
 #import "NSObject+NVPerformBlock.h"
+#import "UnifiedCell.h"
+#import "LabelColumnCell.h"
 
 inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	if (result < 0) return NSOrderedAscending;
@@ -943,7 +945,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 
 
 - (void)scheduleUpdateListForAttribute:(NVUIAttribute)attribute {
-	if (sortColumn.attribute == attribute) {
+	if (self.sortAttribute == attribute) {
 		if ([delegate notationListShouldChange:self]) {
 			[self sortAndRedisplayNotes];
 		} else {
@@ -1373,71 +1375,54 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	return [allNotes count];
 }
 
-- (NoteAttributeColumn*)sortColumn {
-	return sortColumn;
-}
-
-- (void)setSortColumn:(NoteAttributeColumn*)col { 
-	
-	sortColumn = col;
-	
+- (void)setSortAttribute:(NVUIAttribute)sortAttribute
+{
+	_sortAttribute = sortAttribute;
 	[self sortAndRedisplayNotes];
 }
 
 //re-sort without refiltering, to avoid removing notes currently being edited
 - (void)sortAndRedisplayNotes {
-	
 	[delegate notationListMightChange:self];
 
-	NoteAttributeColumn *col = sortColumn;
-	if (col) {
-		BOOL isStringSort = (col.attribute == NVUIAttributeTitle);
-		BOOL reversed = [prefsController tableIsReverseSorted];
-		NSComparisonResult(^comparator)(id, id) = reversed ? col.reverseComparator : col.comparator;
-		
-		[allNotes sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:^(NoteObject *obj1, NoteObject *obj2) {
-			return reversed ? [obj2 compare:obj1] : [obj1 compare:obj2];
-		}];
+	BOOL isStringSort = (self.sortAttribute == NVUIAttributeTitle);
+	BOOL reversed = [prefsController tableIsReverseSorted];
+
+	NSComparisonResult(^defaultCtor)(id, id) = [NoteObject comparatorForAttribute:NVUIAttributeTitle reversed:reversed];
+	NSComparisonResult(^ctor)(id, id) = NULL;
+
+	[allNotes sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:defaultCtor];
+
+	if (!isStringSort) {
+		ctor = [NoteObject comparatorForAttribute:self.sortAttribute reversed:reversed];
+		[allNotes sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:ctor];
+	}
+
+	if ([notesList count] != [allNotes count]) {
+		[notesList sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:defaultCtor];
 		
 		if (!isStringSort) {
-			[allNotes sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:comparator];
+			[notesList sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:ctor];
 		}
-		
-		if ([notesList count] != [allNotes count]) {
-			[notesList sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:^(NoteObject *obj1, NoteObject *obj2) {
-				return reversed ? [obj2 compare:obj1] : [obj1 compare:obj2];
-			}];
-			
-			if (!isStringSort) {
-				[notesList sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:comparator];
-			}
-			
-		} else {
-			[notesList removeAllObjects];
-			[notesList addObjectsFromArray:allNotes];
-		}
-		
-		[delegate notationListDidChange:self];
+	} else {
+		[notesList removeAllObjects];
+		[notesList addObjectsFromArray:allNotes];
 	}
+
+	[delegate notationListDidChange:self];
 }
 
 - (void)resortAllNotes {
+	BOOL isStringSort = (self.sortAttribute == NVUIAttributeTitle);
+	BOOL reversed = [prefsController tableIsReverseSorted];
 	
-	NoteAttributeColumn *col = sortColumn;
+	NSComparisonResult(^defaultCtor)(id, id) = [NoteObject comparatorForAttribute:NVUIAttributeTitle reversed:reversed];
 	
-	if (col) {
-		BOOL reversed = [prefsController tableIsReverseSorted];
-		BOOL isStringSort = (col.attribute == NVUIAttributeTitle);
+	[allNotes sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:defaultCtor];
 
-		NSComparisonResult(^comparator)(id, id) = reversed ? col.reverseComparator : col.comparator;
-		
-		[allNotes sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:^(NoteObject *obj1, NoteObject *obj2) {
-			return reversed ? [obj2 compare:obj1] : [obj1 compare:obj2];
-		}];
-		
-		if (!isStringSort) {
-			[allNotes sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:comparator];
-		}
+	if (!isStringSort) {
+		NSComparisonResult(^ctor)(id, id) = [NoteObject comparatorForAttribute:self.sortAttribute reversed:reversed];
+		[allNotes sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:ctor];
 	}
 }
 
@@ -1596,17 +1581,55 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	
 #pragma mark - Data source
 
-- (void)tableView:(NSTableView *)aTableView setObjectValue:(id)anObject forTableColumn:(NoteAttributeColumn *)aTableColumn row:(NSInteger)rowIndex {
-	// allow the tableview to override the selector destination for this object value
-	void (^setter)(NoteObject *, id) = [(NotesTableView*)aTableView attributeSetterForColumn:aTableColumn];
+- (void)tableView:(NotesTableView *)tv setObjectValue:(id)value forTableColumn:(NoteAttributeColumn *)col row:(NSInteger)row {
+	NoteObject *note = notesList[row];
 	
-	if (setter) {
-		setter(notesList[rowIndex], anObject);
+	if (col.attribute == NVUIAttributeTitle) {
+		if (prefsController.horizontalLayout && tv.lastEventActivatedTagEdit) {
+			[note setLabelString:value];
+		} else {
+			[note setTitleString:value];
+		}
+	} else if (col.attribute == NVUIAttributeLabels) {
+		[note setLabelString:value];
 	}
 }
 	
-- (id)tableView:(NSTableView *)aTableView objectValueForTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex {
-	return ((NoteAttributeColumn *)aTableColumn).objectAttributeFunction(aTableView, notesList[rowIndex], rowIndex);
+- (id)tableView:(NotesTableView *)tv objectValueForTableColumn:(NoteAttributeColumn *)col row:(NSInteger)row {
+	NoteObject *note = notesList[row];
+
+	switch (col.attribute) {
+		case NVUIAttributeTitle: {
+			if (prefsController.horizontalLayout) {
+				if (prefsController.tableColumnsShowPreview) {
+					UnifiedCell *cell = [col dataCellForRow:row];
+					[cell setNoteObject:note];
+					[cell setPreviewIsHidden:NO];
+					return [tv isRowSelected:row] ? AttributedStringForSelection(note.tableTitleString, YES) : note.tableTitleString;
+				} else {
+					return note.tableTitleString;
+				}
+			} else {
+				if (prefsController.tableColumnsShowPreview) {
+					return (tv.activeStyle && [tv isRowSelected:row]) ? note.tableTitleString.string : note.tableTitleString;
+				} else {
+					return note.titleString;
+				}
+			}
+		}
+		case NVUIAttributeLabels: {
+			LabelColumnCell *cell = [col dataCellForRow:row];
+			[cell setNoteObject:note];
+			return note.labelString;
+		}
+		case NVUIAttributeDateModified: {
+			return note.modifiedDateString;
+		};
+		case NVUIAttributeDateCreated: {
+			return note.createdDateString;
+		};
+		default: return nil;
+	}
 }
 	
 - (NSInteger)numberOfRowsInTableView:(NSTableView *)aTableView {

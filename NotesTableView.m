@@ -40,22 +40,15 @@
 
 static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, SEL aSel, id target, NSInteger tag);
 
-@interface NotesTableView ()
-
-@property (nonatomic, copy) NSDictionary *columnAttributeSetters;
-
-@end
-
 @implementation NotesTableView
 
 //there's something wrong with this initialization under panther, I think
 - (id)initWithCoder:(NSCoder *)decoder {
     if ((self = [super initWithCoder:decoder])) {
-		
 		globalPrefs = [GlobalPrefs defaultPrefs];
       
-    userDefaults = [NSUserDefaults standardUserDefaults];
-    [userDefaults registerDefaults: [NSDictionary dictionaryWithObjectsAndKeys: [NSNumber numberWithBool: NO], @"UseCtrlForSwitchingNotes", nil]];
+		userDefaults = [NSUserDefaults standardUserDefaults];
+		[userDefaults registerDefaults: [NSDictionary dictionaryWithObjectsAndKeys: [NSNumber numberWithBool: NO], @"UseCtrlForSwitchingNotes", nil]];
       
 		loadStatusString = NSLocalizedString(@"Loading Notes...",nil);
 		loadStatusAttributes = [NSDictionary dictionaryWithObjectsAndKeys:
@@ -70,63 +63,25 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 		headerView = [[HeaderViewWithMenu alloc] init];
 		[headerView setTableView:self];
 		[headerView setFrame:[[self headerView] frame]];
-		//	cornerView = [[self cornerView] retain];
+
 		[self setCornerView:nil];
 		columns = [[NSMutableDictionary alloc] initWithCapacity:4];
 		
-		id (*titleReferencor)(id, id, NSInteger) = [globalPrefs horizontalLayout] ? 
-		([globalPrefs tableColumnsShowPreview] ? unifiedCellForNote : unifiedCellSingleLineForNote) :
-		([globalPrefs tableColumnsShowPreview] ? tableTitleOfNote : titleOfNote2);
-		
-		id (*colReferencors[])(id, id, NSInteger) = {titleReferencor, labelColumnCellForNote, dateModifiedStringOfNote, dateCreatedStringOfNote };
-		NSComparisonResult (^comparators[])(NoteObject *, NoteObject *) = {
-			^(NoteObject *obj1, NoteObject *obj2){
-				return [obj1 compare:obj2];
-			},
-			^(NoteObject *obj1, NoteObject *obj2){
-				return [obj1.labelString caseInsensitiveCompare:obj2.labelString];
-			},
-			^(NoteObject *obj1, NoteObject *obj2){
-				return [obj1 compareModifiedDate:obj2];
-			},
-			^(NoteObject *obj1, NoteObject *obj2){
-				return [obj1 compareCreatedDate:obj2];
-			}
-		};
-		
-		NSComparisonResult (^reverseComparators[])(NoteObject *, NoteObject *) = {
-			^(NoteObject *obj1, NoteObject *obj2){
-				return [obj2 compare:obj1];
-			},
-			^(NoteObject *obj1, NoteObject *obj2){
-				return [obj2.labelString caseInsensitiveCompare:obj1.labelString];
-			},
-			^(NoteObject *obj1, NoteObject *obj2){
-				return [obj2 compareModifiedDate:obj1];
-			},
-			^(NoteObject *obj1, NoteObject *obj2){
-				return [obj2 compareCreatedDate:obj1];
-			}
-		};
-		
-		for (NSUInteger i = 0; i < NVUIAttributeNotePreview; i++) {
-			NVUIAttribute type = i;
-			
+		NVUIAttributeEachColumn(^(NVUIAttribute type) {
 			NoteAttributeColumn *column = [[NoteAttributeColumn alloc] initWithAttribute:type];
 			
 			[column setEditable:(type == NVUIAttributeTitle || type == NVUIAttributeLabels)];
-			[column setHeaderCell:[[NotesTableHeaderCell alloc] initTextCell:NVUIAttributeLocalizedValue(type)]];
-			//[column.headerCell setStringValue:NVUIAttributeLocalizedValue(type)];
+			column.headerCell = [NotesTableHeaderCell new];
+			[column.headerCell setStringValue:NVUIAttributeLocalizedValue(type)];
+			column.resizingMask = (type == NVUIAttributeTitle ? NSTableColumnUserResizingMask | NSTableColumnAutoresizingMask : NSTableColumnUserResizingMask);
 			
-			column.objectAttributeFunction = colReferencors[i];
-			column.comparator = comparators[i];
-			column.reverseComparator = reverseComparators[i];
-			[column setResizingMask:NSTableColumnUserResizingMask];
+			if (type == NVUIAttributeLabels) {
+				column.dataCell = [LabelColumnCell new];
+			}
 			
 			columns[@(type)] = column;
-		}
+		});
 		
-		[[self columnForAttribute:NVUIAttributeLabels] setDataCell: [[LabelColumnCell alloc] init]];
 		[self _configureAttributesForCurrentLayout];
 		[self setAllowsColumnSelection:NO];
 		
@@ -135,9 +90,7 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 			[[self cornerView] setFrameOrigin:NSMakePoint(-1000,-1000)];
 			[self setCornerView:nil];
 		}
-		[self setHeaderView:hideHeader ? nil : headerView];
-		
-		[[self columnForAttribute:NVUIAttributeTitle] setResizingMask:NSTableColumnUserResizingMask | NSTableColumnAutoresizingMask];
+		[self setHeaderView:hideHeader ? nil : headerView];		
 		[self setColumnAutoresizingStyle:NSTableViewUniformColumnAutoresizingStyle];
     }
     return self;
@@ -226,23 +179,9 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 	return tableFontHeight;
 }
 
-- (BOOL)isActiveStyle {
-	return isActiveStyle;
-}
-
-- (void)_setActiveStyleState:(BOOL)activeStyle {
-	NoteAttributeColumn *col = [self columnForAttribute:NVUIAttributeTitle];
-#if SET_DUAL_HIGHLIGHTS
-	activeStyle = YES;
-#endif
-	isActiveStyle = activeStyle;
-	col.objectAttributeFunction = [globalPrefs horizontalLayout] ? ([globalPrefs tableColumnsShowPreview] ? unifiedCellForNote : unifiedCellSingleLineForNote) :
-	([globalPrefs tableColumnsShowPreview] ? (activeStyle ? properlyHighlightingTableTitleOfNote : tableTitleOfNote) : titleOfNote2);
-}
-
 - (void)updateTitleDereferencorState {
 	NSWindow *win = [self window];
-	[self _setActiveStyleState: [win isMainWindow] && ([win firstResponder] == self || [self currentEditor]) ];
+	self.activeStyle = [win isMainWindow] && ([win firstResponder] == self || [self currentEditor]) ;
    
 }
 
@@ -252,8 +191,8 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 	return [super becomeFirstResponder];
 }
 
-- (BOOL)resignFirstResponder {	
-	[self _setActiveStyleState:NO];
+- (BOOL)resignFirstResponder {
+	self.activeStyle = NO;
 	return [super resignFirstResponder];
 }
 
@@ -462,11 +401,6 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 	} else {
 		NSBeep();
 	}
-}
-
-
-- (NoteAttributeColumn *)columnForIdentifier:(NSString *)identifier {
-	return columns[@(NVUIAttributeForIdentifier(identifier))];
 }
 
 - (NoteAttributeColumn *)columnForAttribute:(NVUIAttribute)attribute {
@@ -1123,26 +1057,6 @@ enum { kNext_Tag = 'j', kPrev_Tag = 'k' };
 	}
 	
 	return NO;
-}
-
-- (void(^)(NoteObject *, id))attributeSetterForColumn:(NoteAttributeColumn *)col
-{
-	void (^labelSetter)(NoteObject *, id) = ^(NoteObject *note, id value){
-		[note setLabelString:value];
-	};
-	void (^titleSetter)(NoteObject *, id) = ^(NoteObject *note, id value){
-		[note setTitleString:value];
-	};
-	
-	if (col.attribute == NVUIAttributeTitle) {
-		if ([globalPrefs horizontalLayout]) {
-			return lastEventActivatedTagEdit ? labelSetter : titleSetter;
-		}
-		return titleSetter;
-	} else if (col.attribute == NVUIAttributeLabels) {
-		return labelSetter;
-	}
-	return NULL;
 }
 
 - (BOOL)columnIsLabelEditor:(NoteAttributeColumn *)col {

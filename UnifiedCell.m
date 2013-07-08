@@ -177,7 +177,7 @@ NSAttributedString *AttributedStringForSelection(NSAttributedString *str, BOOL w
 			showDateCreated = YES;
 		}
 		
-		NSString *dateStr = (showDateCreated ? dateCreatedStringOfNote : dateModifiedStringOfNote)(tv, noteObject, NSNotFound);
+		NSString *dateStr = showDateCreated ? noteObject.createdDateString : noteObject.modifiedDateString;
         CGFloat dateLength=70.0;
         if (dateStr.length>8) {
             dateLength+=(((CGFloat)dateStr.length-8.0)*2);
