@@ -35,11 +35,20 @@ NSString *PasswordWasRetrievedFromKeychainKey = @"PasswordRetrievedFromKeychain"
 NSString *RetrievedPasswordKey = @"RetrievedPassword";
 NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 
-@interface AlienNoteImporter (Private)
+typedef NS_ENUM(NSInteger, AlienNoteImporterMode) {
+	AlienNoteImporterModeNone,
+	AlienNoteImporterModePaths,
+	AlienNoteImporterModeDirectory,
+	AlienNoteImporterModeFile
+};
+
+@interface AlienNoteImporter ()
 - (NSArray*)_importStickies:(NSString*)filename;
 - (NSArray*)_importTSVFile:(NSString*)filename;
 - (NSArray*)_importCSVFile:(NSString*)filename;
 - (NSArray*)_importDelimitedFile:(NSString*)filename withDelimiter:(NSString*)delimiter;
+
+@property (nonatomic) AlienNoteImporterMode mode;
 @end
 
 @implementation AlienNoteImporter
@@ -77,7 +86,7 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 	
 	if ((self = [super init])) {
 		source = filenames;
-		importerSelector = @selector(notesWithPaths:);
+		self.mode = AlienNoteImporterModePaths;
 		[self sharedInit];
 	}
 	return self;
@@ -94,9 +103,9 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 		if ([[filename pathExtension] caseInsensitiveCompare:@"rtfd"] != NSOrderedSame &&
 			[[pathAttributes objectForKey:NSFileType] isEqualToString:NSFileTypeDirectory]) {
 			
-			importerSelector = @selector(notesInDirectory:);
+			self.mode = AlienNoteImporterModeDirectory;
 		} else {
-			importerSelector = @selector(notesInFile:);
+			self.mode = AlienNoteImporterModeFile;
 		}
 		
 		[self sharedInit];
@@ -216,39 +225,56 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 }
 
 - (NSArray*)importedNotes {
-#warning TODO - replace
-	if (!importerSelector) return nil;
-	return objc_msgSend(self, importerSelector, source);
+	switch (self.mode) {
+		case AlienNoteImporterModePaths:
+		{
+			if ([source isKindOfClass:[NSArray class]]) {
+				return [self notesWithPaths:source];
+			}
+			break;
+		}
+			
+		case AlienNoteImporterModeDirectory:
+		{
+			if ([source isKindOfClass:[NSString class]]) {
+				return [self notesInDirectory:source];
+			}
+			break;
+		}
+			
+		case AlienNoteImporterModeFile:
+		{
+			if ([source isKindOfClass:[NSString class]]) {
+				return [self notesInFile:source];
+			}
+			break;
+		}	
+		default: break;
+	}
+	return nil;
 }
 
 - (NSArray*)notesWithPaths:(NSArray*)paths {
-	if ([paths isKindOfClass:[NSArray class]]) {
+	NSMutableArray *array = [NSMutableArray array];
+	NSFileManager *fileMan = [NSFileManager defaultManager];
+	unsigned int i;
+	for (i=0; i<[paths count]; i++) {
+		NSString *path = [paths objectAtIndex:i];
+		NSArray *notes = nil;
 		
-		NSMutableArray *array = [NSMutableArray array];
-		NSFileManager *fileMan = [NSFileManager defaultManager];
-		unsigned int i;
-		for (i=0; i<[paths count]; i++) {
-			NSString *path = [paths objectAtIndex:i];
-			NSArray *notes = nil;
-			
-			NSDictionary *pathAttributes = [fileMan attributesOfItemAtPath:path error:NULL];
-			if ([[path pathExtension] caseInsensitiveCompare:@"rtfd"] != NSOrderedSame &&
-				[[pathAttributes objectForKey:NSFileType] isEqualToString:NSFileTypeDirectory]) {
-				notes = [self notesInDirectory:path];
-			} else {
-				notes = [self notesInFile:path];
-			}
-			
-			if (notes)
-				[array addObjectsFromArray:notes];
+		NSDictionary *pathAttributes = [fileMan attributesOfItemAtPath:path error:NULL];
+		if ([[path pathExtension] caseInsensitiveCompare:@"rtfd"] != NSOrderedSame &&
+			[[pathAttributes objectForKey:NSFileType] isEqualToString:NSFileTypeDirectory]) {
+			notes = [self notesInDirectory:path];
+		} else {
+			notes = [self notesInFile:path];
 		}
 		
-		return array;
-	} else {
-		NSLog(@"notesWithPaths: has the wrong kind of object!");
+		if (notes)
+			[array addObjectsFromArray:notes];
 	}
 	
-	return nil;
+	return array;
 }
 
 //auto-detect based on file type/extension/header
@@ -523,10 +549,6 @@ NSString *ShouldImportCreationDates = @"ShouldImportCreationDates";
 {
 	shouldUseReadability = value;
 }
-
-@end
-
-@implementation AlienNoteImporter (Private)
 
 - (NSArray*)_importStickies:(NSString*)filename {
 	NSMutableArray *stickyNotes = nil;

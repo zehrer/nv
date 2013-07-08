@@ -28,8 +28,6 @@ extern NSString *RetrievedPasswordKey;
 	IBOutlet NSButton *grabCreationDatesButton;
 	IBOutlet NSView *importAccessoryView;
 	
-	SEL importerSelector;
-	
 	//for URL downloading
 	id receptionDelegate;
 	
