@@ -38,11 +38,7 @@ typedef struct _NoteFilterContext {
 } NoteFilterContext;
 
 @interface NoteObject : NSObject <NSCoding, SynchronizedNote> {
-	//caching/searching purposes only -- created at runtime
-	char *cTitle, *cContents, *cLabels;
-	NSMutableSet *labelSet;
-	BOOL contentCacheNeedsUpdate;
-	//if this note's title is "Chicken Shack menu listing", its prefix parent might have the title "Chicken Shack"
+	NSMutableSet *labelSet; //if this note's title is "Chicken Shack menu listing", its prefix parent might have the title "Chicken Shack"
 	
 	
 	__weak id delegate; //the notes controller
@@ -63,7 +59,6 @@ typedef struct _NoteFilterContext {
 
 @property (nonatomic) CFAbsoluteTime modifiedDate;
 @property (nonatomic) CFAbsoluteTime createdDate;
-@property (nonatomic, readonly) BOOL contentsWere7Bit;
 @property (nonatomic, readonly) NVDatabaseFormat currentFormatID;
 @property (nonatomic, readonly) UInt32 logicalSize;
 @property (nonatomic, readonly) UInt32 nodeID;
@@ -81,9 +76,6 @@ typedef struct _NoteFilterContext {
 
 @property (nonatomic, readonly) NSString *modifiedDateString;
 @property (nonatomic, readonly) NSString *createdDateString;
-
-	BOOL noteTitleHasPrefixOfUTF8String(NoteObject *note, const char* fullString, size_t stringLen);
-	BOOL noteTitleIsAPrefixOfOtherNoteTitle(NoteObject *longerNote, NoteObject *shorterNote);
 
 @property (nonatomic, weak) id delegate;
 
@@ -147,8 +139,6 @@ typedef struct _NoteFilterContext {
 - (BOOL)_setTitleString:(NSString*)aNewTitle;
 - (void)setTitleString:(NSString*)aNewTitle;
 - (void)updateTablePreviewString;
-- (void)initContentCacheCString;
-- (void)updateContentCacheCStringIfNecessary;
 - (NSAttributedString*)printableStringRelativeToBodyFont:(NSFont*)bodyFont;
 - (NSString*)combinedContentWithContextSeparator:(NSString*)sepWContext;
 - (void)setForegroundTextColorOnly:(NSColor*)aColor;
@@ -174,6 +164,8 @@ typedef struct _NoteFilterContext {
 - (NSComparisonResult)compareUniqueNoteID:(NoteObject *)other;
 
 + (NSComparisonResult(^)(id, id))comparatorForAttribute:(NVUIAttribute)attribute reversed:(BOOL)reversed;
+
+- (BOOL)titleIsPrefixOfOtherNoteTitle:(NoteObject *)shorter;
 
 @end
 

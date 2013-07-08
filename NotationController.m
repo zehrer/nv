@@ -52,6 +52,7 @@
 #import "NSObject+NVPerformBlock.h"
 #import "UnifiedCell.h"
 #import "LabelColumnCell.h"
+#import "NSArray+NVFiltering.h"
 
 inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	if (result < 0) return NSOrderedAscending;
@@ -770,7 +771,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		j = i + 1;
 		do {
 			NoteObject *longerNote = [allNotesAlpha objectAtIndex:j];
-			if ((isAPrefix = noteTitleIsAPrefixOfOtherNoteTitle(longerNote, shorterNote))) {
+			if ((isAPrefix = [shorterNote titleIsPrefixOfOtherNoteTitle:longerNote])) {
 				[longerNote addPrefixParentNote:shorterNote];
 			}
 		} while (isAPrefix && ++j<count);
@@ -1320,23 +1321,28 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 }
 
 - (NSArray*)noteTitlesPrefixedByString:(NSString*)prefixString indexOfSelectedItem:(NSInteger *)anIndex {
-	NSMutableArray *objs = [NSMutableArray arrayWithCapacity:[allNotes count]];
-	const char *searchString = [prefixString lowercaseUTF8String];
-	NSUInteger i, titleLen, strLen = strlen(searchString), j = 0, shortestTitleLen = UINT_MAX;
-
-	for (i=0; i<[allNotes count]; i++) {
-		NoteObject *thisNote = [allNotes objectAtIndex:i];
-		if (noteTitleHasPrefixOfUTF8String(thisNote, searchString, strLen)) {
-			NSString *title = thisNote.titleString;
-			[objs addObject:title];
-			if (anIndex && (titleLen = title.length) < shortestTitleLen) {
-				*anIndex = j;
+	__block NSUInteger shortestTitleIndex = NSNotFound, shortestTitleLen = UINT_MAX;
+	void(^whileLocked)(id, NSUInteger) = NULL;
+	
+	if (anIndex) {
+		whileLocked = ^(NoteObject *obj, NSUInteger idx){
+			NSUInteger titleLen = obj.titleString.length;
+			if (titleLen < shortestTitleLen) {
+				shortestTitleIndex = idx;
 				shortestTitleLen = titleLen;
 			}
-			j++;
-		}
+		};
 	}
-	return objs;
+	
+	NSArray *result = [allNotes nv_stableFilteredArrayUsingBlock:^BOOL(NoteObject *obj) {
+		return [obj.titleString rangeOfString:prefixString options:NSAnchoredSearch|NSWidthInsensitiveSearch|NSCaseInsensitiveSearch].location != NSNotFound;
+	} whileLocked:whileLocked];
+	
+	if (anIndex) {
+		*anIndex = [result indexOfObjectIdenticalTo:allNotes[shortestTitleIndex]];
+	}
+	
+	return result;
 }
 
 - (NoteObject*)noteObjectAtFilteredIndex:(NSUInteger)noteIndex {
@@ -1384,20 +1390,20 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 //re-sort without refiltering, to avoid removing notes currently being edited
 - (void)sortAndRedisplayNotes {
 	[delegate notationListMightChange:self];
-
+	
 	BOOL isStringSort = (self.sortAttribute == NVUIAttributeTitle);
 	BOOL reversed = [prefsController tableIsReverseSorted];
-
+	
 	NSComparisonResult(^defaultCtor)(id, id) = [NoteObject comparatorForAttribute:NVUIAttributeTitle reversed:reversed];
 	NSComparisonResult(^ctor)(id, id) = NULL;
-
+	
 	[allNotes sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:defaultCtor];
-
+	
 	if (!isStringSort) {
 		ctor = [NoteObject comparatorForAttribute:self.sortAttribute reversed:reversed];
 		[allNotes sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:ctor];
 	}
-
+	
 	if ([notesList count] != [allNotes count]) {
 		[notesList sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:defaultCtor];
 		
@@ -1408,7 +1414,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		[notesList removeAllObjects];
 		[notesList addObjectsFromArray:allNotes];
 	}
-
+	
 	[delegate notationListDidChange:self];
 }
 
@@ -1419,7 +1425,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	NSComparisonResult(^defaultCtor)(id, id) = [NoteObject comparatorForAttribute:NVUIAttributeTitle reversed:reversed];
 	
 	[allNotes sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:defaultCtor];
-
+	
 	if (!isStringSort) {
 		NSComparisonResult(^ctor)(id, id) = [NoteObject comparatorForAttribute:self.sortAttribute reversed:reversed];
 		[allNotes sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:ctor];
@@ -1597,7 +1603,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	
 - (id)tableView:(NotesTableView *)tv objectValueForTableColumn:(NoteAttributeColumn *)col row:(NSInteger)row {
 	NoteObject *note = notesList[row];
-
+	
 	switch (col.attribute) {
 		case NVUIAttributeTitle: {
 			if (prefsController.horizontalLayout) {

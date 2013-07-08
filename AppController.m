@@ -631,8 +631,7 @@ void outletObjectAwoke(id sender) {
         
         
 	} else if (selector == @selector(fixFileEncoding:)) {
-		
-		return (currentNote != nil && currentNote.currentFormatID == NVDatabaseFormatPlain && ![currentNote contentsWere7Bit]);
+		return (currentNote != nil && currentNote.currentFormatID == NVDatabaseFormatPlain);
     } else if (selector == @selector(editNoteExternally:)) {
         return (numberSelected > 0) && [[menuItem representedObject] canEditAllNotes:[notationController notesAtIndexes:[notesTableView selectedRowIndexes]]];
 	}else if (selector == @selector(previewNoteWithMarked:)){
@@ -1268,11 +1267,7 @@ void outletObjectAwoke(id sender) {
 	BOOL wasAutomatic = NO;
 	NSRange currentRange = [textView selectedRangeWasAutomatic:&wasAutomatic];
 	if (!wasAutomatic) [currentNote setSelectedRange:currentRange];
-	
-	//regenerate content cache before switching to new note
-	[currentNote updateContentCacheCStringIfNecessary];
-	
-	
+		
 	currentNote = aNote;
 }
 
@@ -1665,23 +1660,6 @@ void outletObjectAwoke(id sender) {
 		NSLog(@"not textview should begin with to:%@",[aTextObject description]);
 	}
     return YES;    
-}
-
-/*
- - (void)controlTextDidBeginEditing:(NSNotification *)aNotification{
- NSLog(@"controltextdidbegin");
- }
-*/
-- (void)textDidEndEditing:(NSNotification *)aNotification {
-	if ([aNotification object] == textView) {
-		//save last selection range for currentNote?
-		//[currentNote setSelectedRange:[textView selectedRange]];
-		
-		//we need to set this here as we could return to searching before changing notes
-		//and the next time the note would change would be when searching had triggered it
-		//which would be too late
-		[currentNote updateContentCacheCStringIfNecessary];
-	}
 }
 
 - (NSMenu *)textView:(NSTextView *)view menu:(NSMenu *)menu forEvent:(NSEvent *)event atIndex:(NSUInteger)charIndex {
@@ -2109,9 +2087,7 @@ void outletObjectAwoke(id sender) {
 		BOOL wasAutomatic = NO;
 		NSRange currentRange = [textView selectedRangeWasAutomatic:&wasAutomatic];
 		if (!wasAutomatic) [currentNote setSelectedRange:currentRange];
-		
-		[currentNote updateContentCacheCStringIfNecessary];
-		
+				
 		[prefsController setLastSearchString:[self fieldSearchString] selectedNote:currentNote
 					scrollOffsetForTableView:notesTableView sender:self];
 		

@@ -64,7 +64,6 @@ typedef NSRange NSRange32;
 @implementation NoteObject
 
 @synthesize modifiedDate = modifiedDate, createdDate = createdDate;
-@synthesize contentsWere7Bit = contentsWere7Bit;
 @synthesize logSequenceNumber = logSequenceNumber;
 @synthesize currentFormatID = currentFormatID;
 @synthesize logicalSize = logicalSize;
@@ -111,14 +110,6 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid);
 	
 	if (perDiskInfoGroups)
 		free(perDiskInfoGroups);
-		
-	if (cTitle)
-		free(cTitle);
-	if (cContents)
-		free(cContents);
-	if (cLabels)
-	    free(cLabels);
-	
 }
 
 - (void)setDelegate:(id)theDelegate {
@@ -262,7 +253,6 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 			createdDate = [decoder decodeDoubleForKey:@keypath(self.createdDate)];
 			selectedRange.location = [decoder decodeInt32ForKey:@"selectionRangeLocation"];
 			selectedRange.length = [decoder decodeInt32ForKey:@"selectionRangeLength"];
-			contentsWere7Bit = [decoder decodeBoolForKey:@keypath(self.contentsWere7Bit)];
 			
 			logSequenceNumber = [decoder decodeInt32ForKey:@keypath(self.logSequenceNumber)];
 
@@ -346,13 +336,7 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 #endif
             selectedRange.location = range32.location;
             selectedRange.length = range32.length;
-			contentsWere7Bit = (*(unsigned int*)&scrolledProportion) != 0; //hacko wacko
 		}
-	
-		//re-created at runtime to save space
-		[self initContentCacheCString];
-		cTitle = titleString ? strdup([titleString lowercaseUTF8String]) : NULL;
-		cLabels = labelString ? strdup([labelString lowercaseUTF8String]) : NULL;
 		
 		dateCreatedString = [NSString relativeDateStringWithAbsoluteTime:createdDate];
 		dateModifiedString = [NSString relativeDateStringWithAbsoluteTime:modifiedDate];
@@ -370,7 +354,7 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 		[coder encodeDouble:createdDate forKey:@keypath(self.createdDate)];
 		[coder encodeInt32:(unsigned int)selectedRange.location forKey:@"selectionRangeLocation"];
 		[coder encodeInt32:(unsigned int)selectedRange.length forKey:@"selectionRangeLength"];
-		[coder encodeBool:contentsWere7Bit forKey:@keypath(self.contentsWere7Bit)];
+		[coder encodeBool:YES forKey:@"contentsWere7Bit"];
 		
 		[coder encodeInt32:logSequenceNumber forKey:@keypath(self.logSequenceNumber)];
         
@@ -399,7 +383,6 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 #if !__LP64__
 		unsigned int serverModifiedTime = 0;
 		float scrolledProportion = 0.0;
-		*(unsigned int*)&scrolledProportion = (unsigned int)contentsWere7Bit;
 #if DECODE_INDIVIDUALLY
 		[coder encodeValueOfObjCType:@encode(CFAbsoluteTime) at:&modifiedDate];
 		[coder encodeValueOfObjCType:@encode(CFAbsoluteTime) at:&createdDate];
@@ -442,18 +425,12 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 		delegate = aDelegate;
 
 		contentString = [[NSMutableAttributedString alloc] initWithAttributedString:bodyText];
-		[self initContentCacheCString];
-		if (!cContents) {
-			NSLog(@"couldn't get UTF8 string from contents?!?");
-			return nil;
-		}
-
+		
 		if (![self _setTitleString:aNoteTitle])
 		    titleString = NSLocalizedString(@"Untitled Note", @"Title of a nameless note");
 		
 		if (![self _setLabelString:aLabelString]) {
 			labelString = @"";
-			cLabels = strdup("");
 		}
 		
 		currentFormatID = formatID;
@@ -495,19 +472,11 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 			titleString = NSLocalizedString(@"Untitled Note", @"Title of a nameless note");
 		
 		labelString = @""; //set by updateFromCatalogEntry if there are openmeta extended attributes 
-		cLabels = strdup("");	
 				
 		contentString = [[NSMutableAttributedString alloc] initWithString:@""];
-		[self initContentCacheCString];
 		
-		if (![self updateFromCatalogEntry:entry]) {						
-			//just initialize a blank note for now; if the file becomes readable again we'll be updated
-			//but if we make modifications, well, the original is toast
-			//so warn the user here and offer to trash it?
-			//perhaps also offer to re-interpret using another text encoding?
-			
-			//additionally, it is possible that the file was deleted before we could read it
-		}
+		[self updateFromCatalogEntry:entry];
+		
 		if (!modifiedDate || !createdDate) {
 			modifiedDate = createdDate = CFAbsoluteTimeGetCurrent();
 			dateModifiedString = dateCreatedString = [NSString relativeDateStringWithAbsoluteTime:createdDate];	
@@ -529,8 +498,6 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 		[contentString setAttributedString:attributedString];
 		
 		[self updateTablePreviewString];
-		contentCacheNeedsUpdate = YES;
-		//[self updateContentCacheCStringIfNecessary];
 		
 		[delegate note:self attributeChanged:NVUIAttributeNotePreview];
 	
@@ -539,40 +506,6 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 }
 - (NSAttributedString*)contentString {
 	return [contentString copy];
-}
-
-- (void)updateContentCacheCStringIfNecessary {
-	if (contentCacheNeedsUpdate) {
-		//NSLog(@"updating ccache strs");
-		cContents = replaceString(cContents, [[contentString string] lowercaseUTF8String]);
-		contentCacheNeedsUpdate = NO;
-		
-		NSUInteger len = strlen(cContents);
-		contentsWere7Bit = !(ContainsHighAscii(cContents, len));
-	}
-}
-
-- (void)initContentCacheCString {
-
-	if (contentsWere7Bit) {
-		if (!(cContents = [[contentString string] copyLowercaseASCIIString]))
-			contentsWere7Bit = NO;
-	}
-	
-	size_t len = -1;
-	
-	if (!contentsWere7Bit) {
-		const char *cStringData = [[contentString string] lowercaseUTF8String];
-		cContents = cStringData ? strdup(cStringData) : NULL;
-		
-		contentsWere7Bit = cContents ? !(ContainsHighAscii(cContents, (len = strlen(cContents)))) : NO;
-	}
-	
-	contentCacheNeedsUpdate = NO;
-}
-
-- (BOOL)contentsWere7Bit {
-	return contentsWere7Bit;
 }
 
 - (NSString*)description {
@@ -660,8 +593,6 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 		//solution: don't change the name in that case and allow its new name to be generated
 		//when the format is changed and the file rewritten?
 		
-		
-		
 		//however, the filename is used for exporting and potentially other purposes, so we should also update
 		//it if we know that is has no currently existing (older) counterpart in the notes directory
 		
@@ -680,23 +611,15 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 		
 		[self updateTablePreviewString];
 		
-		/*NSUndoManager *undoMan = [delegate undoManager];
-		[undoMan registerUndoWithTarget:self selector:@selector(setTitleString:) object:oldTitle];
-		if (![undoMan isUndoing] && ![undoMan isRedoing])
-			[undoMan setActionName:[NSString stringWithFormat:@"Rename Note \"%@\"", titleString]];
-		*/
-		
 		[delegate note:self attributeChanged:NVUIAttributeTitle];
     }
 }
 
 - (BOOL)_setTitleString:(NSString*)aNewTitle {
     if (!aNewTitle || ![aNewTitle length] || (titleString && [aNewTitle isEqualToString:titleString]))
-	return NO;
+		return NO;
 
     titleString = [aNewTitle copy];
-    
-    cTitle = replaceString(cTitle, [titleString lowercaseUTF8String]);
     
     return YES;
 }
@@ -870,8 +793,6 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 	if (newLabelString && ![newLabelString isEqualToString:labelString]) {
 		
 		labelString = [newLabelString copy];
-		
-		cLabels = replaceString(cLabels, [labelString lowercaseUTF8String]);
 		
 		[self updateLabelConnections];
 		return YES;
@@ -1233,8 +1154,8 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 	if (NSUTF8StringEncoding != fileEncoding) {
 		[self _setFileEncoding:NSUTF8StringEncoding];
 		
-		if (!contentsWere7Bit && currentFormatID == NVDatabaseFormatPlain) {
-			//this note exists on disk as a plaintext file, and its encoding is incompatible with UTF-8
+		if (currentFormatID == NVDatabaseFormatPlain) {
+			// this note exists on disk as a plaintext file, and its encoding is incompatible with UTF-8
 			
 			if ([delegate currentNoteStorageFormat] == NVDatabaseFormatPlain) {
 				//actual conversion is expected because notes are presently being maintained as plain text files
@@ -1242,7 +1163,7 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 				NSLog(@"rewriting %@ as utf8 data", titleString);
 				didUpgrade = [self writeUsingCurrentFileFormat];
 			} else if ([delegate currentNoteStorageFormat] == NVDatabaseFormatSingle) {
-				//update last-written-filemod time to guarantee proper encoding at next DB storage format switch, 
+				//update last-written-filemod time to guarantee proper encoding at next DB storage format switch,
 				//in case this note isn't otherwise modified before that happens.
 				//a side effect is that if the user switches to an RTF or HTML format,
 				//this note will be written immediately instead of lazily upon the next modification
@@ -1424,9 +1345,6 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 	[contentString santizeForeignStylesForImporting];
 	//NSLog(@"%s(%@): %@", _cmd, [self noteFilePath], [contentString string]);
 	
-	//[contentString setAttributedString:attributedStringFromData];
-	contentCacheNeedsUpdate = YES;
-    [self updateContentCacheCStringIfNecessary];
 	[undoManager removeAllActions];
 	
 	[self updateTablePreviewString];
@@ -1447,7 +1365,6 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 	[self setContentString:attributedBodyString updateTime:NO];
 
 	//actions that user-editing via AppDelegate would have handled for us:
-    [self updateContentCacheCStringIfNecessary];
 	[undoManager removeAllActions];
 
 	[self setTitleString:newTitle];
@@ -1641,7 +1558,6 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 	//opts indicate forwards or backwards, inRange allows us to continue from where we left off
 	//return location of NSNotFound and length 0 if none of the words could be found inRange
 	
-	//an optimization would be to fall back on cached cString if contentsWere7Bit is true, but then we have to handle opts ourselves
 	unsigned int i;
 	NSString *haystack = [contentString string];
 	NSRange nextRange = NSMakeRange(NSNotFound, 0);
@@ -1655,13 +1571,6 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 	}
 
 	return nextRange;
-}
-
-BOOL noteTitleHasPrefixOfUTF8String(NoteObject *note, const char* fullString, size_t stringLen) {
-	return !strncmp(note->cTitle, fullString, stringLen);
-}
-BOOL noteTitleIsAPrefixOfOtherNoteTitle(NoteObject *longerNote, NoteObject *shorterNote) {
-	return !strncmp(longerNote->cTitle, shorterNote->cTitle, strlen(shorterNote->cTitle));
 }
 
 - (void)addPrefixParentNote:(NoteObject*)aNote {
@@ -1678,22 +1587,6 @@ BOOL noteTitleIsAPrefixOfOtherNoteTitle(NoteObject *longerNote, NoteObject *shor
 - (NSSet*)labelSet {
     return labelSet;
 }
-
-/*
-- (CFArrayRef)rangesForWords:(NSString*)string inRange:(NSRange)rangeLimit {
-	//use cstring caches if note is all 7-bit, as we [REALLY OUGHT TO] be able to assume a 1-to-1 character mapping
-	
-	if (contentsWere7Bit) {
-		char *manglingString = strdup([string UTF8String]);
-		char *token, *separators = separatorsForCString(manglingString);
-		
-		while ((token = strsep(&manglingString, separators))) {
-			if (*token != '\0') {
-				//find all occurrences of token in cContents and add cfranges to cfmutablearray
-			}
-		}
-	}
-}*/
 
 - (NSUndoManager*)undoManager {
     if (!undoManager) {
@@ -1750,6 +1643,11 @@ BOOL noteTitleIsAPrefixOfOtherNoteTitle(NoteObject *longerNote, NoteObject *shor
 	CFUUIDBytes left = self.uniqueNoteIDBytes;
 	CFUUIDBytes right = other.uniqueNoteIDBytes;
 	return memcmp(&left, &right, sizeof(CFUUIDBytes));
+}
+
+- (BOOL)titleIsPrefixOfOtherNoteTitle:(NoteObject *)longer
+{
+	return [self.titleString rangeOfString:longer.titleString options:NSAnchoredSearch|NSDiacriticInsensitiveSearch|NSCaseInsensitiveSearch].location != NSNotFound;
 }
 
 + (NSComparisonResult(^)(id, id))comparatorForAttribute:(NVUIAttribute)attribute reversed:(BOOL)reversed
