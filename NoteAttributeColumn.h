@@ -18,7 +18,6 @@
 
 
 @interface NoteAttributeColumn : NSTableColumn {
-	SEL mutateObjectSelector;
 	float absoluteMinimumWidth;
 }
 
@@ -26,7 +25,6 @@
 - (void)updateWidthForHighlight;
 
 @property (nonatomic) id(*objectAttributeFunction)(id, id, NSInteger);
-@property (nonatomic) SEL columnAttributeMutator;
 
 @property (nonatomic, copy) NSComparisonResult(^comparator)(id, id);
 @property (nonatomic, copy) NSComparisonResult(^reverseComparator)(id, id);

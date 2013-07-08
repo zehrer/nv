@@ -40,6 +40,12 @@
 
 static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, SEL aSel, id target, NSInteger tag);
 
+@interface NotesTableView ()
+
+@property (nonatomic, copy) NSDictionary *columnAttributeSetters;
+
+@end
+
 @implementation NotesTableView
 
 //there's something wrong with this initialization under panther, I think
@@ -116,7 +122,6 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 			[column setHeaderCell:[[NotesTableHeaderCell alloc] initTextCell:[[NSBundle mainBundle] localizedStringForKey:colStrings[i] value:@"" table:nil]]];
 			//[column.headerCell setStringValue:[[NSBundle mainBundle] localizedStringForKey:colStrings[i] value:@"" table:nil]];
 			
-			column.columnAttributeMutator = colMutators[i];
 			column.objectAttributeFunction = colReferencors[i];
 			column.comparator = comparators[i];
 			column.reverseComparator = reverseComparators[i];
@@ -1154,11 +1159,32 @@ enum { kNext_Tag = 'j', kPrev_Tag = 'k' };
 	return NO;
 }
 
-- (SEL)attributeSetterForColumn:(NoteAttributeColumn*)col {
-	if ([globalPrefs horizontalLayout] && [self columnWithIdentifier:[col identifier]] == 0) {
-		return lastEventActivatedTagEdit ? @selector(setLabelString:) : @selector(setTitleString:);
+- (void(^)(NoteObject *, id))attributeSetterForColumn:(NSTableColumn *)col
+{
+	void (^labelSetter)(NoteObject *, id) = ^(NoteObject *note, id value){
+		[note setLabelString:value];
+	};
+	void (^titleSetter)(NoteObject *, id) = ^(NoteObject *note, id value){
+		[note setTitleString:value];
+	};
+	
+	if ([globalPrefs horizontalLayout] && [[col identifier] isEqualToString:NoteTitleColumnString]) {
+		return lastEventActivatedTagEdit ? labelSetter : titleSetter;
+	} else if ([col.identifier isEqualToString:NoteTitleColumnString]) {
+		return titleSetter;
+	} else if ([col.identifier isEqualToString:NoteLabelsColumnString]) {
+		return labelSetter;
 	}
-	return col.columnAttributeMutator;
+	return NULL;
+}
+
+- (BOOL)columnIsLabelEditor:(NSTableColumn *)col {
+	if ([globalPrefs horizontalLayout] && [[col identifier] isEqualToString:NoteTitleColumnString]) {
+		return lastEventActivatedTagEdit ? YES : NO;
+	} else if ([col.identifier isEqualToString:NoteLabelsColumnString]) {
+		return YES;
+	}
+	return NO;
 }
 
 - (BOOL)lastEventActivatedTagEdit {
@@ -1221,7 +1247,7 @@ enum { kNext_Tag = 'j', kPrev_Tag = 'k' };
 
 - (void)textDidChange:(NSNotification *)aNotification {
 	NSInteger col = [self editedColumn];
-	if (col > -1 && [self attributeSetterForColumn:[[self tableColumns] objectAtIndex:col]] == @selector(setLabelString:)) {
+	if (col > -1 && [self columnIsLabelEditor:self.tableColumns[col]]) {
 		//text changed while editing tags; autocomplete!
 		
 		NSTextView *editor = [aNotification object];

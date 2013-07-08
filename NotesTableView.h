@@ -22,6 +22,7 @@
 @class NoteAttributeColumn;
 @class GlobalPrefs;
 @class NVViewLocationContext;
+@class NoteObject;
 
 @interface NotesTableView : NSTableView {
 	NSTimer *modifierTimer;
@@ -98,7 +99,7 @@
 - (BOOL)needsGridLines;
 - (void)updateGrid;
 
-- (SEL)attributeSetterForColumn:(NoteAttributeColumn*)col;
+- (void(^)(NoteObject *, id))attributeSetterForColumn:(NSTableColumn *)col;
 
 @property (nonatomic, strong) NSColor *foregroundColor;
 

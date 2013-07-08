@@ -1604,12 +1604,12 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 
 - (void)tableView:(NSTableView *)aTableView setObjectValue:(id)anObject
 forTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex {
+	// allow the tableview to override the selector destination for this object value
+	void (^setter)(NoteObject *, id) = [(NotesTableView*)aTableView attributeSetterForColumn:aTableColumn];
 	
-	//allow the tableview to override the selector destination for this object value
-	SEL colAttributeMutator = [(NotesTableView*)aTableView attributeSetterForColumn:(NoteAttributeColumn*)aTableColumn];
-	
-#warning TODO - replace
-	objc_msgSend(notesList[rowIndex], colAttributeMutator, anObject);
+	if (setter) {
+		setter(notesList[rowIndex], anObject);
+	}
 }
 	
 - (id)tableView:(NSTableView *)aTableView objectValueForTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex {
