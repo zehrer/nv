@@ -15,10 +15,12 @@
 
 @implementation NoteAttributeColumn
 
-- (id)initWithIdentifier:(id)anObject {
-	if ((self = [super initWithIdentifier:anObject])) {
-
-		absoluteMinimumWidth = [anObject sizeWithAttributes:[NoteAttributeColumn standardDictionary]].width + 5;
+- (id)initWithAttribute:(NVUIAttribute)attribute {
+	NSString *identifier = NVUIAttributeIdentifier(attribute);
+	if ((self = [super initWithIdentifier:identifier])) {
+		_attribute = attribute;
+		
+		absoluteMinimumWidth = [identifier sizeWithAttributes:[NoteAttributeColumn standardDictionary]].width + 5;
 		[self setMinWidth:absoluteMinimumWidth];
 	}
 	
@@ -36,6 +38,17 @@
 
 - (void)updateWidthForHighlight {
 	[self setMinWidth:absoluteMinimumWidth + ([[self tableView] highlightedTableColumn] == self ? 10 : 0)];
+}
+
+- (void)setIdentifier:(NSString *)identifier
+{
+	[self doesNotRecognizeSelector:_cmd];
+}
+
+- (void)setAttribute:(NVUIAttribute)attribute
+{
+	_attribute = attribute;
+	[super setIdentifier:NVUIAttributeIdentifier(attribute)];
 }
 
 @end

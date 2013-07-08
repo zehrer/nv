@@ -461,7 +461,7 @@ void outletObjectAwoke(id sender) {
 	//tell us..
 	[prefsController registerWithTarget:self forChangesInSettings:
 	 @selector(setAliasDataForDefaultDirectory:sender:),  //when someone wants to load a new database
-	 @selector(setSortedTableColumnKey:reversed:sender:),  //when sorting prefs changed
+	 @selector(setSortedTableColumn:reversed:sender:),  //when sorting prefs changed
 	 @selector(setNoteBodyFont:sender:),  //when to tell notationcontroller to restyle its notes
 	 @selector(setForegroundTextColor:sender:),  //ditto
 	 @selector(setBackgroundTextColor:sender:),  //ditto
@@ -505,8 +505,7 @@ void outletObjectAwoke(id sender) {
 		}
 		
 		notationController = newNotation;
-		
-		[notationController setSortColumn:[notesTableView noteAttributeColumnForIdentifier:[prefsController sortedTableColumnKey]]];
+		[notationController setSortColumn:[notesTableView columnForAttribute:[prefsController sortedTableColumn]]];
 		[notesTableView setDataSource:notationController];
 		[notesTableView setLabelsListSource:notationController];
 		[notationController setDelegate:self];
@@ -633,7 +632,7 @@ void outletObjectAwoke(id sender) {
         
 	} else if (selector == @selector(fixFileEncoding:)) {
 		
-		return (currentNote != nil && currentNote.currentFormatID == NVDatabaseFormatPlainText && ![currentNote contentsWere7Bit]);
+		return (currentNote != nil && currentNote.currentFormatID == NVDatabaseFormatPlain && ![currentNote contentsWere7Bit]);
     } else if (selector == @selector(editNoteExternally:)) {
         return (numberSelected > 0) && [[menuItem representedObject] canEditAllNotes:[notationController notesAtIndexes:[notesTableView selectedRowIndexes]]];
 	}else if (selector == @selector(previewNoteWithMarked:)){
@@ -685,7 +684,7 @@ void outletObjectAwoke(id sender) {
 }
 
 - (void)_forceRegeneratePreviewsForTitleColumn {
-	[notationController regeneratePreviewsForColumn:[notesTableView noteAttributeColumnForIdentifier:NoteTitleColumnString]
+	[notationController regeneratePreviewsForColumn:[notesTableView columnForAttribute:NVUIAttributeTitle]
 								visibleFilteredRows:[notesTableView rowsInRect:[notesTableView visibleRect]] forceUpdate:YES];
     
 }
@@ -764,8 +763,8 @@ void outletObjectAwoke(id sender) {
     }
     //edit the first selected note
     self.isEditing = YES;
-    
-	[notesTableView editRowAtColumnWithIdentifier:NoteTitleColumnString];
+	
+	[notesTableView editRowAtColumnWithAttribute:NVUIAttributeTitle];
 }
 
 
@@ -906,7 +905,7 @@ void outletObjectAwoke(id sender) {
 		//Multiple Notes selected, use ElasticThreads' multitagging implementation
 	} else if ([selIndexes count] == 1) {
         self.isEditing = YES;
-		[notesTableView editRowAtColumnWithIdentifier:NoteLabelsColumnString];
+		[notesTableView editRowAtColumnWithAttribute:NVUIAttributeLabels];
 	}
 }
 
@@ -950,9 +949,9 @@ void outletObjectAwoke(id sender) {
 								NSLocalizedString(@"OK",nil), NULL, NULL);
 			}
 		}
-    } else if ([selectorString isEqualToString:SEL_STR(setSortedTableColumnKey:reversed:sender:)]) {
+    } else if ([selectorString isEqualToString:SEL_STR(setSortedTableColumn:reversed:sender:)]) {
 		NoteAttributeColumn *oldSortCol = [notationController sortColumn];
-		NoteAttributeColumn *newSortCol = [notesTableView noteAttributeColumnForIdentifier:[prefsController sortedTableColumnKey]];
+		NoteAttributeColumn *newSortCol = [notesTableView columnForAttribute:prefsController.sortedTableColumn];
 		BOOL changedColumns = oldSortCol != newSortCol;
 		
 		NVViewLocationContext *ctx = nil;
@@ -1021,8 +1020,8 @@ void outletObjectAwoke(id sender) {
     }
 }
 
-- (BOOL)tableView:(NSTableView *)tableView shouldShowCellExpansionForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
-	return ![[tableColumn identifier] isEqualToString:NoteTitleColumnString];
+- (BOOL)tableView:(NSTableView *)tableView shouldShowCellExpansionForTableColumn:(NoteAttributeColumn *)tableColumn row:(NSInteger)row {
+	return !(tableColumn.attribute == NVUIAttributeTitle);
 }
 
 - (IBAction)showHelpDocument:(id)sender {
@@ -1917,7 +1916,7 @@ void outletObjectAwoke(id sender) {
 
 - (void)tableViewColumnDidResize:(NSNotification *)aNotification {
 	NoteAttributeColumn *col = [[aNotification userInfo] objectForKey:@"NSTableColumn"];
-	if ([[col identifier] isEqualToString:NoteTitleColumnString]) {
+	if (col.attribute == NVUIAttributeTitle) {
 		[notationController regeneratePreviewsForColumn:col visibleFilteredRows:[notesTableView rowsInRect:[notesTableView visibleRect]] forceUpdate:NO];
 		
 	 	[NSObject cancelPreviousPerformRequestsWithTarget:notesTableView selector:@selector(reloadDataIfNotEditing) object:nil];

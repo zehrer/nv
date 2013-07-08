@@ -49,6 +49,7 @@
 #import "NoteAttributeColumn.h"
 #import "nvaDevConfig.h"
 #import "NSMutableOrderedSet+NVFiltering.h"
+#import "NSObject+NVPerformBlock.h"
 
 inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	if (result < 0) return NSOrderedAscending;
@@ -656,8 +657,9 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		
 		[unwrittenNotes removeAllObjects];
 		
-		[self scheduleUpdateListForAttribute:NoteDateModifiedColumnString];
-
+		[NSObject nv_performBlock:^{
+			[self scheduleUpdateListForAttribute:NVUIAttributeDateModified];
+		} afterDelay:0 cancelPreviousRequest:YES];
     }
     
     if (changeWritingTimer) {
@@ -880,9 +882,8 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		[delegate notation:self revealNote:[noteArray lastObject] options:NVOrderFrontWindow];
 }
 
-- (void)note:(NoteObject*)note attributeChanged:(NSString*)attribute {
-	
-	if ([attribute isEqualToString:NotePreviewString]) {
+- (void)note:(NoteObject*)note attributeChanged:(NVUIAttribute)attribute {
+	if (attribute == NVUIAttributeNotePreview) {
 		if ([prefsController tableColumnsShowPreview]) {
 			NSUInteger idx = [notesList indexOfObject:note];
 			if (NSNotFound != idx) {
@@ -893,11 +894,12 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		return;
 	}
 	
-	//[self scheduleUpdateListForAttribute:attribute];
-	[self performSelector:@selector(scheduleUpdateListForAttribute:) withObject:attribute afterDelay:0.0];
-
+	[NSObject nv_performBlock:^{
+		[self scheduleUpdateListForAttribute:attribute];
+	} afterDelay:0 cancelPreviousRequest:YES];
+	
 	//special case for title requires this method, as app controller needs to know a few note-specific things
-	if ([attribute isEqualToString:NoteTitleColumnString]) {
+	if (attribute == NVUIAttributeTitle) {
 		[delegate titleUpdatedForNote:note];
 		
 		//also update notationcontroller's psuedo-prefix tree for autocompletion
@@ -940,33 +942,26 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 
 
 
-- (void)scheduleUpdateListForAttribute:(NSString*)attribute {
-	
-	[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(scheduleUpdateListForAttribute:) object:attribute];
-	
-	if ([[sortColumn identifier] isEqualToString:attribute]) {
-		
+- (void)scheduleUpdateListForAttribute:(NVUIAttribute)attribute {
+	if (sortColumn.attribute == attribute) {
 		if ([delegate notationListShouldChange:self]) {
 			[self sortAndRedisplayNotes];
 		} else {
-			[self performSelector:@selector(scheduleUpdateListForAttribute:) withObject:attribute afterDelay:1.5];
+			[NSObject nv_performBlock:^{
+				[self scheduleUpdateListForAttribute:attribute];
+			} afterDelay:1.5 cancelPreviousRequest:YES];
 		}
 	} else {
 		//catch col updates even if they aren't the sort key
 		
-		NSEnumerator *enumerator = [[prefsController visibleTableColumns] objectEnumerator];
-		NSString *colIdentifier = nil;
-		
-		//check to see if appropriate col is visible
-		while ((colIdentifier = [enumerator nextObject])) {
-			if ([colIdentifier isEqualToString:attribute]) {
-				if ([delegate notationListShouldChange:self]) {
-					[delegate notationListMightChange:self];
-					[delegate notationListDidChange:self];
-				} else {
-					[self performSelector:@selector(scheduleUpdateListForAttribute:) withObject:attribute afterDelay:1.5];
-				}
-				break;
+		if ([prefsController visibleTableColumnsIncludes:attribute]) {
+			if ([delegate notationListShouldChange:self]) {
+				[delegate notationListMightChange:self];
+				[delegate notationListDidChange:self];
+			} else {
+				[NSObject nv_performBlock:^{
+					[self scheduleUpdateListForAttribute:attribute];
+				} afterDelay:1.5 cancelPreviousRequest:YES];
 			}
 		}
 	}
@@ -1396,7 +1391,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 
 	NoteAttributeColumn *col = sortColumn;
 	if (col) {
-		BOOL isStringSort = [col.identifier isEqualToString:NoteTitleColumnString];
+		BOOL isStringSort = (col.attribute == NVUIAttributeTitle);
 		BOOL reversed = [prefsController tableIsReverseSorted];
 		NSComparisonResult(^comparator)(id, id) = reversed ? col.reverseComparator : col.comparator;
 		
@@ -1432,7 +1427,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	
 	if (col) {
 		BOOL reversed = [prefsController tableIsReverseSorted];
-		BOOL isStringSort = [col.identifier isEqualToString:NoteTitleColumnString];
+		BOOL isStringSort = (col.attribute == NVUIAttributeTitle);
 
 		NSComparisonResult(^comparator)(id, id) = reversed ? col.reverseComparator : col.comparator;
 		
@@ -1601,8 +1596,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	
 #pragma mark - Data source
 
-- (void)tableView:(NSTableView *)aTableView setObjectValue:(id)anObject
-forTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex {
+- (void)tableView:(NSTableView *)aTableView setObjectValue:(id)anObject forTableColumn:(NoteAttributeColumn *)aTableColumn row:(NSInteger)rowIndex {
 	// allow the tableview to override the selector destination for this object value
 	void (^setter)(NoteObject *, id) = [(NotesTableView*)aTableView attributeSetterForColumn:aTableColumn];
 	

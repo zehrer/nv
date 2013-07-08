@@ -24,6 +24,7 @@
 #import "NoteObject.h"
 #import "DeletionManager.h"
 #import "NSCollection_utils.h"
+#import "NSObject+NVPerformBlock.h"
 
 #define kMaxFileIteratorCount 100
 
@@ -330,11 +331,13 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t nu
 			[aNoteObject registerModificationWithOwnedServices];
 			[self schedulePushToAllSyncServicesForNote:aNoteObject];
 			
-			[self note:aNoteObject attributeChanged:NotePreviewString]; //reverse delegate?
+			[self note:aNoteObject attributeChanged:NVUIAttributeNotePreview];
 			
 			[delegate contentsUpdatedForNote:aNoteObject];
 			
-			[self performSelector:@selector(scheduleUpdateListForAttribute:) withObject:NoteDateModifiedColumnString afterDelay:0.0];
+			[NSObject nv_performBlock:^{
+				[self scheduleUpdateListForAttribute:NVUIAttributeDateModified];
+			} afterDelay:0 cancelPreviousRequest:YES];
 			
 			notesChanged = YES;
 			NSLog(@"FILE WAS MODIFIED: %@", catEntry->filename);

@@ -19,6 +19,7 @@
 #import "NotesTableView.h"
 #import "NoteObject.h"
 #import "GlobalPrefs.h"
+#import "NoteAttributeColumn.h"
 
 @implementation LabelColumnCell
 
@@ -46,10 +47,10 @@
 
 - (void)drawWithFrame:(NSRect)cellFrame inView:(NSView *)controlView {	
 	NotesTableView *tv = (NotesTableView *)controlView;
-	
 	NSInteger col = [tv editedColumn];
-	BOOL isEditing = [self isHighlighted] && [tv currentEditor] &&
-	(col > -1 && [[[[tv tableColumns] objectAtIndex:col] identifier] isEqualToString:NoteLabelsColumnString]);
+	NoteAttributeColumn *column = col == -1 ? nil : tv.tableColumns[tv.editedColumn];
+	
+	BOOL isEditing = [self isHighlighted] && [tv currentEditor] && (column && column.attribute == NVUIAttributeLabels);
 	
 	if (isEditing) {
 		[super drawWithFrame:cellFrame inView:controlView];	

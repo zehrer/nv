@@ -70,21 +70,15 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 		headerView = [[HeaderViewWithMenu alloc] init];
 		[headerView setTableView:self];
 		[headerView setFrame:[[self headerView] frame]];
-		//	cornerView = [[self cornerView] retain];	
-		[self setCornerView:nil];	
-		//cornerView =[[[NotesTableCornerView alloc] initWithFrame:[[self cornerView] bounds]] retain];
-		NSArray *columnsToDisplay = [globalPrefs visibleTableColumns];
-		allColumns = [[NSMutableArray alloc] initWithCapacity:4];
-		allColsDict = [[NSMutableDictionary alloc] initWithCapacity:4];
+		//	cornerView = [[self cornerView] retain];
+		[self setCornerView:nil];
+		columns = [[NSMutableDictionary alloc] initWithCapacity:4];
 		
 		id (*titleReferencor)(id, id, NSInteger) = [globalPrefs horizontalLayout] ? 
 		([globalPrefs tableColumnsShowPreview] ? unifiedCellForNote : unifiedCellSingleLineForNote) :
 		([globalPrefs tableColumnsShowPreview] ? tableTitleOfNote : titleOfNote2);
 		
-		NSString *colStrings[] = { NoteTitleColumnString, NoteLabelsColumnString, NoteDateModifiedColumnString, NoteDateCreatedColumnString };
-		SEL colMutators[] = { @selector(setTitleString:), @selector(setLabelString:), NULL, NULL };
 		id (*colReferencors[])(id, id, NSInteger) = {titleReferencor, labelColumnCellForNote, dateModifiedStringOfNote, dateCreatedStringOfNote };
-		
 		NSComparisonResult (^comparators[])(NoteObject *, NoteObject *) = {
 			^(NoteObject *obj1, NoteObject *obj2){
 				return [obj1 compare:obj2];
@@ -115,40 +109,36 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 			}
 		};
 		
-		unsigned int i;
-		for (i=0; i<sizeof(colStrings)/sizeof(NSString*); i++) {
-			NoteAttributeColumn *column = [[NoteAttributeColumn alloc] initWithIdentifier:colStrings[i]];
-			[column setEditable:(colMutators[i] != NULL)];
-			[column setHeaderCell:[[NotesTableHeaderCell alloc] initTextCell:[[NSBundle mainBundle] localizedStringForKey:colStrings[i] value:@"" table:nil]]];
-			//[column.headerCell setStringValue:[[NSBundle mainBundle] localizedStringForKey:colStrings[i] value:@"" table:nil]];
+		for (NSUInteger i = 0; i < NVUIAttributeNotePreview; i++) {
+			NVUIAttribute type = i;
+			
+			NoteAttributeColumn *column = [[NoteAttributeColumn alloc] initWithAttribute:type];
+			
+			[column setEditable:(type == NVUIAttributeTitle || type == NVUIAttributeLabels)];
+			[column setHeaderCell:[[NotesTableHeaderCell alloc] initTextCell:NVUIAttributeLocalizedValue(type)]];
+			//[column.headerCell setStringValue:NVUIAttributeLocalizedValue(type)];
 			
 			column.objectAttributeFunction = colReferencors[i];
 			column.comparator = comparators[i];
 			column.reverseComparator = reverseComparators[i];
 			[column setResizingMask:NSTableColumnUserResizingMask];
 			
-			[allColsDict setObject:column forKey:colStrings[i]];
-			[allColumns addObject:column];
+			columns[@(type)] = column;
 		}
 		
-		[[self noteAttributeColumnForIdentifier:NoteLabelsColumnString] setDataCell: [[LabelColumnCell alloc] init]];
+		[[self columnForAttribute:NVUIAttributeLabels] setDataCell: [[LabelColumnCell alloc] init]];
 		[self _configureAttributesForCurrentLayout];
 		[self setAllowsColumnSelection:NO];
-		//[self setVerticalMotionCanBeginDrag:NO];
 		
-		BOOL hideHeader = (([columnsToDisplay count] == 1 && [columnsToDisplay containsObject:NoteTitleColumnString]) || [globalPrefs horizontalLayout]);
+		BOOL hideHeader = (([globalPrefs numberOfVisibleTableColumns] == 1 && [globalPrefs visibleTableColumnsIncludes:NVUIAttributeTitle]) || [globalPrefs horizontalLayout]);
 		if (hideHeader) {
 			[[self cornerView] setFrameOrigin:NSMakePoint(-1000,-1000)];
 			[self setCornerView:nil];
 		}
 		[self setHeaderView:hideHeader ? nil : headerView];
 		
-		[[self noteAttributeColumnForIdentifier:NoteTitleColumnString] setResizingMask:NSTableColumnUserResizingMask | NSTableColumnAutoresizingMask];
+		[[self columnForAttribute:NVUIAttributeTitle] setResizingMask:NSTableColumnUserResizingMask | NSTableColumnAutoresizingMask];
 		[self setColumnAutoresizingStyle:NSTableViewUniformColumnAutoresizingStyle];
-		
-		//[self setSortDirection:[globalPrefs tableIsReverseSorted] 
-		//		 inTableColumn:[self tableColumnWithIdentifier:[globalPrefs sortedTableColumnKey]]];
-		
     }
     return self;
 }
@@ -156,25 +146,22 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 
 //extracted from initialization to run in a safe way
 - (void)restoreColumns {
-	unsigned int i;
-	
 	//if columns currently exist, then remove them first, so that nstableview's autosave/restore works properly
 	if ([[self tableColumns] count]) {
-		for (i=0; i<[allColumns count]; i++) {
-			[self removeTableColumn:[allColumns objectAtIndex:i]];
+		for (NoteAttributeColumn *col in columns.allValues) {
+			[self removeTableColumn:col];
 		}
 	}
 	
 	//horizontal view has only a single column; store column widths separately for it
-	NSArray *columnsToDisplay = [globalPrefs horizontalLayout] ? [NSArray arrayWithObject:NoteTitleColumnString] : [globalPrefs visibleTableColumns];
+	NVTableColumnOption toDisplay = [globalPrefs horizontalLayout] ? NVTableColumnOptionTitle : [globalPrefs visibleTableColumns];
 	
-	for (i=0; i<[allColumns count]; i++) {
-		NoteAttributeColumn *column = [allColumns objectAtIndex:i];
-		if ([columnsToDisplay containsObject:[column identifier]])
+	for (NoteAttributeColumn *column in columns.allValues) {
+		if (NVTableColumnEnabled(toDisplay, column.attribute))
 			[self addTableColumn:column];
 		
 		[column updateWidthForHighlight];
-	}	
+	}
 	
 	[self setAutosaveName:[globalPrefs horizontalLayout] ? @"unifiedNotesTable" : @"notesTable"];
 	[self setAutosaveTableColumns:YES];
@@ -182,7 +169,7 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 	[self sizeToFit];
 	
 	[self setSortDirection:[globalPrefs tableIsReverseSorted] 
-			 inTableColumn:[self tableColumnWithIdentifier:[globalPrefs sortedTableColumnKey]]];
+			 inTableColumn:[self tableColumnWithAttribute:[globalPrefs sortedTableColumn]]];
 }
 
 
@@ -244,7 +231,7 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 }
 
 - (void)_setActiveStyleState:(BOOL)activeStyle {
-	NoteAttributeColumn *col = [self noteAttributeColumnForIdentifier:NoteTitleColumnString];
+	NoteAttributeColumn *col = [self columnForAttribute:NVUIAttributeTitle];
 #if SET_DUAL_HIGHLIGHTS
 	activeStyle = YES;
 #endif
@@ -327,16 +314,16 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 	BOOL horiz = [globalPrefs horizontalLayout];
     [self updateGrid];
 	
-	NoteAttributeColumn *col = [self noteAttributeColumnForIdentifier:NoteTitleColumnString];
+	NoteAttributeColumn *col = [self columnForAttribute:NVUIAttributeTitle];
 	if (!cachedCell) cachedCell = [col dataCell];
 	[col setDataCell: horiz ? [[UnifiedCell alloc] init] : cachedCell];
 	
 	NSFont *font = [NSFont systemFontOfSize:[globalPrefs tableFontSize]];
-	NSUInteger i;
-	for (i=0; i<[allColumns count]; i++) {
-		[[[allColumns objectAtIndex:i] dataCell] setFont:font];
-	}	
-	BOOL isOneRow = !horiz || (![globalPrefs tableColumnsShowPreview] && !ColumnIsSet(NoteLabelsColumn, [globalPrefs tableColumnsBitmap]));
+	for (NoteAttributeColumn *column in columns.allValues) {
+		[column.dataCell setFont:font];
+	}
+	
+	BOOL isOneRow = !horiz || (![globalPrefs tableColumnsShowPreview] && ![globalPrefs visibleTableColumnsIncludes:NVUIAttributeLabels]);
 	
 	[self setSelectionHighlightStyle:isOneRow ? NSTableViewSelectionHighlightStyleRegular : NSTableViewSelectionHighlightStyleSourceList];
 	
@@ -344,7 +331,7 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 	tableFontHeight = [lm defaultLineHeightForFont:font];
 	float h[4] = {(tableFontHeight * 3.0 + 5.0f), (tableFontHeight * 2.0 + 6.0f), (tableFontHeight + 2.0f), tableFontHeight + 2.0f};
 	[self setRowHeight: horiz ? ([globalPrefs tableColumnsShowPreview] ? h[0] : 
-								 (ColumnIsSet(NoteLabelsColumn,[globalPrefs tableColumnsBitmap]) ? h[1] : h[2])) : h[3]];
+								 ([globalPrefs visibleTableColumnsIncludes:NVUIAttributeLabels] ? h[1] : h[2])) : h[3]];
 	[self setIntercellSpacing:NSMakeSize(12.0, 2.0)];
 	
 	//[self setGridStyleMask:horiz ? NSTableViewSolidHorizontalGridLineMask : NSTableViewGridNone];
@@ -439,7 +426,8 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 	[[self enclosingScrollView] reflectScrolledClipView:clipView];
 }
 
-- (void)editRowAtColumnWithIdentifier:(id)identifier {
+- (void)editRowAtColumnWithAttribute:(NVUIAttribute)attribute
+{
 	NSInteger colIndex = -1;
 	NSInteger selected = [self selectedRow];
 	
@@ -452,12 +440,12 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 		
 		//default to editing title if this is attempted in horizontal mode for any column other than tags
 		//(which currently are the only two editable columns, anyway)
-		colIndex = [identifier isEqualToString:NoteLabelsColumnString] ? SYNTHETIC_TAGS_COLUMN_INDEX : 0;
-	} else if ((colIndex = [self columnWithIdentifier:identifier]) < 0) {
+		colIndex = (attribute == NVUIAttributeLabels) ? SYNTHETIC_TAGS_COLUMN_INDEX : 0;
+	} else if ((colIndex = [self columnWithAttribute:attribute]) < 0) {
 		//always move title column to 0 index
-		NSInteger newColIndex = (NSInteger)(![identifier isEqualToString:NoteTitleColumnString]);
+		NSInteger newColIndex = (attribute == NVUIAttributeTitle) ? 0 : 1;
 		
-		NSTableColumn *column = [self noteAttributeColumnForIdentifier:identifier];
+		NoteAttributeColumn *column = [self columnForAttribute:attribute];
 		if (column && [self addPermanentTableColumn:column]) {
 			
 			NSUInteger addedColIndex = [[self tableColumns] indexOfObjectIdenticalTo:column];
@@ -476,20 +464,34 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 	}
 }
 
-- (NoteAttributeColumn*)noteAttributeColumnForIdentifier:(NSString*)identifier {
-	return [allColsDict objectForKey:identifier];
+
+- (NoteAttributeColumn *)columnForIdentifier:(NSString *)identifier {
+	return columns[@(NVUIAttributeForIdentifier(identifier))];
 }
 
-- (BOOL)addPermanentTableColumn:(NSTableColumn*)column {
+- (NoteAttributeColumn *)columnForAttribute:(NVUIAttribute)attribute {
+	return columns[@(attribute)];
+}
+
+- (NSInteger)columnWithAttribute:(NVUIAttribute)attribute {
+	return [self columnWithIdentifier:NVUIAttributeIdentifier(attribute)];
+}
+
+- (NSTableColumn *)tableColumnWithAttribute:(NVUIAttribute)attribute {
+	return [self tableColumnWithIdentifier:NVUIAttributeIdentifier(attribute)];
+}
+
+- (BOOL)addPermanentTableColumn:(NoteAttributeColumn *)column {
 	if (![globalPrefs horizontalLayout]) {
 		[self addTableColumn:column];
 	}
-	[globalPrefs addTableColumn:[column identifier] sender:self];
+	
+	[globalPrefs addTableColumn:column.attribute sender:self];
 	
 	if ([globalPrefs horizontalLayout]) //for now, for extending rowheight when tags are shown/hidden
 		[self _configureAttributesForCurrentLayout];
 	
-	if ([[column identifier] isEqualToString:[globalPrefs sortedTableColumnKey]]) {
+	if (column.attribute == [globalPrefs sortedTableColumn]) {
 		[(NoteAttributeColumn*)[self highlightedTableColumn] updateWidthForHighlight];
 		[self setHighlightedTableColumn:column];
 		[(NoteAttributeColumn*)column updateWidthForHighlight];
@@ -505,7 +507,7 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 	id oldHeader = [self headerView];
 	id newHeader = headerView;
 	
-	if ([[self tableColumns] count] == 1 && [self tableColumnWithIdentifier:NoteTitleColumnString]) {
+	if ([[self tableColumns] count] == 1 && [self tableColumnWithAttribute:NVUIAttributeTitle]) {
 	    
 	    //if only displaying title, remove the column header; it is redundant
 		newHeader = nil;
@@ -541,19 +543,18 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 }
 
 - (IBAction)actionHideShowColumn:(id)sender {
-    NSTableColumn *column = [sender representedObject]; 
+    NoteAttributeColumn *column = [sender representedObject]; 
 	
-	if ([globalPrefs horizontalLayout] && [[column identifier] isEqualToString:NoteTitleColumnString]) {
+	if ([globalPrefs horizontalLayout] && column.attribute == NVUIAttributeTitle) {
 		NSBeep();
 		return;
 	}
 	
-    if ([[globalPrefs visibleTableColumns] containsObject:[column identifier]]) {
-		
-		if ([[globalPrefs visibleTableColumns] count] > 1) {
+    if ([globalPrefs visibleTableColumnsIncludes:column.attribute]) {
+		if (globalPrefs.numberOfVisibleTableColumns > 1) {
 			[self abortEditing];
 			[self removeTableColumn:column];
-			[globalPrefs removeTableColumn:[column identifier] sender:self];
+			[globalPrefs removeTableColumn:column.attribute sender:self];
 			viewMenusValid = NO;
 			if ([globalPrefs horizontalLayout]) //for now, in case we are hiding tags when previews are not visible
 				[self _configureAttributesForCurrentLayout];
@@ -591,85 +592,51 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 - (NSMenu *)menuForColumnSorting {
 	NSMenu *theMenu = [[NSMenu alloc] initWithTitle:@""];
     
-    NSEnumerator *theEnumerator = [allColumns objectEnumerator];
-    NSTableColumn *theColumn = nil;
-	NSString *sortKey = [globalPrefs sortedTableColumnKey];
+	NVUIAttribute sort = globalPrefs.sortedTableColumn;
 	NSImage *sortArrow;
     if([globalPrefs tableIsReverseSorted] ){
         sortArrow=[NSImage imageNamed:@"NSDescendingSortIndicator"];
-    }else{
-    sortArrow=[NSImage imageNamed:@"NSAscendingSortIndicator"];
+    } else{
+		sortArrow=[NSImage imageNamed:@"NSAscendingSortIndicator"];
     }
-    while ((theColumn = [theEnumerator nextObject]) != nil) {
-		NSMenuItem *theMenuItem = [[NSMenuItem alloc] initWithTitle:[[theColumn headerCell] stringValue] 
-															  action:@selector(setStatusForSortedColumn:) 
-													   keyEquivalent:@""];
+	
+	for (NoteAttributeColumn *theColumn in columns.allValues) {
+		NSMenuItem *theMenuItem = [[NSMenuItem alloc] initWithTitle:[[theColumn headerCell] stringValue]
+															 action:@selector(setStatusForSortedColumn:)
+													  keyEquivalent:@""];
 		[theMenuItem setTarget:self];
 		[theMenuItem setRepresentedObject:theColumn];
-		[theMenuItem setState:[[theColumn identifier] isEqualToString:sortKey]];
+		[theMenuItem setState:(theColumn.attribute == sort)];
         [theMenuItem setOnStateImage:[NSImage imageNamed:nil]];
         [theMenuItem setOnStateImage:sortArrow];
 		[theMenu addItem:theMenuItem];
-    }
+	}
     return theMenu;
 }
 
 - (NSMenu *)menuForColumnConfiguration:(NSTableColumn *)inSelectedColumn {
     NSMenu *theMenu = [[NSMenu alloc] initWithTitle:@""];
-    
-	NSArray *prefsCols = [globalPrefs visibleTableColumns];
-	
-    NSEnumerator *theEnumerator = [allColumns objectEnumerator];
-    NSTableColumn *theColumn = nil;
-    while ((theColumn = [theEnumerator nextObject]) != nil) {
-		NSMenuItem *theMenuItem = [[NSMenuItem alloc] initWithTitle:[[theColumn headerCell] stringValue] 
-															  action:@selector(actionHideShowColumn:) 
-													   keyEquivalent:@""];
+	for (NoteAttributeColumn *theColumn in columns.allValues) {
+		NSMenuItem *theMenuItem = [[NSMenuItem alloc] initWithTitle:[[theColumn headerCell] stringValue]
+															 action:@selector(actionHideShowColumn:)
+													  keyEquivalent:@""];
 		[theMenuItem setTarget:self];
 		[theMenuItem setRepresentedObject:theColumn];
-		[theMenuItem setState:[prefsCols containsObject:[theColumn identifier]]];
+		[theMenuItem setState:[globalPrefs visibleTableColumnsIncludes:theColumn.attribute]];
 		[theMenuItem setTag:(inSelectedColumn ? [[self tableColumns] indexOfObjectIdenticalTo:inSelectedColumn] : 0)];
 		
 		[theMenu addItem:theMenuItem];
-    }
-	
+	}
     return theMenu;
 }
 
-//- (BOOL)validateMenuItem:(NSMenuItem *)menuItem{
-//    SEL selector = [menuItem action];
-////    if (selector==@selector(setStatusForSortedColumn:)) {
-////        if (![[globalPrefs visibleTableColumns]containsObject:[[menuItem representedObject] identifier]]) {
-////            return NO;
-////        }
-////    }else
-//        if([globalPrefs horizontalLayout]&&(selector==@selector(actionHideShowColumn:))){
-//        BOOL retNo=NO;
-//        BOOL gotMod=[[globalPrefs visibleTableColumns]containsObject:NoteDateModifiedColumnString];//&&[[globalPrefs visibleTableColumns]containsObject:NoteDateCreatedColumnString]);
-//        NSString *key=[globalPrefs sortedTableColumnKey];
-//        if ([key isEqualToString:NoteDateCreatedColumnString]) {
-//            retNo=[[[menuItem representedObject] identifier] isEqualToString:NoteDateModifiedColumnString];
-//        }else if ([key isEqualToString:NoteDateModifiedColumnString]) {
-//            retNo=[[[menuItem representedObject] identifier] isEqualToString:NoteDateCreatedColumnString];
-//        }else{
-//            retNo=(gotMod&&[[[menuItem representedObject] identifier] isEqualToString:NoteDateCreatedColumnString]);
-//        }      
-//        
-//        if (gotMod&&retNo) {
-//            [menuItem setState:0];
-//            return NO;
-//        }    
-//    }
-//    return YES;
-//}
-
 - (void)setStatusForSortedColumn:(id)sender {
-	NSTableColumn* tableColumn = (NSTableColumn*)sender;
-	NSString *lastColumnName = [globalPrefs sortedTableColumnKey];
+	NoteAttributeColumn *tableColumn = (NoteAttributeColumn *)sender;
+	NVUIAttribute lastColumn = [globalPrefs sortedTableColumn];
 	BOOL sortDescending = [globalPrefs tableIsReverseSorted];
 	
 	if ([sender isKindOfClass:[NSMenuItem class]]){
-		tableColumn = [sender representedObject];        
+		tableColumn = [sender representedObject];
         [sender setOnStateImage:[NSImage imageNamed:nil]];
         NSImage *sortArrow;
         if(!sortDescending){
@@ -679,7 +646,8 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
         }
         [sender setOnStateImage:sortArrow];
 	}
-    if ([lastColumnName isEqualToString:[tableColumn identifier]]) {
+	
+    if (tableColumn.attribute == lastColumn) {
 		//User clicked same column, change sort order
 		sortDescending = !sortDescending;
     } else {
@@ -689,14 +657,13 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 	}
 	
     // save new sorting selector, and re-sort the array.
-	NoteAttributeColumn *lastCol = nil;
-    if (lastColumnName) {
-		lastCol = [self noteAttributeColumnForIdentifier:lastColumnName];
+	NoteAttributeColumn *lastCol = [self columnForAttribute:lastColumn];
+    if (lastCol) {
 		[self setIndicatorImage:nil inTableColumn:lastCol];
     }
     
 	[self setSortDirection:sortDescending inTableColumn:tableColumn];
-	[globalPrefs setSortedTableColumnKey:[tableColumn identifier] reversed:sortDescending sender:self];
+	[globalPrefs setSortedTableColumn:tableColumn.attribute reversed:sortDescending sender:self];
 	[lastCol updateWidthForHighlight];
 }
 
@@ -879,13 +846,13 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 	unichar keyChar = [theEvent firstCharacter];
 
     if (keyChar == NSNewlineCharacter || keyChar == NSCarriageReturnCharacter || keyChar == NSEnterCharacter) {
-		NSUInteger sel = [self selectedRow];
-		if (sel < (unsigned)[self numberOfRows] && [self numberOfSelectedRows] == 1) {
-			NSInteger colIndex = [self columnWithIdentifier:NoteTitleColumnString];
-			if (colIndex > -1) {
-				[self editColumn:colIndex row:sel withEvent:theEvent select:YES];
-			} else {
+		NSInteger sel = [self selectedRow];
+		if (sel < [self numberOfRows] && [self numberOfSelectedRows] == 1) {
+			NSInteger colIndex = [self columnWithAttribute:NVUIAttributeTitle];
+			if (colIndex == -1) {
 				[[self window] selectNextKeyView:self];
+			} else {
+				[self editColumn:colIndex row:sel withEvent:theEvent select:YES];
 			}
 			return;
 		}
@@ -1065,11 +1032,10 @@ enum { kNext_Tag = 'j', kPrev_Tag = 'k' };
 			return YES;
 		}
 	} else if (command == @selector(insertTab:)) {
-		
-		if ([globalPrefs horizontalLayout] && !lastEventActivatedTagEdit && ColumnIsSet(NoteLabelsColumn, [globalPrefs tableColumnsBitmap])) {
+		if ([globalPrefs horizontalLayout] && !lastEventActivatedTagEdit && [globalPrefs visibleTableColumnsIncludes:NVUIAttributeLabels]) {
 			//if we're currently renaming a note in horizontal mode, then tab should move focus to tags area
 			
-			[self editRowAtColumnWithIdentifier:NoteLabelsColumnString];
+			[self editRowAtColumnWithAttribute:NVUIAttributeLabels];
 			return YES;
 		}else{
             [(AppController *)[self delegate] setIsEditing:NO];
@@ -1079,7 +1045,7 @@ enum { kNext_Tag = 'j', kPrev_Tag = 'k' };
 		if ([globalPrefs horizontalLayout] && lastEventActivatedTagEdit) {
 			//if we're currently tagging a note in horizontal mode, then tab should move focus to renaming
 			
-			[self editRowAtColumnWithIdentifier:NoteTitleColumnString];
+			[self editRowAtColumnWithAttribute:NVUIAttributeTitle];
 			return YES;
 		}else{
             [(AppController *)[self delegate] setIsEditing:NO];
@@ -1159,7 +1125,7 @@ enum { kNext_Tag = 'j', kPrev_Tag = 'k' };
 	return NO;
 }
 
-- (void(^)(NoteObject *, id))attributeSetterForColumn:(NSTableColumn *)col
+- (void(^)(NoteObject *, id))attributeSetterForColumn:(NoteAttributeColumn *)col
 {
 	void (^labelSetter)(NoteObject *, id) = ^(NoteObject *note, id value){
 		[note setLabelString:value];
@@ -1168,20 +1134,21 @@ enum { kNext_Tag = 'j', kPrev_Tag = 'k' };
 		[note setTitleString:value];
 	};
 	
-	if ([globalPrefs horizontalLayout] && [[col identifier] isEqualToString:NoteTitleColumnString]) {
-		return lastEventActivatedTagEdit ? labelSetter : titleSetter;
-	} else if ([col.identifier isEqualToString:NoteTitleColumnString]) {
+	if (col.attribute == NVUIAttributeTitle) {
+		if ([globalPrefs horizontalLayout]) {
+			return lastEventActivatedTagEdit ? labelSetter : titleSetter;
+		}
 		return titleSetter;
-	} else if ([col.identifier isEqualToString:NoteLabelsColumnString]) {
+	} else if (col.attribute == NVUIAttributeLabels) {
 		return labelSetter;
 	}
 	return NULL;
 }
 
-- (BOOL)columnIsLabelEditor:(NSTableColumn *)col {
-	if ([globalPrefs horizontalLayout] && [[col identifier] isEqualToString:NoteTitleColumnString]) {
+- (BOOL)columnIsLabelEditor:(NoteAttributeColumn *)col {
+	if ([globalPrefs horizontalLayout] && col.attribute == NVUIAttributeTitle) {
 		return lastEventActivatedTagEdit ? YES : NO;
-	} else if ([col.identifier isEqualToString:NoteLabelsColumnString]) {
+	} else if (col.attribute == NVUIAttributeLabels) {
 		return YES;
 	}
 	return NO;
@@ -1194,7 +1161,7 @@ enum { kNext_Tag = 'j', kPrev_Tag = 'k' };
 - (void)editColumn:(NSInteger)columnIndex row:(NSInteger)rowIndex withEvent:(NSEvent *)event select:(BOOL)flag {
     
     [(AppController *)[self delegate] setIsEditing:YES];
-	BOOL isTitleCol = [self columnWithIdentifier:NoteTitleColumnString] == columnIndex;
+	BOOL isTitleCol = ([self columnWithAttribute:NVUIAttributeTitle] == columnIndex);
 	
 	//if event's mouselocation is inside rowIndex cell's tag rect and this edit is in horizontal mode in the title column
 	BOOL tagsInTitleColumn = [globalPrefs horizontalLayout] && ((isTitleCol && [self eventIsTagEdit:event forColumn:columnIndex row:rowIndex]) ||
@@ -1206,8 +1173,8 @@ enum { kNext_Tag = 'j', kPrev_Tag = 'k' };
 	}
 	lastEventActivatedTagEdit = tagsInTitleColumn;
 	
-	if (tagsInTitleColumn && !ColumnIsSet(NoteLabelsColumn, [globalPrefs tableColumnsBitmap])) {
-		[self addPermanentTableColumn:[self noteAttributeColumnForIdentifier:NoteLabelsColumnString]];
+	if (tagsInTitleColumn && ![globalPrefs visibleTableColumnsIncludes:NVUIAttributeLabels]) {
+		[self addPermanentTableColumn:[self columnForAttribute:NVUIAttributeLabels]];
 	}
 	
 	[super editColumn:tagsInTitleColumn ? 0 : columnIndex row:rowIndex withEvent:event select:flag];

@@ -237,7 +237,7 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
     switch (formatID) {
 	case NVDatabaseFormatSingle:
 	    return [NSMutableArray arrayWithCapacity:0];
-	case NVDatabaseFormatPlainText:
+	case NVDatabaseFormatPlain:
 	    return [NSMutableArray arrayWithObjects:(__bridge_transfer id)UTCreateStringForOSType(TEXT_TYPE_ID),
 			(__bridge_transfer id)UTCreateStringForOSType(UTXT_TYPE_ID), nil];
 	case NVDatabaseFormatRTF:
@@ -257,7 +257,7 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
     switch (formatID) {
 	case NVDatabaseFormatSingle:
 	    return [NSMutableArray arrayWithCapacity:0];
-	case NVDatabaseFormatPlainText:
+	case NVDatabaseFormatPlain:
 	    return [NSMutableArray arrayWithObjects:@"txt", @"text", @"utf8", @"taskpaper", nil];
 	case NVDatabaseFormatRTF:
 	    return [NSMutableArray arrayWithObjects:@"rtf", nil];
@@ -835,7 +835,7 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 + (NSString*)pathExtensionForFormat:(NSInteger)format {
     switch (format) {
 	case NVDatabaseFormatSingle:
-	case NVDatabaseFormatPlainText:
+	case NVDatabaseFormatPlain:
 	    
 	    return @"txt";
 	case NVDatabaseFormatRTF:

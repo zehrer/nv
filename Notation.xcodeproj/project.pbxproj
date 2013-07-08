@@ -259,6 +259,7 @@
 		B69E26F616F0B523001C6E4B /* Pencil@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = B69E26EE16F0B523001C6E4B /* Pencil@2x.png */; };
 		B69E26F716F0B523001C6E4B /* Search@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = B69E26EF16F0B523001C6E4B /* Search@2x.png */; };
 		D3EECA00106F66C70023D7F8 /* NVPasswordGenerator.m in Sources */ = {isa = PBXBuildFile; fileRef = D3EEC9FE106F66C70023D7F8 /* NVPasswordGenerator.m */; };
+		DB0CAD03178A52070010257C /* NSObject+NVPerformBlock.m in Sources */ = {isa = PBXBuildFile; fileRef = DB0CAD02178A51DD0010257C /* NSObject+NVPerformBlock.m */; };
 		DB3CB57817810A2E0030EA13 /* NSMutableData+NVAESEncryption.m in Sources */ = {isa = PBXBuildFile; fileRef = DB83632E1780E9FE001D4DC2 /* NSMutableData+NVAESEncryption.m */; };
 		DB924C58177D327E00E96033 /* Quartz.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB924C57177D327E00E96033 /* Quartz.framework */; };
 		DB9FB5C11787A134001DC987 /* NotationTypes.m in Sources */ = {isa = PBXBuildFile; fileRef = DB9FB5C01787A134001DC987 /* NotationTypes.m */; };
@@ -739,6 +740,8 @@
 		B69E26EF16F0B523001C6E4B /* Search@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Search@2x.png"; path = "Images/Search@2x.png"; sourceTree = "<group>"; };
 		D3EEC9FE106F66C70023D7F8 /* NVPasswordGenerator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NVPasswordGenerator.m; sourceTree = "<group>"; };
 		D3EEC9FF106F66C70023D7F8 /* NVPasswordGenerator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NVPasswordGenerator.h; sourceTree = "<group>"; };
+		DB0CAD01178A51DD0010257C /* NSObject+NVPerformBlock.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSObject+NVPerformBlock.h"; sourceTree = "<group>"; };
+		DB0CAD02178A51DD0010257C /* NSObject+NVPerformBlock.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSObject+NVPerformBlock.m"; sourceTree = "<group>"; };
 		DB83632D1780E9FE001D4DC2 /* NSMutableData+NVAESEncryption.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSMutableData+NVAESEncryption.h"; sourceTree = "<group>"; };
 		DB83632E1780E9FE001D4DC2 /* NSMutableData+NVAESEncryption.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSMutableData+NVAESEncryption.m"; sourceTree = "<group>"; };
 		DB924C57177D327E00E96033 /* Quartz.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Quartz.framework; path = System/Library/Frameworks/Quartz.framework; sourceTree = SDKROOT; };
@@ -1163,6 +1166,8 @@
 				DB83632E1780E9FE001D4DC2 /* NSMutableData+NVAESEncryption.m */,
 				DBC49A0517888A7A008463F7 /* NSMutableOrderedSet+NVFiltering.h */,
 				DBC49A0617888A7B008463F7 /* NSMutableOrderedSet+NVFiltering.m */,
+				DB0CAD01178A51DD0010257C /* NSObject+NVPerformBlock.h */,
+				DB0CAD02178A51DD0010257C /* NSObject+NVPerformBlock.m */,
 			);
 			name = "Other Sources";
 			sourceTree = "<group>";
@@ -1625,6 +1630,7 @@
 				5C96F6DE131C488B00A2E4AC /* ETTransparentButtonCell.m in Sources */,
 				5C96F6E9131C48FE00A2E4AC /* ETTransparentButton.m in Sources */,
 				5C9C7734131DA04300FB2652 /* WordCountToken.m in Sources */,
+				DB0CAD03178A52070010257C /* NSObject+NVPerformBlock.m in Sources */,
 				5CA08C2013301D5E004E3250 /* ETContentView.m in Sources */,
 				5C2FAD2B1333970200FBFD34 /* ETScrollView.m in Sources */,
 				93B90E7A1386018200BEC5FB /* ExternalEditorListController.m in Sources */,

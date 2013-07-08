@@ -17,6 +17,7 @@
 
 
 #import <Cocoa/Cocoa.h>
+#import "NotationTypes.h"
 
 @class HeaderViewWithMenu;
 @class NoteAttributeColumn;
@@ -27,8 +28,7 @@
 @interface NotesTableView : NSTableView {
 	NSTimer *modifierTimer;
 	IBOutlet NSTextField *controlField;
-	NSMutableArray *allColumns;
-	NSMutableDictionary *allColsDict;
+	NSMutableDictionary *columns;
 	
 	NSInteger firstRowIndexBeforeSplitResize;
 	
@@ -79,8 +79,8 @@
 - (void)updateHeaderViewForColumns;
 - (BOOL)eventIsTagEdit:(NSEvent*)event forColumn:(NSInteger)columnIndex row:(NSInteger)rowIndex;
 - (BOOL)lastEventActivatedTagEdit;
-- (void)editRowAtColumnWithIdentifier:(id)identifier;
-- (BOOL)addPermanentTableColumn:(NSTableColumn*)column;
+- (void)editRowAtColumnWithAttribute:(NVUIAttribute)attribute;
+- (BOOL)addPermanentTableColumn:(NoteAttributeColumn *)column;
 - (IBAction)actionHideShowColumn:(id)sender;
 - (IBAction)toggleNoteBodyPreviews:(id)sender;
 - (void)setStatusForSortedColumn:(id)item;
@@ -88,7 +88,10 @@
 - (NSMenu *)defaultNoteCommandsMenuWithTarget:(id)target;
 - (NSMenu *)menuForColumnSorting;
 - (NSMenu *)menuForColumnConfiguration:(NSTableColumn *)inSelectedColumn;
-- (NoteAttributeColumn*)noteAttributeColumnForIdentifier:(NSString*)identifier;
+- (NoteAttributeColumn *)columnForIdentifier:(NSString *)identifier;
+- (NoteAttributeColumn *)columnForAttribute:(NVUIAttribute)attribute;
+- (NSInteger)columnWithAttribute:(NVUIAttribute)attribute;
+- (NoteAttributeColumn *)tableColumnWithAttribute:(NVUIAttribute)attribute;
 
 - (void)incrementNoteSelection:(id)sender;
 - (void)_incrementNoteSelectionByTag:(NSInteger)tag;
@@ -99,7 +102,7 @@
 - (BOOL)needsGridLines;
 - (void)updateGrid;
 
-- (void(^)(NoteObject *, id))attributeSetterForColumn:(NSTableColumn *)col;
+- (void(^)(NoteObject *, id))attributeSetterForColumn:(NoteAttributeColumn *)col;
 
 @property (nonatomic, strong) NSColor *foregroundColor;
 

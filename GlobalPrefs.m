@@ -36,9 +36,7 @@
 
 static NSString *DirectoryAliasKey = @"DirectoryAlias";
 static NSString *AutoCompleteSearchesKey = @"AutoCompleteSearches";
-static NSString *NoteAttributesVisibleKey = @"NoteAttributesVisible";
 static NSString *TableFontSizeKey = @"TableFontPointSize";
-static NSString *TableSortColumnKey = @"TableSortColumn";
 static NSString *TableIsReverseSortedKey = @"TableIsReverseSorted";
 static NSString *TableColumnsHaveBodyPreviewKey = @"TableColumnsHaveBodyPreview";
 static NSString *NoteBodyFontKey = @"NoteBodyFont";
@@ -84,24 +82,21 @@ static NSString *UseAutoPairing = @"UseAutoPairing";
 static NSString *UsesMarkdownCompletions = @"UsesMarkdownCompletions";
 //static NSString *PasteClipboardOnNewNoteKey = @"PasteClipboardOnNewNote";
 
-//these 4 strings manually localized
-NSString *NoteTitleColumnString = @"Title";
-NSString *NoteLabelsColumnString = @"Tags";
-NSString *NoteDateModifiedColumnString = @"Date Modified";
-NSString *NoteDateCreatedColumnString = @"Date Added";
-
-//virtual column
-NSString *NotePreviewString = @"Note Preview";
-
 NSString *NVPTFPboardType = @"Notational Velocity Poor Text Format";
 
 NSString *HotKeyAppToFrontName = @"bring Notational Velocity to the foreground";
 
+static NSString *const NVTableColumnsVisibleKey = @"NVTableColumnsVisible";
+static NSString *const NVTableColumnsVisibleLegacyKey = @"NoteAttributesVisible";
+static NSString *const NVTableSortColumnKey = @"NVTableSortColumn";
+static NSString *const NVTableSortColumnLegacyKey = @"TableSortColumn";
 
 @implementation GlobalPrefs
 
 - (void)sendCallbacks:(SEL)selector originalSender:(id)originalSender
 {
+	[defaults synchronize];
+	
 	if (originalSender == self) return;
 
 	[self notifyCallbacksForSelector:selector excludingSender:originalSender];
@@ -113,8 +108,6 @@ NSString *HotKeyAppToFrontName = @"bring Notational Velocity to the foreground";
 		selectorObservers = [[NSMutableDictionary alloc] init];
 
 		defaults = [NSUserDefaults standardUserDefaults];
-
-		tableColumns = nil;
 
 		[defaults registerDefaults:[NSDictionary dictionaryWithObjectsAndKeys:
 			[NSNumber numberWithBool:YES], AutoSuggestLinksKey,
@@ -161,8 +154,8 @@ NSString *HotKeyAppToFrontName = @"bring Notational Velocity to the foreground";
 			 [NSColor colorWithCalibratedRed:0.945 green:0.702 blue:0.702 alpha:1.0f]], SearchTermHighlightColorKey,
 
 			[NSNumber numberWithFloat:[NSFont smallSystemFontSize]], TableFontSizeKey,
-			[NSArray arrayWithObjects:NoteTitleColumnString, NoteDateModifiedColumnString, nil], NoteAttributesVisibleKey,
-			NoteDateModifiedColumnString, TableSortColumnKey,
+			@(NVTableColumnOptionTitle | NVTableColumnOptionDateModified), NVTableColumnsVisibleKey,
+			@(NVTableColumnOptionDateModified), NVTableSortColumnLegacyKey,
 			[NSNumber numberWithBool:YES], TableIsReverseSortedKey, nil]];
 
 		autoCompleteSearches = [defaults boolForKey:AutoCompleteSearchesKey];
@@ -739,61 +732,72 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
 	[self sendCallbacks:_cmd originalSender:sender];
 }
 
-- (void)removeTableColumn:(NSString*)columnKey sender:(id)sender {
-	[tableColumns removeObject:columnKey];
-	tableColsBitmap = 0U;
+- (NVTableColumnOption)visibleTableColumnsWithCount:(out NSUInteger *)outCount {
+	if (visibleTableColumns == NVTableColumnOptionNone) {
+		NSArray *legacy = [defaults arrayForKey:NVTableColumnsVisibleLegacyKey];
+		if (legacy) {
+			visibleTableColumns = NVTableColumnOptionForIdentifiers(legacy);
+			[defaults setInteger:visibleTableColumns forKey:NVTableColumnsVisibleKey];
+			[defaults removeObjectForKey:NVTableColumnsVisibleLegacyKey];
+			[defaults synchronize];
+		} else {
+			visibleTableColumns = [defaults integerForKey:NVTableColumnsVisibleKey];
+		}
+	}
+	
+	NSUInteger count = NVTableColumnCountForOption(visibleTableColumns);
+	if (outCount) *outCount = count;
+	
+	if (!count) {
+		[self addTableColumn:NVUIAttributeTitle sender:self];
+	}
+	
+	return visibleTableColumns;
+}
 
-	[defaults setObject:tableColumns forKey:NoteAttributesVisibleKey];
+- (NVTableColumnOption)visibleTableColumns {
+	return [self visibleTableColumnsWithCount:NULL];
+}
 
+- (void)removeTableColumn:(NVUIAttribute)column sender:(id)sender {
+	visibleTableColumns &= ~NVUIAttributeOption(column);
+	[defaults setInteger:visibleTableColumns forKey:NVTableColumnsVisibleKey];
 	[self sendCallbacks:_cmd originalSender:sender];
 }
-- (void)addTableColumn:(NSString*)columnKey sender:(id)sender {
-	if (![tableColumns containsObject:columnKey]) {
-		[tableColumns addObject:columnKey];
-		tableColsBitmap = 0U;
 
-		[defaults setObject:tableColumns forKey:NoteAttributesVisibleKey];
-
+- (void)addTableColumn:(NVUIAttribute)column sender:(id)sender {
+	if (![self visibleTableColumnsIncludes:column]) {
+		visibleTableColumns |= NVUIAttributeOption(column);
+		[defaults setInteger:visibleTableColumns forKey:NVTableColumnsVisibleKey];
 		[self sendCallbacks:_cmd originalSender:sender];
 	}
 }
 
-- (NSArray*)visibleTableColumns {
-	if (!tableColumns) {
-		tableColumns = [NSMutableArray arrayWithArray:[defaults arrayForKey:NoteAttributesVisibleKey]];
-		tableColsBitmap = 0U;
-	}
-
-	if (![tableColumns count])
-		[self addTableColumn:NoteTitleColumnString sender:self];
-
-	return tableColumns;
+- (NSUInteger)numberOfVisibleTableColumns {
+	NSUInteger count;
+	[self visibleTableColumnsWithCount:&count];
+	return count;
 }
 
-
-- (unsigned int)tableColumnsBitmap {
-	if (tableColsBitmap == 0U) {
-		if ([tableColumns containsObject:NoteTitleColumnString])
-			tableColsBitmap = (tableColsBitmap | (1 << NoteTitleColumn));
-		if ([tableColumns containsObject:NoteLabelsColumnString])
-			tableColsBitmap = (tableColsBitmap | (1 << NoteLabelsColumn));
-		if ([tableColumns containsObject:NoteDateModifiedColumnString])
-			tableColsBitmap = (tableColsBitmap | (1 << NoteDateModifiedColumn));
-		if ([tableColumns containsObject:NoteDateCreatedColumnString])
-			tableColsBitmap = (tableColsBitmap | (1 << NoteDateCreatedColumn));
-	}
-	return tableColsBitmap;
+- (BOOL)visibleTableColumnsIncludes:(NVUIAttribute)column {
+	return NVTableColumnEnabled(self.visibleTableColumns, column);
 }
 
-- (void)setSortedTableColumnKey:(NSString*)sortedKey reversed:(BOOL)reversed sender:(id)sender {
+- (NVUIAttribute)sortedTableColumn
+{
+	NSString *legacy = [defaults objectForKey:NVTableSortColumnLegacyKey];
+	if (legacy) {
+		[defaults setInteger:NVUIAttributeForIdentifier(legacy) forKey:NVTableSortColumnKey];
+		[defaults removeObjectForKey:NVTableSortColumnLegacyKey];
+	}
+	return [defaults integerForKey:NVTableSortColumnKey];
+}
+
+- (void)setSortedTableColumn:(NVUIAttribute)attribute reversed:(BOOL)reversed sender:(id)sender
+{
 	[defaults setBool:reversed forKey:TableIsReverseSortedKey];
-    [defaults setObject:sortedKey forKey:TableSortColumnKey];
-
+    [defaults setObject:@(attribute) forKey:NVTableSortColumnKey];
 	[self sendCallbacks:_cmd originalSender:sender];
-}
-
-- (NSString*)sortedTableColumnKey {
-    return [defaults objectForKey:TableSortColumnKey];
 }
 
 - (BOOL)tableIsReverseSorted {

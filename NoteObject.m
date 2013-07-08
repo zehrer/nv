@@ -42,6 +42,7 @@
 #import "UnifiedCell.h"
 #import "LabelColumnCell.h"
 #import "ODBEditor.h"
+#import "NoteAttributeColumn.h"
 
 #if __LP64__
 // Needed for compatability with data created by 32bit app
@@ -253,8 +254,7 @@ force_inline id properlyHighlightingTableTitleOfNote(NotesTableView *tv, NoteObj
 }
 
 force_inline id labelColumnCellForNote(NotesTableView *tv, NoteObject *note, NSInteger row) {
-	
-	LabelColumnCell *cell = [[tv tableColumnWithIdentifier:NoteLabelsColumnString] dataCellForRow:row];
+	LabelColumnCell *cell = [[tv tableColumnWithAttribute:NVUIAttributeLabels] dataCellForRow:row];
 	[cell setNoteObject:note];
 	return note.labelString;
 }
@@ -569,7 +569,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		contentCacheNeedsUpdate = YES;
 		//[self updateContentCacheCStringIfNecessary];
 		
-		[delegate note:self attributeChanged:NotePreviewString];
+		[delegate note:self attributeChanged:NVUIAttributeNotePreview];
 	
 		[self makeNoteDirtyUpdateTime:updateTime updateFile:YES];
 	}
@@ -674,8 +674,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	if ([prefs tableColumnsShowPreview]) {
 		if ([prefs horizontalLayout]) {
 			//is called for visible notes at launch and resize only, generation of images for invisible notes is delayed until after launch
-			
-			NSSize labelBlockSize = ColumnIsSet(NoteLabelsColumn, [prefs tableColumnsBitmap]) ? [self sizeOfLabelBlocks] : NSZeroSize;
+			NSSize labelBlockSize = [prefs visibleTableColumnsIncludes:NVUIAttributeLabels] ? [self sizeOfLabelBlocks] : NSZeroSize;
 			tableTitleString = [titleString attributedMultiLinePreviewFromBodyText:contentString upToWidth:[delegate titleColumnWidth] 
 																	 intrusionWidth:labelBlockSize.width];
 		} else {
@@ -724,7 +723,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 			[undoMan setActionName:[NSString stringWithFormat:@"Rename Note \"%@\"", titleString]];
 		*/
 		
-		[delegate note:self attributeChanged:NoteTitleColumnString];
+		[delegate note:self attributeChanged:NVUIAttributeTitle];
     }
 }
 
@@ -761,7 +760,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 			[self _setTitleString:[aString stringByDeletingPathExtension]];	
 			
 			[self updateTablePreviewString];
-			[delegate note:self attributeChanged:NoteTitleColumnString];
+			[delegate note:self attributeChanged:NVUIAttributeTitle];
 		}
 		
 		[self makeNoteDirtyUpdateTime:YES updateFile:NO];
@@ -928,7 +927,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		[self makeNoteDirtyUpdateTime:YES updateFile:YES];
 		//[self registerModificationWithOwnedServices];
 		
-		[delegate note:self attributeChanged:NoteLabelsColumnString];
+		[delegate note:self attributeChanged:NVUIAttributeLabels];
 	}
 }
 
@@ -1120,7 +1119,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 			NSAssert(NO, @"Warning! Tried to write data for an individual note in single-db format!");
 			
 			return NO;
-		case NVDatabaseFormatPlainText:
+		case NVDatabaseFormatPlain:
 			
 			if (!(formattedData = [[contentString string] dataUsingEncoding:fileEncoding allowLossyConversion:NO])) {
 				
@@ -1175,7 +1174,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 			return NO;
 		}
 		//if writing plaintext set the file encoding with setxattr
-		if (NVDatabaseFormatPlainText == formatID) {
+		if (NVDatabaseFormatPlain == formatID) {
 			[self writeCurrentFileEncodingToFSRef:noteFileRefInit(self)];
 		}
 		NSFileManager *fileMan = [NSFileManager defaultManager];
@@ -1271,10 +1270,10 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	if (NSUTF8StringEncoding != fileEncoding) {
 		[self _setFileEncoding:NSUTF8StringEncoding];
 		
-		if (!contentsWere7Bit && currentFormatID == NVDatabaseFormatPlainText) {
+		if (!contentsWere7Bit && currentFormatID == NVDatabaseFormatPlain) {
 			//this note exists on disk as a plaintext file, and its encoding is incompatible with UTF-8
 			
-			if ([delegate currentNoteStorageFormat] == NVDatabaseFormatPlainText) {
+			if ([delegate currentNoteStorageFormat] == NVDatabaseFormatPlain) {
 				//actual conversion is expected because notes are presently being maintained as plain text files
 				
 				NSLog(@"rewriting %@ as utf8 data", titleString);
@@ -1427,7 +1426,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		NSAssert(NO, @"Warning! Tried to update data from a note in single-db format!");
 	    
 	    break;
-	case NVDatabaseFormatPlainText:
+	case NVDatabaseFormatPlain:
 		//try to merge/re-match attributes?
 	    if ((stringFromData = [NSMutableString newShortLivedStringFromData:data ofGuessedEncoding:&fileEncoding withPath:NULL orWithFSRef:noteFileRefInit(self)])) {
 			attributedStringFromData = [[NSMutableAttributedString alloc] initWithString:stringFromData 
@@ -1557,11 +1556,6 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	
 	//queue note to be written
     [delegate scheduleWriteForNote:self];	
-	
-	//tell delegate that the date modified changed
-	//[delegate note:self attributeChanged:NoteDateModifiedColumnString];
-	//except we don't want this here, as it will cause unnecessary (potential) re-sorting and updating of list view while typing
-	//so expect the delegate to know to schedule the same update itself
 }
 
 - (OSStatus)exportToDirectoryRef:(FSRef *)directoryRef withFilename:(NSString *)userFilename usingFormat:(NVDatabaseFormat)storageFormat overwrite:(BOOL)overwrite {
@@ -1576,7 +1570,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	switch (storageFormat) {
 		case NVDatabaseFormatSingle:
 			NSAssert(NO, @"Warning! Tried to export data in single-db format!?");
-		case NVDatabaseFormatPlainText:
+		case NVDatabaseFormatPlain:
 			if (!(formattedData = [[contentMinusColor string] dataUsingEncoding:fileEncoding allowLossyConversion:NO])) {
 				[self _setFileEncoding:NSUTF8StringEncoding];
 				NSLog(@"promoting to unicode (UTF-8) on export--probably because internal format is singledb");
@@ -1630,7 +1624,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		NSLog(@"error writing to temporary file: %d", err);
 		return err;
     }
-	if (storageFormat == NVDatabaseFormatPlainText) {
+	if (storageFormat == NVDatabaseFormatPlain) {
 		(void)[self writeCurrentFileEncodingToFSRef:&fileRef];
 	}
 	NSFileManager *fileMan = [NSFileManager defaultManager];
@@ -1664,11 +1658,11 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 	
 	//can't use updateFromCatalogEntry because it would assign ownership via various metadata
 	
-	if ([self updateFromData:[NSMutableData dataWithContentsOfFile:path options:NSUncachedRead error:NULL] inFormat:NVDatabaseFormatPlainText]) {
+	if ([self updateFromData:[NSMutableData dataWithContentsOfFile:path options:NSUncachedRead error:NULL] inFormat:NVDatabaseFormatPlain]) {
 		//reflect the temp file's changes directly back to the backing-store-file, database, and sync services
 		[self makeNoteDirtyUpdateTime:YES updateFile:YES];
 		
-		[delegate note:self attributeChanged:NotePreviewString];
+		[delegate note:self attributeChanged:NVUIAttributeNotePreview];
 		[[delegate delegate] contentsUpdatedForNote:self];
 	} else {
 		NSBeep();

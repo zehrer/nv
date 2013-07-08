@@ -191,6 +191,6 @@ typedef struct _NoteFilterContext {
 @interface NSObject (NoteObjectDelegate)
 - (void)note:(NoteObject*)note didAddLabelSet:(NSSet*)labelSet;
 - (void)note:(NoteObject*)note didRemoveLabelSet:(NSSet*)labelSet;
-- (void)note:(NoteObject*)note attributeChanged:(NSString*)attribute;
+- (void)note:(NoteObject*)note attributeChanged:(NVUIAttribute)attribute;
 @end
 

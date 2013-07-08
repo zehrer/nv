@@ -23,12 +23,7 @@
 
 #import <Cocoa/Cocoa.h>
 #import "SynchronizedNoteProtocol.h"
-
-extern NSString *NoteTitleColumnString;
-extern NSString *NoteLabelsColumnString;
-extern NSString *NoteDateModifiedColumnString;
-extern NSString *NoteDateCreatedColumnString;
-extern NSString *NotePreviewString;
+#import "NotationTypes.h"
 
 extern NSString *NVPTFPboardType;
 
@@ -37,11 +32,6 @@ extern NSString *NVPTFPboardType;
 @class NotationPrefs;
 @class PTKeyCombo;
 @class PTHotKey;
-
-enum { NoteTitleColumn, NoteLabelsColumn, NoteDateModifiedColumn, NoteDateCreatedColumn };
-
-#define ColumnIsSet(__ColumnEnum, __columnsBitmap) (((1 << (__ColumnEnum)) & (__columnsBitmap)) != 0)
-
 
 BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2);
 
@@ -60,8 +50,7 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2);
 	NSFont *noteBodyFont;
 	BOOL autoCompleteSearches;
 	
-	NSMutableArray *tableColumns;
-	unsigned int tableColsBitmap;
+	NVTableColumnOption visibleTableColumns;
 }
 
 + (GlobalPrefs *)defaultPrefs;
@@ -74,13 +63,14 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2);
 - (void)setNotationPrefs:(NotationPrefs*)newNotationPrefs sender:(id)sender;
 - (NotationPrefs*)notationPrefs;
 
-- (void)removeTableColumn:(NSString*)columnKey sender:(id)sender;
-- (void)addTableColumn:(NSString*)columnKey sender:(id)sender;
-- (NSArray*)visibleTableColumns;
-- (unsigned int)tableColumnsBitmap;
+- (NVTableColumnOption)visibleTableColumns;
+- (void)removeTableColumn:(NVUIAttribute)column sender:(id)sender;
+- (void)addTableColumn:(NVUIAttribute)column sender:(id)sender;
+- (NSUInteger)numberOfVisibleTableColumns;
+- (BOOL)visibleTableColumnsIncludes:(NVUIAttribute)column;
 
-- (void)setSortedTableColumnKey:(NSString*)sortedKey reversed:(BOOL)reversed sender:(id)sender;
-- (NSString*)sortedTableColumnKey;
+- (NVUIAttribute)sortedTableColumn;
+- (void)setSortedTableColumn:(NVUIAttribute)attribute reversed:(BOOL)reversed sender:(id)sender;
 - (BOOL)tableIsReverseSorted;
 
 - (BOOL)tableColumnsShowPreview;

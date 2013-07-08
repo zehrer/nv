@@ -13,13 +13,16 @@
 
 
 #import <Cocoa/Cocoa.h>
+#import "NotationTypes.h"
 
 @class NotesTableView;
-
 
 @interface NoteAttributeColumn : NSTableColumn {
 	float absoluteMinimumWidth;
 }
+
+- (id)initWithAttribute:(NVUIAttribute)attribute;
+- (id)initWithIdentifier:(NSString *)identifier NS_UNAVAILABLE;
 
 + (NSDictionary*)standardDictionary;
 - (void)updateWidthForHighlight;
@@ -28,5 +31,9 @@
 
 @property (nonatomic, copy) NSComparisonResult(^comparator)(id, id);
 @property (nonatomic, copy) NSComparisonResult(^reverseComparator)(id, id);
+
+- (void)setIdentifier:(NSString *)identifier NS_UNAVAILABLE;
+
+@property (nonatomic) NVUIAttribute attribute;
 
 @end

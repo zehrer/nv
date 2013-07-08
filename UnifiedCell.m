@@ -162,14 +162,18 @@ NSAttributedString *AttributedStringForSelection(NSAttributedString *str, BOOL w
 	float fontHeight = [tv tableFontHeight];
 	
 	//if the sort-order is date-created, then show the date on which this note was created; otherwise show date modified.
-	unsigned int columnsBitmap = [[GlobalPrefs defaultPrefs] tableColumnsBitmap];
+	NVTableColumnOption opts = [[GlobalPrefs defaultPrefs] visibleTableColumns];
 	
-	if (ColumnIsSet(NoteDateCreatedColumn, columnsBitmap) || ColumnIsSet(NoteDateModifiedColumn, columnsBitmap)) {
+	BOOL dateModifiedEnabled = NVTableColumnEnabled(opts, NVUIAttributeDateModified);
+	BOOL dateCreatedEnabled = NVTableColumnEnabled(opts, NVUIAttributeDateCreated);
+	BOOL labelsCreatedEnabled = NVTableColumnEnabled(opts, NVUIAttributeDateCreated);
+	
+	if (dateModifiedEnabled || dateCreatedEnabled) {
 		BOOL showDateCreated = NO;
 		
-		if (ColumnIsSet(NoteDateCreatedColumn, columnsBitmap) && ColumnIsSet(NoteDateModifiedColumn, columnsBitmap)) {
-			showDateCreated = [[[GlobalPrefs defaultPrefs] sortedTableColumnKey] isEqualToString:NoteDateCreatedColumnString];
-		} else if (ColumnIsSet(NoteDateCreatedColumn, columnsBitmap)) {
+		if (dateModifiedEnabled && dateCreatedEnabled) {
+			showDateCreated = ([[GlobalPrefs defaultPrefs] sortedTableColumn] == NVUIAttributeDateCreated);
+		} else if (dateCreatedEnabled) {
 			showDateCreated = YES;
 		}
 		
@@ -181,7 +185,7 @@ NSAttributedString *AttributedStringForSelection(NSAttributedString *str, BOOL w
 		[dateStr drawInRect:NSMakeRect(NSMaxX(cellFrame) - dateLength-4.0, NSMinY(cellFrame), dateLength, fontHeight) withAttributes:baseAttrs];
 	}
 
-	if (ColumnIsSet(NoteLabelsColumn, columnsBitmap) && noteObject.labelString.length) {
+	if (labelsCreatedEnabled && noteObject.labelString.length) {
 		NSRect rect = [self nv_tagsRectForFrame:cellFrame];
 		rect.origin.y += fontHeight;
 		rect = [controlView centerScanRect:rect];

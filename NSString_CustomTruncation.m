@@ -109,15 +109,15 @@ static NSDictionary *LineTruncAttributes() {
 NSDictionary *LineTruncAttributesForTitle() {
 	if (!titleTruncAttrs) {
 		GlobalPrefs *prefs = [GlobalPrefs defaultPrefs];
-		unsigned int bitmap = [prefs tableColumnsBitmap];
+		NVTableColumnOption opts = [prefs visibleTableColumns];
+
 		float fontSize = [prefs tableFontSize];
-		BOOL usesBold = ColumnIsSet(NoteLabelsColumn, bitmap) || ColumnIsSet(NoteDateCreatedColumn, bitmap) ||
-		ColumnIsSet(NoteDateModifiedColumn, bitmap) || [prefs tableColumnsShowPreview];
+		BOOL usesBold = (NVTableColumnEnabled(opts, NVUIAttributeLabels) || NVTableColumnEnabled(opts, NVUIAttributeDateModified) || NVTableColumnEnabled(opts, NVUIAttributeDateCreated) || [prefs tableColumnsShowPreview]);
 		
 		titleTruncAttrs = [NSMutableDictionary dictionaryWithObjectsAndKeys:[LineBreakingStyle() mutableCopy], NSParagraphStyleAttributeName,
 							(usesBold ? [NSFont boldSystemFontOfSize:fontSize] : [NSFont systemFontOfSize:fontSize]), NSFontAttributeName, nil];
 		
-		if (ColumnIsSet(NoteDateCreatedColumn, bitmap) || ColumnIsSet(NoteDateModifiedColumn, bitmap)) {
+		if (NVTableColumnEnabled(opts, NVUIAttributeDateCreated) || NVTableColumnEnabled(opts, NVUIAttributeDateModified)) {
 			//account for right-"aligned" date string, which will be relatively constant, so this can be cached
             
             NSString *dateTest=[NSString relativeDateStringWithAbsoluteTime:CFDateGetAbsoluteTime((CFDateRef)[NSDate dateWithNaturalLanguageString:@"April 1, 2013"])];
