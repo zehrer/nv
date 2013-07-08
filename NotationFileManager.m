@@ -28,7 +28,6 @@
 #import <CommonCrypto/CommonCrypto.h>
 #include <sys/param.h>
 #include <sys/mount.h>
-#import <objc/message.h>
 
 NSString *NotesDatabaseFileName = @"Notes & Settings";
 

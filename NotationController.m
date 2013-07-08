@@ -49,7 +49,6 @@
 #import "NoteAttributeColumn.h"
 #import "nvaDevConfig.h"
 #import "NSMutableOrderedSet+NVFiltering.h"
-#import <objc/message.h>
 
 inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	if (result < 0) return NSOrderedAscending;

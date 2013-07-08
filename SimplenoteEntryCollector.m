@@ -24,7 +24,6 @@
 #import "SynchronizedNoteProtocol.h"
 #import "NoteObject.h"
 #import "DeletedNoteObject.h"
-#import <objc/message.h>
 
 @interface SimplenoteEntryCollector ()
 

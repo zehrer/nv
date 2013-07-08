@@ -28,7 +28,6 @@
 #import "NotationPrefs.h"
 #import "NotationController.h"
 #import "NoteObject.h"
-#import <objc/message.h>
 #import <Quartz/Quartz.h>
 
 NSString *PasswordWasRetrievedFromKeychainKey = @"PasswordRetrievedFromKeychain";

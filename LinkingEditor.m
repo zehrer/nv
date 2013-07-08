@@ -25,6 +25,7 @@
 
 #include <CoreServices/CoreServices.h>
 #include <Carbon/Carbon.h>
+#import <objc/runtime.h>
 
 #define PASSWORD_SUGGESTIONS 0
 
