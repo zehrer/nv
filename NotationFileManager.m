@@ -536,16 +536,12 @@ long BlockSizeForNotation(NotationController *controller) {
 	return FSCreateFileIfNotPresentInDirectory(&noteDirectoryRef, childRef, (__bridge CFStringRef)filename, (Boolean*)created);
 }
 
-- (OSStatus)storeDataAtomicallyInNotesDirectory:(NSData*)data withName:(NSString*)filename destinationRef:(FSRef*)destRef {
-	return [self storeDataAtomicallyInNotesDirectory:data withName:filename destinationRef:destRef verifyWithSelector:NULL verificationDelegate:nil];
-}
-
 //either name or destRef must be valid; destRef is declared invalid by filling the struct with 0
-
-- (OSStatus)storeDataAtomicallyInNotesDirectory:(NSData*)data withName:(NSString*)filename destinationRef:(FSRef*)destRef 
-							 verifyWithSelector:(SEL)verificationSel verificationDelegate:(id)verifyDelegate {
-    OSStatus err = noErr;
-    	
+- (OSStatus)storeDataAtomicallyInNotesDirectory:(NSData*)data withName:(NSString*)filename destinationRef:(FSRef*)destRef
+							   verifyUsingBlock:(OSStatus(^)(FSRef *, NSString *))verifier
+{
+	OSStatus err = noErr;
+	
 	FSRef tempFileRef;
     if ((err = CreateTemporaryFile(&noteDirectoryRef, &tempFileRef)) != noErr) {
 		NSLog(@"error creating temporary file: %d", err);
@@ -561,11 +557,10 @@ long BlockSizeForNotation(NotationController *controller) {
 	
 	//before we try to swap the data contents of this temp file with the (possibly even soon-to-be-created) Notes & Settings file,
 	//try to read it back and see if it can be decrypted and decoded:
-	if (verifyDelegate && verificationSel) {
-#warning TODO - replace
-		if (noErr != (err = [objc_msgSend(verifyDelegate, verificationSel, [NSValue valueWithPointer:&tempFileRef], filename) intValue])) {
+	if (verifier) {
+		if (noErr != (verifier(&tempFileRef, filename))) {
 			NSLog(@"couldn't verify written notes, so not continuing to save");
-			(void)FSDeleteObject(&tempFileRef);
+			FSDeleteObject(&tempFileRef);
 			return err;
 		}
 	}
@@ -591,7 +586,7 @@ long BlockSizeForNotation(NotationController *controller) {
 	} else {
 		err = FSExchangeObjects(&tempFileRef, destRef);
 	}
-		
+	
     if (err != noErr) {
 		NSLog(@"error exchanging contents of temporary file with destination file %@: %d",filename, err);
 		return err;
@@ -604,8 +599,8 @@ long BlockSizeForNotation(NotationController *controller) {
     }
     
     return noErr;
-}
 
+}
 
 - (void)notifyOfChangedTrash {
 	FSRef folder;

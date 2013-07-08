@@ -1168,7 +1168,7 @@ force_inline id unifiedCellForNote(NotesTableView *tv, NoteObject *note, NSInteg
 		//could offer to merge or revert changes
 		
 		OSStatus err = noErr;
-		if ((err = [delegate storeDataAtomicallyInNotesDirectory:formattedData withName:filename destinationRef:noteFileRefInit(self)]) != noErr) {
+		if ((err = [delegate storeDataAtomicallyInNotesDirectory:formattedData withName:filename destinationRef:noteFileRefInit(self) verifyUsingBlock:NULL]) != noErr) {
 			NSLog(@"Unable to save note file %@", filename);
 			
 			[delegate noteDidNotWrite:self errorCode:err];

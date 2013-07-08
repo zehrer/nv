@@ -226,61 +226,6 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	}	
 }
 
-//used to ensure a newly-written Notes & Settings file is valid before finalizing the save
-//read the file back from disk, deserialize it, decrypt and decompress it, and compare the notes roughly to our current notes
-- (NSNumber*)verifyDataAtTemporaryFSRef:(NSValue*)fsRefValue withFinalName:(NSString*)filename {
-	
-	NSDate *date = [NSDate date];
-	
-	NSAssert([filename isEqualToString:NotesDatabaseFileName], @"attempting to verify something other than the database");
-	
-	FSRef *notesFileRef = [fsRefValue pointerValue];
-	UInt64 fileSize = 0;
-	char *notesData = NULL;
-	OSStatus err = noErr;
-	if ((err = FSRefReadData(notesFileRef, BlockSizeForNotation(self), &fileSize, (void**)&notesData, forceReadMask)) != noErr)
-		return @(err);
-	
-	FrozenNotation *frozenNotation = nil;
-	if (!fileSize) {
-		if (notesData) free(notesData);
-		return @(eofErr);
-	}
-	NSData *archivedNotation = [[NSData alloc] initWithBytesNoCopy:notesData length:fileSize freeWhenDone:NO];
-	@try {
-		frozenNotation = [NSKeyedUnarchiver unarchiveObjectWithData:archivedNotation];
-	} @catch (NSException *e) {
-		NSLog(@"(VERIFY) Error unarchiving notes and preferences from data (%@, %@)", [e name], [e reason]);
-		if (notesData) free(notesData);
-		return @(kCoderErr);
-	}
-	//unpack notes using the current NotationPrefs instance (not the just-unarchived one), with which we presumably just used to encrypt it
-	NSMutableArray *notesToVerify = [frozenNotation unpackedNotesWithPrefs:notationPrefs returningError:&err];	
-	if (noErr != err) {
-		if (notesData) free(notesData);
-		return @(err);
-	}
-	//notes were unpacked--now roughly compare notesToVerify with allNotes, plus deletedNotes and notationPrefs
-	if (!notesToVerify || [notesToVerify count] != [allNotes count] || [[frozenNotation deletedNotes] count] != [deletedNotes  count] || 
-		[frozenNotation.prefs notesStorageFormat] != [notationPrefs notesStorageFormat] ||
-		[frozenNotation.prefs hashIterationCount] != [notationPrefs hashIterationCount]) {
-		if (notesData) free(notesData);
-		return @(kItemVerifyErr);
-	}
-	unsigned int i;
-	for (i=0; i<[notesToVerify count]; i++) {
-		if ([[[notesToVerify objectAtIndex:i] contentString] length] != [[[allNotes objectAtIndex:i] contentString] length]) {
-			if (notesData) free(notesData);
-			return @(kItemVerifyErr);
-		}
-	}
-	
-	NSLog(@"verified %lu notes in %g s", [notesToVerify count], (float)[[NSDate date] timeIntervalSinceDate:date]);
-
-	if (notesData) free(notesData);
-	return @(noErr);
-}
-
 
 - (OSStatus)_readAndInitializeSerializedNotes {
 
@@ -543,9 +488,60 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		}
 		
 		//we should have all journal records on disk by now
-		if ([self storeDataAtomicallyInNotesDirectory:serializedData withName:NotesDatabaseFileName destinationRef:&noteDatabaseRef 
-								   verifyWithSelector:@selector(verifyDataAtTemporaryFSRef:withFinalName:) verificationDelegate:self] != noErr)
+		//used to ensure a newly-written Notes & Settings file is valid before finalizing the save
+		//read the file back from disk, deserialize it, decrypt and decompress it, and compare the notes roughly to our current notes
+		if ([self storeDataAtomicallyInNotesDirectory:serializedData withName:NotesDatabaseFileName destinationRef:&noteDatabaseRef verifyUsingBlock:^OSStatus(FSRef *notesFileRef, NSString *filename) {
+			NSDate *date = [NSDate date];
+			
+			NSAssert([filename isEqualToString:NotesDatabaseFileName], @"attempting to verify something other than the database");
+			
+			UInt64 fileSize = 0;
+			char *notesData = NULL;
+			OSStatus err = noErr;
+			if ((err = FSRefReadData(notesFileRef, BlockSizeForNotation(self), &fileSize, (void**)&notesData, forceReadMask)) != noErr)
+				return err;
+			
+			FrozenNotation *frozenNotation = nil;
+			if (!fileSize) {
+				if (notesData) free(notesData);
+				return eofErr;
+			}
+			NSData *archivedNotation = [[NSData alloc] initWithBytesNoCopy:notesData length:fileSize freeWhenDone:NO];
+			@try {
+				frozenNotation = [NSKeyedUnarchiver unarchiveObjectWithData:archivedNotation];
+			} @catch (NSException *e) {
+				NSLog(@"(VERIFY) Error unarchiving notes and preferences from data (%@, %@)", [e name], [e reason]);
+				if (notesData) free(notesData);
+				return kCoderErr;
+			}
+			//unpack notes using the current NotationPrefs instance (not the just-unarchived one), with which we presumably just used to encrypt it
+			NSMutableArray *notesToVerify = [frozenNotation unpackedNotesWithPrefs:notationPrefs returningError:&err];
+			if (noErr != err) {
+				if (notesData) free(notesData);
+				return err;
+			}
+			//notes were unpacked--now roughly compare notesToVerify with allNotes, plus deletedNotes and notationPrefs
+			if (!notesToVerify || [notesToVerify count] != [allNotes count] || [[frozenNotation deletedNotes] count] != [deletedNotes  count] ||
+				[frozenNotation.prefs notesStorageFormat] != [notationPrefs notesStorageFormat] ||
+				[frozenNotation.prefs hashIterationCount] != [notationPrefs hashIterationCount]) {
+				if (notesData) free(notesData);
+				return kItemVerifyErr;
+			}
+			unsigned int i;
+			for (i=0; i<[notesToVerify count]; i++) {
+				if ([[[notesToVerify objectAtIndex:i] contentString] length] != [[[allNotes objectAtIndex:i] contentString] length]) {
+					if (notesData) free(notesData);
+					return kItemVerifyErr;
+				}
+			}
+			
+			NSLog(@"verified %lu notes in %g s", [notesToVerify count], (float)[[NSDate date] timeIntervalSinceDate:date]);
+			
+			if (notesData) free(notesData);
+			return noErr;
+		}] != noErr) {
 			return NO;
+		}
 		
 		[notationPrefs setPreferencesAreStored];
 		notesChanged = NO;
@@ -554,6 +550,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	
     return YES;
 }
+
 
 - (void)handleJournalError {
     
