@@ -190,7 +190,7 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t nu
 			
 			if (!catEntriesCount) {
 				//there is nothing at all in the directory, so remove all the notes
-				[deletionManager addDeletedNotes:self.notes.array];
+				[deletionManager addDeletedNotes:self.notes];
 			}
 		}
 		

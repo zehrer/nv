@@ -156,6 +156,8 @@
 
 -(void)awakeFromNib
 {
+	[super awakeFromNib];
+	
 	cssString = [[self class] css];
     htmlString = [[self class] html];
 	lastNote = [[NSApp delegate] selectedNoteObject];

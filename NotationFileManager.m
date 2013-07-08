@@ -317,12 +317,10 @@ long BlockSizeForNotation(NotationController *controller) {
 	}
 	
 	if (dbNote) {
-		[self.notes removeObject:dbNote];
-		[self _addDeletedNote:dbNote];
+		[self moveNoteToDeleted:dbNote];
 	}
 	if (walNote) {
-		[self.notes removeObject:walNote];
-		[self _addDeletedNote:walNote];
+		[self moveNoteToDeleted:walNote];
 	}
 	return walNote || dbNote;
 }

@@ -263,6 +263,7 @@
 		DB3CB57817810A2E0030EA13 /* NSMutableData+NVAESEncryption.m in Sources */ = {isa = PBXBuildFile; fileRef = DB83632E1780E9FE001D4DC2 /* NSMutableData+NVAESEncryption.m */; };
 		DB924C58177D327E00E96033 /* Quartz.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB924C57177D327E00E96033 /* Quartz.framework */; };
 		DB9FB5C11787A134001DC987 /* NotationTypes.m in Sources */ = {isa = PBXBuildFile; fileRef = DB9FB5C01787A134001DC987 /* NotationTypes.m */; };
+		DBA17E7A178A98D600CA7CA7 /* NotationController+DataSource.m in Sources */ = {isa = PBXBuildFile; fileRef = DBA17E79178A98D600CA7CA7 /* NotationController+DataSource.m */; };
 		DBAE5926178915C9007A387D /* NVViewLocationContext.m in Sources */ = {isa = PBXBuildFile; fileRef = DBAE5925178915C9007A387D /* NVViewLocationContext.m */; };
 		DBC49A0717888A7B008463F7 /* NSOrderedSet+NVFiltering.m in Sources */ = {isa = PBXBuildFile; fileRef = DBC49A0617888A7B008463F7 /* NSOrderedSet+NVFiltering.m */; };
 /* End PBXBuildFile section */
@@ -747,6 +748,8 @@
 		DB924C57177D327E00E96033 /* Quartz.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Quartz.framework; path = System/Library/Frameworks/Quartz.framework; sourceTree = SDKROOT; };
 		DB9FB5BF1787A134001DC987 /* NotationTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NotationTypes.h; sourceTree = "<group>"; };
 		DB9FB5C01787A134001DC987 /* NotationTypes.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NotationTypes.m; sourceTree = "<group>"; };
+		DBA17E78178A98D600CA7CA7 /* NotationController+DataSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NotationController+DataSource.h"; sourceTree = "<group>"; };
+		DBA17E79178A98D600CA7CA7 /* NotationController+DataSource.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NotationController+DataSource.m"; sourceTree = "<group>"; };
 		DBAE5924178915C9007A387D /* NVViewLocationContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NVViewLocationContext.h; sourceTree = "<group>"; };
 		DBAE5925178915C9007A387D /* NVViewLocationContext.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NVViewLocationContext.m; sourceTree = "<group>"; };
 		DBC49A0517888A7A008463F7 /* NSOrderedSet+NVFiltering.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSOrderedSet+NVFiltering.h"; sourceTree = "<group>"; };
@@ -806,6 +809,8 @@
 				217D4281096545A000E84749 /* LabelObject.m */,
 				2114C13D0957732800614E74 /* NotationController.h */,
 				2114C13E0957732800614E74 /* NotationController.m */,
+				DBA17E78178A98D600CA7CA7 /* NotationController+DataSource.h */,
+				DBA17E79178A98D600CA7CA7 /* NotationController+DataSource.m */,
 				21B548F9112F307E00E163A1 /* NotationDirectoryManager.h */,
 				21B548F8112F307E00E163A1 /* NotationDirectoryManager.m */,
 				217CEBA109E9885500DF0E09 /* NotationFileManager.h */,
@@ -1568,6 +1573,7 @@
 				2168EC5309E33B0300778D02 /* FrozenNotation.m in Sources */,
 				217CEBA309E9885500DF0E09 /* NotationFileManager.m in Sources */,
 				215DE83809ECC4FE009A710B /* HeaderViewWIthMenu.m in Sources */,
+				DBA17E7A178A98D600CA7CA7 /* NotationController+DataSource.m in Sources */,
 				2181171309F311110020A252 /* DeletedNoteObject.m in Sources */,
 				212DCA470A6AD28700F74E46 /* EncodingsManager.m in Sources */,
 				212DCF610A6DEECB00F74E46 /* DeletionManager.m in Sources */,

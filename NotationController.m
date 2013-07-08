@@ -50,9 +50,6 @@
 #import "nvaDevConfig.h"
 #import "NSOrderedSet+NVFiltering.h"
 #import "NSObject+NVPerformBlock.h"
-#import "UnifiedCell.h"
-#import "LabelColumnCell.h"
-#import "NSArray+NVFiltering.h"
 
 inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	if (result < 0) return NSOrderedAscending;
@@ -62,8 +59,8 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 
 @interface NotationController ()
 
-@property (nonatomic, strong, readwrite) NSMutableOrderedSet *notes;
-@property (nonatomic, strong, readwrite) NSMutableOrderedSet *filteredNotes;
+@property (nonatomic, strong, readwrite) NSMutableOrderedSet *notesList;
+@property (nonatomic, strong, readwrite) NSMutableOrderedSet *filteredNotesList;
 @property (nonatomic, strong) NSMutableDictionary *labelImages;
 
 @end
@@ -74,8 +71,8 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
     if (self = [super init]) {
 		directoryChangesFound = notesChanged = aliasNeedsUpdating = NO;
 		
-		self.notes = [NSMutableOrderedSet orderedSet];
-		self.filteredNotes = [[NSMutableOrderedSet alloc] init];
+		self.notesList = [NSMutableOrderedSet orderedSet];
+		self.filteredNotesList = [[NSMutableOrderedSet alloc] init];
 		
 		deletedNotes = [[NSMutableSet alloc] init];
 		prefsController = [GlobalPrefs defaultPrefs];
@@ -197,14 +194,14 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		if (epochIteration < 2) {
 			//this would have to be a database from epoch 1, where the default file-encoding was system-default
 			NSLog(@"trying to upgrade note encodings");
-			[self.notes enumerateObjectsUsingBlock:^(NoteObject *note, NSUInteger idx, BOOL *stop) {
+			[self.notesList enumerateObjectsUsingBlock:^(NoteObject *note, NSUInteger idx, BOOL *stop) {
 				[note upgradeToUTF8IfUsingSystemEncoding];
 			}];
 			//move aside the old database as the new format breaks compatibility
 			(void)[self renameAndForgetNoteDatabaseFile:@"Notes & Settings (old version from 2.0b)"];
 		}
 		if (epochIteration < 3) {
-			[self.notes enumerateObjectsUsingBlock:^(NoteObject *note, NSUInteger idx, BOOL *stop) {
+			[self.notesList enumerateObjectsUsingBlock:^(NoteObject *note, NSUInteger idx, BOOL *stop) {
 				[note writeFileDatesAndUpdateTrackingInfo];
 			}];
 		}
@@ -220,7 +217,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 			//remove and re-add link attributes for all notes
 			//remove underline attribute for all notes
 			//add automatic strike-through attribute for all notes
-			[self.notes enumerateObjectsUsingBlock:^(NoteObject *note, NSUInteger idx, BOOL *stop) {
+			[self.notesList enumerateObjectsUsingBlock:^(NoteObject *note, NSUInteger idx, BOOL *stop) {
 				[note _resanitizeContent];
 			}];
 		}
@@ -283,15 +280,15 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	
 	//frozennotation will work out passwords, keychains, decryption, etc...
 	
-	if (!(self.notes = [NSMutableOrderedSet orderedSetWithArray:[frozenNotation unpackedNotesReturningError:&err]])) {
+	if (!(self.notesList = [NSMutableOrderedSet orderedSetWithArray:[frozenNotation unpackedNotesReturningError:&err]])) {
 		//notes could be nil because the user cancelled password authentication
 		//or because they were corrupted, or for some other reason
 		if (err != noErr)
 			return err;
 		
-		self.notes = [NSMutableOrderedSet orderedSet];
+		self.notesList = [NSMutableOrderedSet orderedSet];
 	} else {
-		[self.notes enumerateObjectsUsingBlock:^(NoteObject *note, NSUInteger idx, BOOL *stop) {
+		[self.notesList enumerateObjectsUsingBlock:^(NoteObject *note, NSUInteger idx, BOOL *stop) {
 			note.delegate = self;
 		}];
 	}
@@ -310,31 +307,20 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 }
 
 - (BOOL)initializeJournaling {
-    
-    const UInt32 maxPathSize = 8 * 1024;
+	const UInt32 maxPathSize = 8 * 1024;
     const char *convertedPath = (char *)malloc(maxPathSize * sizeof(char));
     OSStatus err = noErr;
 	NSData *walSessionKey = [notationPrefs WALSessionKey];
-    
-    //nvALT change to store Interim Note-Changes in ~/Library/Caches/
-#if kUseCachesFolderForInterimNoteChanges
-    NSString *cPath=[self createCachesFolder];
+	
+	NSString *cPath=[self createCachesFolder];
     if (cPath) {
         free((void *)convertedPath);
         convertedPath = [cPath UTF8String];
-#else
-    if ((err = FSRefMakePath(&noteDirectoryRef, convertedPath, maxPathSize)) == noErr) {
-#endif
 		//initialize the journal if necessary
 		if (!(walWriter = [[WALStorageController alloc] initWithParentFSRep:convertedPath encryptionKey:walSessionKey])) {
 			//journal file probably already exists, so try to recover it
 			WALRecoveryController *walReader = [[WALRecoveryController alloc] initWithParentFSRep:convertedPath encryptionKey:walSessionKey];
 			if (walReader) {
-                
-#if !kUseCachesFolderForInterimNoteChanges
-                free((void *)convertedPath); convertedPath = NULL;
-#endif
-				
 				BOOL databaseCouldNotBeFlushed = NO;
 				NSMapTable *recoveredNotes = [walReader recoveredNotes];
 				if ([recoveredNotes count] > 0) {
@@ -407,12 +393,12 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 			
 			if (existingNoteIndex != NSNotFound) {
 				
-				NoteObject *existingNote = self.notes[existingNoteIndex];
+				NoteObject *existingNote = self.notesList[existingNoteIndex];
 				if ([existingNote youngerThanLogObject:obj]) {
 					NSLog(@"got a newer deleted note %@", obj);
 					//except that normally the undomanager doesn't exist by this point
 					[self _registerDeletionUndoForNote:existingNote];
-					[self.notes removeObjectAtIndex:existingNoteIndex];
+					[self.notesList removeObjectAtIndex:existingNoteIndex];
 					//try to use use the deleted note object instead of allowing _addDeletedNote: to make a new one, to preserve any changes to the syncMD
 					[self _addDeletedNote:obj];
 					notesChanged = YES;
@@ -427,12 +413,12 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 			}
 		} else if (existingNoteIndex != NSNotFound) {
 			
-			if ([self.notes[existingNoteIndex] youngerThanLogObject:obj]) {
+			if ([self.notesList[existingNoteIndex] youngerThanLogObject:obj]) {
 				// NSLog(@"replacing old note with new: %@", [[(NoteObject*)obj contentString] string]);
 				
 				[(NoteObject*)obj setDelegate:self];
 				[(NoteObject*)obj updateLabelConnectionsAfterDecoding];
-				self.notes[existingNoteIndex] = obj;
+				self.notesList[existingNoteIndex] = obj;
 				notesChanged = YES;
 			} else {
 				// NSLog(@"note %@ is not being replaced because its LSN is %u, while the old note's LSN is %u",
@@ -495,7 +481,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		[self purgeOldPerDiskInfoFromNotes];
 		
 		
-		NSData *serializedData = [FrozenNotation frozenDataWithExistingNotes:self.notes.array deletedNotes:deletedNotes prefs:notationPrefs];
+		NSData *serializedData = [FrozenNotation frozenDataWithExistingNotes:self.notesList.array deletedNotes:deletedNotes prefs:notationPrefs];
 		if (!serializedData) {
 			
 			NSLog(@"serialized data is nil!");
@@ -536,7 +522,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 				return err;
 			}
 			//notes were unpacked--now roughly compare notesToVerify with allNotes, plus deletedNotes and notationPrefs
-			if (!notesToVerify || [notesToVerify count] != self.notes.count || [[frozenNotation deletedNotes] count] != [deletedNotes  count] ||
+			if (!notesToVerify || [notesToVerify count] != self.notesList.count || [[frozenNotation deletedNotes] count] != [deletedNotes  count] ||
 				[frozenNotation.prefs notesStorageFormat] != [notationPrefs notesStorageFormat] ||
 				[frozenNotation.prefs hashIterationCount] != [notationPrefs hashIterationCount]) {
 				if (notesData) free(notesData);
@@ -544,7 +530,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 			}
 			unsigned int i;
 			for (i=0; i<[notesToVerify count]; i++) {
-				if ([[[notesToVerify objectAtIndex:i] contentString] length] != [[self.notes[i] contentString] length]) {
+				if ([[[notesToVerify objectAtIndex:i] contentString] length] != [[self.notesList[i] contentString] length]) {
 					if (notesData) free(notesData);
 					return kItemVerifyErr;
 				}
@@ -618,7 +604,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		
 		//also make sure not to write new notes unless changing to a different format; don't rewrite deleted notes upon launch
 		if (currentStorageFormat != oldFormat) {
-			for (NoteObject *note in self.notes) {
+			for (NoteObject *note in self.notesList) {
 				[note writeUsingCurrentFileFormatIfNonExistingOrChanged];
 			}
 		}
@@ -725,7 +711,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 }
 
 - (void)closeAllResources {
-	for (NoteObject *note in self.notes) {
+	for (NoteObject *note in self.notesList) {
 		[note abortEditingInExternalEditor];
 	}
 	
@@ -735,7 +721,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	if ([self flushAllNoteChanges])
 		[self closeJournal];
 	
-	for (NoteObject *note in self.notes) {
+	for (NoteObject *note in self.notesList) {
 		[note disconnectLabels];
 	}
 }
@@ -756,7 +742,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 
 - (void)trashRemainingNoteFilesInDirectory {
 	NSAssert([notationPrefs notesStorageFormat] == NVDatabaseFormatSingle, @"We shouldn't be removing files if the storage is not single-database");
-	for (NoteObject *note in self.notes) {
+	for (NoteObject *note in self.notesList) {
 		[note moveFileToTrash];
 	}
 	[self notifyOfChangedTrash];
@@ -776,15 +762,15 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	//*** this method must run after any note is added, deleted, or retitled **
 	//***
 	
-	if (![prefsController autoCompleteSearches] || !self.notes.count)
+	if (![prefsController autoCompleteSearches] || !self.notesList.count)
 		return;
 	
 	//sort alphabetically to find shorter prefixes first
-	NSArray *allNotesAlpha = [self.notes sortedArrayWithOptions:NSSortStable|NSSortConcurrent usingComparator:^(NoteObject *obj1, NoteObject *obj2) {
+	NSArray *allNotesAlpha = [self.notesList sortedArrayWithOptions:NSSortStable|NSSortConcurrent usingComparator:^(NoteObject *obj1, NoteObject *obj2) {
 		return [obj1 compare:obj2];
 	}];
 	
-	for (NoteObject *note in self.notes) {
+	for (NoteObject *note in self.notesList) {
 		[note removeAllPrefixParentNotes];
 	}
 
@@ -913,7 +899,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 - (void)note:(NoteObject*)note attributeChanged:(NVUIAttribute)attribute {
 	if (attribute == NVUIAttributeNotePreview) {
 		if ([prefsController tableColumnsShowPreview]) {
-			NSUInteger idx = [self.filteredNotes indexOfObject:note];
+			NSUInteger idx = [self.filteredNotesList indexOfObject:note];
 			if (NSNotFound != idx) {
 				[delegate rowShouldUpdate:idx];
 			}
@@ -997,7 +983,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 
 - (void)scheduleWriteForNote:(NoteObject*)note {
 
-	if ([self.notes containsObject:note]) {
+	if ([self.notesList containsObject:note]) {
 	
 		BOOL immediately = NO;
 		notesChanged = YES;
@@ -1035,7 +1021,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 - (void)_addNote:(NoteObject*)aNoteObject {
     [aNoteObject setDelegate:self];	
 	
-	[self.notes addObject:aNoteObject];
+	[self.notesList addObject:aNoteObject];
 	[deletedNotes removeObject:aNoteObject];
     
     notesChanged = YES;
@@ -1062,10 +1048,8 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	
 	[aNoteObject disconnectLabels];
 	[aNoteObject abortEditingInExternalEditor];
-	
-	[self.notes removeObject:aNoteObject];
-	
-	DeletedNoteObject *deletedNote = [self _addDeletedNote:aNoteObject];
+
+	DeletedNoteObject *deletedNote = [self moveNoteToDeleted:aNoteObject];
 	
 	updateForVerifiedDeletedNote(deletionManager, aNoteObject);
     
@@ -1099,6 +1083,12 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
     
     
     [self refilterNotes];
+}
+	
+- (DeletedNoteObject *)moveNoteToDeleted:(NoteObject *)note
+{
+	[self.notesList removeObject:note];
+	return [self _addDeletedNote:note];
 }
 
 - (void)_purgeAlreadyDistributedDeletedNotes {
@@ -1167,7 +1157,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		
 		[delegate notationListMightChange:self];
 		resetCurrentDayTime();
-		for (NoteObject *note in self.notes) {
+		for (NoteObject *note in self.notesList) {
 			[note updateDateStrings];
 		}
 		[delegate notationListDidChange:self];
@@ -1192,7 +1182,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	//foreground color is archived only for practicality, and should be for display only
 	NSAssert(fgColor != nil, @"foreground color cannot be nil");
 	
-	for (NoteObject *note in self.notes) {
+	for (NoteObject *note in self.notesList) {
 		[note setForegroundTextColorOnly:fgColor];
 	}
 
@@ -1203,7 +1193,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	NSFont *baseFont = [notationPrefs baseBodyFont];
 	NSAssert(baseFont != nil, @"base body font from notation prefs should ALWAYS be valid!");
 	
-	for (NoteObject *note in self.notes) {
+	for (NoteObject *note in self.notesList) {
 		[note updateUnstyledTextWithBaseFont:baseFont];
 	}
 	
@@ -1214,12 +1204,12 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 
 - (NoteObject*)noteForUUIDBytes:(CFUUIDBytes*)bytes {
 	NSUInteger noteIndex = [self indexOfNoteWithUUIDBytes:bytes];
-	if (noteIndex != NSNotFound) return self.notes[noteIndex];
+	if (noteIndex != NSNotFound) return self.notesList[noteIndex];
 	return nil;	
 }
 
 - (void)updateLabelConnectionsAfterDecoding {
-	for (NoteObject *note in self.notes) {
+	for (NoteObject *note in self.notesList) {
 		[note updateLabelConnectionsAfterDecoding];
 	}
 }
@@ -1269,7 +1259,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	BOOL forceUncached = NO;
     BOOL didFilterNotes = NO;
     size_t oldLen = 0, newLen = 0;
-	NSUInteger initialCount = self.filteredNotes.count;
+	NSUInteger initialCount = self.filteredNotesList.count;
     
 	NSAssert(string, @"_filterNotesFromString requires a non-nil argument");
 	
@@ -1280,8 +1270,8 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		
 		//the search must be re-initialized; our strings don't have the same prefix
 		
-		[self.filteredNotes removeAllObjects];
-		[self.filteredNotes unionOrderedSet:self.notes];
+		[self.filteredNotesList removeAllObjects];
+		[self.filteredNotesList unionOrderedSet:self.notesList];
 		
 		didFilterNotes = YES;
     }
@@ -1296,16 +1286,16 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		
 		NSArray *tokens = [string componentsSeparatedByCharactersInSet:separators];
 		for (NSString *token in tokens) {
-			NSUInteger preCount = self.filteredNotes.count;
+			NSUInteger preCount = self.filteredNotesList.count;
 						
-			[self.filteredNotes nv_filterStableUsingBlock:^(NoteObject *obj){
+			[self.filteredNotesList nv_filterStableUsingBlock:^(NoteObject *obj){
 				if ([obj.titleString nv_containsStringInsensitive:token]) return YES;
 				if ([obj.contentString.string nv_containsStringInsensitive:token]) return YES;
 				if ([obj.labelString nv_containsStringInsensitive:token]) return YES;
 				return NO;
 			}];
 			
-			if (self.filteredNotes.count != preCount)
+			if (self.filteredNotesList.count != preCount)
 				didFilterNotes = YES;
 		}
     }
@@ -1316,7 +1306,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	selectedNoteIndex = NSNotFound;
 	
     if (newLen && [prefsController autoCompleteSearches]) {
-		[self.filteredNotes enumerateObjectsUsingBlock:^(NoteObject *note, NSUInteger idx, BOOL *stop) {
+		[self.filteredNotesList enumerateObjectsUsingBlock:^(NoteObject *note, NSUInteger idx, BOOL *stop) {
 			if ([note.titleString hasPrefix:string]) {
 				selectedNoteIndex = idx;
 				*stop = YES;
@@ -1325,7 +1315,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 				
 				NSUInteger prefixParentIndex = NSNotFound;
 				for (NoteObject *obj in note.prefixParentNotes) {
-					if ([obj.titleString hasPrefix:string] && (prefixParentIndex = [self.filteredNotes indexOfObject:obj]) != NSNotFound) {
+					if ([obj.titleString hasPrefix:string] && (prefixParentIndex = [self.filteredNotesList indexOfObject:obj]) != NSNotFound) {
 						//figure out where this prefix parent actually is in the list--if it actually is in the list, that is
 						//otherwise look at the next prefix parent, etc.
 						//the prefix parents array should always be alpha-sorted, so the shorter prefixes will always be first
@@ -1339,7 +1329,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
     
 	currentFilter = [string copy];
 	
-	if (!initialCount && initialCount == self.filteredNotes.count)
+	if (!initialCount && initialCount == self.filteredNotesList.count)
 		return NO;
     
     return didFilterNotes;
@@ -1363,12 +1353,12 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		};
 	}
 	
-	NSOrderedSet *result = [self.notes nv_filteredOrderedSetUsingBlock:^BOOL(NoteObject *obj) {
+	NSOrderedSet *result = [self.notesList nv_filteredOrderedSetUsingBlock:^BOOL(NoteObject *obj) {
 		return [obj.titleString rangeOfString:prefixString options:NSAnchoredSearch|NSWidthInsensitiveSearch|NSCaseInsensitiveSearch].location != NSNotFound;
 	} whileLocked:whileLocked];
 	
 	if (anIndex) {
-		*anIndex = [result indexOfObject:self.notes[shortestTitleIndex]];
+		*anIndex = [result indexOfObject:self.notesList[shortestTitleIndex]];
 	}
 	
 	return result;
@@ -1377,14 +1367,14 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 - (NoteObject*)noteObjectAtFilteredIndex:(NSUInteger)noteIndex {
 	unsigned int theIndex = (unsigned int)noteIndex;
 	
-	if (theIndex < self.filteredNotes.count)
-		return self.filteredNotes[theIndex];
+	if (theIndex < self.filteredNotesList.count)
+		return self.filteredNotesList[theIndex];
 	
 	return nil;
 }
 
 - (NSArray*)notesAtIndexes:(NSIndexSet*)indexSet {
-	return [self.filteredNotes objectsAtIndexes:indexSet];
+	return [self.filteredNotesList objectsAtIndexes:indexSet];
 }
 
 //O(n^2) at best, but at least we're dealing with C arrays
@@ -1393,7 +1383,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	NSMutableIndexSet *noteIndexes = [[NSMutableIndexSet alloc] init];
 	
 	[noteArray enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-		NSUInteger noteIndex = [self.filteredNotes indexOfObject:obj];
+		NSUInteger noteIndex = [self.filteredNotesList indexOfObject:obj];
 		
 		if (noteIndex != NSNotFound)
 			[noteIndexes addIndex:noteIndex];
@@ -1403,11 +1393,11 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 }
 
 - (NSUInteger)indexInFilteredListForNoteIdenticalTo:(NoteObject*)note {
-	return [self.filteredNotes indexOfObject:note];
+	return [self.filteredNotesList indexOfObject:note];
 }
 
 - (NSUInteger)totalNoteCount {
-	return self.notes.count;
+	return self.notesList.count;
 }
 
 - (void)setSortAttribute:(NVUIAttribute)sortAttribute
@@ -1426,22 +1416,22 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	NSComparisonResult(^defaultCtor)(id, id) = [NoteObject comparatorForAttribute:NVUIAttributeTitle reversed:reversed];
 	NSComparisonResult(^ctor)(id, id) = NULL;
 	
-	[self.notes sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:defaultCtor];
+	[self.notesList sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:defaultCtor];
 	
 	if (!isStringSort) {
 		ctor = [NoteObject comparatorForAttribute:self.sortAttribute reversed:reversed];
-		[self.notes sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:ctor];
+		[self.notesList sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:ctor];
 	}
 	
-	if (self.filteredNotes.count != self.notes.count) {
-		[self.filteredNotes sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:defaultCtor];
+	if (self.filteredNotesList.count != self.notesList.count) {
+		[self.filteredNotesList sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:defaultCtor];
 		
 		if (!isStringSort) {
-			[self.filteredNotes sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:ctor];
+			[self.filteredNotesList sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:ctor];
 		}
 	} else {
-		[self.filteredNotes removeAllObjects];
-		[self.filteredNotes unionOrderedSet:self.notes];
+		[self.filteredNotesList removeAllObjects];
+		[self.filteredNotesList unionOrderedSet:self.notesList];
 	}
 	
 	[delegate notationListDidChange:self];
@@ -1453,11 +1443,11 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	
 	NSComparisonResult(^defaultCtor)(id, id) = [NoteObject comparatorForAttribute:NVUIAttributeTitle reversed:reversed];
 	
-	[self.notes sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:defaultCtor];
+	[self.notesList sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:defaultCtor];
 	
 	if (!isStringSort) {
 		NSComparisonResult(^ctor)(id, id) = [NoteObject comparatorForAttribute:self.sortAttribute reversed:reversed];
-		[self.notes sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:ctor];
+		[self.notesList sortWithOptions:NSSortConcurrent|NSSortStable usingComparator:ctor];
 	}
 }
 
@@ -1475,7 +1465,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		//regenerate previews for visible rows immediately and post a delayed message to regenerate previews for all rows
 		if (rows.length > 0) {
 			NSIndexSet *set = [NSIndexSet indexSetWithIndexesInRange:rows];
-			[[self.filteredNotes objectsAtIndexes:set] makeObjectsPerformSelector:@selector(updateTablePreviewString)];
+			[[self.filteredNotesList objectsAtIndexes:set] makeObjectsPerformSelector:@selector(updateTablePreviewString)];
 		}
 		
 		[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(regenerateAllPreviews) object:nil];
@@ -1484,7 +1474,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 }
 
 - (void)regenerateAllPreviews {
-	for (NoteObject *note in self.notes) {
+	for (NoteObject *note in self.notesList) {
 		[note updateTablePreviewString];
 	}
 }
@@ -1608,73 +1598,26 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	return img;
 }
 	
-#pragma mark - Data source
-
-- (void)tableView:(NotesTableView *)tv setObjectValue:(id)value forTableColumn:(NoteAttributeColumn *)col row:(NSInteger)row {
-	NoteObject *note = self.filteredNotes[row];
-	
-	if (col.attribute == NVUIAttributeTitle) {
-		if (prefsController.horizontalLayout && tv.lastEventActivatedTagEdit) {
-			[note setLabelString:value];
-		} else {
-			[note setTitleString:value];
-		}
-	} else if (col.attribute == NVUIAttributeLabels) {
-		[note setLabelString:value];
-	}
-}
-	
-- (id)tableView:(NotesTableView *)tv objectValueForTableColumn:(NoteAttributeColumn *)col row:(NSInteger)row {
-	NoteObject *note = self.filteredNotes[row];
-	
-	switch (col.attribute) {
-		case NVUIAttributeTitle: {
-			if (prefsController.horizontalLayout) {
-				if (prefsController.tableColumnsShowPreview) {
-					UnifiedCell *cell = [col dataCellForRow:row];
-					[cell setNoteObject:note];
-					[cell setPreviewIsHidden:NO];
-					return [tv isRowSelected:row] ? AttributedStringForSelection(note.tableTitleString, YES) : note.tableTitleString;
-				} else {
-					return note.tableTitleString;
-				}
-			} else {
-				if (prefsController.tableColumnsShowPreview) {
-					return (tv.activeStyle && [tv isRowSelected:row]) ? note.tableTitleString.string : note.tableTitleString;
-				} else {
-					return note.titleString;
-				}
-			}
-		}
-		case NVUIAttributeLabels: {
-			LabelColumnCell *cell = [col dataCellForRow:row];
-			[cell setNoteObject:note];
-			return note.labelString;
-		}
-		case NVUIAttributeDateModified: {
-			return note.modifiedDateString;
-		};
-		case NVUIAttributeDateCreated: {
-			return note.createdDateString;
-		};
-		default: return nil;
-	}
-}
-	
-- (NSInteger)numberOfRowsInTableView:(NSTableView *)aTableView {
-	return self.filteredNotes.count;
-}
-	
 #pragma mark - Collection Utils
 	
 - (NSUInteger)indexOfNoteWithUUIDBytes:(CFUUIDBytes *)bytes
 {
-	for (NoteObject *note in self.notes) {
+	for (NoteObject *note in self.notesList) {
 		CFUUIDBytes *noteBytes = [note uniqueNoteIDBytesPtr];
 		if (!memcmp(noteBytes, bytes, sizeof(CFUUIDBytes)))
 			return note;
 	}
 	return NSNotFound;
+}
+
+- (NSArray *)notes
+{
+	return self.notesList.array;
+}
+
+- (NSArray *)filteredNotes
+{
+	return self.filteredNotesList.array;
 }
 
 @end

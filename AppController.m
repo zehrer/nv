@@ -52,6 +52,7 @@
 #import "NSString_CustomTruncation.h"
 #import "WordCountToken.h"
 #import "NVViewLocationContext.h"
+#import "NotationController+DataSource.h"
 #import <Sparkle/SUUpdater.h>
 
 #define kSparkleUpdateFeedForLions @"http://abyss.designheresy.com/nvalt2/nvalt2main.xml"
@@ -925,11 +926,10 @@ void outletObjectAwoke(id sender) {
 		NotationController *newNotation = nil;
 		NSData *newData = [prefsController aliasDataForDefaultDirectory];
 		if (newData) {
-#if kUseCachesFolderForInterimNoteChanges
             if (notationController&&[notationController flushAllNoteChanges]) {
                 [notationController closeJournal];
             }
-#endif
+
 			if ((newNotation = [[NotationController alloc] initWithAliasData:newData error:&err])) {
 				[self setNotationController:newNotation];
 				

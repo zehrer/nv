@@ -6,5 +6,3 @@
 //
 // you can put compiler flags here to let devs play with
 // experimental features.
-
-#define kUseCachesFolderForInterimNoteChanges 1

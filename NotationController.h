@@ -44,7 +44,7 @@ typedef struct _NoteCatalogEntry {
 @class DeletionManager;
 @class GlobalPrefs;
 
-@interface NotationController : NSObject <NSTableViewDataSource> {
+@interface NotationController : NSObject {
 	GlobalPrefs *prefsController;
 	SyncSessionController *syncSessionController;
 	DeletionManager *deletionManager;
@@ -89,8 +89,8 @@ typedef struct _NoteCatalogEntry {
 	NSUndoManager *undoManager;
 }
 
-@property (nonatomic, strong, readonly) NSMutableOrderedSet *notes;
-@property (nonatomic, strong, readonly) NSMutableOrderedSet *filteredNotes;
+@property (nonatomic, readonly) NSArray *notes;
+@property (nonatomic, readonly) NSArray *filteredNotes;
 
 - (id)init;
 - (id)initWithAliasData:(NSData*)data error:(OSStatus*)err;
@@ -138,6 +138,7 @@ typedef struct _NoteCatalogEntry {
 - (void)_addNote:(NoteObject*)aNoteObject;
 - (void)removeNote:(NoteObject*)aNoteObject;
 - (void)removeNotes:(NSArray*)noteArray;
+- (DeletedNoteObject *)moveNoteToDeleted:(NoteObject *)note;
 - (void)_purgeAlreadyDistributedDeletedNotes;
 - (void)removeSyncMDFromDeletedNotesInSet:(NSSet*)notesToOrphan forService:(NSString*)serviceName;
 - (DeletedNoteObject*)_addDeletedNote:(id<SynchronizedNote>)aNote;
