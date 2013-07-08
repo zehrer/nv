@@ -21,9 +21,9 @@
 
 @interface FrozenNotation : NSObject <NSCoding>
 
-- (id)initWithNotes:(NSMutableArray*)notes deletedNotes:(NSMutableSet*)antiNotes prefs:(NotationPrefs*)prefs;
+- (id)initWithNotes:(NSArray*)notes deletedNotes:(NSMutableSet*)antiNotes prefs:(NotationPrefs*)prefs;
 
-+ (NSData*)frozenDataWithExistingNotes:(NSMutableArray*)notes deletedNotes:(NSMutableSet*)antiNotes prefs:(NotationPrefs*)prefs;
++ (NSData*)frozenDataWithExistingNotes:(NSArray*)notes deletedNotes:(NSMutableSet*)antiNotes prefs:(NotationPrefs*)prefs;
 - (NSMutableArray*)unpackedNotesWithPrefs:(NotationPrefs*)somePrefs returningError:(OSStatus*)err;
 - (NSMutableArray*)unpackedNotesReturningError:(OSStatus*)err;
 - (NSMutableSet*)deletedNotes; //these won't need to be encrypted

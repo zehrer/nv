@@ -260,12 +260,11 @@
 		B69E26F716F0B523001C6E4B /* Search@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = B69E26EF16F0B523001C6E4B /* Search@2x.png */; };
 		D3EECA00106F66C70023D7F8 /* NVPasswordGenerator.m in Sources */ = {isa = PBXBuildFile; fileRef = D3EEC9FE106F66C70023D7F8 /* NVPasswordGenerator.m */; };
 		DB0CAD03178A52070010257C /* NSObject+NVPerformBlock.m in Sources */ = {isa = PBXBuildFile; fileRef = DB0CAD02178A51DD0010257C /* NSObject+NVPerformBlock.m */; };
-		DB0CAD06178A7DD90010257C /* NSArray+NVFiltering.m in Sources */ = {isa = PBXBuildFile; fileRef = DB0CAD05178A7CF10010257C /* NSArray+NVFiltering.m */; };
 		DB3CB57817810A2E0030EA13 /* NSMutableData+NVAESEncryption.m in Sources */ = {isa = PBXBuildFile; fileRef = DB83632E1780E9FE001D4DC2 /* NSMutableData+NVAESEncryption.m */; };
 		DB924C58177D327E00E96033 /* Quartz.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB924C57177D327E00E96033 /* Quartz.framework */; };
 		DB9FB5C11787A134001DC987 /* NotationTypes.m in Sources */ = {isa = PBXBuildFile; fileRef = DB9FB5C01787A134001DC987 /* NotationTypes.m */; };
 		DBAE5926178915C9007A387D /* NVViewLocationContext.m in Sources */ = {isa = PBXBuildFile; fileRef = DBAE5925178915C9007A387D /* NVViewLocationContext.m */; };
-		DBC49A0717888A7B008463F7 /* NSMutableOrderedSet+NVFiltering.m in Sources */ = {isa = PBXBuildFile; fileRef = DBC49A0617888A7B008463F7 /* NSMutableOrderedSet+NVFiltering.m */; };
+		DBC49A0717888A7B008463F7 /* NSOrderedSet+NVFiltering.m in Sources */ = {isa = PBXBuildFile; fileRef = DBC49A0617888A7B008463F7 /* NSOrderedSet+NVFiltering.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -743,8 +742,6 @@
 		D3EEC9FF106F66C70023D7F8 /* NVPasswordGenerator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NVPasswordGenerator.h; sourceTree = "<group>"; };
 		DB0CAD01178A51DD0010257C /* NSObject+NVPerformBlock.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSObject+NVPerformBlock.h"; sourceTree = "<group>"; };
 		DB0CAD02178A51DD0010257C /* NSObject+NVPerformBlock.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSObject+NVPerformBlock.m"; sourceTree = "<group>"; };
-		DB0CAD04178A7CF10010257C /* NSArray+NVFiltering.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSArray+NVFiltering.h"; sourceTree = "<group>"; };
-		DB0CAD05178A7CF10010257C /* NSArray+NVFiltering.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSArray+NVFiltering.m"; sourceTree = "<group>"; };
 		DB83632D1780E9FE001D4DC2 /* NSMutableData+NVAESEncryption.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSMutableData+NVAESEncryption.h"; sourceTree = "<group>"; };
 		DB83632E1780E9FE001D4DC2 /* NSMutableData+NVAESEncryption.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSMutableData+NVAESEncryption.m"; sourceTree = "<group>"; };
 		DB924C57177D327E00E96033 /* Quartz.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Quartz.framework; path = System/Library/Frameworks/Quartz.framework; sourceTree = SDKROOT; };
@@ -752,8 +749,8 @@
 		DB9FB5C01787A134001DC987 /* NotationTypes.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NotationTypes.m; sourceTree = "<group>"; };
 		DBAE5924178915C9007A387D /* NVViewLocationContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NVViewLocationContext.h; sourceTree = "<group>"; };
 		DBAE5925178915C9007A387D /* NVViewLocationContext.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NVViewLocationContext.m; sourceTree = "<group>"; };
-		DBC49A0517888A7A008463F7 /* NSMutableOrderedSet+NVFiltering.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSMutableOrderedSet+NVFiltering.h"; sourceTree = "<group>"; };
-		DBC49A0617888A7B008463F7 /* NSMutableOrderedSet+NVFiltering.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSMutableOrderedSet+NVFiltering.m"; sourceTree = "<group>"; };
+		DBC49A0517888A7A008463F7 /* NSOrderedSet+NVFiltering.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSOrderedSet+NVFiltering.h"; sourceTree = "<group>"; };
+		DBC49A0617888A7B008463F7 /* NSOrderedSet+NVFiltering.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSOrderedSet+NVFiltering.m"; sourceTree = "<group>"; };
 		F0E01EE812DB95F40000B192 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/Preferences.xib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -1167,10 +1164,8 @@
 				5C4479DF17020153000AA45A /* nvaDevConfig.h */,
 				DB83632D1780E9FE001D4DC2 /* NSMutableData+NVAESEncryption.h */,
 				DB83632E1780E9FE001D4DC2 /* NSMutableData+NVAESEncryption.m */,
-				DBC49A0517888A7A008463F7 /* NSMutableOrderedSet+NVFiltering.h */,
-				DBC49A0617888A7B008463F7 /* NSMutableOrderedSet+NVFiltering.m */,
-				DB0CAD04178A7CF10010257C /* NSArray+NVFiltering.h */,
-				DB0CAD05178A7CF10010257C /* NSArray+NVFiltering.m */,
+				DBC49A0517888A7A008463F7 /* NSOrderedSet+NVFiltering.h */,
+				DBC49A0617888A7B008463F7 /* NSOrderedSet+NVFiltering.m */,
 				DB0CAD01178A51DD0010257C /* NSObject+NVPerformBlock.h */,
 				DB0CAD02178A51DD0010257C /* NSObject+NVPerformBlock.m */,
 			);
@@ -1565,7 +1560,7 @@
 				21A73DC8099712A8009F8A6C /* WALController.m in Sources */,
 				21918FD009C49B2500586B15 /* EmptyView.m in Sources */,
 				219190F109C4A60700586B15 /* DualField.m in Sources */,
-				DBC49A0717888A7B008463F7 /* NSMutableOrderedSet+NVFiltering.m in Sources */,
+				DBC49A0717888A7B008463F7 /* NSOrderedSet+NVFiltering.m in Sources */,
 				219192D409CFBC8800586B15 /* NoteAttributeColumn.m in Sources */,
 				2191982209D607C600586B15 /* PrefsWindowController.m in Sources */,
 				21A2F95E09DF3FDC001AF0B5 /* NotationPrefs.m in Sources */,
@@ -1609,7 +1604,6 @@
 				21AD2550110A8BA600B7A985 /* SimplenoteEntryCollector.m in Sources */,
 				21AD2850110BE99B00B7A985 /* SyncSessionController.m in Sources */,
 				212C6952110E1940004DD82C /* TitlebarButton.m in Sources */,
-				DB0CAD06178A7DD90010257C /* NSArray+NVFiltering.m in Sources */,
 				21B548FA112F307E00E163A1 /* NotationDirectoryManager.m in Sources */,
 				57F27FB91197407400C63ACF /* SearchCommand.m in Sources */,
 				216D987F12CE68AD0004B9CE /* NSFileManager_NV.m in Sources */,

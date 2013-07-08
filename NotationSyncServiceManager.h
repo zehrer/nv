@@ -24,7 +24,7 @@
 @interface NotationController (NotationSyncServiceManager)
 
 - (NSDictionary*)invertedDictionaryOfEntries:(NSArray*)entries keyedBy:(NSString*)keyName;
-- (NSDictionary*)invertedDictionaryOfNotes:(NSArray*)someNotes forSession:(id<SyncServiceSession>)aSession;
+- (NSDictionary*)invertedDictionaryOfNotes:(id <NSFastEnumeration>)someNotes forSession:(id<SyncServiceSession>)aSession;
 
 - (NoteObject*)noteForKey:(NSString*)key ofServiceClass:(Class<SyncServiceSession>)serviceClass;
 

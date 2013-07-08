@@ -1672,8 +1672,8 @@ void outletObjectAwoke(id sender) {
 
 - (NSArray *)textView:(NSTextView *)aTextView completions:(NSArray *)words
   forPartialWordRange:(NSRange)charRange indexOfSelectedItem:(NSInteger *)anIndex {
-	NSArray *noteTitles = [notationController noteTitlesPrefixedByString:[[aTextView string] substringWithRange:charRange] indexOfSelectedItem:anIndex];
-	return noteTitles;
+	NSOrderedSet *noteTitles = [notationController noteTitlesPrefixedByString:[[aTextView string] substringWithRange:charRange] indexOfSelectedItem:anIndex];
+	return [noteTitles array];
 }
 
 

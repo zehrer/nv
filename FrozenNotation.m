@@ -51,7 +51,7 @@
 	}
 }
 
-- (id)initWithNotes:(NSMutableArray*)notes deletedNotes:(NSMutableSet*)antiNotes prefs:(NotationPrefs*)somePrefs {
+- (id)initWithNotes:(NSArray*)notes deletedNotes:(NSMutableSet*)antiNotes prefs:(NotationPrefs*)somePrefs {
 	if ((self = [super init])) {
 
 		notesData = [[NSMutableData alloc] init];
@@ -84,7 +84,7 @@
 }
 
 
-+ (NSData*)frozenDataWithExistingNotes:(NSMutableArray*)notes 
++ (NSData*)frozenDataWithExistingNotes:(NSArray*)notes
 						  deletedNotes:(NSMutableSet*)antiNotes 
 								 prefs:(NotationPrefs*)prefs {
 	FrozenNotation *frozenNotation = [[FrozenNotation alloc] initWithNotes:notes deletedNotes:antiNotes prefs:prefs];
@@ -115,7 +115,7 @@
 			return nil;
 		}
 		NSKeyedUnarchiver *unarchiver = [[NSKeyedUnarchiver alloc] initForReadingWithData:notesData];
-		allNotes = [unarchiver decodeObjectForKey:@"notes"];
+		allNotes = [NSMutableArray arrayWithArray:[unarchiver decodeObjectForKey:@"notes"]];
 		
 	} @catch (NSException *e) {
 		*err = kCoderErr;
@@ -170,13 +170,13 @@
             BOOL keyedArchiveFailed = NO;
             @try {
                 NSKeyedUnarchiver *unarchiver = [[NSKeyedUnarchiver alloc] initForReadingWithData:notesData];
-                allNotes = [unarchiver decodeObjectForKey:@"notes"];
+                allNotes = [NSMutableArray arrayWithArray:[unarchiver decodeObjectForKey:@"notes"]];
             } @catch (NSException *e) {
                 keyedArchiveFailed = YES;
             }
             
             if (keyedArchiveFailed)
-                allNotes = [NSUnarchiver unarchiveObjectWithData:notesData];
+                allNotes = [NSMutableArray arrayWithArray:[NSUnarchiver unarchiveObjectWithData:notesData]];
 		} @catch (NSException *e) {
 			*err = kCoderErr;
 			NSLog(@"Error unarchiving notes from data (%@, %@)", [e name], [e reason]);

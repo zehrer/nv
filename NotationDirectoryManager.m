@@ -70,8 +70,7 @@ NSInteger compareCatalogValueFileSize(id *a, id *b) {
 	
 	NSMutableSet *foundNotes = [NSMutableSet setWithCapacity:[filenames	count]];
 	
-	for (i=0; i<[allNotes count]; i++) {
-		NoteObject *aNote = [allNotes objectAtIndex:i];
+	for (NoteObject *aNote in self.notes) {
 		NSString *existingRequestedFilename = aNote.filename.lowercaseString;
 		if (existingRequestedFilename && [lcNamesDict objectForKey:existingRequestedFilename]) {
 			[foundNotes addObject:aNote];
@@ -79,6 +78,7 @@ NSInteger compareCatalogValueFileSize(id *a, id *b) {
 			[lcNamesDict removeObjectForKey:existingRequestedFilename];
 		}
 	}
+	
 	if (unknownFiles) *unknownFiles = [lcNamesDict allValues];
 	return foundNotes;
 }
@@ -175,12 +175,12 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t nu
 		//NSLog(@"read files in directory");
 		
 		directoryChangesFound = NO;
-		if (catEntriesCount && [allNotes count]) {
+		if (catEntriesCount && self.notes.count) {
 			[self makeNotesMatchCatalogEntries:sortedCatalogEntries ofSize:catEntriesCount];
 		} else {
 			unsigned int i;
 			
-			if (![allNotes count]) {
+			if (!self.notes.count) {
 				//no notes exist, so every file must be new
 				for (i=0; i<catEntriesCount; i++) {
 					if ([notationPrefs catalogEntryAllowed:sortedCatalogEntries[i]])
@@ -190,7 +190,7 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t nu
 			
 			if (!catEntriesCount) {
 				//there is nothing at all in the directory, so remove all the notes
-				[deletionManager addDeletedNotes:allNotes];
+				[deletionManager addDeletedNotes:self.notes.array];
 			}
 		}
 		
@@ -355,10 +355,10 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t nu
 
 - (void)makeNotesMatchCatalogEntries:(NoteCatalogEntry **)catEntriesPtrs ofSize:(NSUInteger)catCount {
     
-    NSUInteger aSize = [allNotes count];
+    NSUInteger aSize = self.notes.count;
     NSUInteger bSize = catCount;
     
-	NSArray *currentNotes = [allNotes sortedArrayWithOptions:NSSortConcurrent|NSSortStable usingComparator:^(NoteObject *obj1, NoteObject *obj2) {
+	NSArray *currentNotes = [self.notes sortedArrayWithOptions:NSSortConcurrent|NSSortStable usingComparator:^(NoteObject *obj1, NoteObject *obj2) {
 		return [obj1.filename caseInsensitiveCompare:obj2.filename];
 	}];
 

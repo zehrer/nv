@@ -45,8 +45,6 @@ typedef struct _NoteCatalogEntry {
 @class GlobalPrefs;
 
 @interface NotationController : NSObject <NSTableViewDataSource> {
-    NSMutableArray *allNotes;
-    NSMutableOrderedSet *notesList;
 	GlobalPrefs *prefsController;
 	SyncSessionController *syncSessionController;
 	DeletionManager *deletionManager;
@@ -90,6 +88,9 @@ typedef struct _NoteCatalogEntry {
 	NSTimer *changeWritingTimer;
 	NSUndoManager *undoManager;
 }
+
+@property (nonatomic, strong, readonly) NSMutableOrderedSet *notes;
+@property (nonatomic, strong, readonly) NSMutableOrderedSet *filteredNotes;
 
 - (id)init;
 - (id)initWithAliasData:(NSData*)data error:(OSStatus*)err;
@@ -153,7 +154,7 @@ typedef struct _NoteCatalogEntry {
 - (void)refilterNotes;
 - (BOOL)filterNotesFromString:(NSString*)string;
 - (NSUInteger)preferredSelectedNoteIndex;
-- (NSArray*)noteTitlesPrefixedByString:(NSString*)prefixString indexOfSelectedItem:(NSInteger *)anIndex;
+- (NSOrderedSet *)noteTitlesPrefixedByString:(NSString*)prefixString indexOfSelectedItem:(NSInteger *)anIndex;
 - (NoteObject*)noteObjectAtFilteredIndex:(NSUInteger)noteIndex;
 - (NSArray*)notesAtIndexes:(NSIndexSet*)indexSet;
 - (NSIndexSet*)indexesOfNotes:(NSArray*)noteSet;

@@ -41,14 +41,12 @@
 	return dict;
 }
 
-- (NSDictionary*)invertedDictionaryOfNotes:(NSArray*)someNotes forSession:(id<SyncServiceSession>)aSession {
-	NSUInteger i = 0;
-	NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithCapacity:[someNotes count]];
+- (NSDictionary*)invertedDictionaryOfNotes:(id <NSFastEnumeration>)someNotes forSession:(id<SyncServiceSession>)aSession {
+	NSMutableDictionary *dict = [NSMutableDictionary dictionary];
 	NSString *keyElement = [[aSession class] nameOfKeyElement];
 	NSString *serviceName = [[aSession class] serviceName];
 	
-	for (i=0; i<[someNotes count]; i++) {
-		NoteObject *note = [someNotes objectAtIndex:i];
+	for (NoteObject *note in someNotes) {
 		NSDictionary *serviceDict = [[note syncServicesMD] objectForKey:serviceName];
 		if (serviceDict) {
 			[dict setObject:note forKey:[serviceDict objectForKey:keyElement]];
@@ -56,14 +54,13 @@
 			//NSLog(@"service key for %@ does not exist", note);
 		}
 	}
+	
 	return dict;
 }
 
 - (NoteObject*)noteForKey:(NSString*)key ofServiceClass:(Class<SyncServiceSession>)serviceClass {
-	NSUInteger i = 0;
-	for (i=0; i<[allNotes count]; i++) {
-		NoteObject *note = [allNotes objectAtIndex:i];
-		if ([[[[note syncServicesMD] objectForKey:[serviceClass serviceName]] 
+	for (NoteObject *note in self.notes) {
+		if ([[[[note syncServicesMD] objectForKey:[serviceClass serviceName]]
 			  objectForKey:[serviceClass nameOfKeyElement]] isEqualToString:key])
 			return note;
 	}
@@ -134,7 +131,7 @@
 	NSMutableArray *notesToDelete = [NSMutableArray array];
 	NSMutableArray *changedNotes = [NSMutableArray array];
 	NSMutableArray *checkEntries = [NSMutableArray array];
-	NSDictionary *localNotesDict = [self invertedDictionaryOfNotes:allNotes forSession:syncSession];
+	NSDictionary *localNotesDict = [self invertedDictionaryOfNotes:self.notes forSession:syncSession];
 
 	//we only have a partial remote list, plus possibly a list of permanently deleted notes.
 	//since we only have some remotes, we can't perform full sync operations like comparing
@@ -204,8 +201,7 @@
 	NSMutableArray *remotelyDeletedNotes = [NSMutableArray array];
 	NSMutableArray *remotelyMissingNotes = [NSMutableArray array];
 	
-	for (i=0; i<[allNotes count]; i++) {
-		id <SynchronizedNote>note = [allNotes objectAtIndex:i];
+	for (id <SynchronizedNote> note in self.notes) {
 		NSDictionary *thisServiceInfo = [[note syncServicesMD] objectForKey:serviceName];
 		if (thisServiceInfo) {
 			//get corresponding note on server
@@ -266,7 +262,7 @@
 	
 	//### get a list of new notes on the server (added remotely)
 	NSMutableArray *remotelyAddedEntries = [NSMutableArray array];
-	NSDictionary *localNotesDict = [self invertedDictionaryOfNotes:allNotes forSession:syncSession];
+	NSDictionary *localNotesDict = [self invertedDictionaryOfNotes:self.notes forSession:syncSession];
 	NSDictionary *localDeletedNotesDict = [self invertedDictionaryOfNotes:locallyDeletedNotes forSession:syncSession];
 	
 	for (i=0; i<[MDEntries count]; i++) {
@@ -315,7 +311,7 @@
 	};
 	
 	//show this only if there is no evidence of these notes ever being on the server (all remotely removed with none manually deleted)
-	if ([remotelyMissingNotes count] && [allNotes count] == ([remotelyMissingNotes count] + [locallyAddedNotes count])) {
+	if ([remotelyMissingNotes count] && self.notes.count == ([remotelyMissingNotes count] + [locallyAddedNotes count])) {
 		if ([self handleSyncingWithAllMissingAndRemoteNoteCount:[remotelyAddedEntries count] fromSession:syncSession]) {
 			end();
 			return;
@@ -331,10 +327,10 @@
 	//then download remotelyAddedEntries first so that duplicates can be merged with locallyAddedNotes 
 	//only those locallyAddedNotes with unique combinedContent strings will be uploaded
 	//this occurs via startCollectingAddedNotesWithEntries:mergingWithNotes:
-	if ([locallyAddedNotes count] && ([locallyAddedNotes count] == [allNotes count] || wasToldToMerge)) {	
-		if ([allNotes count] > 1 && !wasToldToMerge) {
+	if ([locallyAddedNotes count] && ([locallyAddedNotes count] == self.notes.count || wasToldToMerge)) {	
+		if (self.notes.count > 1 && !wasToldToMerge) {
 			if (NSRunAlertPanel([NSString stringWithFormat:NSLocalizedString(@"Add %u existing notes in the database to %@?", nil), 
-								 [allNotes count], [[syncSession class] localizedServiceTitle]],
+								 self.notes.count, [[syncSession class] localizedServiceTitle]],
 								NSLocalizedString(@"Notes will be merged, omitting entries duplicated on the server.", nil), 
 								NSLocalizedString(@"Add Notes", nil), NSLocalizedString(@"Turn Off Syncing", nil), nil) == NSAlertAlternateReturn) {
 				[syncSessionController disableService:serviceName];
@@ -419,7 +415,7 @@
 
 - (BOOL)handleSyncingWithAllMissingAndRemoteNoteCount:(NSUInteger)foundNotes fromSession:(id <SyncServiceSession>)aSession {
 	
-	if ([allNotes count] < 2) {
+	if (self.notes.count < 2) {
 		//this would be a nuisance
 		return NO;
 	}
@@ -436,16 +432,16 @@
 	NSInteger res = NSAlertDefaultReturn;
 	
 	if (!foundNotes) {
-		res = NSRunCriticalAlertPanel([NSString stringWithFormat:NSLocalizedString(@"The %@ server reports that no notes exist. Delete all %u notes in Notational Velocity to match it, or re-upload them now?", nil), serviceTitle, [allNotes count]],
+		res = NSRunCriticalAlertPanel([NSString stringWithFormat:NSLocalizedString(@"The %@ server reports that no notes exist. Delete all %u notes in Notational Velocity to match it, or re-upload them now?", nil), serviceTitle, self.notes.count],
 									  [NSString stringWithFormat:NSLocalizedString(@"If your %@ account is different, you may prefer to create a new database in Notational Velocity instead.", nil), serviceTitle],
 									  [NSString stringWithFormat:NSLocalizedString(@"Turn Off Syncing", nil), serviceTitle], 
 									  NSLocalizedString(@"Re-upload Notes", @"dialog button for uploading local notes when none exist remotely"), 
 									  NSLocalizedString(@"Remove All Notes", @"dialog button for deleting all notes when none exist remotely"));
 	} else {
 		res = NSRunCriticalAlertPanel([NSString stringWithFormat:NSLocalizedString(@"The %@ server holds a different set of notes. Replace all %u notes in Notational Velocity with the %u notes on the server, or merge both sets together?", nil), 
-									   serviceTitle, [allNotes count], foundNotes],
+									   serviceTitle, self.notes.count, foundNotes],
 									  [NSString stringWithFormat:NSLocalizedString(@"Replacing will remove all %u notes from Notational Velocity. Merging will upload all notes to %@, omitting duplicates.", nil), 
-									   [allNotes count], serviceTitle],
+									   self.notes.count, serviceTitle],
 									  [NSString stringWithFormat:NSLocalizedString(@"Turn Off Syncing", nil), serviceTitle], 
 									  NSLocalizedString(@"Merge Notes", @"dialog button for uploading local notes"), 
 									  NSLocalizedString(@"Replace All Notes", @"dialog button for deleting all notes"));
@@ -460,7 +456,9 @@
 			
 			//remove sync metadata and restart sync
 			[aSession stop];
-			[allNotes makeObjectsPerformSelector:@selector(removeAllSyncMDForService:) withObject:serviceName];
+			for (id <SynchronizedNote> note in self.notes) {
+				[note removeAllSyncMDForService:serviceName];
+			}
 			[notationPrefs setSyncShouldMerge:YES inCurrentAccountForService:serviceName];
 			notesChanged = YES;
 			

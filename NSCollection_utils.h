@@ -50,7 +50,6 @@
 @interface NSArray (NoteUtilities)
 //- (NSRange)nextRangeForString:(NSString*)string activeNote:(NoteObject*)startNote options:(unsigned)opts range:(NSRange)inRange;
 - (void)addMenuItemsForURLsInNotes:(NSMenu*)urlsMenu;
-- (NSUInteger)indexOfNoteWithUUIDBytes:(CFUUIDBytes*)bytes;
 - (NSArray*)objectsFromDictionariesForKey:(id)aKey;
 
 @end

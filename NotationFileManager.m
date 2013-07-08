@@ -307,23 +307,21 @@ long BlockSizeForNotation(NotationController *controller) {
 	//but leave the files intact; ensure only that they are also remotely unsynced
 	//returns true if at least one note was removed, in which case allNotes should probably be refiltered
 	
-	NSUInteger i = 0;
 	NoteObject *dbNote = nil, *walNote = nil;
 	
-	for (i=0; i<[allNotes count]; i++) {
-		NoteObject *obj = [allNotes objectAtIndex:i];
-		
+	for (NoteObject *obj in self.notes) {
 		if (!dbNote && [obj.filename isEqualToString:NotesDatabaseFileName])
 			dbNote = obj;
 		if (!walNote && [obj.filename isEqualToString:@"Interim Note-Changes"])
 			walNote = obj;
 	}
+	
 	if (dbNote) {
-		[allNotes removeObjectIdenticalTo:dbNote];
+		[self.notes removeObject:dbNote];
 		[self _addDeletedNote:dbNote];
 	}
 	if (walNote) {
-		[allNotes removeObjectIdenticalTo:walNote];
+		[self.notes removeObject:walNote];
 		[self _addDeletedNote:walNote];
 	}
 	return walNote || dbNote;
@@ -427,12 +425,10 @@ long BlockSizeForNotation(NotationController *controller) {
     unsigned int iteration = 0;
     do {
 		isUnique = YES;
-		unsigned int i;
 		
 		//this ought to just use an nsset, but then we'd have to maintain a parallel data structure for marginal benefit
 		//also, it won't quite work right for filenames with no (real) extensions and periods in their names
-		for (i=0; i<[allNotes count]; i++) {
-			NoteObject *aNote = [allNotes objectAtIndex:i];
+		for (NoteObject *aNote in self.notes) {
 			NSString *basefilename = aNote.filename.stringByDeletingPathExtension;
 			
 			if (note != aNote && [basefilename caseInsensitiveCompare:uniqueFilename] == NSOrderedSame) {
