@@ -262,6 +262,7 @@
 		DB0CAD03178A52070010257C /* NSObject+NVPerformBlock.m in Sources */ = {isa = PBXBuildFile; fileRef = DB0CAD02178A51DD0010257C /* NSObject+NVPerformBlock.m */; };
 		DB23FBB71793231D00C3236F /* NSApplication+NVActivationPolicy.m in Sources */ = {isa = PBXBuildFile; fileRef = DB23FBB61793231D00C3236F /* NSApplication+NVActivationPolicy.m */; };
 		DB23FBBA179325D000C3236F /* NSObject+NVSwizzle.m in Sources */ = {isa = PBXBuildFile; fileRef = DB23FBB9179325CC00C3236F /* NSObject+NVSwizzle.m */; };
+		DB23FBC4179333C900C3236F /* NSError+NVError.m in Sources */ = {isa = PBXBuildFile; fileRef = DB23FBC3179333C900C3236F /* NSError+NVError.m */; };
 		DB3CB57817810A2E0030EA13 /* NSMutableData+NVAESEncryption.m in Sources */ = {isa = PBXBuildFile; fileRef = DB83632E1780E9FE001D4DC2 /* NSMutableData+NVAESEncryption.m */; };
 		DB924C58177D327E00E96033 /* Quartz.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB924C57177D327E00E96033 /* Quartz.framework */; };
 		DB9FB5C11787A134001DC987 /* NotationTypes.m in Sources */ = {isa = PBXBuildFile; fileRef = DB9FB5C01787A134001DC987 /* NotationTypes.m */; };
@@ -749,6 +750,8 @@
 		DB23FBB61793231D00C3236F /* NSApplication+NVActivationPolicy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSApplication+NVActivationPolicy.m"; sourceTree = "<group>"; };
 		DB23FBB8179325CC00C3236F /* NSObject+NVSwizzle.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSObject+NVSwizzle.h"; sourceTree = "<group>"; };
 		DB23FBB9179325CC00C3236F /* NSObject+NVSwizzle.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSObject+NVSwizzle.m"; sourceTree = "<group>"; };
+		DB23FBC2179333C900C3236F /* NSError+NVError.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSError+NVError.h"; sourceTree = "<group>"; };
+		DB23FBC3179333C900C3236F /* NSError+NVError.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSError+NVError.m"; sourceTree = "<group>"; };
 		DB83632D1780E9FE001D4DC2 /* NSMutableData+NVAESEncryption.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSMutableData+NVAESEncryption.h"; sourceTree = "<group>"; };
 		DB83632E1780E9FE001D4DC2 /* NSMutableData+NVAESEncryption.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSMutableData+NVAESEncryption.m"; sourceTree = "<group>"; };
 		DB924C57177D327E00E96033 /* Quartz.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Quartz.framework; path = System/Library/Frameworks/Quartz.framework; sourceTree = SDKROOT; };
@@ -1183,6 +1186,8 @@
 				DB23FBB61793231D00C3236F /* NSApplication+NVActivationPolicy.m */,
 				DB23FBB8179325CC00C3236F /* NSObject+NVSwizzle.h */,
 				DB23FBB9179325CC00C3236F /* NSObject+NVSwizzle.m */,
+				DB23FBC2179333C900C3236F /* NSError+NVError.h */,
+				DB23FBC3179333C900C3236F /* NSError+NVError.m */,
 			);
 			name = "Other Sources";
 			sourceTree = "<group>";
@@ -1638,6 +1643,7 @@
 				DB9FB5C11787A134001DC987 /* NotationTypes.m in Sources */,
 				5CC2DF0B13083BCF006772D9 /* StatusItemView.m in Sources */,
 				5CF33C721308B478002B5499 /* NotesTableHeaderCell.m in Sources */,
+				DB23FBC4179333C900C3236F /* NSError+NVError.m in Sources */,
 				5CCEEF1D130B599B00E15B77 /* DFView.m in Sources */,
 				5CA10F1A131C297000DE1F91 /* PreviewController.m in Sources */,
 				5CA10F32131C29E900DE1F91 /* AppController_Preview.m in Sources */,

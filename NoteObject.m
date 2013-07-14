@@ -43,6 +43,7 @@
 #import "LabelColumnCell.h"
 #import "ODBEditor.h"
 #import "NoteAttributeColumn.h"
+#import "NSError+NVError.h"
 
 #if __LP64__
 // Needed for compatability with data created by 32bit app

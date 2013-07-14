@@ -20,6 +20,7 @@
 #import "PassphraseRetriever.h"
 #import "NSData_transformations.h"
 #import "NotationPrefs.h"
+#import "NSError+NVError.h"
 
 @implementation FrozenNotation
 

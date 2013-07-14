@@ -50,6 +50,7 @@
 #import "nvaDevConfig.h"
 #import "NSOrderedSet+NVFiltering.h"
 #import "NSObject+NVPerformBlock.h"
+#import "NSError+NVError.h"
 
 inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	if (result < 0) return NSOrderedAscending;

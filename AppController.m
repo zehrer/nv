@@ -53,6 +53,7 @@
 #import "WordCountToken.h"
 #import "NVViewLocationContext.h"
 #import "NotationController+DataSource.h"
+#import "NSError+NVError.h"
 #import <Sparkle/SUUpdater.h>
 
 #define kSparkleUpdateFeedForLions @"http://abyss.designheresy.com/nvalt2/nvalt2main.xml"
