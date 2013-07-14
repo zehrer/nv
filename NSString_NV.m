@@ -622,18 +622,6 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, unsigned charIndex) {
 	return [self rangeOfString:needle options:NSCaseInsensitiveSearch|NSDiacriticInsensitiveSearch].location != NSNotFound;
 }
 
-+ (instancetype)nv_stringWithRandomFileName
-{
-	static volatile int32_t seq = 0;
-	
-	OSAtomicIncrement32(&seq);
-	
-	int pid = [[NSProcessInfo processInfo] processIdentifier];
-	int date = [NSDate timeIntervalSinceReferenceDate];
-	
-	return [NSString stringWithFormat:@".%d-%d-%d", pid, date, seq];
-}
-
 @end
 
 

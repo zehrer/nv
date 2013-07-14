@@ -68,8 +68,6 @@ CFDateFormatterRef simplenoteDateFormatter(int lowPrecision);
 
 - (BOOL)nv_containsStringInsensitive:(NSString *)needle;
 
-+ (instancetype)nv_stringWithRandomFileName;
-
 @end
 
 @interface NSMutableString (NV)

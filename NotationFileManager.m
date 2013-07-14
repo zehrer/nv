@@ -24,6 +24,8 @@
 #import "GlobalPrefs.h"
 #import "NSData_transformations.h"
 #import "NotationSyncServiceManager.h"
+#import "NSURL+NVFSRefCompat.h"
+#import "NSURL+NVTemporaryFile.h"
 
 #import <Foundation/Foundation.h>
 #import <CommonCrypto/CommonCrypto.h>
@@ -34,7 +36,6 @@ NSString *NotesDatabaseFileName = @"Notes & Settings";
 
 @implementation NotationController (NotationFileManager)
 
-static BOOL VolumeSupportsExchangeObjects(NotationController *controller);
 static struct statfs *StatFSVolumeInfo(NotationController *controller);
 
 OSStatus CreateDirectoryIfNotPresent(FSRef *parentRef, CFStringRef subDirectoryName, FSRef *childRef) {
@@ -50,25 +51,6 @@ OSStatus CreateDirectoryIfNotPresent(FSRef *parentRef, CFStringRef subDirectoryN
     }
     
     return noErr;
-}
-
-OSStatus CreateTemporaryFile(FSRef *parentRef, FSRef *childTempRef) {
-    UniChar chars[256];
-    NSUInteger nameLength = 0;
-    OSStatus result = noErr;
-    
-    do {
-		NSString *filename = [NSString nv_stringWithRandomFileName];
-		nameLength = filename.length;
-		result = FSRefMakeInDirectoryWithString(parentRef, childTempRef, (__bridge CFStringRef)filename, chars);
-		
-    } while (result == noErr);
-    
-    if (result == fnfErr) {
-		result = FSCreateFileUnicode(parentRef, nameLength, chars, kFSCatInfoNone, NULL, childTempRef, NULL);
-    }
-    
-    return result;
 }
 
 
@@ -167,19 +149,6 @@ static CFUUIDRef CopySyntheticUUIDForVolumeCreationDate(FSRef *fsRef) {
 		}
 	}
 	return NULL;
-}
-
-static BOOL VolumeSupportsExchangeObjects(NotationController *controller) {
-	
-	if (controller->volumeSupportsExchangeObjects == -1) {
-		/* get source volume's path */
-		struct statfs * sfsb = StatFSVolumeInfo(controller);
-		if (sfsb) {
-			/* query getattrlist to see if that volume supports FSExchangeObjects */
-			controller->volumeSupportsExchangeObjects = ( 0 != (volumeCapabilities(sfsb->f_mntonname) & VOL_CAP_INT_EXCHANGEDATA));
-		}
-	}
-	return controller->volumeSupportsExchangeObjects;
 }
 
 - (void)purgeOldPerDiskInfoFromNotes {
@@ -531,70 +500,57 @@ static struct statfs *StatFSVolumeInfo(NotationController *controller) {
 	return FSCreateFileIfNotPresentInDirectory(&noteDirectoryRef, childRef, (__bridge CFStringRef)filename, (Boolean*)created);
 }
 
-//either name or destRef must be valid; destRef is declared invalid by filling the struct with 0
-- (OSStatus)storeDataAtomicallyInNotesDirectory:(NSData*)data withName:(NSString*)filename destinationRef:(FSRef*)destRef
-							   verifyUsingBlock:(OSStatus(^)(FSRef *, NSString *))verifier
+- (BOOL)writeDataToNotesDirectory:(NSData*)data
+							 name:(NSString*)filename
+				   destinationRef:(FSRef*)destRef
+							error:(out NSError **)outError
 {
-	OSStatus err = noErr;
-	
-	FSRef tempFileRef;
-    if ((err = CreateTemporaryFile(&noteDirectoryRef, &tempFileRef)) != noErr) {
-		NSLog(@"error creating temporary file: %d", err);
-		return err;
-    }
-    
-    //now write to temporary file and swap
-    if ((err = FSRefWriteData(&tempFileRef, self.blockSize, [data length], [data bytes], pleaseCacheMask, false)) != noErr) {
-		NSLog(@"error writing to temporary file: %d", err);
-		
-		return err;
-    }
-	
-	//before we try to swap the data contents of this temp file with the (possibly even soon-to-be-created) Notes & Settings file,
-	//try to read it back and see if it can be decrypted and decoded:
-	if (verifier) {
-		if (noErr != (verifier(&tempFileRef, filename))) {
-			NSLog(@"couldn't verify written notes, so not continuing to save");
-			FSDeleteObject(&tempFileRef);
-			return err;
-		}
-	}
-    
-	//don't try to make a new fsref if the file is still inside notes folder, but perhaps under a different name
-	BOOL isOwned = NO;
-	if (IsZeros(destRef,sizeof(FSRef)) || [self fileInNotesDirectory:destRef isOwnedByUs:&isOwned hasCatalogInfo:NULL] != noErr || !isOwned) {
-		
-		if ((err = [self createFileIfNotPresentInNotesDirectory:destRef forFilename:filename fileWasCreated:nil]) != noErr) {
-			NSLog(@"error creating or getting fsref for file %@: %d", filename, err);
-			return err;
-		}
-    }
-    //if destRef is not zeros, just assume that it exists and retry if it doesn't
-	FSRef newSourceRef, newDestRef;
-	
-	if (VolumeSupportsExchangeObjects(self) != 1) {
-		//NSLog(@"emulating fsexchange objects");
-		if ((err = FSExchangeObjectsEmulate(&tempFileRef, destRef, &newSourceRef, &newDestRef)) == noErr) {
-			memcpy(&tempFileRef, &newSourceRef, sizeof(FSRef));
-			memcpy(destRef, &newDestRef, sizeof(FSRef));
-		}
-	} else {
-		err = FSExchangeObjects(&tempFileRef, destRef);
-	}
-	
-    if (err != noErr) {
-		NSLog(@"error exchanging contents of temporary file with destination file %@: %d",filename, err);
-		return err;
-    }
-    
-    if ((err = FSDeleteObject(&tempFileRef)) != noErr) {
-		NSLog(@"Error deleting temporary file: %d; moving to trash", err);
-		if ((err = [self moveFileToTrash:&tempFileRef forFilename:nil]) != noErr)
-			NSLog(@"Error moving file to trash: %d\n", err);
-    }
-    
-    return noErr;
+	return [self writeDataToNotesDirectory:data name:filename destinationRef:destRef error:outError verifyUsingBlock:NULL];
+}
 
+- (BOOL)writeDataToNotesDirectory:(NSData*)data
+							 name:(NSString*)filename
+				   destinationRef:(FSRef*)destRef
+							error:(out NSError **)outError
+				 verifyUsingBlock:(BOOL(^)(NSData *, NSError **))verifier
+{
+	NSURL *notesDirectoryURL = [NSURL URLFromFSRef:&noteDirectoryRef];
+	NSURL *destinationURL = [notesDirectoryURL URLByAppendingPathComponent:filename isDirectory:NO];
+	
+	NSError *error = nil;
+	
+	// Before we try to save the temp file, try to read it back and see if it
+	// can be decrypted and decoded.
+	if (verifier) {
+		if (!verifier(data, &error)) {
+			NSLog(@"couldn't verify written notes, so not continuing to save: %@", error);
+			if (outError) *outError = error;
+			return NO;
+		}
+	}
+	
+	if (![data writeToURL:destinationURL options:NSDataWritingAtomic error:&error]) {
+		NSLog(@"couldn't verify written notes, so not continuing to save: %@", error);
+		if (outError) *outError = error;
+		return NO;
+	}
+	
+	NSURL *beginDestinationURL = [NSURL nv_temporaryURL];
+	
+	// Write to temporary URL.
+	// This could potentially be replaced with 
+	if (![data writeToURL:beginDestinationURL options:NSDataWritingWithoutOverwriting error:&error])
+	{
+		NSLog(@"could not save to destination file: %@", error);
+		if (outError) *outError = error;
+		return NO;
+	}
+	
+	if (destRef) {
+		[destinationURL getFSRef:destRef];
+	}
+	
+	return YES;
 }
 
 - (void)notifyOfChangedTrash {
@@ -607,11 +563,9 @@ static struct statfs *StatFSVolumeInfo(NotationController *controller) {
 	 else
 		NSLog(@"notifyOfChangedTrash: error getting trash: %d", err);
 	
-	 NSString *sillyDirectory = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString nv_stringWithRandomFileName]];
-	 [[NSFileManager defaultManager] createDirectoryAtPath:sillyDirectory withIntermediateDirectories:YES attributes:nil error:NULL];
-	 NSInteger tag = 0;
-	 [[NSWorkspace sharedWorkspace] performFileOperation:NSWorkspaceRecycleOperation source:NSTemporaryDirectory() destination:@"" 
-												   files:[NSArray arrayWithObject:[sillyDirectory lastPathComponent]] tag:&tag];
+	NSURL *sillyURL = [NSURL nv_temporaryURL];
+	[self.fileManager createDirectoryAtURL:sillyURL withIntermediateDirectories:YES attributes:nil error:NULL];
+	[[NSWorkspace sharedWorkspace] recycleURLs:@[sillyURL] completionHandler:NULL];
 }
 
 + (OSStatus)trashFolderRef:(FSRef*)trashRef forChild:(FSRef*)childRef {

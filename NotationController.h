@@ -62,7 +62,6 @@ typedef struct _NoteCatalogEntry {
 	
 	NSMutableSet *deletedNotes;
     
-	int volumeSupportsExchangeObjects;
     FSCatalogInfo *fsCatInfoArray;
     HFSUniStr255 *HFSUniNameArray;
 
@@ -81,7 +80,7 @@ typedef struct _NoteCatalogEntry {
     FSRef noteDirectoryRef, noteDatabaseRef;
     AliasHandle aliasHandle;
     BOOL aliasNeedsUpdating;
-    OSStatus lastWriteError;
+    NSError *lastWriteError;
     
     WALStorageController *walWriter;
     NSMutableSet *unwrittenNotes;
@@ -125,7 +124,6 @@ typedef struct _NoteCatalogEntry {
 - (void)restyleAllNotes;
 - (void)setUndoManager:(NSUndoManager*)anUndoManager;
 - (NSUndoManager*)undoManager;
-- (void)noteDidNotWrite:(NoteObject*)note errorCode:(OSStatus)error;
 - (void)scheduleWriteForNote:(NoteObject*)note;
 - (void)closeAllResources;
 - (void)trashRemainingNoteFilesInDirectory;
@@ -182,8 +180,9 @@ typedef struct _NoteCatalogEntry {
 
 - (NoteObject*)noteForUUIDBytes:(CFUUIDBytes*)bytes;
 
-// note object delegate
+// note object delegate - fix later
 - (void)note:(NoteObject*)note attributeChanged:(NVUIAttribute)attribute;
+- (void)note:(NoteObject*)note failedToWriteWithError:(NSError *)error;
 - (void)noteDidUpdateContents:(NoteObject*)note;
 
 @end

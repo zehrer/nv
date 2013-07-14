@@ -981,7 +981,7 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
     BOOL wroteAllOfNote = [wal writeEstablishedNote:self];
 	
     if (!wroteAllOfNote) {
-		[_delegate noteDidNotWrite:self errorCode:kWriteJournalErr];
+		[_delegate note:self failedToWriteWithError:[NSError nv_errorWithCode:NVErrorWriteJournal]];
 	}
     
     return wroteAllOfNote;
@@ -1047,13 +1047,13 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 		//see if the file's fileModDate (if it exists) is newer than this note's current fileModificationDate
 		//could offer to merge or revert changes
 		
-		OSStatus err = noErr;
-		if ((err = [_delegate storeDataAtomicallyInNotesDirectory:formattedData withName:filename destinationRef:noteFileRefInit(self) verifyUsingBlock:NULL]) != noErr) {
+		if (![_delegate writeDataToNotesDirectory:formattedData name:filename destinationRef:noteFileRefInit(self) error:&error]) {
 			NSLog(@"Unable to save note file %@", filename);
 			
-			[_delegate noteDidNotWrite:self errorCode:err];
+			[_delegate note:self failedToWriteWithError:error];
 			return NO;
 		}
+		
 		//if writing plaintext set the file encoding with setxattr
 		if (NVDatabaseFormatPlain == formatID) {
 			[self writeCurrentFileEncodingToFSRef:noteFileRefInit(self)];
@@ -1079,7 +1079,7 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 		//tell any external editors that we've changed
 		
     } else {
-		[_delegate noteDidNotWrite:self errorCode:kDataFormattingErr];
+		[_delegate note:self failedToWriteWithError:[NSError nv_errorWithCode:NVErrorDataFormatting]];
 		NSLog(@"Unable to convert note contents into format %ld", (long)formatID);
 		return NO;
     }

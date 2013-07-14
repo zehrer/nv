@@ -22,7 +22,7 @@
 
 
 #import "AppController.h"
-#import "NotationController.h"
+#import "NotationController_Private.h"
 #import "NSCollection_utils.h"
 #import "NoteObject.h"
 #import "DeletedNoteObject.h"
@@ -68,6 +68,8 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 
 @implementation NotationController
 
+@synthesize fileManager = _fileManager;
+
 - (id)init {
     if (self = [super init]) {
 		directoryChangesFound = notesChanged = aliasNeedsUpdating = NO;
@@ -89,13 +91,11 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 
 		bzero(&noteDatabaseRef, sizeof(FSRef));
 		bzero(&noteDirectoryRef, sizeof(FSRef));
-		volumeSupportsExchangeObjects = -1;
 		
 		lastLayoutStyleGenerated = -1;
 		lastCheckedDateInHours = hoursFromAbsoluteTime(CFAbsoluteTimeGetCurrent());
 		blockSize = 0;
 		
-		lastWriteError = noErr;
 		unwrittenNotes = [[NSMutableSet alloc] init];
 		_allLabels = [[NSCountedSet alloc] init];
     }
@@ -338,7 +338,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 				
 				if (!(walWriter = [[WALStorageController alloc] initWithParentFSRep:(char*)convertedPath encryptionKey:walSessionKey])) {
 					//couldn't create a journal after recovering the old one
-					//if databaseCouldNotBeFlushed is true here, then we've potentially lost notes; perhaps exchangeobjects would be better here?
+					//if databaseCouldNotBeFlushed is true here, then we've potentially lost notes
 					NSLog(@"Unable to create a new write-ahead-log after deleting the old one");
 					return NO;
 				}
@@ -481,56 +481,53 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		//we should have all journal records on disk by now
 		//used to ensure a newly-written Notes & Settings file is valid before finalizing the save
 		//read the file back from disk, deserialize it, decrypt and decompress it, and compare the notes roughly to our current notes
-		if ([self storeDataAtomicallyInNotesDirectory:serializedData withName:NotesDatabaseFileName destinationRef:&noteDatabaseRef verifyUsingBlock:^OSStatus(FSRef *notesFileRef, NSString *filename) {
+		if (![self writeDataToNotesDirectory:serializedData name:NotesDatabaseFileName destinationRef:&noteDatabaseRef error:NULL verifyUsingBlock:^BOOL(NSData *data, NSError **outError) {
 			NSDate *date = [NSDate date];
 			
-			NSAssert([filename isEqualToString:NotesDatabaseFileName], @"attempting to verify something other than the database");
-			
-			UInt64 fileSize = 0;
-			char *notesData = NULL;
-			OSStatus err = noErr;
-			if ((err = FSRefReadData(notesFileRef, self.blockSize, &fileSize, (void**)&notesData, forceReadMask)) != noErr)
-				return err;
-			
 			FrozenNotation *frozenNotation = nil;
-			if (!fileSize) {
-				if (notesData) free(notesData);
-				return eofErr;
-			}
-			NSData *archivedNotation = [[NSData alloc] initWithBytesNoCopy:notesData length:fileSize freeWhenDone:NO];
 			@try {
-				frozenNotation = [NSKeyedUnarchiver unarchiveObjectWithData:archivedNotation];
+				frozenNotation = [NSKeyedUnarchiver unarchiveObjectWithData:data];
 			} @catch (NSException *e) {
 				NSLog(@"(VERIFY) Error unarchiving notes and preferences from data (%@, %@)", [e name], [e reason]);
-				if (notesData) free(notesData);
-				return kCoderErr;
+				if (outError) *outError = [NSError nv_errorWithCode:NVErrorCoderMistake];
+				return NO;
 			}
+			
 			//unpack notes using the current NotationPrefs instance (not the just-unarchived one), with which we presumably just used to encrypt it
-			NSMutableArray *notesToVerify = [frozenNotation unpackedNotesWithPrefs:notationPrefs returningError:&err];
-			if (noErr != err) {
-				if (notesData) free(notesData);
-				return err;
+			OSStatus osErr = noErr;
+			NSMutableArray *notesToVerify = [frozenNotation unpackedNotesWithPrefs:notationPrefs returningError:&osErr];
+			if (noErr != osErr) {
+				if (outError) *outError = [NSError nv_errorWithCode:osErr];
+				return NO;
 			}
+			
 			//notes were unpacked--now roughly compare notesToVerify with allNotes, plus deletedNotes and notationPrefs
 			if (!notesToVerify || [notesToVerify count] != self.notesList.count || [[frozenNotation deletedNotes] count] != [deletedNotes  count] ||
 				[frozenNotation.prefs notesStorageFormat] != [notationPrefs notesStorageFormat] ||
 				[frozenNotation.prefs hashIterationCount] != [notationPrefs hashIterationCount]) {
-				if (notesData) free(notesData);
-				return kItemVerifyErr;
+				if (outError) *outError = [NSError nv_errorWithCode:NVErrorItemVerify];
+				return NO;
 			}
-			unsigned int i;
-			for (i=0; i<[notesToVerify count]; i++) {
-				if ([[[notesToVerify objectAtIndex:i] contentString] length] != [[self.notesList[i] contentString] length]) {
-					if (notesData) free(notesData);
-					return kItemVerifyErr;
+			
+			__block BOOL verifySuccess = YES;
+			
+			[notesToVerify enumerateObjectsUsingBlock:^(NoteObject *note, NSUInteger idx, BOOL *stop) {
+				if (note.contentString.length != [[self.notesList[idx] contentString] length]) {
+					verifySuccess = NO;
+					*stop = YES;
 				}
+			}];
+			
+			if (!verifySuccess) {
+				if (outError) *outError = [NSError nv_errorWithCode:NVErrorItemVerify];
+				return NO;
 			}
 			
 			NSLog(@"verified %lu notes in %g s", [notesToVerify count], (float)[[NSDate date] timeIntervalSinceDate:date]);
 			
-			if (notesData) free(notesData);
-			return noErr;
-		}] != noErr) {
+			if (outError) *outError = nil;
+			return YES;
+		}]) {
 			return NO;
 		}
 		
@@ -618,13 +615,13 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
     return [notationPrefs notesStorageFormat];
 }
 
-- (void)noteDidNotWrite:(NoteObject*)note errorCode:(OSStatus)error {
+- (void)note:(NoteObject*)note failedToWriteWithError:(NSError *)error {
     [unwrittenNotes addObject:note];
     
-    if (error != lastWriteError) {
+    if (![error isEqual:lastWriteError]) {
 		NSRunAlertPanel([NSString stringWithFormat:NSLocalizedString(@"Changed notes could not be saved because %@.",
-																	 @"alert title appearing when notes couldn't be written"), 
-			[NSString reasonStringFromCarbonFSError:error]], @"", NSLocalizedString(@"OK",nil), NULL, NULL);
+																	 @"alert title appearing when notes couldn't be written"),
+						 [error localizedFailureReason]], @"", NSLocalizedString(@"OK",nil), NULL, NULL);
 		
 		lastWriteError = error;
     }
@@ -633,7 +630,8 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 - (void)synchronizeNoteChanges:(NSTimer*)timer {
     
     if ([unwrittenNotes count] > 0) {
-		lastWriteError = noErr;
+		lastWriteError = nil;
+		
 		if ([notationPrefs notesStorageFormat] != NVDatabaseFormatSingle) {
 			//to avoid mutation enumeration if writing this file triggers a filename change which then triggers another makeNoteDirty which then triggers another scheduleWriteForNote:
 			//loose-coupling? what?
@@ -1625,6 +1623,16 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 - (void)noteDidUpdateContents:(NoteObject *)note
 {
 	[self.delegate contentsUpdatedForNote:note];
+}
+
+#pragma mark - NotationFileManager
+
+- (NSFileManager *)fileManager
+{
+	if (!_fileManager) {
+		self.fileManager = [NSFileManager new];
+	}
+	return _fileManager;
 }
 
 @end

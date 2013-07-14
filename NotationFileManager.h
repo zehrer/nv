@@ -17,8 +17,7 @@
 
 
 #import <Cocoa/Cocoa.h>
-#import "NotationController.h"
-#include "FSExchangeObjectsCompat.h"
+#import "NotationController_Private.h"
 #import "BufferUtils.h"
 #import "NoteObject.h"
 
@@ -35,7 +34,8 @@ typedef union VolumeUUID {
 
 @interface NotationController (NotationFileManager) <NoteObjectDelegate>
 
-OSStatus CreateTemporaryFile(FSRef *parentRef, FSRef *childTempRef);
+@property (nonatomic, strong, readonly) NSFileManager *fileManager;
+
 OSStatus CreateDirectoryIfNotPresent(FSRef *parentRef, CFStringRef subDirectoryName, FSRef *childRef);
 CFUUIDRef CopyHFSVolumeUUIDForMount(const char *mntonname);
 
@@ -65,7 +65,15 @@ CFUUIDRef CopyHFSVolumeUUIDForMount(const char *mntonname);
 - (OSStatus)fileInNotesDirectory:(FSRef*)childRef isOwnedByUs:(BOOL*)owned hasCatalogInfo:(FSCatalogInfo *)info;
 - (OSStatus)deleteFileInNotesDirectory:(FSRef*)childRef forFilename:(NSString*)filename;
 - (OSStatus)createFileIfNotPresentInNotesDirectory:(FSRef*)childRef forFilename:(NSString*)filename fileWasCreated:(BOOL*)created;
-- (OSStatus)storeDataAtomicallyInNotesDirectory:(NSData*)data withName:(NSString*)filename destinationRef:(FSRef*)destRef verifyUsingBlock:(OSStatus(^)(FSRef *, NSString *))verifier;
+- (BOOL)writeDataToNotesDirectory:(NSData*)data
+							 name:(NSString*)filename
+				   destinationRef:(FSRef*)destRef
+							error:(out NSError **)outError;;
+- (BOOL)writeDataToNotesDirectory:(NSData*)data
+							 name:(NSString*)filename
+				   destinationRef:(FSRef*)destRef
+							error:(out NSError **)outError
+				 verifyUsingBlock:(BOOL(^)(NSData *, NSError **))verifier;
 + (OSStatus)trashFolderRef:(FSRef*)trashRef forChild:(FSRef*)childRef;
 - (OSStatus)moveFileToTrash:(FSRef *)childRef forFilename:(NSString*)filename;
 - (void)notifyOfChangedTrash;

@@ -28,7 +28,6 @@
 		21317FAF1113840E00472211 /* Excruciatingly Useful Shortcuts.nvhelp in Resources */ = {isa = PBXBuildFile; fileRef = 21317FAD1113840E00472211 /* Excruciatingly Useful Shortcuts.nvhelp */; };
 		213621ED0B92413F008C0830 /* FindPanel.nib in Resources */ = {isa = PBXBuildFile; fileRef = 213621E70B92413F008C0830 /* FindPanel.nib */; };
 		213623FC0B92AA6E008C0830 /* Sparkle.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 213623E50B92AA4E008C0830 /* Sparkle.framework */; };
-		213FAD530B3C6B52004C74BD /* FSExchangeObjectsCompat.c in Sources */ = {isa = PBXBuildFile; fileRef = 213FAD520B3C6B52004C74BD /* FSExchangeObjectsCompat.c */; };
 		2143D2F410E953F500127EA6 /* SnapBackPressed.tif in Resources */ = {isa = PBXBuildFile; fileRef = 2143D2F210E953F400127EA6 /* SnapBackPressed.tif */; };
 		2143D3D910E987B100127EA6 /* Pencil.png in Resources */ = {isa = PBXBuildFile; fileRef = 2143D3D810E987B100127EA6 /* Pencil.png */; };
 		214493F60ADB892C00E2A2B6 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 214493E70ADB892C00E2A2B6 /* CoreServices.framework */; };
@@ -262,6 +261,8 @@
 		DB0CAD03178A52070010257C /* NSObject+NVPerformBlock.m in Sources */ = {isa = PBXBuildFile; fileRef = DB0CAD02178A51DD0010257C /* NSObject+NVPerformBlock.m */; };
 		DB23FBB71793231D00C3236F /* NSApplication+NVActivationPolicy.m in Sources */ = {isa = PBXBuildFile; fileRef = DB23FBB61793231D00C3236F /* NSApplication+NVActivationPolicy.m */; };
 		DB23FBBA179325D000C3236F /* NSObject+NVSwizzle.m in Sources */ = {isa = PBXBuildFile; fileRef = DB23FBB9179325CC00C3236F /* NSObject+NVSwizzle.m */; };
+		DB23FBBE17932CB500C3236F /* NSURL+NVFSRefCompat.m in Sources */ = {isa = PBXBuildFile; fileRef = DB23FBBD17932CB500C3236F /* NSURL+NVFSRefCompat.m */; };
+		DB23FBC117932F1900C3236F /* NSURL+NVTemporaryFile.m in Sources */ = {isa = PBXBuildFile; fileRef = DB23FBC017932F1900C3236F /* NSURL+NVTemporaryFile.m */; };
 		DB23FBC4179333C900C3236F /* NSError+NVError.m in Sources */ = {isa = PBXBuildFile; fileRef = DB23FBC3179333C900C3236F /* NSError+NVError.m */; };
 		DB3CB57817810A2E0030EA13 /* NSMutableData+NVAESEncryption.m in Sources */ = {isa = PBXBuildFile; fileRef = DB83632E1780E9FE001D4DC2 /* NSMutableData+NVAESEncryption.m */; };
 		DB924C58177D327E00E96033 /* Quartz.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB924C57177D327E00E96033 /* Quartz.framework */; };
@@ -347,8 +348,6 @@
 		21317FAE1113840E00472211 /* English */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = English; path = "English.lproj/Excruciatingly Useful Shortcuts.nvhelp"; sourceTree = "<group>"; };
 		213621E80B92413F008C0830 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/FindPanel.nib; sourceTree = "<group>"; };
 		213623E50B92AA4E008C0830 /* Sparkle.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Sparkle.framework; sourceTree = "<group>"; };
-		213FAD510B3C6B52004C74BD /* FSExchangeObjectsCompat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FSExchangeObjectsCompat.h; sourceTree = "<group>"; };
-		213FAD520B3C6B52004C74BD /* FSExchangeObjectsCompat.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = FSExchangeObjectsCompat.c; sourceTree = "<group>"; };
 		213FB0230B3CB1C4004C74BD /* PTKeyboardIcon.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = PTKeyboardIcon.tiff; path = Images/PTKeyboardIcon.tiff; sourceTree = "<group>"; };
 		2143D2F210E953F400127EA6 /* SnapBackPressed.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = SnapBackPressed.tif; path = Images/SnapBackPressed.tif; sourceTree = "<group>"; };
 		2143D2F310E953F500127EA6 /* SnapBack.tif */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; name = SnapBack.tif; path = Images/SnapBack.tif; sourceTree = "<group>"; };
@@ -750,6 +749,11 @@
 		DB23FBB61793231D00C3236F /* NSApplication+NVActivationPolicy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSApplication+NVActivationPolicy.m"; sourceTree = "<group>"; };
 		DB23FBB8179325CC00C3236F /* NSObject+NVSwizzle.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSObject+NVSwizzle.h"; sourceTree = "<group>"; };
 		DB23FBB9179325CC00C3236F /* NSObject+NVSwizzle.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSObject+NVSwizzle.m"; sourceTree = "<group>"; };
+		DB23FBBB17932BEF00C3236F /* NotationController_Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NotationController_Private.h; sourceTree = "<group>"; };
+		DB23FBBC17932CB500C3236F /* NSURL+NVFSRefCompat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSURL+NVFSRefCompat.h"; sourceTree = "<group>"; };
+		DB23FBBD17932CB500C3236F /* NSURL+NVFSRefCompat.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSURL+NVFSRefCompat.m"; sourceTree = "<group>"; };
+		DB23FBBF17932F1900C3236F /* NSURL+NVTemporaryFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSURL+NVTemporaryFile.h"; sourceTree = "<group>"; };
+		DB23FBC017932F1900C3236F /* NSURL+NVTemporaryFile.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSURL+NVTemporaryFile.m"; sourceTree = "<group>"; };
 		DB23FBC2179333C900C3236F /* NSError+NVError.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSError+NVError.h"; sourceTree = "<group>"; };
 		DB23FBC3179333C900C3236F /* NSError+NVError.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSError+NVError.m"; sourceTree = "<group>"; };
 		DB83632D1780E9FE001D4DC2 /* NSMutableData+NVAESEncryption.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSMutableData+NVAESEncryption.h"; sourceTree = "<group>"; };
@@ -816,6 +820,7 @@
 				21B1BC351104D20E0004A7D0 /* InvocationRecorder.m */,
 				217D4280096545A000E84749 /* LabelObject.h */,
 				217D4281096545A000E84749 /* LabelObject.m */,
+				DB23FBBB17932BEF00C3236F /* NotationController_Private.h */,
 				2114C13D0957732800614E74 /* NotationController.h */,
 				2114C13E0957732800614E74 /* NotationController.m */,
 				DBA17E78178A98D600CA7CA7 /* NotationController+DataSource.h */,
@@ -1173,8 +1178,6 @@
 				2114C23B095883A600614E74 /* NSData_transformations.h */,
 				2114C23C095883A600614E74 /* NSData_transformations.m */,
 				214495040ADC7F4F00E2A2B6 /* SFPasswordAssistantInspectorController.h */,
-				213FAD510B3C6B52004C74BD /* FSExchangeObjectsCompat.h */,
-				213FAD520B3C6B52004C74BD /* FSExchangeObjectsCompat.c */,
 				5C4479DF17020153000AA45A /* nvaDevConfig.h */,
 				DB83632D1780E9FE001D4DC2 /* NSMutableData+NVAESEncryption.h */,
 				DB83632E1780E9FE001D4DC2 /* NSMutableData+NVAESEncryption.m */,
@@ -1186,6 +1189,10 @@
 				DB23FBB61793231D00C3236F /* NSApplication+NVActivationPolicy.m */,
 				DB23FBB8179325CC00C3236F /* NSObject+NVSwizzle.h */,
 				DB23FBB9179325CC00C3236F /* NSObject+NVSwizzle.m */,
+				DB23FBBC17932CB500C3236F /* NSURL+NVFSRefCompat.h */,
+				DB23FBBD17932CB500C3236F /* NSURL+NVFSRefCompat.m */,
+				DB23FBBF17932F1900C3236F /* NSURL+NVTemporaryFile.h */,
+				DB23FBC017932F1900C3236F /* NSURL+NVTemporaryFile.m */,
 				DB23FBC2179333C900C3236F /* NSError+NVError.h */,
 				DB23FBC3179333C900C3236F /* NSError+NVError.m */,
 			);
@@ -1573,6 +1580,7 @@
 				219588D20961D7F200972B8C /* LinkingEditor.m in Sources */,
 				217D4282096545A000E84749 /* LabelObject.m in Sources */,
 				212B84620978422300F3597F /* NSString_NV.m in Sources */,
+				DB23FBC117932F1900C3236F /* NSURL+NVTemporaryFile.m in Sources */,
 				21DC788F097894B600E59B09 /* NSCollection_utils.m in Sources */,
 				2155DEA6097B5F0300163A10 /* BufferUtils.m in Sources */,
 				2155DF44097C992800163A10 /* AttributedPlainText.m in Sources */,
@@ -1609,7 +1617,6 @@
 				21F1CD710B3A38DB001FB5F6 /* PTKeyComboPanel.m in Sources */,
 				21F1CD980B3A3F77001FB5F6 /* PTHotKey.m in Sources */,
 				21F1CDAD0B3A401F001FB5F6 /* PTKeyCombo.m in Sources */,
-				213FAD530B3C6B52004C74BD /* FSExchangeObjectsCompat.c in Sources */,
 				21C737950B50C73E0048C08A /* MultiplePageView.m in Sources */,
 				21FF94F70B5AD23B00DB6A2F /* ExporterManager.m in Sources */,
 				210A10690B66720F005BE981 /* BookmarksTable.m in Sources */,
@@ -1632,6 +1639,7 @@
 				216D987F12CE68AD0004B9CE /* NSFileManager_NV.m in Sources */,
 				21DB3D0F12D4FBDD0057F52B /* SecureTextEntryManager.m in Sources */,
 				21DB4BE612DE4E3D0057F52B /* NSString_CustomTruncation.m in Sources */,
+				DB23FBBE17932CB500C3236F /* NSURL+NVFSRefCompat.m in Sources */,
 				21D6F7EF12E0C751005C2DA5 /* AppController_Importing.m in Sources */,
 				21D6FB4912E104D6005C2DA5 /* NSBezierPath_NV.m in Sources */,
 				215309F412E4E92300AF2739 /* DiskUUIDEntry.m in Sources */,

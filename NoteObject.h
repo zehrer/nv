@@ -174,7 +174,7 @@ typedef struct _NoteFilterContext {
 - (void)note:(NoteObject*)note didAddLabelSet:(NSSet*)labelSet;
 - (void)note:(NoteObject*)note didRemoveLabelSet:(NSSet*)labelSet;
 - (void)note:(NoteObject*)note attributeChanged:(NVUIAttribute)attribute;
-- (void)noteDidNotWrite:(NoteObject*)note errorCode:(OSStatus)error;
+- (void)note:(NoteObject*)note failedToWriteWithError:(NSError *)error;
 
 - (void)noteDidUpdateContents:(NoteObject*)note;
 
@@ -192,8 +192,10 @@ typedef struct _NoteFilterContext {
 
 - (OSStatus)noteFileRenamed:(FSRef*)childRef fromName:(NSString*)oldName toName:(NSString*)newName;
 
-- (OSStatus)storeDataAtomicallyInNotesDirectory:(NSData*)data withName:(NSString*)filename destinationRef:(FSRef*)destRef
-							   verifyUsingBlock:(OSStatus(^)(FSRef *, NSString *))verifier;
+- (BOOL)writeDataToNotesDirectory:(NSData*)data
+							 name:(NSString*)filename
+				   destinationRef:(FSRef*)destRef
+							error:(out NSError **)outError;
 
 - (OSStatus)refreshFileRefIfNecessary:(FSRef *)childRef withName:(NSString *)filename charsBuffer:(UniChar*)charsBuffer;
 
