@@ -30,7 +30,7 @@ extern CGError CGSSetWorkspace(const CGSConnection cid, CGSWorkspace workspace);
 typedef struct _SpaceSwitchingContext {
 	CGSWorkspace userSpace;
 	CGSWorkspace windowSpace;
-	ProcessSerialNumber frontPSN;
+	pid_t frontPID;
 } SpaceSwitchingContext;
 
 Boolean CurrentContextForWindowNumber(NSInteger windowNum, SpaceSwitchingContext *ctx);

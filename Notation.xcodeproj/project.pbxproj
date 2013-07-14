@@ -260,6 +260,8 @@
 		B69E26F716F0B523001C6E4B /* Search@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = B69E26EF16F0B523001C6E4B /* Search@2x.png */; };
 		D3EECA00106F66C70023D7F8 /* NVPasswordGenerator.m in Sources */ = {isa = PBXBuildFile; fileRef = D3EEC9FE106F66C70023D7F8 /* NVPasswordGenerator.m */; };
 		DB0CAD03178A52070010257C /* NSObject+NVPerformBlock.m in Sources */ = {isa = PBXBuildFile; fileRef = DB0CAD02178A51DD0010257C /* NSObject+NVPerformBlock.m */; };
+		DB23FBB71793231D00C3236F /* NSApplication+NVActivationPolicy.m in Sources */ = {isa = PBXBuildFile; fileRef = DB23FBB61793231D00C3236F /* NSApplication+NVActivationPolicy.m */; };
+		DB23FBBA179325D000C3236F /* NSObject+NVSwizzle.m in Sources */ = {isa = PBXBuildFile; fileRef = DB23FBB9179325CC00C3236F /* NSObject+NVSwizzle.m */; };
 		DB3CB57817810A2E0030EA13 /* NSMutableData+NVAESEncryption.m in Sources */ = {isa = PBXBuildFile; fileRef = DB83632E1780E9FE001D4DC2 /* NSMutableData+NVAESEncryption.m */; };
 		DB924C58177D327E00E96033 /* Quartz.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB924C57177D327E00E96033 /* Quartz.framework */; };
 		DB9FB5C11787A134001DC987 /* NotationTypes.m in Sources */ = {isa = PBXBuildFile; fileRef = DB9FB5C01787A134001DC987 /* NotationTypes.m */; };
@@ -743,6 +745,10 @@
 		D3EEC9FF106F66C70023D7F8 /* NVPasswordGenerator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NVPasswordGenerator.h; sourceTree = "<group>"; };
 		DB0CAD01178A51DD0010257C /* NSObject+NVPerformBlock.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSObject+NVPerformBlock.h"; sourceTree = "<group>"; };
 		DB0CAD02178A51DD0010257C /* NSObject+NVPerformBlock.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSObject+NVPerformBlock.m"; sourceTree = "<group>"; };
+		DB23FBB51793231D00C3236F /* NSApplication+NVActivationPolicy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSApplication+NVActivationPolicy.h"; sourceTree = "<group>"; };
+		DB23FBB61793231D00C3236F /* NSApplication+NVActivationPolicy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSApplication+NVActivationPolicy.m"; sourceTree = "<group>"; };
+		DB23FBB8179325CC00C3236F /* NSObject+NVSwizzle.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSObject+NVSwizzle.h"; sourceTree = "<group>"; };
+		DB23FBB9179325CC00C3236F /* NSObject+NVSwizzle.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSObject+NVSwizzle.m"; sourceTree = "<group>"; };
 		DB83632D1780E9FE001D4DC2 /* NSMutableData+NVAESEncryption.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSMutableData+NVAESEncryption.h"; sourceTree = "<group>"; };
 		DB83632E1780E9FE001D4DC2 /* NSMutableData+NVAESEncryption.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSMutableData+NVAESEncryption.m"; sourceTree = "<group>"; };
 		DB924C57177D327E00E96033 /* Quartz.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Quartz.framework; path = System/Library/Frameworks/Quartz.framework; sourceTree = SDKROOT; };
@@ -1173,6 +1179,10 @@
 				DBC49A0617888A7B008463F7 /* NSOrderedSet+NVFiltering.m */,
 				DB0CAD01178A51DD0010257C /* NSObject+NVPerformBlock.h */,
 				DB0CAD02178A51DD0010257C /* NSObject+NVPerformBlock.m */,
+				DB23FBB51793231D00C3236F /* NSApplication+NVActivationPolicy.h */,
+				DB23FBB61793231D00C3236F /* NSApplication+NVActivationPolicy.m */,
+				DB23FBB8179325CC00C3236F /* NSObject+NVSwizzle.h */,
+				DB23FBB9179325CC00C3236F /* NSObject+NVSwizzle.m */,
 			);
 			name = "Other Sources";
 			sourceTree = "<group>";
@@ -1571,6 +1581,7 @@
 				21A2F95E09DF3FDC001AF0B5 /* NotationPrefs.m in Sources */,
 				21A2FA1709DF6174001AF0B5 /* NotationPrefsViewController.m in Sources */,
 				2168EC5309E33B0300778D02 /* FrozenNotation.m in Sources */,
+				DB23FBBA179325D000C3236F /* NSObject+NVSwizzle.m in Sources */,
 				217CEBA309E9885500DF0E09 /* NotationFileManager.m in Sources */,
 				215DE83809ECC4FE009A710B /* HeaderViewWIthMenu.m in Sources */,
 				DBA17E7A178A98D600CA7CA7 /* NotationController+DataSource.m in Sources */,
@@ -1589,6 +1600,7 @@
 				219FD3160B2CC655004E132B /* LinkingEditor_Indentation.m in Sources */,
 				21F1CD6D0B3A38DB001FB5F6 /* PTHotKeyCenter.m in Sources */,
 				21F1CD6F0B3A38DB001FB5F6 /* PTKeyBroadcaster.m in Sources */,
+				DB23FBB71793231D00C3236F /* NSApplication+NVActivationPolicy.m in Sources */,
 				21F1CD710B3A38DB001FB5F6 /* PTKeyComboPanel.m in Sources */,
 				21F1CD980B3A3F77001FB5F6 /* PTHotKey.m in Sources */,
 				21F1CDAD0B3A401F001FB5F6 /* PTKeyCombo.m in Sources */,

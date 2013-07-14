@@ -78,14 +78,9 @@ BOOL splitViewAwoke;
     self = [super init];
     if (self) {
         hasLaunched=NO;
-        
-        if (![[NSUserDefaults standardUserDefaults] boolForKey:@"ShowDockIcon"]){
 
-			ProcessSerialNumber psn = { 0, kCurrentProcess };
-			OSStatus returnCode = TransformProcessType(&psn, kProcessTransformToUIElementApplication);
-			if( returnCode != 0) {
-				NSLog(@"Could not bring the application to front. Error %d", returnCode);
-			}                
+        if (![[NSUserDefaults standardUserDefaults] boolForKey:@"ShowDockIcon"]){
+			[NSApp setActivationPolicy:NSApplicationActivationPolicyAccessory];
 
             if (![[NSUserDefaults standardUserDefaults] boolForKey:@"StatusBarItem"]) {
                 [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"StatusBarItem"];
@@ -1064,7 +1059,7 @@ void outletObjectAwoke(id sender) {
 }
 
 - (void)applicationWillBecomeActive:(NSNotification *)aNotification {
-    SpaceSwitchingContext thisSpaceSwitchCtx = {0, 0, {0, 0}};
+    SpaceSwitchingContext thisSpaceSwitchCtx = {0, 0, 0};
     if ([window windowNumber]!=-1) {
         CurrentContextForWindowNumber([window windowNumber], &thisSpaceSwitchCtx);
         
@@ -2847,21 +2842,14 @@ void outletObjectAwoke(id sender) {
     }
     
     - (void)showDockIcon{
-		ProcessSerialNumber psn = { 0, kCurrentProcess };
-		OSStatus returnCode = TransformProcessType(&psn, kProcessTransformToForegroundApplication);
-		if( returnCode != 0) {
-			NSLog(@"Could not bring the application to front. Error %d", returnCode);
-		}
-			
+		[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
+
 		[self performSelector:@selector(reActivate:) withObject:self afterDelay:0.16];
     }
 
     - (void)hideDockIcon{
-		ProcessSerialNumber psn = { 0, kCurrentProcess };
-		OSStatus returnCode = TransformProcessType(&psn, kProcessTransformToUIElementApplication);
-		if( returnCode != 0) {
-			NSLog(@"Could not bring the application to front. Error %d", returnCode);
-		}
+		[NSApp setActivationPolicy:NSApplicationActivationPolicyAccessory];
+		
 		if (!statusItem) {
 			[self setUpStatusBarItem];
 		}
@@ -2875,7 +2863,6 @@ void outletObjectAwoke(id sender) {
     }
     
     - (void)hideDockIconAfterDelay{
-        
         [self performSelector:@selector(hideDockIcon) withObject:nil afterDelay:0.22];
     }
     
