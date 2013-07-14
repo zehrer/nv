@@ -514,7 +514,7 @@ static struct statfs *StatFSVolumeInfo(NotationController *controller) {
 							error:(out NSError **)outError
 				 verifyUsingBlock:(BOOL(^)(NSData *, NSError **))verifier
 {
-	NSURL *notesDirectoryURL = [NSURL URLFromFSRef:&noteDirectoryRef];
+	NSURL *notesDirectoryURL = [NSURL nv_URLFromFSRef:&noteDirectoryRef];
 	NSURL *destinationURL = [notesDirectoryURL URLByAppendingPathComponent:filename isDirectory:NO];
 	
 	NSError *error = nil;
@@ -547,7 +547,7 @@ static struct statfs *StatFSVolumeInfo(NotationController *controller) {
 	}
 	
 	if (destRef) {
-		[destinationURL getFSRef:destRef];
+		[destinationURL nv_getFSRef:destRef];
 	}
 	
 	return YES;

@@ -10,12 +10,12 @@
 
 @implementation NSURL (NVFSRefCompat)
 
-- (BOOL)getFSRef:(FSRef *)ref
+- (BOOL)nv_getFSRef:(FSRef *)ref
 {
 	return (BOOL)CFURLGetFSRef((__bridge CFURLRef)self, ref);
 }
 
-+ (instancetype)URLFromFSRef:(FSRef *)ref
++ (instancetype)nv_URLFromFSRef:(FSRef *)ref
 {
 	return (__bridge_transfer NSURL *)CFURLCreateFromFSRef(NULL, ref);
 }

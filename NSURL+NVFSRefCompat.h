@@ -10,7 +10,7 @@
 
 @interface NSURL (NVFSRefCompat)
 
-- (BOOL)getFSRef:(FSRef *)ref;
-+ (instancetype)URLFromFSRef:(FSRef *)ref;
+- (BOOL)nv_getFSRef:(FSRef *)ref;
++ (instancetype)nv_URLFromFSRef:(FSRef *)ref;
 
 @end
