@@ -1600,12 +1600,14 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	
 - (NSUInteger)indexOfNoteWithUUIDBytes:(CFUUIDBytes *)bytes
 {
-	for (NoteObject *note in self.notesList) {
+	return [self.notesList indexOfObjectPassingTest:^BOOL(NoteObject *note, NSUInteger idx, BOOL *stop) {
 		CFUUIDBytes *noteBytes = [note uniqueNoteIDBytesPtr];
-		if (!memcmp(noteBytes, bytes, sizeof(CFUUIDBytes)))
-			return note;
-	}
-	return NSNotFound;
+		if (!memcmp(noteBytes, bytes, sizeof(CFUUIDBytes))) {
+			*stop = YES;
+			return YES;
+		}
+		return NO;
+	}];
 }
 
 - (NSArray *)notes
