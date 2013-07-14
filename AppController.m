@@ -636,8 +636,10 @@ void outletObjectAwoke(id sender) {
         if ([menuItem isHidden]==gotMarked) {
             [menuItem setHidden:!gotMarked];
         }
-        return gotMarked;
-    }
+        return gotMarked&&([[notesTableView selectedRowIndexes]count]>0);
+    }else if (selector==@selector(togglePreview:)){
+		return (currentNote != nil);
+	}
 	return YES;
 }
 
@@ -1298,8 +1300,6 @@ void outletObjectAwoke(id sender) {
 - (void)controlTextDidChange:(NSNotification *)aNotification {
     
 	if ([aNotification object] == field) {
-        //        [self resetModTimers];
-        //        [[NSNotificationCenter defaultCenter] postNotificationName:@"ModTimersShouldReset" object:nil];
 		typedStringIsCached = NO;
 		isFilteringFromTyping = YES;
 		
@@ -1561,6 +1561,7 @@ void outletObjectAwoke(id sender) {
 	[editorStatusView setHidden:!state];
 	
 	if (state) {
+		[[NSNotificationCenter defaultCenter] postNotificationName:@"TextFinderShouldHide" object:self];
 		[editorStatusView setLabelStatus:[notesTableView numberOfSelectedRows]];
         if ([notesSubview isCollapsed]) {
             [self toggleCollapse:self];
@@ -2403,8 +2404,8 @@ void outletObjectAwoke(id sender) {
     - (IBAction)setBWColorScheme:(id)sender{
         userScheme=0;
         [[NSUserDefaults standardUserDefaults] setInteger:userScheme forKey:@"ColorScheme"];
-        [self setForegrndColor:[NSColor colorWithCalibratedRed:0.0f green:0.0f blue:0.0f alpha:1.0f]];
-        [self setBackgrndColor:[NSColor colorWithCalibratedRed:1.0f green:1.0f blue:1.0f alpha:1.0f]];
+        [self setForegrndColor:[[NSColor colorWithCalibratedWhite:0.02f alpha:1.0f]colorUsingColorSpaceName:NSCalibratedRGBColorSpace]];
+        [self setBackgrndColor:[[NSColor colorWithCalibratedWhite:0.98f alpha:1.0f]colorUsingColorSpaceName:NSCalibratedRGBColorSpace]];
         NSMenu *mainM = [NSApp mainMenu];
         NSMenu *viewM = [[mainM itemWithTitle:@"View"] submenu];
         mainM = [[viewM itemWithTitle:@"Color Schemes"] submenu];
@@ -2472,9 +2473,6 @@ void outletObjectAwoke(id sender) {
         [textView setBackgroundColor:backgrndColor];
         [textView updateTextColors];
 		[self updateFieldAttributes];
-		//[editorStatusView setBackgroundColor:backgrndColor];
-		//		[editorStatusView setNeedsDisplay:YES];
-		//	[field setTextColor:foregrndColor];
 		if (currentNote) {
 			[self contentsUpdatedForNote:currentNote];
 		}

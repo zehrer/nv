@@ -2,21 +2,12 @@
 //  NotesTableHeaderCell.h
 //  Notation
 //
-//  Created by elasticthreads on 10/19/10.
+//  Created by David Halter on 6/12/13.
+//  Copyright (c) 2013 David Halter. All rights reserved.
 //
 
 #import <Cocoa/Cocoa.h>
 
-
-@interface NotesTableHeaderCell : NSTableHeaderCell {
-	NSMutableDictionary *attrs;
-}
-
-- (void)drawSortIndicatorWithFrame:(NSRect)cellFrame inView:(NSView *)controlView ascending:(BOOL)ascending priority:(NSInteger)priority;
-//- (void)drawInteriorWithFrame:(NSRect)inFrame inView:(NSView *)controlView;
-- (void)highlight:(BOOL)hBool withFrame:(NSRect)inFrame inView:(NSView *)controlView;
-
-@property (nonatomic, strong) NSColor *highlightColor;
-
+@interface NotesTableHeaderCell : NSTableHeaderCell
 
 @end
