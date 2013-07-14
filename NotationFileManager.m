@@ -58,10 +58,9 @@ OSStatus CreateTemporaryFile(FSRef *parentRef, FSRef *childTempRef) {
     OSStatus result = noErr;
     
     do {
-		CFStringRef filename = CreateRandomizedFileName();
-		nameLength = CFStringGetLength(filename);
-		result = FSRefMakeInDirectoryWithString(parentRef, childTempRef, filename, chars);
-		CFRelease(filename);
+		NSString *filename = [NSString nv_stringWithRandomFileName];
+		nameLength = filename.length;
+		result = FSRefMakeInDirectoryWithString(parentRef, childTempRef, (__bridge CFStringRef)filename, chars);
 		
     } while (result == noErr);
     
@@ -608,7 +607,7 @@ static struct statfs *StatFSVolumeInfo(NotationController *controller) {
 	 else
 		NSLog(@"notifyOfChangedTrash: error getting trash: %d", err);
 	
-	 NSString *sillyDirectory = [NSTemporaryDirectory() stringByAppendingPathComponent:(__bridge_transfer NSString*)CreateRandomizedFileName()];
+	 NSString *sillyDirectory = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString nv_stringWithRandomFileName]];
 	 [[NSFileManager defaultManager] createDirectoryAtPath:sillyDirectory withIntermediateDirectories:YES attributes:nil error:NULL];
 	 NSInteger tag = 0;
 	 [[NSWorkspace sharedWorkspace] performFileOperation:NSWorkspaceRecycleOperation source:NSTemporaryDirectory() destination:@"" 
