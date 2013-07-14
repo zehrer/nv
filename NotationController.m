@@ -1624,6 +1624,13 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	return self.filteredNotesList.array;
 }
 
+#pragma mark - NoteObjectDelegate
+
+- (void)noteDidUpdateContents:(NoteObject *)note
+{
+	[self.delegate contentsUpdatedForNote:note];
+}
+
 @end
 
 

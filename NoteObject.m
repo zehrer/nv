@@ -1543,8 +1543,7 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 		[self makeNoteDirtyUpdateTime:YES updateFile:YES];
 		
 		[delegate note:self attributeChanged:NVUIAttributeNotePreview];
-#warning TODO - refactor this
-		[[(NotationController *)delegate delegate] contentsUpdatedForNote:self];
+		[delegate noteDidUpdateContents:self];
 	} else {
 		NSBeep();
 		NSLog(@"odbEditor:didModifyFile: unable to get data from %@", path);

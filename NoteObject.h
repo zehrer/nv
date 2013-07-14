@@ -173,5 +173,7 @@ typedef struct _NoteFilterContext {
 - (void)note:(NoteObject*)note didAddLabelSet:(NSSet*)labelSet;
 - (void)note:(NoteObject*)note didRemoveLabelSet:(NSSet*)labelSet;
 - (void)note:(NoteObject*)note attributeChanged:(NVUIAttribute)attribute;
+
+- (void)noteDidUpdateContents:(NoteObject*)note;
 @end
 
