@@ -128,7 +128,7 @@ typedef struct _NoteFilterContext {
 - (void)removeFileFromDirectory;
 - (BOOL)removeUsingJournal:(WALStorageController*)wal;
 
-- (OSStatus)exportToDirectoryRef:(FSRef *)directoryRef withFilename:(NSString *)userFilename usingFormat:(NVDatabaseFormat)storageFormat overwrite:(BOOL)overwrite;
+- (BOOL)exportToDirectoryRef:(FSRef *)directoryRef withFilename:(NSString *)userFilename usingFormat:(NVDatabaseFormat)storageFormat overwrite:(BOOL)overwrite error:(out NSError **)outError;
 - (NSRange)nextRangeForWords:(NSArray*)words options:(unsigned)opts range:(NSRange)inRange;
 - (void)editExternallyUsingEditor:(ExternalEditor*)ed;
 - (void)abortEditingInExternalEditor;
@@ -181,7 +181,6 @@ typedef struct _NoteFilterContext {
 - (NSString*)uniqueFilenameForTitle:(NSString*)title fromNote:(NoteObject*)note; // NotationFileManager
 - (NVDatabaseFormat)currentNoteStorageFormat;
 @property (nonatomic, readonly) UInt32 diskUUIDIndex;
-@property (nonatomic, readonly) long blockSize;
 
 - (NSMutableData*)dataFromFileInNotesDirectory:(FSRef*)childRef forFilename:(NSString*)filename;
 - (OSStatus)fileInNotesDirectory:(FSRef*)childRef isOwnedByUs:(BOOL*)owned hasCatalogInfo:(FSCatalogInfo *)info;

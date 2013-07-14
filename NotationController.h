@@ -73,7 +73,6 @@ typedef struct _NoteCatalogEntry {
     
 	unsigned int lastCheckedDateInHours;
 	int lastLayoutStyleGenerated;
-    long blockSize;
 	struct statfs *statfsInfo;
 	unsigned int diskUUIDIndex;
 	CFUUIDRef diskUUID;
@@ -99,7 +98,7 @@ typedef struct _NoteCatalogEntry {
 - (void)setAliasNeedsUpdating:(BOOL)needsUpdate;
 - (BOOL)aliasNeedsUpdating;
 - (NSData*)aliasDataForNoteDirectory;
-- (OSStatus)_readAndInitializeSerializedNotes;
+- (BOOL)readAndInitializeSerializedNotes:(out NSError **)err;
 - (void)processRecoveredNotes:(NSMapTable *)table;
 - (BOOL)initializeJournaling;
 - (void)handleJournalError;

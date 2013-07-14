@@ -40,7 +40,6 @@ OSStatus CreateDirectoryIfNotPresent(FSRef *parentRef, CFStringRef subDirectoryN
 CFUUIDRef CopyHFSVolumeUUIDForMount(const char *mntonname);
 
 @property (nonatomic, readonly) UInt32 diskUUIDIndex;
-@property (nonatomic, readonly) long blockSize;
 
 - (void)purgeOldPerDiskInfoFromNotes;
 - (void)initializeDiskUUIDIfNecessary;
@@ -59,7 +58,6 @@ CFUUIDRef CopyHFSVolumeUUIDForMount(const char *mntonname);
 
 - (NSMutableData*)dataFromFileInNotesDirectory:(FSRef*)childRef forFilename:(NSString*)filename;
 - (NSMutableData*)dataFromFileInNotesDirectory:(FSRef*)childRef forCatalogEntry:(NoteCatalogEntry*)catEntry;
-- (NSMutableData*)dataFromFileInNotesDirectory:(FSRef*)childRef forFilename:(NSString*)filename fileSize:(UInt64)givenFileSize;
 - (OSStatus)noteFileRenamed:(FSRef*)childRef fromName:(NSString*)oldName toName:(NSString*)newName;
 - (NSString*)uniqueFilenameForTitle:(NSString*)title fromNote:(NoteObject*)note;
 - (OSStatus)fileInNotesDirectory:(FSRef*)childRef isOwnedByUs:(BOOL*)owned hasCatalogInfo:(FSCatalogInfo *)info;

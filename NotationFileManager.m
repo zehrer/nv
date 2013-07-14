@@ -215,20 +215,6 @@ static struct statfs *StatFSVolumeInfo(NotationController *controller) {
 	return diskUUIDIndex;
 }
 
-- (long)blockSize
-{
-	if (!blockSize) {
-		long iosize = 0;
-		
-		struct statfs * sfsb = StatFSVolumeInfo(self);
-		if (sfsb) iosize = sfsb->f_iosize;
-		
-		blockSize = MAX(iosize, 16 * 1024);
-    }
-    
-    return blockSize;
-}
-
 - (OSStatus)refreshFileRefIfNecessary:(FSRef *)childRef withName:(NSString *)filename charsBuffer:(UniChar*)charsBuffer {
 	BOOL isOwned = NO;
 	if (IsZeros(childRef, sizeof(FSRef)) || [self fileInNotesDirectory:childRef isOwnedByUs:&isOwned hasCatalogInfo:NULL] != noErr || !isOwned) {
@@ -468,31 +454,26 @@ static struct statfs *StatFSVolumeInfo(NotationController *controller) {
     return noErr;
 }
 
-- (NSMutableData*)dataFromFileInNotesDirectory:(FSRef*)childRef forFilename:(NSString*)filename {
-    return [self dataFromFileInNotesDirectory:childRef forFilename:filename fileSize:0];
-}
-
 - (NSMutableData*)dataFromFileInNotesDirectory:(FSRef*)childRef forCatalogEntry:(NoteCatalogEntry*)catEntry {
-    return [self dataFromFileInNotesDirectory:childRef forFilename:(__bridge NSString*)catEntry->filename fileSize:catEntry->logicalSize];
+    return [self dataFromFileInNotesDirectory:childRef forFilename:(__bridge NSString*)catEntry->filename];
 }
 
-- (NSMutableData*)dataFromFileInNotesDirectory:(FSRef*)childRef forFilename:(NSString*)filename fileSize:(UInt64)givenFileSize {
-	
-    UInt64 fileSize = givenFileSize;
-    char *notesDataPtr = NULL;
-    
-	UniChar chars[256];
+- (NSMutableData*)dataFromFileInNotesDirectory:(FSRef*)childRef forFilename:(NSString*)filename {
+    UniChar chars[256];
 	OSStatus err = [self refreshFileRefIfNecessary:childRef withName:filename charsBuffer:chars];
 	if (noErr != err) return nil;
 	
-    if ((err = FSRefReadData(childRef, self.blockSize, &fileSize, (void**)&notesDataPtr, noCacheMask)) != noErr) {
-		NSLog(@"%@: error %d", NSStringFromSelector(_cmd), err);
+	NSURL *URL = [NSURL nv_URLFromFSRef:childRef];
+	
+	if (!URL) return nil;
+	
+	NSError *error = nil;
+	NSMutableData *ret = [NSMutableData dataWithContentsOfURL:URL options:NSDataReadingMappedIfSafe error:&error];
+	if (!ret) {
+		NSLog(@"%@: error %@", NSStringFromSelector(_cmd), error);
 		return nil;
-	}    
-    if (!notesDataPtr)
-		return nil;
-    
-    return [[NSMutableData alloc] initWithBytesNoCopy:notesDataPtr length:fileSize freeWhenDone:YES];
+	}
+	return ret;
 }
 
 - (OSStatus)createFileIfNotPresentInNotesDirectory:(FSRef*)childRef forFilename:(NSString*)filename fileWasCreated:(BOOL*)created {

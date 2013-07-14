@@ -51,6 +51,7 @@
 #import "NSOrderedSet+NVFiltering.h"
 #import "NSObject+NVPerformBlock.h"
 #import "NSError+NVError.h"
+#import "NSURL+NVFSRefCompat.h"
 
 inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	if (result < 0) return NSOrderedAscending;
@@ -94,7 +95,6 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		
 		lastLayoutStyleGenerated = -1;
 		lastCheckedDateInHours = hoursFromAbsoluteTime(CFAbsoluteTimeGetCurrent());
-		blockSize = 0;
 		
 		unwrittenNotes = [[NSMutableSet alloc] init];
 		_allLabels = [[NSCountedSet alloc] init];
@@ -154,9 +154,9 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		//check writable and readable perms, warning user if necessary
 		
 		//first read cache file
-		OSStatus anErr = noErr;
-		if ((anErr = [self _readAndInitializeSerializedNotes]) != noErr) {
-			*err = anErr;
+		NSError *error = nil;
+		if (![self readAndInitializeSerializedNotes:&error]) {
+			if (err) *err = (OSStatus)error.code;
 			return nil;
 		}
 		
@@ -226,75 +226,75 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	}	
 }
 
-
-- (OSStatus)_readAndInitializeSerializedNotes {
-
+- (BOOL)readAndInitializeSerializedNotes:(out NSError **)outError
+{
     OSStatus err = noErr;
-	if ((err = [self createFileIfNotPresentInNotesDirectory:&noteDatabaseRef forFilename:NotesDatabaseFileName fileWasCreated:nil]) != noErr)
-		return err;
+	if ((err = [self createFileIfNotPresentInNotesDirectory:&noteDatabaseRef forFilename:NotesDatabaseFileName fileWasCreated:nil]) != noErr) {
+		if (outError) *outError = [NSError errorWithDomain:NSOSStatusErrorDomain code:err userInfo:nil];
+		return NO;
+	}
 	
-	UInt64 fileSize = 0;
-	char *notesData = NULL;
-	if ((err = FSRefReadData(&noteDatabaseRef, self.blockSize, &fileSize, (void**)&notesData, noCacheMask)) != noErr)
-		return err;
+	NSURL *dataURL = [NSURL nv_URLFromFSRef:&noteDatabaseRef];
+	if (!dataURL) {
+		return NO;
+	}
+	
+	NSError *error = nil;
+	NSData *archivedNotation = [NSData dataWithContentsOfURL:dataURL options:NSDataReadingMappedIfSafe error:&error];
+	if (!archivedNotation && error) {
+		if (outError) *outError = error;
+		return NO;
+	}
 	
 	FrozenNotation *frozenNotation = nil;
-	
-	if (fileSize > 0) {
-		NSData *archivedNotation = [[NSData alloc] initWithBytesNoCopy:notesData length:fileSize freeWhenDone:NO];
+	if (archivedNotation.length) {
 		@try {
 			frozenNotation = [NSKeyedUnarchiver unarchiveObjectWithData:archivedNotation];
 		} @catch (NSException *e) {
 			NSLog(@"Error unarchiving notes and preferences from data (%@, %@)", [e name], [e reason]);
 			
-			if (notesData)
-				free(notesData);
-			
 			//perhaps this shouldn't be an error, but the user should instead have the option of overwriting the DB with a new one?
-			return kCoderErr;
+			if (outError) *outError = [NSError nv_errorWithCode:NVErrorCoderMistake];
+			return NO;
 		}
-	
 	}
-	
-	
-	
+
 	if (!(notationPrefs = frozenNotation.prefs))
 		notationPrefs = [[NotationPrefs alloc] init];
 	[notationPrefs setDelegate:self];
-
-	//notationPrefs will have the index of the current disk UUID (or we will add it otherwise) 
+	
+	//notationPrefs will have the index of the current disk UUID (or we will add it otherwise)
 	//which will be used to determine which attr-mod-time to use for each note after decoding
 	[self initializeDiskUUIDIfNecessary];
-	
 	
 	syncSessionController = [[SyncSessionController alloc] initWithSyncDelegate:self notationPrefs:notationPrefs];
 	
 	//frozennotation will work out passwords, keychains, decryption, etc...
 	
-	if (!(self.notesList = [NSMutableOrderedSet orderedSetWithArray:[frozenNotation unpackedNotesReturningError:&err]])) {
-		//notes could be nil because the user cancelled password authentication
-		//or because they were corrupted, or for some other reason
-		if (err != noErr)
-			return err;
-		
-		self.notesList = [NSMutableOrderedSet orderedSet];
-	} else {
+	if ((self.notesList = [NSMutableOrderedSet orderedSetWithArray:[frozenNotation unpackedNotesReturningError:&err]])) {
 		[self.notesList enumerateObjectsUsingBlock:^(NoteObject *note, NSUInteger idx, BOOL *stop) {
 			note.delegate = self;
 		}];
+	} else {
+		//notes could be nil because the user cancelled password authentication
+		//or because they were corrupted, or for some other reason
+		if (err != noErr) {
+			if (outError) *outError = [NSError nv_errorWithCode:err];
+			return NO;
+		} else {
+			self.notesList = [NSMutableOrderedSet orderedSet];
+		}
 	}
 	
 	if (!(deletedNotes = [frozenNotation deletedNotes]))
 	    deletedNotes = [[NSMutableSet alloc] init];
-			
+	
 	[prefsController setNotationPrefs:notationPrefs sender:self];
 	
 	[self makeForegroundTextColorMatchGlobalPrefs];
 	
-	if(notesData)
-	    free(notesData);
-	
-	return noErr;
+	if (outError) *outError = nil;
+	return YES;
 }
 
 - (BOOL)initializeJournaling {

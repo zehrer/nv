@@ -44,6 +44,7 @@
 #import "ODBEditor.h"
 #import "NoteAttributeColumn.h"
 #import "NSError+NVError.h"
+#import "NSURL+NVFSRefCompat.h"
 
 #if __LP64__
 // Needed for compatability with data created by 32bit app
@@ -1435,14 +1436,13 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
     [_delegate scheduleWriteForNote:self];
 }
 
-- (OSStatus)exportToDirectoryRef:(FSRef *)directoryRef withFilename:(NSString *)userFilename usingFormat:(NVDatabaseFormat)storageFormat overwrite:(BOOL)overwrite {
-	
+- (BOOL)exportToDirectoryRef:(FSRef *)directoryRef withFilename:(NSString *)userFilename usingFormat:(NVDatabaseFormat)storageFormat overwrite:(BOOL)overwrite error:(out NSError **)outError
+{
 	NSData *formattedData = nil;
 	NSError *error = nil;
 	
 	NSMutableAttributedString *contentMinusColor = [contentString mutableCopy];
 	[contentMinusColor removeAttribute:NSForegroundColorAttributeName range:NSMakeRange(0, [contentMinusColor length])];
-
 	
 	switch (storageFormat) {
 		case NVDatabaseFormatSingle:
@@ -1459,23 +1459,26 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 			break;
 		case NVDatabaseFormatHTML:
 			formattedData = [contentMinusColor dataFromRange:NSMakeRange(0, [contentMinusColor length])
-									  documentAttributes:[NSDictionary dictionaryWithObject:NSHTMLTextDocumentType 
-																					 forKey:NSDocumentTypeDocumentAttribute] error:&error];
+										  documentAttributes:[NSDictionary dictionaryWithObject:NSHTMLTextDocumentType
+																						 forKey:NSDocumentTypeDocumentAttribute] error:&error];
 			break;
 		case NVDatabaseFormatDOC:
 			formattedData = [contentMinusColor docFormatFromRange:NSMakeRange(0, [contentMinusColor length]) documentAttributes:nil];
 			break;
 		case NVDatabaseFormatDOCX:
-			formattedData = [contentMinusColor dataFromRange:NSMakeRange(0, [contentMinusColor length]) 
-									  documentAttributes:[NSDictionary dictionaryWithObject:NSWordMLTextDocumentType 
-																					 forKey:NSDocumentTypeDocumentAttribute] error:&error];
+			formattedData = [contentMinusColor dataFromRange:NSMakeRange(0, [contentMinusColor length])
+										  documentAttributes:[NSDictionary dictionaryWithObject:NSWordMLTextDocumentType
+																						 forKey:NSDocumentTypeDocumentAttribute] error:&error];
 			break;
 		default:
 			NSLog(@"Attempted to export using unknown format ID: %ld", (long)storageFormat);
     }
-	if (!formattedData)
-		return kDataFormattingErr;
-		
+	
+	if (!formattedData) {
+		if (outError) *outError = [NSError nv_errorWithCode:NVErrorDataFormatting];
+		return NO;
+	}
+	
 	//can use our already-determined filename to write here
 	//but what about file names that were the same except for their extension? e.g., .txt vs. .text
 	//this will give them the same extension and cause an overwrite
@@ -1490,20 +1493,26 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 	OSStatus err = FSCreateFileIfNotPresentInDirectory(directoryRef, &fileRef, (__bridge CFStringRef)newfilename, (Boolean*)&fileWasCreated);
 	if (err != noErr) {
 		NSLog(@"FSCreateFileIfNotPresentInDirectory: %d", err);
-		return err;
+		if (outError) *outError = [NSError errorWithDomain:NSOSStatusErrorDomain code:err userInfo:nil];
+		return nodeID;
 	}
+	
 	if (!fileWasCreated && !overwrite) {
 		NSLog(@"File already existed!");
+		if (outError) *outError = [NSError errorWithDomain:NSOSStatusErrorDomain code:dupFNErr userInfo:nil];
 		return dupFNErr;
 	}
-	//yes, the file is probably not on the same volume as our notes directory
-	if ((err = FSRefWriteData(&fileRef, _delegate.blockSize, [formattedData length], [formattedData bytes], 0, true)) != noErr) {
-		NSLog(@"error writing to temporary file: %d", err);
-		return err;
-    }
-	if (storageFormat == NVDatabaseFormatPlain) {
-		(void)[self writeCurrentFileEncodingToFSRef:&fileRef];
+	
+	NSURL *destinationURL = [NSURL nv_URLFromFSRef:&fileRef];
+	if (![formattedData writeToURL:destinationURL options:0 error:&error]) {
+		if (outError) *outError = error;
+		return NO;
 	}
+	
+	if (storageFormat == NVDatabaseFormatPlain) {
+		[self writeCurrentFileEncodingToFSRef:&fileRef];
+	}
+	
 	NSFileManager *fileMan = [NSFileManager defaultManager];
 	[fileMan setOpenMetaTags:[self orderedLabelTitles] atFSPath:[[fileMan pathWithFSRef:&fileRef] fileSystemRepresentation]];
 	
@@ -1512,8 +1521,9 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 	UCConvertCFAbsoluteTimeToUTCDateTime(createdDate, &catInfo.createDate);
 	UCConvertCFAbsoluteTimeToUTCDateTime(modifiedDate, &catInfo.contentModDate);
 	FSSetCatalogInfo(&fileRef, kFSCatInfoCreateDate | kFSCatInfoContentMod, &catInfo);
-			
-	return noErr;
+	
+	if (outError) *outError = nil;
+	return YES;
 }
 
 - (void)editExternallyUsingEditor:(ExternalEditor*)ed {

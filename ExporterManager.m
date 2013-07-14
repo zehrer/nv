@@ -106,9 +106,9 @@
 				BOOL lastNote = i != [notes count] - 1;
 				NoteObject *note = [notes objectAtIndex:i];
 				
-				OSStatus err = [note exportToDirectoryRef:&directoryRef withFilename:filename usingFormat:storageFormat overwrite:overwriteNotes];
-				
-				if (err == dupFNErr) {
+				NSError *error = nil;
+				BOOL success = [note exportToDirectoryRef:&directoryRef withFilename:filename usingFormat:storageFormat overwrite:overwriteNotes error:&error];
+				if (!success && (OSStatus)error.code == dupFNErr) {
 					//ask about overwriting
 					NSString *existingName = filename ?: note.filename;
 					existingName = [[existingName stringByDeletingPathExtension] stringByAppendingPathExtension:[NotationPrefs pathExtensionForFormat:storageFormat]];
@@ -117,12 +117,14 @@
 											 NSLocalizedString(@"Replace",nil), NSLocalizedString(@"Don't Replace",nil), lastNote ? NSLocalizedString(@"Replace All",nil) : nil, nil);
 					if (result == NSAlertDefaultReturn || result == NSAlertOtherReturn) {
 						if (result == NSAlertOtherReturn) overwriteNotes = YES;
-						err = [note exportToDirectoryRef:&directoryRef withFilename:filename usingFormat:storageFormat overwrite:YES];
-					} else continue;
+						success = [note exportToDirectoryRef:&directoryRef withFilename:filename usingFormat:storageFormat overwrite:YES error:&error];
+					} else {
+						continue;
+					}
 				}
 				
-				if (err != noErr) {
-					NSString *exportErrorTitleString = [NSString stringWithFormat:NSLocalizedString(@"The note quotemark%@quotemark couldn't be exported because %@.",nil), note.titleString, [NSString reasonStringFromCarbonFSError:err]];
+				if (!success) {
+					NSString *exportErrorTitleString = [NSString stringWithFormat:NSLocalizedString(@"The note quotemark%@quotemark couldn't be exported because %@.",nil), note.titleString, [NSString reasonStringFromCarbonFSError:(OSStatus)error.code]];
 					if (!lastNote) {
 						NSRunAlertPanel(exportErrorTitleString, nil, NSLocalizedString(@"OK",nil), nil, nil, nil);
 					} else {
