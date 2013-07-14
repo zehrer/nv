@@ -444,23 +444,21 @@ enum {VERIFY_NOT_ATTEMPTED, VERIFY_FAILED, VERIFY_IN_PROGRESS, VERIFY_SUCCESS};
 							   [syncAccountField stringValue], @"username", [syncPasswordField stringValue], @"password", nil];
 		NSData *loginJSON = [NSJSONSerialization dataWithJSONObject:login options:0 error:NULL];
 
-		loginVerifier = [[SyncResponseFetcher alloc] initWithURL:loginURL POSTData:loginJSON headers:headers contentType:@"application/json" delegate:self];
+		loginVerifier = [[SyncResponseFetcher alloc] initWithURL:loginURL POSTData:loginJSON headers:headers contentType:@"application/json" completion:^(SyncResponseFetcher *fetcher, NSData *data, NSString *errString) {
+			BOOL authFailed = errString || [fetcher statusCode] >= 400;
+			
+			[self setVerificationStatus:authFailed ? VERIFY_FAILED : VERIFY_SUCCESS withString:
+			 authFailed ? NSLocalizedString(@"Incorrect login and password", @"sync status menu msg") : errString];
+			
+			if (authFailed) {
+				[notationPrefs removeSyncPasswordForService:SimplenoteServiceName];
+			} else {
+				[notationPrefs setSyncPassword:[syncPasswordField stringValue] forService:SimplenoteServiceName];
+			}
+		}];
 
 		[loginVerifier start];
 		[self setVerificationStatus:VERIFY_IN_PROGRESS withString:@""];
-	}
-}
-
-- (void)syncResponseFetcher:(SyncResponseFetcher*)fetcher receivedData:(NSData*)data returningError:(NSString*)errString {
-	BOOL authFailed = errString || [fetcher statusCode] >= 400;
-	
-	[self setVerificationStatus:authFailed ? VERIFY_FAILED : VERIFY_SUCCESS withString:
-	 authFailed ? NSLocalizedString(@"Incorrect login and password", @"sync status menu msg") : errString];
-	
-	if (authFailed) {
-		[notationPrefs removeSyncPasswordForService:SimplenoteServiceName];
-	} else {
-		[notationPrefs setSyncPassword:[syncPasswordField stringValue] forService:SimplenoteServiceName];
 	}
 }
 
@@ -510,13 +508,6 @@ enum {VERIFY_NOT_ATTEMPTED, VERIFY_FAILED, VERIFY_IN_PROGRESS, VERIFY_SUCCESS};
 	[allowedTypesTable reloadData];
 }
 
-- (void)passphrasePicker:(PassphrasePicker*)picker choseAPassphrase:(BOOL)success {
-	
-	[self setEncryptionControlsState:success];
-	[notationPrefs setDoesEncryption:success];
-	[self updateRemoveKeychainItemStatus];
-}
-
 - (void)encryptionFormatMismatchSheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo {
 	if (returnCode == NSAlertDefaultReturn) {
 		//switching to single DB
@@ -531,7 +522,13 @@ enum {VERIFY_NOT_ATTEMPTED, VERIFY_FAILED, VERIFY_IN_PROGRESS, VERIFY_SUCCESS};
 		
 		//so queue it up:
 		InvocationRecorder *invRecorder = [InvocationRecorder invocationRecorder];
-		[[invRecorder prepareWithInvocationTarget:picker] showAroundWindow:[view window] resultDelegate:self];
+		__weak typeof(self) weakSelf = self;
+		[[invRecorder prepareWithInvocationTarget:picker] showAroundWindow:[view window] completion:^(BOOL success) {
+			typeof(&*weakSelf) strongSelf = weakSelf;
+			[strongSelf setEncryptionControlsState:success];
+			[strongSelf->notationPrefs setDoesEncryption:success];
+			[strongSelf updateRemoveKeychainItemStatus];
+		}];
 		postStorageFormatInvocation = [invRecorder invocation];
 	}
 }
@@ -542,7 +539,11 @@ enum {VERIFY_NOT_ATTEMPTED, VERIFY_FAILED, VERIFY_IN_PROGRESS, VERIFY_SUCCESS};
 	NVDatabaseFormat format = [notationPrefs notesStorageFormat];
 	if (format == NVDatabaseFormatSingle) {
 		
-		[picker showAroundWindow:[view window] resultDelegate:self];
+		[picker showAroundWindow:[view window] completion:^(BOOL success) {
+			[self setEncryptionControlsState:success];
+			[notationPrefs setDoesEncryption:success];
+			[self updateRemoveKeychainItemStatus];
+		}];
 	} else {
 		NSString *formatStrings[] = { NSLocalizedString(@"(WHAT??)",@"user shouldn't see this"), 
 			NSLocalizedString(@"plain text",nil), NSLocalizedString(@"rich text",nil), NSLocalizedString(@"HTML",nil) };

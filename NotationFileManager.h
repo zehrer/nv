@@ -20,6 +20,7 @@
 #import "NotationController.h"
 #include "FSExchangeObjectsCompat.h"
 #import "BufferUtils.h"
+#import "NoteObject.h"
 
 extern NSString *NotesDatabaseFileName;
 
@@ -32,13 +33,14 @@ typedef union VolumeUUID {
 } VolumeUUID;
 
 
-@interface NotationController (NotationFileManager)
+@interface NotationController (NotationFileManager) <NoteObjectDelegate>
 
 OSStatus CreateTemporaryFile(FSRef *parentRef, FSRef *childTempRef);
 OSStatus CreateDirectoryIfNotPresent(FSRef *parentRef, CFStringRef subDirectoryName, FSRef *childRef);
 CFUUIDRef CopyHFSVolumeUUIDForMount(const char *mntonname);
-long BlockSizeForNotation(NotationController *controller);
-UInt32 diskUUIDIndexForNotation(NotationController *controller);
+
+@property (nonatomic, readonly) UInt32 diskUUIDIndex;
+@property (nonatomic, readonly) long blockSize;
 
 - (void)purgeOldPerDiskInfoFromNotes;
 - (void)initializeDiskUUIDIfNecessary;
@@ -67,8 +69,4 @@ UInt32 diskUUIDIndexForNotation(NotationController *controller);
 + (OSStatus)trashFolderRef:(FSRef*)trashRef forChild:(FSRef*)childRef;
 - (OSStatus)moveFileToTrash:(FSRef *)childRef forFilename:(NSString*)filename;
 - (void)notifyOfChangedTrash;
-@end
-
-@interface NSObject (NotationFileManagerDelegate)
-- (NSNumber*)verifyDataAtTemporaryFSRef:(NSValue*)fsRefValue withFinalName:(NSString*)filename;
 @end

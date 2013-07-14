@@ -37,11 +37,10 @@ typedef struct _NoteFilterContext {
 	BOOL useCachedPositions;
 } NoteFilterContext;
 
+@protocol NoteObjectDelegate;
+
 @interface NoteObject : NSObject <NSCoding, SynchronizedNote> {
 	NSMutableSet *labelSet; //if this note's title is "Chicken Shack menu listing", its prefix parent might have the title "Chicken Shack"
-	
-	
-	__weak id delegate; //the notes controller
 	
 	//for syncing to text file
 	NSUInteger perDiskInfoGroupCount;
@@ -77,7 +76,7 @@ typedef struct _NoteFilterContext {
 @property (nonatomic, readonly) NSString *modifiedDateString;
 @property (nonatomic, readonly) NSString *createdDateString;
 
-@property (nonatomic, weak) id delegate;
+@property (nonatomic, weak) id <NoteObjectDelegate> delegate;
 
 - (id)initWithNoteBody:(NSAttributedString *)bodyText title:(NSString *)aNoteTitle
               delegate:(id)aDelegate format:(NVDatabaseFormat)formatID labels:(NSString*)aLabelString;
@@ -169,11 +168,41 @@ typedef struct _NoteFilterContext {
 
 @end
 
-@interface NSObject (NoteObjectDelegate)
+// this is quite the glorious mess
+@protocol NoteObjectDelegate <NSObject>
+
 - (void)note:(NoteObject*)note didAddLabelSet:(NSSet*)labelSet;
 - (void)note:(NoteObject*)note didRemoveLabelSet:(NSSet*)labelSet;
 - (void)note:(NoteObject*)note attributeChanged:(NVUIAttribute)attribute;
+- (void)noteDidNotWrite:(NoteObject*)note errorCode:(OSStatus)error;
 
 - (void)noteDidUpdateContents:(NoteObject*)note;
-@end
 
+- (NSString*)uniqueFilenameForTitle:(NSString*)title fromNote:(NoteObject*)note; // NotationFileManager
+- (NVDatabaseFormat)currentNoteStorageFormat;
+@property (nonatomic, readonly) UInt32 diskUUIDIndex;
+@property (nonatomic, readonly) long blockSize;
+
+- (NSMutableData*)dataFromFileInNotesDirectory:(FSRef*)childRef forFilename:(NSString*)filename;
+- (OSStatus)fileInNotesDirectory:(FSRef*)childRef isOwnedByUs:(BOOL*)owned hasCatalogInfo:(FSCatalogInfo *)info;
+
+- (float)titleColumnWidth;
+
+- (BOOL)notesDirectoryContainsFile:(NSString*)filename returningFSRef:(FSRef*)childRef;
+
+- (OSStatus)noteFileRenamed:(FSRef*)childRef fromName:(NSString*)oldName toName:(NSString*)newName;
+
+- (OSStatus)storeDataAtomicallyInNotesDirectory:(NSData*)data withName:(NSString*)filename destinationRef:(FSRef*)destRef
+							   verifyUsingBlock:(OSStatus(^)(FSRef *, NSString *))verifier;
+
+- (OSStatus)refreshFileRefIfNecessary:(FSRef *)childRef withName:(NSString *)filename charsBuffer:(UniChar*)charsBuffer;
+
+- (NSImage*)cachedLabelImageForWord:(NSString*)aWord highlighted:(BOOL)isHighlighted;
+
+- (OSStatus)createFileIfNotPresentInNotesDirectory:(FSRef*)childRef forFilename:(NSString*)filename fileWasCreated:(BOOL*)created;
+- (void)schedulePushToAllSyncServicesForNote:(id <SynchronizedNote>)aNote;
+- (NSMutableData*)dataFromFileInNotesDirectory:(FSRef*)childRef forCatalogEntry:(NoteCatalogEntry*)catEntry;
+- (OSStatus)moveFileToTrash:(FSRef *)childRef forFilename:(NSString*)filename;
+- (void)scheduleWriteForNote:(NoteObject*)note;
+
+@end

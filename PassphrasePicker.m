@@ -59,7 +59,8 @@
 	[advancedView setHidden:[value boolValue]];
 }
 
-- (void)showAroundWindow:(NSWindow*)mainWindow resultDelegate:(id)aDelegate {
+- (void)showAroundWindow:(NSWindow *)mainWindow completion:(void (^)(BOOL))completionBlock
+{
 	if (!newPassphraseWindow) {
 		if (![NSBundle loadNibNamed:@"PassphrasePicker" owner:self])  {
 			NSLog(@"Failed to load PassphrasePicker.nib");
@@ -67,8 +68,6 @@
 			return;
 		}
 	}
-	
-	resultDelegate = aDelegate;
 	
 	if (!keyDerivation) {
 		keyDerivation = [[KeyDerivationManager alloc] initWithNotationPrefs:notationPrefs];
@@ -83,18 +82,14 @@
 	
 	[okNewButton setEnabled:NO];
 	
-	[NSApp beginSheet:newPassphraseWindow modalForWindow:mainWindow modalDelegate:self 
-	   didEndSelector:@selector(sheetDidEnd:returnCode:contextInfo:) contextInfo:NULL];
-}
-
-- (void)sheetDidEnd:(NSWindow *)sheet returnCode:(int)returnCode contextInfo:(void *)contextInfo {
-	[newPasswordField setStringValue:@""];
-	[verifyNewPasswordField setStringValue:@""];
+	[mainWindow beginSheet:newPassphraseWindow completionHandler:^(NSModalResponse returnCode) {
+		[newPasswordField setStringValue:@""];
+		[verifyNewPasswordField setStringValue:@""];
 		
-	if ([resultDelegate respondsToSelector:@selector(passphrasePicker:choseAPassphrase:)])
-		[resultDelegate passphrasePicker:self choseAPassphrase:returnCode];
+		if (completionBlock)
+			completionBlock(returnCode == NSModalResponseOK);
+	}];
 }
-
 
 - (IBAction)cancelNewPassword:(id)sender {
 	[NSApp endSheet:newPassphraseWindow returnCode:0];

@@ -27,6 +27,8 @@ including encryption, file formats, synchronization, passwords management, and o
 
 extern NSString *NotationPrefsDidChangeNotification;
 
+@protocol NotationPrefsDelegate;
+
 @interface NotationPrefs : NSObject {
 	
 	NSUInteger chosenExtIndices[4];
@@ -121,11 +123,19 @@ extern NSString *NotationPrefsDidChangeNotification;
 - (void)updateOSTypesArray;
 - (BOOL)catalogEntryAllowed:(NoteCatalogEntry*)catEntry;
 
-@property (nonatomic, weak) id delegate;
+@property (nonatomic, weak) id <NotationPrefsDelegate> delegate;
 
 @end
 
-@interface NotationPrefs (DelegateMethods)
+@protocol NotationPrefsDelegate <NSObject>
+
+- (NSUInteger)totalNoteCount;
+- (NSData*)aliasDataForNoteDirectory;
+- (void)trashRemainingNoteFilesInDirectory;
+
+@optional
+
+- (void)flushEverything;
 
 - (void)databaseEncryptionSettingsChanged;
 - (void)syncSettingsChangedForService:(NSString*)serviceName;

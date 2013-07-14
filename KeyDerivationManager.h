@@ -38,6 +38,5 @@
 - (NSInteger)hashIterationCount;
 - (NSTimeInterval)delayForHashIterations:(NSInteger)count;
 - (int)estimatedIterationsForDuration:(double)duration;
-- (void)mouseUpForKeyDerivationDelaySlider:(KeyDerivationDelaySlider*)aSlider;
 - (void)updateToolTip;
 @end

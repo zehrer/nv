@@ -193,7 +193,8 @@ static RBAnimationData *currentAnimationObj = nil;
 	if ([sv RB___numberOfSubviews]<2) {
 		return NO;
 	}
-	id delegate = [sv delegate];
+	
+	id <RBSplitViewDelegate> delegate = [sv delegate];
 	if ([delegate respondsToSelector:@selector(splitView:canCollapse:)]) {
 		result = [delegate splitView:sv canCollapse:self];
 	}
@@ -449,7 +450,7 @@ static RBAnimationData *currentAnimationObj = nil;
 - (NSView*)hitTest:(NSPoint)aPoint {
 	if ([self mouse:aPoint inRect:[self frame]]) {
 		RBSplitView* sv = [self splitView];
-		id delegate = [sv delegate];
+		id <RBSplitViewDelegate> delegate = [sv delegate];
 		if ([delegate respondsToSelector:@selector(splitView:dividerForPoint:inSubview:)]) {
 			actDivider = [delegate splitView:sv dividerForPoint:aPoint inSubview:self];
 			if ((actDivider+1)<[sv RB___numberOfSubviews]) {
@@ -623,7 +624,7 @@ static RBAnimationData *currentAnimationObj = nil;
 			CGFloat dim = [self dimension];
 // First assume the default time, then ask the delegate.
 			NSTimeInterval total = dim*(0.2/150.0);
-			id delegate = [sv delegate];
+			id <RBSplitViewDelegate> delegate = [sv delegate];
 			if ([delegate respondsToSelector:@selector(splitView:willAnimateSubview:withDimension:)]) {
 				total = [delegate splitView:sv willAnimateSubview:self withDimension:dim];
 			}
@@ -821,7 +822,7 @@ static RBAnimationData *currentAnimationObj = nil;
 	if (finish) {
 		[self display];
 	}
-	id delegate = [sv delegate];
+	id <RBSplitViewDelegate> delegate = [sv delegate];
 	if ([delegate respondsToSelector:@selector(splitView:didCollapse:)]) {
 		[delegate splitView:sv didCollapse:self];
 	}
@@ -860,7 +861,7 @@ static RBAnimationData *currentAnimationObj = nil;
 	if (finish) {
 		[self display];
 	}
-	id delegate = [sv delegate];
+	id <RBSplitViewDelegate> delegate = [sv delegate];
 	if ([delegate respondsToSelector:@selector(splitView:didExpand:)]) {
 		[delegate splitView:sv didExpand:self];
 	}
@@ -870,7 +871,7 @@ static RBAnimationData *currentAnimationObj = nil;
 // which is used to ensure repeatability when the whole split view is resized.
 - (void)RB___setFrame:(NSRect)rect withFraction:(double)value notify:(BOOL)notify {
 	RBSplitView* sv = [self splitView];
-	id delegate = nil;
+	id <RBSplitViewDelegate> delegate = nil;
 	if (notify) {
 		delegate = [sv delegate];
 // If the delegate method isn't implemented, we ignore the delegate altogether.

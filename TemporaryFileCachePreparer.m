@@ -167,26 +167,11 @@ static NSString *TempDirectoryPathForEditing() {
 	preparedCachePath = aPath;
 	
 	startedPreparing = NO;
-	
-	[delegate temporaryFileCachePreparerFinished:self];
 }
 
 - (void)_stopPreparation {
 
 	startedPreparing = NO;
-
-	[delegate temporaryFileCachePreparerDidNotFinish:self];
-}
-
-- (void)setDelegate:(id)aDelegate {
-	if (aDelegate) {
-		NSAssert([aDelegate respondsToSelector:@selector(temporaryFileCachePreparerDidNotFinish:)], @"delegate is bad (1)");
-		NSAssert([aDelegate respondsToSelector:@selector(temporaryFileCachePreparerFinished:)], @"delegate is bad (2)");
-	}
-	delegate = aDelegate;
-}
-- (id)delegate {
-	return delegate;
 }
 
 - (BOOL)_createFolderAtPath:(NSString*)path {

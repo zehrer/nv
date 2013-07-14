@@ -66,7 +66,7 @@ int ModFlagger;
 int popped;
 BOOL splitViewAwoke;
 
-@interface AppController () <NSToolbarDelegate, NSTableViewDelegate, NSWindowDelegate, NSTextFieldDelegate, NSTextViewDelegate, NotationControllerDelegate>
+@interface AppController () <NSToolbarDelegate, NSTableViewDelegate, NSWindowDelegate, NSTextFieldDelegate, NSTextViewDelegate, NotationControllerDelegate, RBSplitViewDelegate, BookmarksControllerDelegate>
 
 @end
 
@@ -297,7 +297,7 @@ void outletObjectAwoke(id sender) {
 }
 
 - (void)runDelayedUIActionsAfterLaunch {
-	[[prefsController bookmarksController] setAppController:self];
+	[[prefsController bookmarksController] setDelegate:self];
 	[[prefsController bookmarksController] restoreWindowFromSave];
 	[[prefsController bookmarksController] updateBookmarksUI];
 	[self updateNoteMenus];

@@ -19,6 +19,7 @@
 #import <Cocoa/Cocoa.h>
 #import "WALController.h"
 #import "NotationTypes.h"
+#import "BookmarksController.h"
 
 #import <CoreServices/CoreServices.h>
 
@@ -27,7 +28,6 @@
 @class SyncSessionController;
 @class NotationPrefs;
 @class NoteAttributeColumn;
-@class NoteBookmark;
 @class DeletionManager;
 @class GlobalPrefs;
 
@@ -46,7 +46,7 @@ typedef struct _NoteCatalogEntry {
     UniCharCount filenameCharCount;
 } NoteCatalogEntry;
 
-@interface NotationController : NSObject {
+@interface NotationController : NSObject <BookmarksControllerDataSource> {
 	GlobalPrefs *prefsController;
 	SyncSessionController *syncSessionController;
 	DeletionManager *deletionManager;
@@ -130,7 +130,6 @@ typedef struct _NoteCatalogEntry {
 - (void)closeAllResources;
 - (void)trashRemainingNoteFilesInDirectory;
 - (void)checkIfNotationIsTrashed;
-- (void)updateLinksToNote:(NoteObject*)aNoteObject fromOldName:(NSString*)oldname;
 - (void)updateTitlePrefixConnections;
 - (void)addNotes:(NSArray*)noteArray;
 - (void)addNotesFromSync:(NSArray*)noteArray;
@@ -180,6 +179,12 @@ typedef struct _NoteCatalogEntry {
 
 - (void)invalidateCachedLabelImages;
 - (NSImage*)cachedLabelImageForWord:(NSString*)aWord highlighted:(BOOL)isHighlighted;
+
+- (NoteObject*)noteForUUIDBytes:(CFUUIDBytes*)bytes;
+
+// note object delegate
+- (void)note:(NoteObject*)note attributeChanged:(NVUIAttribute)attribute;
+- (void)noteDidUpdateContents:(NoteObject*)note;
 
 @end
 

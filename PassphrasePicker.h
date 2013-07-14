@@ -31,18 +31,14 @@
 	
 	KeyDerivationManager *keyDerivation;
 	NotationPrefs *notationPrefs;
-	id resultDelegate;
 }
 
 - (IBAction)discloseAdvancedSettings:(id)sender;
 
-- (void)showAroundWindow:(NSWindow*)mainWindow resultDelegate:(id)aDelegate;
+- (void)showAroundWindow:(NSWindow *)mainWindow completion:(void (^)(BOOL))completionBlock;
 - (IBAction)cancelNewPassword:(id)sender;
 - (IBAction)okNewPassword:(id)sender;
 
 - (id)initWithNotationPrefs:(NotationPrefs*)prefs;
-@end
 
-@interface NSObject (PassphrasePickerDelegate)
-- (void)passphrasePicker:(PassphrasePicker*)picker choseAPassphrase:(BOOL)success;
 @end

@@ -38,14 +38,11 @@ typedef union {
 	int logFD;
 	char *journalFile;
 	NSData *logSessionKey;
-	id delegate;
 	
 	z_stream compressionStream;
 }
 
 - (id)initWithParentFSRep:(const char*)path encryptionKey:(NSData*)key;
-- (id)delegate;
-- (void)setDelegate:(id)aDelegate;
 - (BOOL)logFileStillExists;
 - (BOOL)destroyLogFile;
 

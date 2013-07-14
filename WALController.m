@@ -57,14 +57,6 @@
     return self;
 }
 
-- (id)delegate {
-	return delegate;
-}
-
-- (void)setDelegate:(id)aDelegate {
-	delegate = aDelegate;
-}
-
 //called frequently--each time the app comes to the foreground?
 - (BOOL)logFileStillExists {
     struct stat sb;

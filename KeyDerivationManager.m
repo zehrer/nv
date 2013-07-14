@@ -41,7 +41,23 @@
 	[slider setMinValue:0.025];
 	[slider setMaxValue:3.5];
 	
-	[slider setDelegate:self];
+	
+	__weak typeof(self) weakSelf = self;
+	slider.onMouseUpBlock = ^(KeyDerivationDelaySlider *aSlider){
+		typeof(&*weakSelf) strongSelf = weakSelf;
+		
+		double duration = [aSlider doubleValue];
+		strongSelf->lastHashIterationCount = [strongSelf estimatedIterationsForDuration:duration];
+		
+		if (duration > 0.7) [strongSelf->iterationEstimatorProgress startAnimation:nil];
+		strongSelf->lastHashDuration = [strongSelf delayForHashIterations:strongSelf->lastHashIterationCount];
+		if (duration > 0.7) [strongSelf->iterationEstimatorProgress stopAnimation:nil];
+		
+		//update slider for correction
+		[aSlider setDoubleValue:strongSelf->lastHashDuration];
+		
+		[strongSelf updateToolTip];
+	};
 	[slider setDoubleValue:lastHashDuration];
 	[self sliderChanged:slider];
 	
@@ -73,20 +89,6 @@
 
 - (void)updateToolTip {
 	[slider setToolTip:[NSString stringWithFormat:NSLocalizedString(@"PBKDF2 iterations: %d", nil), lastHashIterationCount]];
-}
-
-- (void)mouseUpForKeyDerivationDelaySlider:(KeyDerivationDelaySlider*)aSlider {
-	double duration = [aSlider doubleValue];
-	lastHashIterationCount = [self estimatedIterationsForDuration:duration];
-	
-	if (duration > 0.7) [iterationEstimatorProgress startAnimation:nil];
-	lastHashDuration = [self delayForHashIterations:lastHashIterationCount];
-	if (duration > 0.7) [iterationEstimatorProgress stopAnimation:nil];
-	
-	//update slider for correction
-	[slider setDoubleValue:lastHashDuration];
-	
-	[self updateToolTip];
 }
 
 - (IBAction)sliderChanged:(id)sender {

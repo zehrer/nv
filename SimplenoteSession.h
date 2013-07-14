@@ -61,8 +61,6 @@ extern NSString * const kSimperiumAPIKey;
 	NSMutableArray *indexEntryBuffer;
 	NSString *indexMark;
 	NSString *lastCV;
-	
-	id delegate;
 }
 
 - (id)initWithNotationPrefs:(NotationPrefs*)prefs;
@@ -99,9 +97,6 @@ extern NSString * const kSimperiumAPIKey;
 - (BOOL)hasUnsyncedChanges;
 
 - (id)initWithUsername:(NSString*)aUserString andPassword:(NSString*)aPassString;
-
-- (void)setDelegate:(id)aDelegate;
-- (id)delegate;
 
 - (SyncResponseFetcher*)loginFetcher;
 - (SyncResponseFetcher*)listFetcher;

@@ -35,34 +35,28 @@
 	NSString *lastErrorMessage;
 	NSInteger lastStatusCode;
 	
-	NSInvocation *successInvocation;
-	id delegate;
 	BOOL isRunning, didCancel;
 }
 
-- (id)initWithURL:(NSURL*)aURL bodyStringAsUTF8B64:(NSString*)stringToEncode delegate:(id)aDelegate;
-- (id)initWithURL:(NSURL*)aURL POSTData:(NSData*)POSTData headers:(NSDictionary *)aHeaders delegate:(id)aDelegate;
-- (id)initWithURL:(NSURL*)aURL POSTData:(NSData*)POSTData delegate:(id)aDelegate;
-- (id)initWithURL:(NSURL*)aURL POSTData:(NSData*)POSTData headers:(NSDictionary *)aHeaders contentType:(NSString*)contentType delegate:(id)aDelegate;
+
+- (id)initWithURL:(NSURL*)aURL bodyStringAsUTF8B64:(NSString*)stringToEncode completion:(void(^)(SyncResponseFetcher*, NSData*, NSString *))block;
+- (id)initWithURL:(NSURL*)aURL POSTData:(NSData*)POSTData headers:(NSDictionary *)aHeaders completion:(void(^)(SyncResponseFetcher*, NSData*, NSString *))block;
+- (id)initWithURL:(NSURL*)aURL POSTData:(NSData*)POSTData completion:(void(^)(SyncResponseFetcher*, NSData*, NSString *))block;
+- (id)initWithURL:(NSURL*)aURL POSTData:(NSData*)POSTData headers:(NSDictionary *)aHeaders contentType:(NSString*)contentType completion:(void(^)(SyncResponseFetcher*, NSData*, NSString *))block;
+
 - (void)setRepresentedObject:(id)anObject;
 - (id)representedObject;
-- (NSInvocation*)successInvocation;
 - (NSURL*)requestURL;
 - (NSDictionary*)headers;
 - (NSInteger)statusCode;
 - (NSString*)errorMessage;
 - (void)_fetchDidFinishWithError:(NSString*)anErrString;
-- (id)delegate;
 - (BOOL)start;
-- (BOOL)startWithSuccessInvocation:(NSInvocation*)anInvocation;
 - (BOOL)isRunning;
 - (BOOL)didCancel;
 - (void)cancel;
-@end
 
-
-@interface NSObject (SyncResponseFetcherDelegate)
-
-- (void)syncResponseFetcher:(SyncResponseFetcher*)fetcher receivedData:(NSData*)data returningError:(NSString*)errString;
+@property (nonatomic, copy) void(^completionBlock)(SyncResponseFetcher*, NSData*, NSString*);
+@property (nonatomic, copy) void(^successBlock)(void);
 
 @end

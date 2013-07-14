@@ -26,23 +26,19 @@
 	NSURLDownload *downloader;
 	NSString *downloadPath, *tempDirectory;
 	
-	id userData;
-	
-	id delegate;
-	
 	BOOL isIndicating, isImporting;
 	
 	long long totalReceivedByteCount, maxExpectedByteCount;
 }
 
+- (id)initWithURL:(NSURL*)aUrl completionBlock:(void(^)(URLGetter *getter, NSString *filename))block;
+
+- (IBAction)start;
 - (IBAction)cancelDownload:(id)sender;
-- (id)initWithURL:(NSURL*)aUrl delegate:(id)aDelegate userData:(id)someObj;
 
 - (NSURL*)url;
-- (id)userData;
 
-- (id)delegate;
-- (void)setDelegate:(id)aDelegate;
+@property (nonatomic, copy, readonly) void(^completionBlock)(URLGetter *getter, NSString *filename);
 
 - (void)stopProgressIndication;
 - (void)startProgressIndication:(id)sender;
@@ -51,8 +47,4 @@
 
 - (void)endDownloadWithPath:(NSString*)path;
 
-@end
-
-@interface URLGetter (Delegate)
-- (void)URLGetter:(URLGetter*)getter returnedDownloadedFile:(NSString*)filename;
 @end

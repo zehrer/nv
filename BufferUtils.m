@@ -427,7 +427,7 @@ OSStatus FSRefMakeInDirectoryWithString(FSRef *directoryRef, FSRef *childRef, CF
     return FSMakeFSRefUnicode(directoryRef, range.length, charsBuffer, kTextEncodingDefaultFormat, childRef);
 }
 
-//use BlockSizeForNotation((NotationController *)delegate) for maximum read size
+//use -[NotationController blockSize] for maximum read size
 //use noCacheMask for options if not expecting to read again
 OSStatus FSRefReadData(FSRef *fsRef, size_t maximumReadSize, UInt64 *bufferSize, void** newBuffer, UInt16 modeOptions) {
     OSStatus err = noErr;

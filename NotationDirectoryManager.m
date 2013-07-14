@@ -331,7 +331,7 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t nu
 			[aNoteObject registerModificationWithOwnedServices];
 			[self schedulePushToAllSyncServicesForNote:aNoteObject];
 			
-			[self note:aNoteObject attributeChanged:NVUIAttributeNotePreview];
+			[(id <NoteObjectDelegate>)self note:aNoteObject attributeChanged:NVUIAttributeNotePreview];
 			
 			if (self.delegate) {
 				id <NotationControllerDelegate> delegate = self.delegate;

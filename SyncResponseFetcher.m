@@ -31,7 +31,7 @@
 }
 
 
-- (id)initWithURL:(NSURL*)aURL bodyStringAsUTF8B64:(NSString*)stringToEncode delegate:(id)aDelegate {
+- (id)initWithURL:(NSURL*)aURL bodyStringAsUTF8B64:(NSString*)stringToEncode completion:(void (^)(SyncResponseFetcher *, NSData *, NSString *))block {
 	NSData *B64Data = nil;
 	if (stringToEncode) {
 		if (!(B64Data = [stringToEncode nv_dataByBase64Encoding])) {
@@ -39,31 +39,27 @@
 		}
 	}
 	
-	return [self initWithURL:aURL POSTData:B64Data delegate:aDelegate];
+	return [self initWithURL:aURL POSTData:B64Data completion:block];
 }
 
-- (id)initWithURL:(NSURL*)aURL POSTData:(NSData*)POSTData headers:(NSDictionary *)aHeaders delegate:(id)aDelegate {
-	return [self initWithURL:aURL POSTData:POSTData headers:aHeaders contentType:nil delegate:aDelegate];
+- (id)initWithURL:(NSURL*)aURL POSTData:(NSData*)POSTData headers:(NSDictionary *)aHeaders completion:(void (^)(SyncResponseFetcher *, NSData *, NSString *))block {
+	return [self initWithURL:aURL POSTData:POSTData headers:aHeaders contentType:nil completion:block];
 }
 
-- (id)initWithURL:(NSURL*)aURL POSTData:(NSData*)POSTData delegate:(id)aDelegate {
-	return [self initWithURL:aURL POSTData:POSTData headers:nil contentType:nil delegate:aDelegate];
+- (id)initWithURL:(NSURL*)aURL POSTData:(NSData*)POSTData completion:(void (^)(SyncResponseFetcher *, NSData *, NSString *))block {
+	return [self initWithURL:aURL POSTData:POSTData headers:nil contentType:nil completion:block];
 }
 
-- (id)initWithURL:(NSURL*)aURL POSTData:(NSData*)POSTData headers:(NSDictionary *)aHeaders contentType:(NSString*)contentType delegate:(id)aDelegate {
+- (id)initWithURL:(NSURL*)aURL POSTData:(NSData*)POSTData headers:(NSDictionary *)aHeaders contentType:(NSString*)contentType completion:(void (^)(SyncResponseFetcher *, NSData *, NSString *))block{
 	if ((self = [self init])) {
 		receivedData = [[NSMutableData alloc] init];
 		requestURL = aURL;
-		delegate = aDelegate;
+		self.completionBlock = block;
 		dataToSend = POSTData;
 		dataToSendContentType = [contentType copy];
 		requestHeaders = aHeaders;
 	}
 	return self;
-}
-
-- (NSInvocation*)successInvocation {
-	return successInvocation;
 }
 
 - (void)setRepresentedObject:(id)anObject {
@@ -72,12 +68,6 @@
 
 - (id)representedObject {
 	return representedObject;
-}
-
-- (BOOL)startWithSuccessInvocation:(NSInvocation*)anInvocation {
-
-	successInvocation = anInvocation;
-	return [self start];
 }
 
 - (BOOL)start {
@@ -140,11 +130,6 @@
 													 @"Error string returned to indicate that the user cancelled a syncing service operation")];
 }
 
-
-- (id)delegate {
-	return delegate;
-}
-
 - (NSURL*)requestURL {
 	return requestURL;
 }
@@ -171,17 +156,23 @@
 		NSLog(@"not processing %@ because fetcher was already stopped; should not be called", NSStringFromSelector(_cmd));
 		return;
 	}
+	
 	//assumes that anErrString will always be provided in the case of any error, and thus indicates the presence of such
-	[delegate syncResponseFetcher:self receivedData:anErrString ? nil : receivedData returningError:anErrString];
+	if (self.completionBlock) {
+		self.completionBlock(self, anErrString ? nil : receivedData, anErrString);
+	}
+	self.completionBlock = NULL;
 
 	//delegate just had another opportunity to stop us, so check to see if he did that
 	if (!isRunning) {
 		return;
 	}
 	
-	if (!anErrString) [successInvocation invoke];
+	if (!anErrString && self.successBlock) {
+		self.successBlock();
+	}
 	
-	successInvocation = nil;
+	self.successBlock = NULL;
 	
 	lastErrorMessage = anErrString;
 	

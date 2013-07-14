@@ -128,7 +128,7 @@ typedef NS_ENUM(NSInteger, AlienNoteImporterMode) {
 	return importAccessoryView;
 }
 
-- (void)importNotesFromDialogAroundWindow:(NSWindow*)mainWindow receptionDelegate:(id)receiver {
+- (void)importNotesFromDialogAroundWindow:(NSWindow*)mainWindow receptionDelegate:(id)delegate {
 	NSOpenPanel *openPanel = [NSOpenPanel openPanel];
 	[openPanel setCanChooseFiles:YES];
 	[openPanel setAllowsMultipleSelection:YES];
@@ -141,8 +141,6 @@ typedef NS_ENUM(NSInteger, AlienNoteImporterMode) {
 	
 	
 	[openPanel beginSheetModalForWindow:mainWindow completionHandler:^(NSInteger result) {
-		id delegate = receiver;
-		
 		if (delegate && [delegate respondsToSelector:@selector(noteImporter:importedNotes:)]) {
 			
 			if (result == NSOKButton) {
@@ -164,63 +162,56 @@ typedef NS_ENUM(NSInteger, AlienNoteImporterMode) {
 	}];
 }
 
-- (void)URLGetter:(URLGetter*)getter returnedDownloadedFile:(NSString*)filename {
-	
-	BOOL foundNotes = NO;
-	if ([receptionDelegate respondsToSelector:@selector(noteImporter:importedNotes:)]) {
-
-		if (filename) {
-			NSArray *notes = [self notesInFile:filename];
-			if ([notes count]) {
-				NSMutableAttributedString *content = [[GlobalPrefs defaultPrefs] pastePreservesStyle] ? [[[notes lastObject] contentString] mutableCopy] :
-													  [[NSMutableAttributedString alloc] initWithString:[[[notes lastObject] contentString] string]];
-				if ([[[content string] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] length]) {
-					//only add string if it has at least one non-whitespace character
-					NSUInteger prefixedSourceLength = [[content prefixWithSourceString:[[getter url] absoluteString]] length];
-					[content santizeForeignStylesForImporting];
-					
-					[[notes lastObject] setContentString:content];
-					if ([getter userData]) [[notes lastObject] setTitleString:[getter userData]];
-					
-					//prefixing should push existing selections forward:
-					NSRange selRange = [[notes lastObject] lastSelectedRange];
-					if (selRange.length && prefixedSourceLength)
-						[[notes lastObject] setSelectedRange:NSMakeRange(selRange.location + prefixedSourceLength, selRange.length)];
-					
-					[receptionDelegate noteImporter:self importedNotes:notes];
-					
-					foundNotes = YES;
-				}
-			}
-		}
-		if (!foundNotes) {	
-			//no notes recovered from downloaded file--just add the URL as a string?
-			NSString *urlString = [[getter url] absoluteString];
-			if (urlString) {
-				NSMutableAttributedString *newString = [[NSMutableAttributedString alloc] initWithString:urlString];
-				[newString santizeForeignStylesForImporting];
-				
-				NoteObject *noteObject = [[NoteObject alloc] initWithNoteBody:newString title:[getter userData] ? [getter userData] : urlString
-																	 delegate:nil format:NVDatabaseFormatSingle labels:nil];
-				
-				[receptionDelegate noteImporter:self importedNotes:[NSArray arrayWithObject:noteObject]];
-			}
-		}			
-		
-	} else {
-		NSLog(@"Where's my note importing delegate?");
-		NSBeep();
-	}
-	
-	
-}
-
 - (void)importURLInBackground:(NSURL*)aURL linkTitle:(NSString*)linkTitle receptionDelegate:(id)receiver {
-	
 	receptionDelegate = receiver;
 		
-	
-	(void)[[URLGetter alloc] initWithURL:aURL delegate:self userData:linkTitle];
+	[[[URLGetter alloc] initWithURL:aURL completionBlock:^(URLGetter *getter, NSString *filename) {
+		BOOL foundNotes = NO;
+		if ([receptionDelegate respondsToSelector:@selector(noteImporter:importedNotes:)]) {
+			
+			if (filename) {
+				NSArray *notes = [self notesInFile:filename];
+				if ([notes count]) {
+					NSMutableAttributedString *content = [[GlobalPrefs defaultPrefs] pastePreservesStyle] ? [[[notes lastObject] contentString] mutableCopy] :
+					[[NSMutableAttributedString alloc] initWithString:[[[notes lastObject] contentString] string]];
+					if ([[[content string] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] length]) {
+						//only add string if it has at least one non-whitespace character
+						NSUInteger prefixedSourceLength = [[content prefixWithSourceString:[[getter url] absoluteString]] length];
+						[content santizeForeignStylesForImporting];
+						
+						[[notes lastObject] setContentString:content];
+						if (linkTitle) [[notes lastObject] setTitleString:linkTitle];
+						
+						//prefixing should push existing selections forward:
+						NSRange selRange = [[notes lastObject] lastSelectedRange];
+						if (selRange.length && prefixedSourceLength)
+							[[notes lastObject] setSelectedRange:NSMakeRange(selRange.location + prefixedSourceLength, selRange.length)];
+						
+						[receptionDelegate noteImporter:self importedNotes:notes];
+						
+						foundNotes = YES;
+					}
+				}
+			}
+			if (!foundNotes) {
+				//no notes recovered from downloaded file--just add the URL as a string?
+				NSString *urlString = [[getter url] absoluteString];
+				if (urlString) {
+					NSMutableAttributedString *newString = [[NSMutableAttributedString alloc] initWithString:urlString];
+					[newString santizeForeignStylesForImporting];
+					
+					NoteObject *noteObject = [[NoteObject alloc] initWithNoteBody:newString title:linkTitle ?: urlString
+																		 delegate:nil format:NVDatabaseFormatSingle labels:nil];
+					
+					[receptionDelegate noteImporter:self importedNotes:[NSArray arrayWithObject:noteObject]];
+				}
+			}
+			
+		} else {
+			NSLog(@"Where's my note importing delegate?");
+			NSBeep();
+		}
+	}] start];
 }
 
 - (NSArray*)importedNotes {

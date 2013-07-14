@@ -108,7 +108,9 @@
 	}
 	NSDictionary *headers = [NSDictionary dictionaryWithObjectsAndKeys: simperiumToken, @"X-Simperium-Token", nil];
 	NSURL *noteURL = [SimplenoteSession simperiumURLWithPath:[NSString stringWithFormat:@"/Note/i/%@", [entry objectForKey: @"key"]] parameters:nil];
-	SyncResponseFetcher *fetcher = [[SyncResponseFetcher alloc] initWithURL:noteURL POSTData:nil headers:headers delegate:self];
+	SyncResponseFetcher *fetcher = [[SyncResponseFetcher alloc] initWithURL:noteURL POSTData:nil headers:headers completion:^(SyncResponseFetcher *fetch, NSData *data, NSString *errString) {
+		[self syncResponseFetcher:fetch receivedData:data returningError:errString];
+	}];
 	//remember the note for later? why not.
 	if (originalNote) [fetcher setRepresentedObject:originalNote];
 	return fetcher;
@@ -306,7 +308,9 @@
 	NSDictionary *headers = [NSDictionary dictionaryWithObject:simperiumToken forKey:@"X-Simperium-Token"];
 	NSData *objectJSON = [NSJSONSerialization dataWithJSONObject:rawObject options:0 error:NULL];
 	
-	SyncResponseFetcher *fetcher = [[SyncResponseFetcher alloc] initWithURL:noteURL POSTData:objectJSON headers:headers contentType:@"application/json" delegate:self];
+	SyncResponseFetcher *fetcher = [[SyncResponseFetcher alloc] initWithURL:noteURL POSTData:objectJSON headers:headers contentType:@"application/json" completion:^(SyncResponseFetcher *fetch, NSData *data, NSString *errString) {
+		[self syncResponseFetcher:fetch receivedData:data returningError:errString];
+	}];
 	[fetcher setRepresentedObject:aNote];
 	return fetcher;
 }
@@ -339,7 +343,9 @@
 	NSDictionary *post = [NSDictionary dictionaryWithObject:[NSNumber numberWithInt:1] forKey:@"deleted"];
 	NSData *postData = [NSJSONSerialization dataWithJSONObject:post options:0 error:NULL];
 	NSDictionary *headers = [NSDictionary dictionaryWithObject:simperiumToken forKey:@"X-Simperium-Token"];
-	SyncResponseFetcher *fetcher = [[SyncResponseFetcher alloc] initWithURL:noteURL POSTData:postData headers:headers contentType:@"application/json" delegate:self];
+	SyncResponseFetcher *fetcher = [[SyncResponseFetcher alloc] initWithURL:noteURL POSTData:postData headers:headers contentType:@"application/json" completion:^(SyncResponseFetcher *fetch, NSData *data, NSString *errString) {
+		[self syncResponseFetcher:fetch receivedData:data returningError:errString];
+	}];
 	[fetcher setRepresentedObject:aDeletedNote];
 	return fetcher;
 	
@@ -455,7 +461,7 @@
 				
 				//NSLog(@"note update:\n %@", [aNote syncServicesMD]);
 				if (merged) {
-					[[[(NoteObject *)aNote delegate] delegate] contentsUpdatedForNote:aNote];
+					[[(NoteObject *)aNote delegate] noteDidUpdateContents:aNote];
 				}
 				break;
 			}

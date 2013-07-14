@@ -26,8 +26,6 @@
 
 @interface TemporaryFileCachePreparer : NSObject {
 	NSString *cachePath;
-	
-	id delegate;
 
 	NotationPrefs *notationPrefs;	
 	BOOL startedPreparing;
@@ -46,15 +44,5 @@
 - (void)_finishPreparationWithPath:(NSString*)aPath;
 - (void)_stopPreparation;
 - (NSString*)preparedCachePath;
-- (void)setDelegate:(id)aDelegate;
-- (id)delegate;
-
-@end
-
-
-@interface NSObject (TemporaryFileCachePreparerDelegate)
-
-- (void)temporaryFileCachePreparerDidNotFinish:(TemporaryFileCachePreparer*)preparer;
-- (void)temporaryFileCachePreparerFinished:(TemporaryFileCachePreparer*)preparer;
 
 @end

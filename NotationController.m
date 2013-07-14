@@ -57,7 +57,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	return NSOrderedSame;
 }
 
-@interface NotationController ()
+@interface NotationController () <NotationPrefsDelegate>
 
 @property (nonatomic, strong, readwrite) NSMutableOrderedSet *notesList;
 @property (nonatomic, strong, readwrite) NSMutableOrderedSet *filteredNotesList;
@@ -234,7 +234,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	
 	UInt64 fileSize = 0;
 	char *notesData = NULL;
-	if ((err = FSRefReadData(&noteDatabaseRef, BlockSizeForNotation(self), &fileSize, (void**)&notesData, noCacheMask)) != noErr)
+	if ((err = FSRefReadData(&noteDatabaseRef, self.blockSize, &fileSize, (void**)&notesData, noCacheMask)) != noErr)
 		return err;
 	
 	FrozenNotation *frozenNotation = nil;
@@ -359,7 +359,6 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
                 return NO;
 			}
 		}
-		[walWriter setDelegate:self];
 		
 		return YES;
     } else {
@@ -489,7 +488,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 			UInt64 fileSize = 0;
 			char *notesData = NULL;
 			OSStatus err = noErr;
-			if ((err = FSRefReadData(notesFileRef, BlockSizeForNotation(self), &fileSize, (void**)&notesData, forceReadMask)) != noErr)
+			if ((err = FSRefReadData(notesFileRef, self.blockSize, &fileSize, (void**)&notesData, forceReadMask)) != noErr)
 				return err;
 			
 			FrozenNotation *frozenNotation = nil;
@@ -736,10 +735,6 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		[note moveFileToTrash];
 	}
 	[self notifyOfChangedTrash];
-}
-
-- (void)updateLinksToNote:(NoteObject*)aNoteObject fromOldName:(NSString*)oldname {
-    //O(n)
 }
 
 - (void)updateTitlePrefixConnections {

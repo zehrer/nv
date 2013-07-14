@@ -89,18 +89,8 @@ static ODBEditor	*_sharedODBEditor;
 }
 
 - (void)initializeDatabase:(NotationPrefs*)prefs {
-	if (editingSpacePreparer) {
-		[editingSpacePreparer setDelegate:nil];
-	}
-	[(editingSpacePreparer = [[TemporaryFileCachePreparer alloc] init]) setDelegate:self];
+	editingSpacePreparer = [[TemporaryFileCachePreparer alloc] init];
 	[editingSpacePreparer prepEditingSpaceIfNecessaryForNotationPrefs:prefs];
-}
-
-- (void)temporaryFileCachePreparerDidNotFinish:(TemporaryFileCachePreparer*)preparer {
-	NSLog(@"preparer failed");
-}
-- (void)temporaryFileCachePreparerFinished:(TemporaryFileCachePreparer*)preparer {
-	NSLog(@"finished: '%@'", [preparer preparedCachePath]);
 }
 
 - (void)abortEditingFile:(NSString *)path {

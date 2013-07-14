@@ -32,6 +32,8 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 
 @implementation RBSplitView
 
+@synthesize delegate = delegate;
+
 // These class methods get and set the cursor used for each type.
 // Pass in nil to reset to the default cursor for that type.
 + (NSCursor*)cursor:(RBSVCursorType)type {
@@ -425,11 +427,11 @@ static inline CGFloat fMAX(CGFloat a,CGFloat b) {
 }
 
 // This pair of methods gets and sets the delegate object. Delegates aren't retained.
-- (id)delegate {
+- (id <RBSplitViewDelegate>)delegate {
 	return delegate;
 }
 
-- (void)setDelegate:(id)anObject {
+- (void)setDelegate:(id <RBSplitViewDelegate>)anObject {
 	delegate = anObject;
 }
 

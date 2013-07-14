@@ -9,6 +9,8 @@
 
 #import "RBSplitSubview.h"
 
+@protocol RBSplitViewDelegate;
+
 // These values are used to handle the various cursor types.
 typedef enum {
 	RBSVHorizontalCursor=0,		// appears over horizontal dividers
@@ -22,7 +24,6 @@ typedef enum {
 // Subclasses normally should use setter methods instead of changing instance variables by assignment.
 // Most getter methods simply return the corresponding instance variable, so with some care, subclasses
 // could reference them directly.
-	IBOutlet id delegate;		// The delegate (may be nil).
 	NSString* autosaveName;		// This name is used for storing subview proportions in user defaults.
 	NSColor* background;		// The color used to paint the view's background (may be nil).
 	NSImage* divider;			// The image used for the divider "dimple".
@@ -84,8 +85,7 @@ typedef enum {
 - (id)initWithFrame:(NSRect)frame andSubviews:(NSUInteger)count;
 
 // Sets and gets the delegate. (Delegates aren't retained.) See further down for delegate methods.
-- (void)setDelegate:(id)anObject;
-- (id)delegate;
+@property (nonatomic, weak) IBOutlet id <RBSplitViewDelegate> delegate;
 
 // Returns a subview which has a certain identifier string, or nil if there's none
 - (RBSplitSubview*)subviewWithIdentifier:(NSString*)anIdentifier;

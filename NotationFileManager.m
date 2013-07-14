@@ -23,6 +23,7 @@
 #import "NoteObject.h"
 #import "GlobalPrefs.h"
 #import "NSData_transformations.h"
+#import "NotationSyncServiceManager.h"
 
 #import <Foundation/Foundation.h>
 #import <CommonCrypto/CommonCrypto.h>
@@ -241,21 +242,23 @@ static struct statfs *StatFSVolumeInfo(NotationController *controller) {
 	return controller->statfsInfo;
 }
 
-UInt32 diskUUIDIndexForNotation(NotationController *controller) {
-	return controller->diskUUIDIndex;
+- (UInt32)diskUUIDIndex
+{
+	return diskUUIDIndex;
 }
 
-long BlockSizeForNotation(NotationController *controller) {
-    if (!controller->blockSize) {
+- (long)blockSize
+{
+	if (!blockSize) {
 		long iosize = 0;
-
-		struct statfs * sfsb = StatFSVolumeInfo(controller);
+		
+		struct statfs * sfsb = StatFSVolumeInfo(self);
 		if (sfsb) iosize = sfsb->f_iosize;
 		
-		controller->blockSize = MAX(iosize, 16 * 1024);
+		blockSize = MAX(iosize, 16 * 1024);
     }
     
-    return controller->blockSize;
+    return blockSize;
 }
 
 - (OSStatus)refreshFileRefIfNecessary:(FSRef *)childRef withName:(NSString *)filename charsBuffer:(UniChar*)charsBuffer {
@@ -514,7 +517,7 @@ long BlockSizeForNotation(NotationController *controller) {
 	OSStatus err = [self refreshFileRefIfNecessary:childRef withName:filename charsBuffer:chars];
 	if (noErr != err) return nil;
 	
-    if ((err = FSRefReadData(childRef, BlockSizeForNotation(self), &fileSize, (void**)&notesDataPtr, noCacheMask)) != noErr) {
+    if ((err = FSRefReadData(childRef, self.blockSize, &fileSize, (void**)&notesDataPtr, noCacheMask)) != noErr) {
 		NSLog(@"%@: error %d", NSStringFromSelector(_cmd), err);
 		return nil;
 	}    
@@ -542,7 +545,7 @@ long BlockSizeForNotation(NotationController *controller) {
     }
     
     //now write to temporary file and swap
-    if ((err = FSRefWriteData(&tempFileRef, BlockSizeForNotation(self), [data length], [data bytes], pleaseCacheMask, false)) != noErr) {
+    if ((err = FSRefWriteData(&tempFileRef, self.blockSize, [data length], [data bytes], pleaseCacheMask, false)) != noErr) {
 		NSLog(@"error writing to temporary file: %d", err);
 		
 		return err;

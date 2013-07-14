@@ -15,43 +15,42 @@
 
 @interface URLGetter () <NSURLDownloadDelegate>
 
+@property (nonatomic, copy, readwrite) void(^completionBlock)(URLGetter *getter, NSString *filename);;
+
 @end
 
 @implementation URLGetter
 
-- (id)initWithURL:(NSURL*)aUrl delegate:(id)aDelegate userData:(id)someObj {
+- (id)initWithURL:(NSURL *)aUrl completionBlock:(void (^)(URLGetter *, NSString *))block
+{
 	if (!aUrl || [aUrl isFileURL]) {
 		return nil;
 	}
-    
+	
 	if ((self = [super init])) {
 		maxExpectedByteCount = 0;
 		isImporting = isIndicating = NO;
-		delegate = aDelegate;
 		url = aUrl;
-		userData = someObj;
-		
-		downloader = [[NSURLDownload alloc] initWithRequest:[NSURLRequest requestWithURL:url] delegate:self];
-		
-		[self startProgressIndication:self];
+		self.completionBlock = block;
 	}
 	
 	return self;
 }
 
-
-- (NSURL*)url {
-	return url;
-}
-
-- (id)userData {
-	return userData;
+- (IBAction)start {
+	downloader = [[NSURLDownload alloc] initWithRequest:[NSURLRequest requestWithURL:url] delegate:self];
+	
+	[self startProgressIndication:self];
 }
 
 - (IBAction)cancelDownload:(id)sender {
 	[downloader cancel];
 
 	[self endDownloadWithPath:nil];
+}
+
+- (NSURL*)url {
+	return url;
 }
 
 - (void)stopProgressIndication {
@@ -149,7 +148,8 @@
 	isImporting = YES;
 	[self updateProgress];
 	
-	[delegate URLGetter:self returnedDownloadedFile:path];
+	if (self.completionBlock)
+		self.completionBlock(self, path);
 	
 	//clean up after ourselves
 	NSFileManager *fileMan = [NSFileManager defaultManager];
@@ -175,13 +175,6 @@
 
 - (NSString*)downloadPath {
 	return downloadPath;
-}
-
-- (id)delegate {
-	return delegate;
-}
-- (void)setDelegate:(id)aDelegate {
-	delegate = aDelegate;
 }
 
 @end
