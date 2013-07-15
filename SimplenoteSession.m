@@ -1113,7 +1113,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 }
 
 - (NSInvocation*)_popNextInvocationForNote:(id<SynchronizedNote>)aNote {
-	NSString *uuidStr = [NSString uuidStringWithBytes:[aNote uniqueNoteIDBytes]];
+	NSString *uuidStr = [[aNote uniqueNoteID] UUIDString];
 
 	NSMutableArray *invocations = [queuedNoteInvocations objectForKey:uuidStr];
 	if (!invocations) return nil;
@@ -1132,7 +1132,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 
 - (void)_queueInvocation:(NSInvocation*)anInvocation forNote:(id<SynchronizedNote>)aNote {
 	if (!queuedNoteInvocations) queuedNoteInvocations = [[NSMutableDictionary alloc] init];
-	NSString *uuidStr = [NSString uuidStringWithBytes:[aNote uniqueNoteIDBytes]];
+	NSString *uuidStr = [[aNote uniqueNoteID] UUIDString];
 	NSMutableArray *invocations = [queuedNoteInvocations objectForKey:uuidStr];
 	if (!invocations) {
 		//note has no already-waiting invocations

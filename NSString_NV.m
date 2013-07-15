@@ -517,29 +517,6 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, unsigned charIndex) {
 	return NO;
 }
 
-- (CFUUIDBytes)uuidBytes {
-	CFUUIDBytes bytes = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-	CFUUIDRef uuidRef = CFUUIDCreateFromString(NULL, (CFStringRef)self);
-	if (uuidRef) {
-		bytes = CFUUIDGetUUIDBytes(uuidRef);
-		CFRelease(uuidRef);
-	}
-
-	return bytes;
-}
-
-+ (NSString*)uuidStringWithBytes:(CFUUIDBytes)bytes {
-	CFUUIDRef uuidRef = CFUUIDCreateFromUUIDBytes(NULL, bytes);
-	NSString *uuidString = NULL;
-	
-	if (uuidRef) {
-		uuidString = (__bridge_transfer NSString *)CFUUIDCreateString(NULL, uuidRef);
-		CFRelease(uuidRef);
-	}
-	
-	return uuidString;	
-}
-
 - (NSString *)nv_stringByBase64Encoding {
 	return [[self dataUsingEncoding:NSUTF8StringEncoding allowLossyConversion:NO] nv_stringByBase64Encoding];
 }

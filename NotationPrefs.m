@@ -370,9 +370,7 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 
 - (NSString *)setKeychainDatabaseIdentifier {
 	if (!keychainDatabaseIdentifier) {
-		CFUUIDRef uuidRef = CFUUIDCreate(NULL);
-		keychainDatabaseIdentifier = (__bridge_transfer NSString*)CFUUIDCreateString(NULL, uuidRef);
-		CFRelease(uuidRef);
+		keychainDatabaseIdentifier = [[NSUUID UUID] UUIDString];
 		
 		preferencesChanged = YES;
 	}
@@ -782,10 +780,10 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 	}
 }
 
-- (UInt32)tableIndexOfDiskUUID:(CFUUIDRef)UUIDRef {
+- (UInt32)tableIndexOfDiskUUID:(NSUUID *)UUID {
 	//if this UUID doesn't yet exist, then add it and return the last index
 	
-	DiskUUIDEntry *diskEntry = [[DiskUUIDEntry alloc] initWithUUIDRef:UUIDRef];
+	DiskUUIDEntry *diskEntry = [[DiskUUIDEntry alloc] initWithUUID:UUID];
 	
 	NSUInteger idx = [seenDiskUUIDEntries indexOfObject: diskEntry];
 	if (NSNotFound != idx) {

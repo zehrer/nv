@@ -349,7 +349,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 						//this allows for an ever-growing journal in the case of broken database serialization
 						//it should not be an acceptable condition for permanent use; hopefully an update would come soon
 						//warn the user, perhaps
-						[walWriter writeNoteObjects:NSAllMapTableValues(recoveredNotes)];
+						[walWriter writeNoteObjects:[[recoveredNotes objectEnumerator] allObjects]];
 					}
 					[self refilterNotes];
 				}
@@ -371,13 +371,9 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 
 //stick the newest unique recovered notes into allNotes
 - (void)processRecoveredNotes:(NSMapTable *)table {
-	NSMapEnumerator enumerator = NSEnumerateMapTable(table);
-	CFUUIDBytes *objUUIDBytes = NULL;
-	void *objectPtr = NULL;
-	
-	while (NSNextMapEnumeratorPair(&enumerator, (void **)&objUUIDBytes, &objectPtr)) {
-		id<SynchronizedNote> obj = (__bridge id)objectPtr;
-		NSUInteger existingNoteIndex = [self indexOfNoteWithUUIDBytes:objUUIDBytes];
+	for (NSUUID *UUID in table) {
+		id<SynchronizedNote> obj = [table objectForKey:UUID];
+		NSUInteger existingNoteIndex = [self indexOfNoteWithUUID:UUID];
 		
 		if ([obj isKindOfClass:[DeletedNoteObject class]]) {
 			
@@ -421,8 +417,6 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 			[(NoteObject*)obj updateLabelConnectionsAfterDecoding];
 		}
 	}
-	
-	NSEndMapTableEnumeration(&enumerator);
 }
 
 - (void)closeJournal {
@@ -1031,6 +1025,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		[self removeNote:note];
 	}
 	[undoManager endUndoGrouping];
+	
 	if (! [[self undoManager] isUndoing] && ! [[self undoManager] isRedoing])
 		[undoManager setActionName:[NSString stringWithFormat:NSLocalizedString(@"Delete %d Notes",@"undo action name for deleting notes"), [noteArray count]]];
 	
@@ -1056,6 +1051,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
     if ([notationPrefs notesStorageFormat] != NVDatabaseFormatSingle) {
 		[aNoteObject removeFileFromDirectory];
     }
+	
 	//add journal removal event
 	if (walWriter && ![walWriter writeRemovalForNote:aNoteObject]) {
 		NSLog(@"Couldn't log note removal");
@@ -1195,12 +1191,10 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	[notationPrefs setBaseBodyFont:[prefsController noteBodyFont]];
 }
 
-//used by BookmarksController
-
-- (NoteObject*)noteForUUIDBytes:(CFUUIDBytes*)bytes {
-	NSUInteger noteIndex = [self indexOfNoteWithUUIDBytes:bytes];
+- (NoteObject *)noteForUUID:(NSUUID *)UUID {
+	NSUInteger noteIndex = [self indexOfNoteWithUUID:UUID];
 	if (noteIndex != NSNotFound) return self.notesList[noteIndex];
-	return nil;	
+	return nil;
 }
 
 - (void)updateLabelConnectionsAfterDecoding {
@@ -1597,12 +1591,11 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 }
 	
 #pragma mark - Collection Utils
-	
-- (NSUInteger)indexOfNoteWithUUIDBytes:(CFUUIDBytes *)bytes
+
+- (NSUInteger)indexOfNoteWithUUID:(NSUUID *)UUID
 {
 	return [self.notesList indexOfObjectPassingTest:^BOOL(NoteObject *note, NSUInteger idx, BOOL *stop) {
-		CFUUIDBytes *noteBytes = [note uniqueNoteIDBytesPtr];
-		if (!memcmp(noteBytes, bytes, sizeof(CFUUIDBytes))) {
+		if ([UUID isEqual:note.uniqueNoteID]) {
 			*stop = YES;
 			return YES;
 		}

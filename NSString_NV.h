@@ -54,9 +54,6 @@ CFDateFormatterRef simplenoteDateFormatter(int lowPrecision);
 
 - (BOOL)UTIOfFileConformsToType:(NSString*)type;
 
-- (CFUUIDBytes)uuidBytes;
-+ (NSString*)uuidStringWithBytes:(CFUUIDBytes)bytes;
-
 - (NSString *)nv_stringByBase64Encoding;
 - (NSString *)nv_stringByBase64Decoding;
 - (NSData *)nv_dataByBase64Encoding;

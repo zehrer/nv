@@ -75,7 +75,7 @@ typedef struct _NoteCatalogEntry {
 	int lastLayoutStyleGenerated;
 	struct statfs *statfsInfo;
 	unsigned int diskUUIDIndex;
-	CFUUIDRef diskUUID;
+	NSUUID *diskUUID;
     FSRef noteDirectoryRef, noteDatabaseRef;
     AliasHandle aliasHandle;
     BOOL aliasNeedsUpdating;
@@ -177,7 +177,7 @@ typedef struct _NoteCatalogEntry {
 - (void)invalidateCachedLabelImages;
 - (NSImage*)cachedLabelImageForWord:(NSString*)aWord highlighted:(BOOL)isHighlighted;
 
-- (NoteObject*)noteForUUIDBytes:(CFUUIDBytes*)bytes;
+- (NoteObject *)noteForUUID:(NSUUID *)UUID;
 
 // note object delegate - fix later
 - (void)note:(NoteObject*)note attributeChanged:(NVUIAttribute)attribute;

@@ -95,7 +95,7 @@ extern NSString *NotationPrefsDidChangeNotification;
 - (void)setSyncShouldMerge:(BOOL)shouldMerge inCurrentAccountForService:(NSString*)serviceName;
 - (void)removeSyncPasswordForService:(NSString*)serviceName;
 
-- (UInt32)tableIndexOfDiskUUID:(CFUUIDRef)UUIDRef;
+- (UInt32)tableIndexOfDiskUUID:(NSUUID *)UUID;
 - (void)checkForKnownRedundantSyncConduitsAtPath:(NSString*)dbPath;
 
 + (NSString*)pathExtensionForFormat:(NSInteger)format;

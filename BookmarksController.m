@@ -38,7 +38,7 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 	if (aDict) {
 		NSString *uuidString = [aDict objectForKey:BMNoteUUIDStringKey];
 		if (uuidString) {
-			return (self = [self initWithNoteUUIDBytes:[uuidString uuidBytes] searchString:[aDict objectForKey:BMSearchStringKey]]);
+			return (self = [self initWithNoteUUID:[[NSUUID alloc] initWithUUIDString:uuidString] searchString:[aDict objectForKey:BMSearchStringKey]]);
 		} else {
 			NSLog(@"NoteBookmark init: supplied nil uuidString");
 		}
@@ -48,9 +48,9 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 	return nil;
 }
 
-- (id)initWithNoteUUIDBytes:(CFUUIDBytes)bytes searchString:(NSString*)aString {
+- (id)initWithNoteUUID:(NSUUID *)aUUID searchString:(NSString*)aString {
 	if ((self = [super init])) {
-		uuidBytes = bytes;
+		UUID = aUUID;
 		searchString = [aString copy];
 	}
 	
@@ -66,13 +66,7 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 	if ((self = [super init])) {
 		noteObject = aNote;
 		searchString = [aString copy];
-		
-		CFUUIDBytes *bytes = [aNote uniqueNoteIDBytesPtr];
-		if (!bytes) {
-			NSLog(@"NoteBookmark init: no cfuuidbytes pointer from note %@", aNote.titleString);
-			return nil;
-		}
-		uuidBytes = *bytes;
+		UUID = aNote.uniqueNoteID;
 	}
 	return self;
 }
@@ -87,19 +81,19 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 	
 	//if we already had a valid note and our uuidBytes don't resolve to the same note
 	//then use that new note from the delegate. in 100% of the cases newNote should be nil
-	if (noteObject && (newNote = [self.controller noteWithUUIDBytes:uuidBytes]) != noteObject) {
+	if (noteObject && (newNote = [self.controller noteWithUUID:UUID]) != noteObject) {
 		noteObject = newNote;
 	}
 }
 
 - (NoteObject*)noteObject {
-	if (!noteObject) noteObject = [self.controller noteWithUUIDBytes:uuidBytes];
+	if (!noteObject) noteObject = [self.controller noteWithUUID:UUID];
 	return noteObject;
 }
 
 - (NSDictionary*)dictionaryRep {
 	return [NSDictionary dictionaryWithObjectsAndKeys:searchString, BMSearchStringKey,
-		[NSString uuidStringWithBytes:uuidBytes], BMNoteUUIDStringKey, nil];
+		UUID.UUIDString, BMNoteUUIDStringKey, nil];
 }
 
 - (NSString *)description {
@@ -185,9 +179,9 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 	[bookmarks makeObjectsPerformSelector:@selector(validateNoteObject)];
 }
 
-- (NoteObject*)noteWithUUIDBytes:(CFUUIDBytes)bytes {
-
-	return [self.dataSource noteForUUIDBytes:&bytes];
+- (NoteObject*)noteWithUUID:(NSUUID *)UUID {
+	
+	return [self.dataSource noteForUUID:UUID];
 }
 
 - (void)removeBookmarkForNote:(NoteObject*)aNote {

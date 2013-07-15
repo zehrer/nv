@@ -29,4 +29,6 @@
 
 @property (nonatomic, readonly) id<SynchronizedNote> originalNote;
 
+@property (nonatomic, copy) NSUUID *uniqueNoteID;
+
 @end

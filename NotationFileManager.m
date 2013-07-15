@@ -111,7 +111,7 @@ static void uuid_create_md5_from_name(unsigned char result_uuid[CC_MD5_DIGEST_LE
 }
 
 
-CFUUIDRef CopyHFSVolumeUUIDForMount(const char *mntonname) {
+NSUUID *CopyHFSVolumeUUIDForMount(const char *mntonname) {
 	VolumeUUID targetVolumeUUID;
 	
 	unsigned char rawUUID[8];
@@ -122,13 +122,12 @@ CFUUIDRef CopyHFSVolumeUUIDForMount(const char *mntonname) {
 	((uint32_t *)rawUUID)[0] = CFSwapInt32HostToBig(targetVolumeUUID.v.high);
 	((uint32_t *)rawUUID)[1] = CFSwapInt32HostToBig(targetVolumeUUID.v.low);
 	
-	CFUUIDBytes uuidBytes;
-	uuid_create_md5_from_name((void*)&uuidBytes, rawUUID, sizeof(rawUUID));
-	
-	return CFUUIDCreateFromUUIDBytes(NULL, uuidBytes);
+	uuid_t uuidBytes;
+	uuid_create_md5_from_name(uuidBytes, rawUUID, sizeof(rawUUID));
+	return [[NSUUID alloc] initWithUUIDBytes:uuidBytes];
 }
 
-static CFUUIDRef CopySyntheticUUIDForVolumeCreationDate(FSRef *fsRef) {
+static NSUUID *CopySyntheticUUIDForVolumeCreationDate(FSRef *fsRef) {
 	
 	FSCatalogInfo fileInfo;
 	if (FSGetCatalogInfo(fsRef, kFSCatInfoVolume, &fileInfo, NULL, NULL, NULL) == noErr) {
@@ -140,10 +139,10 @@ static CFUUIDRef CopySyntheticUUIDForVolumeCreationDate(FSRef *fsRef) {
 			volInfo.createDate.lowSeconds = CFSwapInt32HostToBig(volInfo.createDate.lowSeconds);
 			volInfo.createDate.fraction = CFSwapInt16HostToBig(volInfo.createDate.fraction);
 
-			CFUUIDBytes uuidBytes;
-			uuid_create_md5_from_name((void*)&uuidBytes, (void*)&volInfo.createDate, sizeof(UTCDateTime));
+			uuid_t uuidBytes;
+			uuid_create_md5_from_name(uuidBytes, (void*)&volInfo.createDate, sizeof(UTCDateTime));
 			
-			return CFUUIDCreateFromUUIDBytes(NULL, uuidBytes);
+			return [[NSUUID alloc] initWithUUIDBytes:uuidBytes];
 		} else {
 			NSLog(@"can't even get the volume creation date -- what are you trying to do to me?");
 		}
@@ -157,7 +156,7 @@ static CFUUIDRef CopySyntheticUUIDForVolumeCreationDate(FSRef *fsRef) {
 }
 
 - (void)initializeDiskUUIDIfNecessary {
-	//create a CFUUIDRef that identifies the volume this database sits on
+	//create a UUID that identifies the volume this database sits on
 	
 	//don't bother unless we will be reading notes as separate files; otherwise there's no need to track the source of the attr mod dates
 	//maybe disk UUIDs will be used in the future for something else; at that point this check should be altered
@@ -178,8 +177,10 @@ static CFUUIDRef CopySyntheticUUIDForVolumeCreationDate(FSRef *fsRef) {
 		//or vise-versa; that calls for tracking how the UUIDs were generated, and grouping them together when others are found;
 		//this is probably unnecessary for now
 		if (!diskUUID) {
-			//this is not an hfs disk, and this computer is new enough to have FSEvents	
-			diskUUID = FSEventsCopyUUIDForDevice(sfsb->f_fsid.val[0]);
+			//this is not an hfs disk, and this computer is new enough to have FSEvents
+			CFUUIDRef cfUUID = FSEventsCopyUUIDForDevice(sfsb->f_fsid.val[0]);
+			diskUUID = [[NSUUID alloc] initWithUUIDString:(__bridge_transfer NSString *)CFUUIDCreateString(NULL, cfUUID)];
+			CFRelease(cfUUID);
 		}
 		
 		if (!diskUUID) {

@@ -37,7 +37,7 @@ typedef union VolumeUUID {
 @property (nonatomic, strong, readonly) NSFileManager *fileManager;
 
 OSStatus CreateDirectoryIfNotPresent(FSRef *parentRef, CFStringRef subDirectoryName, FSRef *childRef);
-CFUUIDRef CopyHFSVolumeUUIDForMount(const char *mntonname);
+NSUUID *CopyHFSVolumeUUIDForMount(const char *mntonname);
 
 @property (nonatomic, readonly) UInt32 diskUUIDIndex;
 

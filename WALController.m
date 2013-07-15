@@ -466,51 +466,31 @@
     return object;
 }
 
-static NSUInteger SynchronizedNoteKeySize(const void *o) {
-	return sizeof(CFUUIDBytes);
-}
-
-static NSString *SynchronizedNoteDescription(const void *o) {
-	CFUUIDBytes *bytes = (CFUUIDBytes *)o;
-	CFUUIDRef UUID = CFUUIDCreateFromUUIDBytes(NULL, *bytes);
-	NSString *ret = (__bridge_transfer NSString *)CFUUIDCreateString(NULL, UUID);
-	CFRelease(UUID);
-	return ret;
-}
-
 //we keep a table of the newest recovered notes, as any changed notes will almost certainly be written multiple times
 //throw away objects with LSNs lower than the current highest one for each UUID
 //and when recovery cannot progress any further, only the newest objects will be exchanged
 
 - (NSMapTable *)recoveredNotes {
     id <SynchronizedNote> obj = nil;
-	CFUUIDBytes *objUUIDBytes = NULL;
 
-	NSPointerFunctions *keyFunctions = [NSPointerFunctions pointerFunctionsWithOptions:NSPointerFunctionsOpaqueMemory | NSPointerFunctionsStructPersonality];
-	keyFunctions.sizeFunction = SynchronizedNoteKeySize;
-	keyFunctions.descriptionFunction = SynchronizedNoteDescription;
-	NSPointerFunctions *valueFunctions = [NSPointerFunctions pointerFunctionsWithOptions:NSPointerFunctionsStrongMemory|NSPointerFunctionsObjectPersonality];
-	NSMapTable *recoveredNotesTable = [[NSMapTable alloc] initWithKeyPointerFunctions:keyFunctions valuePointerFunctions:valueFunctions capacity:10];
+	NSMapTable *recoveredNotesTable = [NSMapTable strongToStrongObjectsMapTable];
 	
     do {
 		if ((obj = [self recoverNextObject])) {
 			if ([obj conformsToProtocol:@protocol(SynchronizedNote)]) {
-				objUUIDBytes = [obj uniqueNoteIDBytesPtr];
-				void *foundNotePtr = NULL;
+				NSUUID *UUID = [obj uniqueNoteID];
+				id <SynchronizedNote> foundNote = nil;
 				
 				//if the note already exists, then insert this note only if it's newer, and always insert it if it doesn't exist
-				if (NSMapMember(recoveredNotesTable, objUUIDBytes, NULL, &foundNotePtr)) {
-					id <SynchronizedNote> foundNote = (__bridge id)foundNotePtr;
-					
+				if ((foundNote = [recoveredNotesTable objectForKey:UUID])) {
 					//note is already here, overwrite it only if our LSN is greater or equal
 					if (foundNote && ![foundNote youngerThanLogObject:obj])
 						continue;
-					
 				}
 				
-				NSMapInsert(recoveredNotesTable, objUUIDBytes, (__bridge void *)obj);
+				[recoveredNotesTable setObject:foundNote forKey:UUID];
 			} else {
-				NSLog(@"object of class %@ recovered that doesn't conform to SynchronizedNote protocol", [(NSObject*)obj className]);
+				NSLog(@"object of class %@ recovered that doesn't conform to SynchronizedNote protocol", NSStringFromClass([obj class]));
 			}
 		}
     } while (obj); //|| this note failed because of a deserialization problem, but everything else was fine

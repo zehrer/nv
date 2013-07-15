@@ -20,10 +20,10 @@
 
 @interface DiskUUIDEntry : NSObject
 
-- (id)initWithUUIDRef:(CFUUIDRef)aUUIDRef;
+- (id)initWithUUID:(NSUUID *)aUUID;
 - (void)see;
 
-@property (nonatomic, readonly) CFUUIDRef uuidRef;
-@property (nonatomic, readonly) NSDate *lastAccessed;
+@property (nonatomic, strong, readonly) NSUUID *UUID;
+@property (nonatomic, strong, readonly) NSDate *lastAccessed;
 
 @end

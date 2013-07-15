@@ -19,8 +19,7 @@
 
 @protocol SynchronizedNote <NSCoding, NSObject>
 
-- (CFUUIDBytes *)uniqueNoteIDBytesPtr;
-@property (nonatomic, readonly) CFUUIDBytes uniqueNoteIDBytes;
+@property (nonatomic, copy, readonly) NSUUID *uniqueNoteID;
 
 @property (nonatomic, readonly) NSMutableDictionary *syncServicesMD;
 

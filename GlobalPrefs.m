@@ -831,9 +831,7 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
 
 	[defaults setObject:stringMinusBreak forKey:LastSearchStringKey];
 
-	CFUUIDBytes *bytes = [aNote uniqueNoteIDBytesPtr];
-	NSString *uuidString = nil;
-	if (bytes) uuidString = [NSString uuidStringWithBytes:*bytes];
+	NSString *uuidString = aNote.uniqueNoteID.UUIDString;
 
 	[defaults setObject:uuidString forKey:LastSelectedNoteUUIDBytesKey];
 
@@ -847,13 +845,13 @@ BOOL ColorsEqualWith8BitChannels(NSColor *c1, NSColor *c2) {
 	return [defaults objectForKey:LastSearchStringKey];
 }
 
-- (CFUUIDBytes)UUIDBytesOfLastSelectedNote {
-	CFUUIDBytes bytes = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-
+- (NSUUID *)UUIDOfLastSelectedNote
+{
 	NSString *uuidString = [defaults objectForKey:LastSelectedNoteUUIDBytesKey];
-	if (uuidString) bytes = [uuidString uuidBytes];
-
-	return bytes;
+	if (uuidString) {
+		return [[NSUUID alloc] initWithUUIDString:uuidString];
+	}
+	return nil;
 }
 
 - (double)scrollOffsetOfLastSelectedNote {

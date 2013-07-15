@@ -46,9 +46,6 @@ typedef struct _NoteFilterContext {
 	NSUInteger perDiskInfoGroupCount;
 	BOOL shouldWriteToFile, didUnarchive;
 	
-	//not determined until it's time to read to or write from a text file
-	FSRef *noteFileRef;
-	
 	//more metadata
 	NSRange selectedRange;
 	
@@ -77,6 +74,8 @@ typedef struct _NoteFilterContext {
 @property (nonatomic, readonly) NSString *createdDateString;
 
 @property (nonatomic, weak) id <NoteObjectDelegate> delegate;
+
+@property (nonatomic, copy) NSUUID *uniqueNoteID;
 
 - (id)initWithNoteBody:(NSAttributedString *)bodyText title:(NSString *)aNoteTitle
               delegate:(id)aDelegate format:(NVDatabaseFormat)formatID labels:(NSString*)aLabelString;

@@ -23,13 +23,13 @@
 
 @interface NoteBookmark : NSObject {
 	NSString *searchString;
-	CFUUIDBytes uuidBytes;
+	NSUUID *UUID;
 	NoteObject *noteObject;
 }
 
 - (id)initWithDictionary:(NSDictionary*)aDict;
+- (id)initWithNoteUUID:(NSUUID *)aUUID searchString:(NSString*)aString;
 - (id)initWithNoteObject:(NoteObject*)aNote searchString:(NSString*)aString;
-- (id)initWithNoteUUIDBytes:(CFUUIDBytes)bytes searchString:(NSString*)aString;
 
 - (NSString*)searchString;
 - (NoteObject*)noteObject;
@@ -82,10 +82,7 @@
 - (id)initWithBookmarks:(NSArray*)array;
 - (NSArray*)dictionaryReps;
 
-//- (id)dataSource;
-//- (void)setDataSource:(id)aDataSource;
-
-- (NoteObject*)noteWithUUIDBytes:(CFUUIDBytes)bytes;
+- (NoteObject*)noteWithUUID:(NSUUID *)UUID;
 - (void)removeBookmarkForNote:(NoteObject*)aNote;
 
 - (void)selectBookmarkInTableView:(NoteBookmark*)bookmark;
@@ -125,6 +122,6 @@
 
 @protocol BookmarksControllerDataSource <NSObject>
 
-- (NoteObject*)noteForUUIDBytes:(CFUUIDBytes*)bytes;
+- (NoteObject *)noteForUUID:(NSUUID *)UUID;
 
 @end

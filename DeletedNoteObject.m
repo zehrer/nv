@@ -22,9 +22,9 @@
 @implementation DeletedNoteObject
 
 @synthesize syncServicesMD = syncServicesMD;
-@synthesize uniqueNoteIDBytes = uniqueNoteIDBytes;
 @synthesize logSequenceNumber = logSequenceNumber;
 @synthesize originalNote = originalNote;
+@synthesize uniqueNoteID = uniqueNoteID;
 
 + (id)deletedNoteWithNote:(id <SynchronizedNote>)aNote {
 	return [[DeletedNoteObject alloc] initWithExistingObject:aNote];
@@ -32,8 +32,7 @@
 
 - (id)initWithExistingObject:(id<SynchronizedNote>)note {
     if ((self = [super init])) {
-		CFUUIDBytes *bytes = [note uniqueNoteIDBytesPtr];
-		uniqueNoteIDBytes = *bytes;
+		uniqueNoteID = [note uniqueNoteID];
 		syncServicesMD = [[note syncServicesMD] mutableCopy];
 		logSequenceNumber = [note logSequenceNumber];
 		//not serialized: for runtime lookup purposes only
@@ -44,36 +43,29 @@
 
 - (id)initWithCoder:(NSCoder*)decoder {
     if ((self = [super init])) {
-		if ([decoder allowsKeyedCoding]) {
-			NSUInteger decodedByteCount;
-			const uint8_t *decodedBytes = [decoder decodeBytesForKey:@keypath(self.uniqueNoteIDBytes) returnedLength:&decodedByteCount];
-			memcpy(&uniqueNoteIDBytes, decodedBytes, MIN(decodedByteCount, sizeof(CFUUIDBytes)));
-			syncServicesMD = [decoder decodeObjectForKey:@keypath(self.syncServicesMD)];
-			logSequenceNumber = [decoder decodeInt32ForKey:@keypath(self.logSequenceNumber)];
-		} else {
-			[decoder decodeValueOfObjCType:@encode(CFUUIDBytes) at:&uniqueNoteIDBytes];
-			syncServicesMD = [decoder decodeObject];
-			[decoder decodeValueOfObjCType:@encode(unsigned int) at:&logSequenceNumber];
+		if ([decoder containsValueForKey:@keypath(self.uniqueNoteID)]) {
+			self.uniqueNoteID = [decoder decodeObjectForKey:@keypath(self.uniqueNoteID)];
+		} else if ([decoder containsValueForKey:@"uniqueNoteIDBytes"]) {
+			NSUInteger decodedUUIDByteCount = 0;
+			const uint8_t *decodedUUIDBytes = [decoder decodeBytesForKey:@"uniqueNoteIDBytes" returnedLength:&decodedUUIDByteCount];
+			self.uniqueNoteID = decodedUUIDBytes ? [[NSUUID alloc] initWithUUIDBytes:decodedUUIDBytes] : [NSUUID UUID];
 		}
+		syncServicesMD = [decoder decodeObjectForKey:@keypath(self.syncServicesMD)];
+		logSequenceNumber = [decoder decodeInt32ForKey:@keypath(self.logSequenceNumber)];
     }
     return self;
 }
 
 - (void)encodeWithCoder:(NSCoder *)coder {
-	
-	if ([coder allowsKeyedCoding]) {
-		[coder encodeBytes:(const uint8_t *)&uniqueNoteIDBytes length:sizeof(CFUUIDBytes) forKey:@keypath(self.uniqueNoteIDBytes)];
-		[coder encodeObject:syncServicesMD forKey:@keypath(self.syncServicesMD)];
-		[coder encodeInt32:logSequenceNumber forKey:@keypath(self.logSequenceNumber)];
-	} else {
-		[coder encodeValueOfObjCType:@encode(CFUUIDBytes) at:&uniqueNoteIDBytes];
-		[coder encodeObject:syncServicesMD];
-		[coder encodeValueOfObjCType:@encode(unsigned int) at:&logSequenceNumber];
-	}
+	uuid_t bytes;
+	[self.uniqueNoteID getUUIDBytes:bytes];
+	[coder encodeBytes:(const uint8_t *)&bytes length:sizeof(uuid_t) forKey:@"uniqueNoteIDBytes"];
+	[coder encodeObject:syncServicesMD forKey:@keypath(self.syncServicesMD)];
+	[coder encodeInt32:logSequenceNumber forKey:@keypath(self.logSequenceNumber)];
 }
 
 - (NSString*)description {
-	return [NSString stringWithFormat:@"DeletedNoteObj(%@) %@", [NSString uuidStringWithBytes:uniqueNoteIDBytes], syncServicesMD];
+	return [NSString stringWithFormat:@"DeletedNoteObj(%@) %@", self.uniqueNoteID.UUIDString, syncServicesMD];
 }
 
 - (void)setSyncObjectAndKeyMD:(NSDictionary*)aDict forService:(NSString*)serviceName {
@@ -89,9 +81,6 @@
 - (void)removeAllSyncMDForService:(NSString*)serviceName {
 	[syncServicesMD removeObjectForKey:serviceName];
 }
-- (CFUUIDBytes *)uniqueNoteIDBytesPtr {
-    return &uniqueNoteIDBytes;
-}
 - (void)incrementLSN {
     logSequenceNumber++;
 }
@@ -100,17 +89,12 @@
 }
 
 - (NSUInteger)hash {
-	//XOR successive native-WORDs of CFUUIDBytes
-	NSUInteger finalHash = 0;
-	NSUInteger i, *noteIDBytesPtr = (NSUInteger *)&uniqueNoteIDBytes;
-	for (i = 0; i<sizeof(CFUUIDBytes) / sizeof(NSUInteger); i++) {
-		finalHash ^= *noteIDBytesPtr++;
-	}
-	return finalHash;
+	return self.uniqueNoteID.hash;
 }
-- (BOOL)isEqual:(id)otherNote {
-	CFUUIDBytes *otherBytes = [(id <SynchronizedNote>)otherNote uniqueNoteIDBytesPtr];
-	return memcmp(otherBytes, &uniqueNoteIDBytes, sizeof(CFUUIDBytes)) == 0;
+- (BOOL)isEqual:(id <SynchronizedNote>)otherNote {
+	if (!otherNote) return NO;
+	if (![otherNote conformsToProtocol:@protocol(SynchronizedNote)]) return NO;
+	return [self.uniqueNoteID isEqual:[otherNote uniqueNoteID]];
 }
 
 

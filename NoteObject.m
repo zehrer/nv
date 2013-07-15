@@ -74,7 +74,6 @@ typedef NSRange NSRange32;
 @synthesize fileModifiedDate = fileModifiedDate;
 @synthesize fileEncoding = fileEncoding;
 @synthesize syncServicesMD = syncServicesMD;
-@synthesize uniqueNoteIDBytes = uniqueNoteIDBytes;
 @synthesize filename = filename;
 @synthesize titleString = titleString;
 @synthesize labelString = labelString;
@@ -113,7 +112,6 @@ typedef NSRange NSRange32;
 }
 
 - (void)setDelegate:(id <NoteObjectDelegate>)delegate {
-	
 	if (delegate) {
 		_delegate = delegate;
 		
@@ -197,13 +195,7 @@ typedef NSRange NSRange32;
 - (void)removeAllSyncMDForService:(NSString*)serviceName {
 	[syncServicesMD removeObjectForKey:serviceName];
 }
-//- (void)removeKey:(NSString*)aKey forService:(NSString*)serviceName {
-//	[[syncServicesMD objectForKey:serviceName] removeObjectForKey:aKey];
-//}
 
-- (CFUUIDBytes *)uniqueNoteIDBytesPtr {
-    return &uniqueNoteIDBytes;
-}
 - (NSDictionary*)syncServicesMD {
     return syncServicesMD;
 }
@@ -218,17 +210,13 @@ typedef NSRange NSRange32;
 }
 
 - (NSUInteger)hash {
-	//XOR successive native-WORDs of CFUUIDBytes
-	NSUInteger finalHash = 0;
-	NSUInteger i, *noteIDBytesPtr = (NSUInteger *)&uniqueNoteIDBytes;
-	for (i = 0; i<sizeof(CFUUIDBytes) / sizeof(NSUInteger); i++) {
-		finalHash ^= *noteIDBytesPtr++;
-	}
-	return finalHash;
+	return self.uniqueNoteID.hash;
 }
 - (BOOL)isEqual:(id)otherNote {
-	CFUUIDBytes *otherBytes = [(id <SynchronizedNote>)otherNote uniqueNoteIDBytesPtr];
-	return memcmp(otherBytes, &uniqueNoteIDBytes, sizeof(CFUUIDBytes)) == 0;
+	if (!otherNote) return NO;
+	if (![otherNote conformsToProtocol:@protocol(SynchronizedNote)]) return NO;
+	NSUUID *otherUUID = [(id <SynchronizedNote>)otherNote uniqueNoteID];
+	return [self.uniqueNoteID isEqual:otherUUID];
 }
 
 - (NSAttributedString *)tableTitleString
@@ -245,100 +233,46 @@ typedef NSRange NSRange32;
 - (id)initWithCoder:(NSCoder*)decoder {
 	if (self = [self init]) {
 		
-		if ([decoder allowsKeyedCoding]) {
-			//(hopefully?) no versioning necessary here
-			
-			//for knowing when to delay certain initializations during launch (e.g., preview generation)
-			didUnarchive = YES;
-			
-			modifiedDate = [decoder decodeDoubleForKey:@keypath(self.modifiedDate)];
-			createdDate = [decoder decodeDoubleForKey:@keypath(self.createdDate)];
-			selectedRange.location = [decoder decodeInt32ForKey:@"selectionRangeLocation"];
-			selectedRange.length = [decoder decodeInt32ForKey:@"selectionRangeLength"];
-			
-			logSequenceNumber = [decoder decodeInt32ForKey:@keypath(self.logSequenceNumber)];
-
-			currentFormatID = [decoder decodeInt32ForKey:@keypath(self.currentFormatID)];
-			logicalSize = [decoder decodeInt32ForKey:@keypath(self.logicalSize)];
-			
-			int64_t fileModifiedDate64 = [decoder decodeInt64ForKey:@keypath(self.fileModifiedDate)];
-			memcpy(&fileModifiedDate, &fileModifiedDate64, sizeof(int64_t));
-						
-			NSUInteger decodedPerDiskByteCount = 0;
-			const uint8_t *decodedPerDiskBytes = [decoder decodeBytesForKey:@"perDiskInfoGroups" returnedLength:&decodedPerDiskByteCount];
-			if (decodedPerDiskBytes && decodedPerDiskByteCount) {
-				CopyPerDiskInfoGroupsToOrder(&perDiskInfoGroups, &perDiskInfoGroupCount, (PerDiskInfo *)decodedPerDiskBytes, decodedPerDiskByteCount, 1);
-			}
-			
-			fileEncoding = [decoder decodeInt32ForKey:@keypath(self.fileEncoding)];
-
-			NSUInteger decodedUUIDByteCount = 0;
-			const uint8_t *decodedUUIDBytes = [decoder decodeBytesForKey:@keypath(self.uniqueNoteIDBytes) returnedLength:&decodedUUIDByteCount];
-			if (decodedUUIDBytes) memcpy(&uniqueNoteIDBytes, decodedUUIDBytes, MIN(decodedUUIDByteCount, sizeof(CFUUIDBytes)));
-			
-			syncServicesMD = [decoder decodeObjectForKey:@keypath(self.syncServicesMD)];
-			
-			titleString = [decoder decodeObjectForKey:@keypath(self.titleString)];
-			labelString = [decoder decodeObjectForKey:@keypath(self.labelString)];
-			contentString = [[NSMutableAttributedString alloc] initWithAttributedString: [decoder decodeObjectForKey:@keypath(self.contentString)]];
-			filename = [[decoder decodeObjectForKey:@keypath(self.filename)] copy];
-			
-		} else {
-            NSRange32 range32;
-			unsigned int serverModifiedTime = 0;
-			float scrolledProportion = 0.0;
-            #if __LP64__
-            unsigned long longTemp;
-            #endif
-#if DECODE_INDIVIDUALLY
-			[decoder decodeValueOfObjCType:@encode(CFAbsoluteTime) at:&modifiedDate];
-			[decoder decodeValueOfObjCType:@encode(CFAbsoluteTime) at:&createdDate];
-            #if __LP64__
-			[decoder decodeValueOfObjCType:"{_NSRange=II}" at:&range32];
-            #else
-            [decoder decodeValueOfObjCType:@encode(NSRange) at:&range32];
-            #endif
-			[decoder decodeValueOfObjCType:@encode(float) at:&scrolledProportion];
-			
-			[decoder decodeValueOfObjCType:@encode(unsigned int) at:&logSequenceNumber];
-			
-			[decoder decodeValueOfObjCType:@encode(int) at:&currentFormatID];
-            #if __LP64__
-            [decoder decodeValueOfObjCType:"L" at:&longTemp];
-            nodeID = (UInt32)longTemp;
-            #else
-			[decoder decodeValueOfObjCType:@encode(UInt32) at:&nodeID];
-            #endif
-			[decoder decodeValueOfObjCType:@encode(UInt16) at:&fileModifiedDate.highSeconds];
-            #if __LP64__
-			[decoder decodeValueOfObjCType:"L" at:&longTemp];
-            fileModifiedDate.lowSeconds = (UInt32)longTemp;
-            #else
-            [decoder decodeValueOfObjCType:@encode(UInt32) at:&fileModifiedDate.lowSeconds];
-            #endif
-			[decoder decodeValueOfObjCType:@encode(UInt16) at:&fileModifiedDate.fraction];	
-            
-            #if __LP64__
-            [decoder decodeValueOfObjCType:"I" at:&fileEncoding];
-            #else
-            [decoder decodeValueOfObjCType:@encode(NSStringEncoding) at:&fileEncoding];
-            #endif
-			
-			[decoder decodeValueOfObjCType:@encode(CFUUIDBytes) at:&uniqueNoteIDBytes];
-			[decoder decodeValueOfObjCType:@encode(unsigned int) at:&serverModifiedTime];
-			
-			titleString = [decoder decodeObject];
-			labelString = [decoder decodeObject];
-			contentString = [[NSMutableAttributedString alloc] initWithAttributedString:[decoder decodeObject]];
-			filename = [[decoder decodeObject] copy];
-#else 
-			[decoder decodeValuesOfObjCTypes: "dd{NSRange=ii}fIiI{UTCDateTime=SIS}I[16C]I@@@@", &modifiedDate, &createdDate, &range32, 
-				&scrolledProportion, &logSequenceNumber, &currentFormatID, &nodeID, &fileModifiedDate, &fileEncoding, &uniqueNoteIDBytes, 
-				&serverModifiedTime, &titleString, &labelString, &contentString, &filename];
-#endif
-            selectedRange.location = range32.location;
-            selectedRange.length = range32.length;
+		//(hopefully?) no versioning necessary here
+		
+		//for knowing when to delay certain initializations during launch (e.g., preview generation)
+		didUnarchive = YES;
+		
+		modifiedDate = [decoder decodeDoubleForKey:@keypath(self.modifiedDate)];
+		createdDate = [decoder decodeDoubleForKey:@keypath(self.createdDate)];
+		selectedRange.location = [decoder decodeInt32ForKey:@"selectionRangeLocation"];
+		selectedRange.length = [decoder decodeInt32ForKey:@"selectionRangeLength"];
+		
+		logSequenceNumber = [decoder decodeInt32ForKey:@keypath(self.logSequenceNumber)];
+		
+		currentFormatID = [decoder decodeInt32ForKey:@keypath(self.currentFormatID)];
+		logicalSize = [decoder decodeInt32ForKey:@keypath(self.logicalSize)];
+		
+		int64_t fileModifiedDate64 = [decoder decodeInt64ForKey:@keypath(self.fileModifiedDate)];
+		memcpy(&fileModifiedDate, &fileModifiedDate64, sizeof(int64_t));
+		
+		NSUInteger decodedPerDiskByteCount = 0;
+		const uint8_t *decodedPerDiskBytes = [decoder decodeBytesForKey:@"perDiskInfoGroups" returnedLength:&decodedPerDiskByteCount];
+		if (decodedPerDiskBytes && decodedPerDiskByteCount) {
+			CopyPerDiskInfoGroupsToOrder(&perDiskInfoGroups, &perDiskInfoGroupCount, (PerDiskInfo *)decodedPerDiskBytes, decodedPerDiskByteCount, 1);
 		}
+		
+		fileEncoding = [decoder decodeInt32ForKey:@keypath(self.fileEncoding)];
+		
+		if ([decoder containsValueForKey:@keypath(self.uniqueNoteID)]) {
+			self.uniqueNoteID = [decoder decodeObjectForKey:@keypath(self.uniqueNoteID)];
+		} else if ([decoder containsValueForKey:@"uniqueNoteIDBytes"]) {
+			NSUInteger decodedUUIDByteCount = 0;
+			const uint8_t *decodedUUIDBytes = [decoder decodeBytesForKey:@"uniqueNoteIDBytes" returnedLength:&decodedUUIDByteCount];
+			self.uniqueNoteID = decodedUUIDBytes ? [[NSUUID alloc] initWithUUIDBytes:decodedUUIDBytes] : [NSUUID UUID];
+		}
+		
+		syncServicesMD = [decoder decodeObjectForKey:@keypath(self.syncServicesMD)];
+		
+		titleString = [decoder decodeObjectForKey:@keypath(self.titleString)];
+		labelString = [decoder decodeObjectForKey:@keypath(self.labelString)];
+		contentString = [[NSMutableAttributedString alloc] initWithAttributedString: [decoder decodeObjectForKey:@keypath(self.contentString)]];
+		filename = [[decoder decodeObjectForKey:@keypath(self.filename)] copy];
 		
 		dateCreatedString = [NSString relativeDateStringWithAbsoluteTime:createdDate];
 		dateModifiedString = [NSString relativeDateStringWithAbsoluteTime:modifiedDate];
@@ -350,71 +284,36 @@ typedef NSRange NSRange32;
 
 - (void)encodeWithCoder:(NSCoder *)coder {
 		
-	if ([coder allowsKeyedCoding]) {
-		
-		[coder encodeDouble:modifiedDate forKey:@keypath(self.modifiedDate)];
-		[coder encodeDouble:createdDate forKey:@keypath(self.createdDate)];
-		[coder encodeInt32:(unsigned int)selectedRange.location forKey:@"selectionRangeLocation"];
-		[coder encodeInt32:(unsigned int)selectedRange.length forKey:@"selectionRangeLength"];
-		[coder encodeBool:YES forKey:@"contentsWere7Bit"];
-		
-		[coder encodeInt32:logSequenceNumber forKey:@keypath(self.logSequenceNumber)];
-        
-		[coder encodeInteger:currentFormatID forKey:@keypath(self.currentFormatID)];
-		[coder encodeInt32:logicalSize forKey:@keypath(self.logicalSize)];
-
-		PerDiskInfo *flippedPerDiskInfoGroups = calloc(perDiskInfoGroupCount, sizeof(PerDiskInfo));
-		CopyPerDiskInfoGroupsToOrder((PerDiskInfo**)&flippedPerDiskInfoGroups, &perDiskInfoGroupCount, perDiskInfoGroups, perDiskInfoGroupCount * sizeof(PerDiskInfo), 0);
-		
-		[coder encodeBytes:(const uint8_t *)flippedPerDiskInfoGroups length:perDiskInfoGroupCount * sizeof(PerDiskInfo) forKey:@"perDiskInfoGroups"];
-		free(flippedPerDiskInfoGroups);
-		
-		[coder encodeInt64:*(int64_t*)&fileModifiedDate forKey:@keypath(self.fileModifiedDate)];
-		[coder encodeInteger:fileEncoding forKey:@keypath(self.fileEncoding)];
-		
-		[coder encodeBytes:(const uint8_t *)&uniqueNoteIDBytes length:sizeof(CFUUIDBytes) forKey:@keypath(self.uniqueNoteIDBytes)];
-		[coder encodeObject:syncServicesMD forKey:@keypath(self.syncServicesMD)];
-		
-		[coder encodeObject:titleString forKey:@keypath(self.titleString)];
-		[coder encodeObject:labelString forKey:@keypath(self.labelString)];
-		[coder encodeObject:contentString forKey:@keypath(self.contentString)];
-		[coder encodeObject:filename forKey:@keypath(self.filename)];
-		
-	} else {
-// 64bit encoding would break 32bit reading - keyed archives should be used
-#if !__LP64__
-		unsigned int serverModifiedTime = 0;
-		float scrolledProportion = 0.0;
-#if DECODE_INDIVIDUALLY
-		[coder encodeValueOfObjCType:@encode(CFAbsoluteTime) at:&modifiedDate];
-		[coder encodeValueOfObjCType:@encode(CFAbsoluteTime) at:&createdDate];
-        [coder encodeValueOfObjCType:@encode(NSRange) at:&selectedRange];
-		[coder encodeValueOfObjCType:@encode(float) at:&scrolledProportion];
-		
-		[coder encodeValueOfObjCType:@encode(unsigned int) at:&logSequenceNumber];
-		
-		[coder encodeValueOfObjCType:@encode(int) at:&currentFormatID];
-		[coder encodeValueOfObjCType:@encode(UInt32) at:&nodeID];
-		[coder encodeValueOfObjCType:@encode(UInt16) at:&fileModifiedDate.highSeconds];
-		[coder encodeValueOfObjCType:@encode(UInt32) at:&fileModifiedDate.lowSeconds];
-		[coder encodeValueOfObjCType:@encode(UInt16) at:&fileModifiedDate.fraction];
-		[coder encodeValueOfObjCType:@encode(NSStringEncoding) at:&fileEncoding];
-		
-		[coder encodeValueOfObjCType:@encode(CFUUIDBytes) at:&uniqueNoteIDBytes];
-		[coder encodeValueOfObjCType:@encode(unsigned int) at:&serverModifiedTime];
-		
-		[coder encodeObject:titleString];
-		[coder encodeObject:labelString];
-		[coder encodeObject:contentString];
-		[coder encodeObject:filename];
-		
-#else
-		[coder encodeValuesOfObjCTypes: "dd{NSRange=ii}fIiI{UTCDateTime=SIS}I[16C]I@@@@", &modifiedDate, &createdDate, &range32, 
-			&scrolledProportion, &logSequenceNumber, &currentFormatID, &nodeID, &fileModifiedDate, &fileEncoding, &uniqueNoteIDBytes, 
-			&serverModifiedTime, &titleString, &labelString, &contentString, &filename];
-#endif
-#endif // !__LP64__
-	}
+	[coder encodeDouble:modifiedDate forKey:@keypath(self.modifiedDate)];
+	[coder encodeDouble:createdDate forKey:@keypath(self.createdDate)];
+	[coder encodeInt32:(unsigned int)selectedRange.location forKey:@"selectionRangeLocation"];
+	[coder encodeInt32:(unsigned int)selectedRange.length forKey:@"selectionRangeLength"];
+	[coder encodeBool:YES forKey:@"contentsWere7Bit"];
+	
+	[coder encodeInt32:logSequenceNumber forKey:@keypath(self.logSequenceNumber)];
+	
+	[coder encodeInteger:currentFormatID forKey:@keypath(self.currentFormatID)];
+	[coder encodeInt32:logicalSize forKey:@keypath(self.logicalSize)];
+	
+	PerDiskInfo *flippedPerDiskInfoGroups = calloc(perDiskInfoGroupCount, sizeof(PerDiskInfo));
+	CopyPerDiskInfoGroupsToOrder((PerDiskInfo**)&flippedPerDiskInfoGroups, &perDiskInfoGroupCount, perDiskInfoGroups, perDiskInfoGroupCount * sizeof(PerDiskInfo), 0);
+	
+	[coder encodeBytes:(const uint8_t *)flippedPerDiskInfoGroups length:perDiskInfoGroupCount * sizeof(PerDiskInfo) forKey:@"perDiskInfoGroups"];
+	free(flippedPerDiskInfoGroups);
+	
+	[coder encodeInt64:*(int64_t*)&fileModifiedDate forKey:@keypath(self.fileModifiedDate)];
+	[coder encodeInteger:fileEncoding forKey:@keypath(self.fileEncoding)];
+	
+	uuid_t bytes;
+	[self.uniqueNoteID getUUIDBytes:bytes];
+	[coder encodeBytes:(const uint8_t *)&bytes length:sizeof(uuid_t) forKey:@"uniqueNoteIDBytes"];
+	
+	[coder encodeObject:syncServicesMD forKey:@keypath(self.syncServicesMD)];
+	
+	[coder encodeObject:titleString forKey:@keypath(self.titleString)];
+	[coder encodeObject:labelString forKey:@keypath(self.labelString)];
+	[coder encodeObject:contentString forKey:@keypath(self.contentString)];
+	[coder encodeObject:filename forKey:@keypath(self.filename)];
 }
 
 - (id)initWithNoteBody:(NSAttributedString *)bodyText title:(NSString *)aNoteTitle delegate:(id)delegate format:(NVDatabaseFormat)formatID labels:(NSString*)aLabelString {
@@ -438,9 +337,7 @@ typedef NSRange NSRange32;
 		currentFormatID = formatID;
 		filename = [[delegate uniqueFilenameForTitle:titleString fromNote:nil] copy];
 		
-		CFUUIDRef uuidRef = CFUUIDCreate(kCFAllocatorDefault);
-		uniqueNoteIDBytes = CFUUIDGetUUIDBytes(uuidRef);
-		CFRelease(uuidRef);
+		self.uniqueNoteID = [NSUUID UUID];
 		
 		createdDate = modifiedDate = CFAbsoluteTimeGetCurrent();
 		dateCreatedString = dateModifiedString = [NSString relativeDateStringWithAbsoluteTime:modifiedDate];
@@ -466,9 +363,7 @@ typedef NSRange NSRange32;
 		self.nodeID = entry->nodeID;
 		logicalSize = entry->logicalSize;
 		
-		CFUUIDRef uuidRef = CFUUIDCreate(kCFAllocatorDefault);
-		uniqueNoteIDBytes = CFUUIDGetUUIDBytes(uuidRef);
-		CFRelease(uuidRef);
+		self.uniqueNoteID = [NSUUID UUID];
 		
 		if (![self _setTitleString:[filename stringByDeletingPathExtension]])
 			titleString = NSLocalizedString(@"Untitled Note", @"Title of a nameless note");
@@ -917,7 +812,12 @@ typedef NSRange NSRange32;
 							objectForKey:[[[SyncSessionController allServiceClasses] objectAtIndex:i] nameOfKeyElement]];
 		if (syncID) [idsDict setObject:syncID forKey:[svcs objectAtIndex:i]];
 	}
-	[idsDict setObject:[[NSData dataWithBytes:&uniqueNoteIDBytes length:16] nv_stringByBase64Encoding] forKey:@"NV"];
+	
+	uuid_t uuid;
+	[self.uniqueNoteID getUUIDBytes:uuid];
+	NSData *uuidData = [NSData dataWithBytes:uuid length:sizeof(uuid_t)];
+	
+	[idsDict setObject:[uuidData nv_stringByBase64Encoding] forKey:@"NV"];
 	
 	return [NSURL URLWithString:[@"nvalt://find/" stringByAppendingFormat:@"%@/?%@", [titleString stringWithPercentEscapes], 
 								 [idsDict URLEncodedString]]];
@@ -1483,7 +1383,7 @@ typedef NSRange NSRange32;
 	if (err != noErr) {
 		NSLog(@"FSCreateFileIfNotPresentInDirectory: %d", err);
 		if (outError) *outError = [NSError errorWithDomain:NSOSStatusErrorDomain code:err userInfo:nil];
-		return nodeID;
+		return NO;
 	}
 	
 	if (!fileWasCreated && !overwrite) {
@@ -1636,9 +1536,10 @@ typedef NSRange NSRange32;
 
 - (NSComparisonResult)compareUniqueNoteID:(NoteObject *)other
 {
-	CFUUIDBytes left = self.uniqueNoteIDBytes;
-	CFUUIDBytes right = other.uniqueNoteIDBytes;
-	return memcmp(&left, &right, sizeof(CFUUIDBytes));
+	uuid_t left, right;
+	[self.uniqueNoteID getUUIDBytes:left];
+	[self.uniqueNoteID getUUIDBytes:right];
+	return memcmp(&left, &right, sizeof(uuid_t));
 }
 
 - (BOOL)titleIsPrefixOfOtherNoteTitle:(NoteObject *)longer

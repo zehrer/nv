@@ -289,11 +289,7 @@
 	NSURL *noteURL = nil;
 	NSDictionary *params = [NSDictionary dictionaryWithObjectsAndKeys:@"1", @"response", nil];
 	if (doesCreate) {
-		CFUUIDRef theUUID = CFUUIDCreate(NULL);
-		CFStringRef string = CFUUIDCreateString(NULL, theUUID);
-		CFRelease(theUUID);
-
-		NSString *str = (__bridge_transfer NSString *)string;
+		NSString *str = [[NSUUID UUID] UUIDString];
 		str = [[str stringByReplacingOccurrencesOfString:@"-" withString:@""] lowercaseString];
 		noteURL = [SimplenoteSession simperiumURLWithPath:[NSString stringWithFormat:@"/Note/i/%@", str] parameters:params];
 	} else {

@@ -129,7 +129,7 @@ static void FSEventsCallback(ConstFSEventStreamRef stream, void* info, size_t nu
 	FSEventStreamContext context = { 0, (__bridge void *)(self), CFRetain, CFRelease, CFCopyDescription };
 	
 	noteDirEventStreamRef = FSEventStreamCreate(NULL, &FSEventsCallback, &context, (__bridge CFArrayRef)[NSArray arrayWithObject:path], kFSEventStreamEventIdSinceNow, 
-												1.0, kFSEventStreamCreateFlagWatchRoot | 0x00000008 /*kFSEventStreamCreateFlagIgnoreSelf*/);
+												1.0, kFSEventStreamCreateFlagWatchRoot | kFSEventStreamCreateFlagIgnoreSelf);
 	
 	FSEventStreamScheduleWithRunLoop(noteDirEventStreamRef, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
 	if (!FSEventStreamStart(noteDirEventStreamRef)) {

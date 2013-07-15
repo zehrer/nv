@@ -1735,8 +1735,8 @@ void outletObjectAwoke(id sender) {
 	else
 		[notationController refilterNotes];
     
-	CFUUIDBytes bytes = [prefsController UUIDBytesOfLastSelectedNote];
-	NSUInteger idx = [self revealNote:[notationController noteForUUIDBytes:&bytes] options:NVDoNotChangeScrollPosition];
+	NSUUID *UUID = [prefsController UUIDOfLastSelectedNote];
+	NSUInteger idx = [self revealNote:[notationController noteForUUID:UUID] options:NVDoNotChangeScrollPosition];
 	//scroll using saved scrollbar position
 	[notesTableView scrollRowToVisible:NSNotFound == idx ? 0 : idx withVerticalOffset:[prefsController scrollOffsetOfLastSelectedNote]];
 }

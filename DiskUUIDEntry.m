@@ -18,31 +18,34 @@
 
 #import "DiskUUIDEntry.h"
 
+@interface DiskUUIDEntry ()
+
+@property (nonatomic, strong, readwrite) NSUUID *UUID;
+@property (nonatomic, strong, readwrite) NSDate *lastAccessed;
+
+@end
 
 @implementation DiskUUIDEntry
 
-@synthesize lastAccessed = lastAccessed, uuidRef = uuidRef;
+@synthesize lastAccessed = lastAccessed;
 
-- (id)initWithUUIDRef:(CFUUIDRef)aUUIDRef {
+- (id)initWithUUID:(NSUUID *)UUID {
 	if ((self = [super init])) {
-		NSAssert(aUUIDRef != nil, @"need a real UUID");
-		uuidRef = CFRetain(aUUIDRef);
-		lastAccessed = [NSDate date];
+		NSAssert(UUID, @"need a real UUID");
+		self.UUID = UUID;
+		self.lastAccessed = [NSDate date];
 	}
 	return self;
 }
 
-- (void)dealloc {
-
-	CFRelease(uuidRef);
-}
 - (void)encodeWithCoder:(NSCoder *)coder {
 	NSAssert([coder allowsKeyedCoding], @"keyed-encoding only!");
 	
 	[coder encodeObject:lastAccessed forKey:@keypath(self.lastAccessed)];
 	
-	CFUUIDBytes bytes = CFUUIDGetUUIDBytes(uuidRef);
-	[coder encodeBytes:(const uint8_t *)&bytes length:sizeof(CFUUIDBytes) forKey:@keypath(self.uuidRef)];
+	uuid_t bytes;
+	[self.UUID getUUIDBytes:bytes];
+	[coder encodeBytes:(const uint8_t *)&bytes length:sizeof(uuid_t) forKey:@"uuidRef"];
 
 }
 - (id)initWithCoder:(NSCoder*)decoder {
@@ -52,38 +55,34 @@
 
 		lastAccessed = [decoder decodeObjectForKey:@keypath(self.lastAccessed)];
 		
-		NSUInteger decodedByteCount = 0;
-		const uint8_t *bytes = [decoder decodeBytesForKey:@keypath(self.uuidRef) returnedLength:&decodedByteCount];
-		if (bytes && decodedByteCount)  {
-			uuidRef = CFUUIDCreateFromUUIDBytes(NULL, *(CFUUIDBytes*)bytes);
+		if ([decoder containsValueForKey:@keypath(self.UUID)]) {
+			self.UUID = [decoder decodeObjectForKey:@keypath(self.UUID)];
+		} else if ([decoder containsValueForKey:@"uuidRef"]) {
+			NSUInteger decodedUUIDByteCount = 0;
+			const uint8_t *decodedUUIDBytes = [decoder decodeBytesForKey:@"uuidRef" returnedLength:&decodedUUIDByteCount];
+			if (decodedUUIDBytes && decodedUUIDBytes)
+				self.UUID = [[NSUUID alloc] initWithUUIDBytes:decodedUUIDBytes];
+			else
+				return nil;
 		}
-		
-		if (!uuidRef) return nil;
 	}
 	return self;
 }
 
 - (void)see {
-	lastAccessed = [NSDate date];
-}
-
-- (CFUUIDRef)uuidRef {
-	return uuidRef;
-}
-
-- (NSDate*)lastAccessed {
-	return lastAccessed;
+	self.lastAccessed = [NSDate date];
 }
 
 - (NSString*)description {
-	return [NSString stringWithFormat:@"DiskUUIDEntry(%@, %@)", lastAccessed, (__bridge_transfer NSString *)CFUUIDCreateString(NULL, uuidRef)];
+	return [NSString stringWithFormat:@"DiskUUIDEntry(%@, %@)", lastAccessed, self.UUID.UUIDString];
 }
 
 - (NSUInteger)hash {
-	return CFHash(uuidRef);
+	return self.UUID.hash;
 }
-- (BOOL)isEqual:(id)otherEntry {
-	return CFEqual(uuidRef, [otherEntry uuidRef]);
+
+- (BOOL)isEqual:(DiskUUIDEntry *)otherEntry {
+	return [self.UUID isEqual:otherEntry.UUID];
 }
 
 @end
