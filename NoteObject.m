@@ -61,6 +61,8 @@ typedef NSRange NSRange32;
 	NSMutableAttributedString *contentString;
 }
 
+@property (nonatomic, readonly) FSRef *noteFileRef;
+
 @end
 
 @implementation NoteObject
@@ -81,10 +83,7 @@ typedef NSRange NSRange32;
 @synthesize prefixParentNotes = prefixParentNotes;
 @synthesize modifiedDateString = dateModifiedString, createdDateString = dateCreatedString;
 @synthesize tableTitleString = tableTitleString;
-
-static FSRef *noteFileRefInit(NoteObject* obj);
-static void setAttrModifiedDate(NoteObject *note, UTCDateTime *dateTime);
-static void setCatalogNodeID(NoteObject *note, UInt32 cnid);
+@synthesize noteFileRef = noteFileRef;
 
 - (id)init {
     if (self = [super init]) {
@@ -125,22 +124,19 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid);
 	}
 }
 
-static FSRef *noteFileRefInit(NoteObject* obj) {
-	if (!(obj->noteFileRef)) {
-		obj->noteFileRef = (FSRef*)calloc(1, sizeof(FSRef));
+- (FSRef *)noteFileRef
+{
+	if (!(noteFileRef)) {
+		noteFileRef = (FSRef*)calloc(1, sizeof(FSRef));
 	}
-	return obj->noteFileRef;
+	return noteFileRef;
 }
 
-static void setAttrModifiedDate(NoteObject *note, UTCDateTime *dateTime) {
-	NSUInteger idx = SetPerDiskInfoWithTableIndex(dateTime, NULL, note.delegate.diskUUIDIndex,
-													&(note->perDiskInfoGroups), &(note->perDiskInfoGroupCount));
-	note->attrsModifiedDate = &(note->perDiskInfoGroups[idx].attrTime);
-}
-static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
-	SetPerDiskInfoWithTableIndex(NULL, &cnid, note.delegate.diskUUIDIndex,
-								 &(note->perDiskInfoGroups), &(note->perDiskInfoGroupCount));
-	note->nodeID = cnid;
+- (void)setAttrsModifiedDate:(UTCDateTime *)dateTime
+{
+	NSUInteger idx = SetPerDiskInfoWithTableIndex(dateTime, NULL, self.delegate.diskUUIDIndex,
+												  &perDiskInfoGroups, &perDiskInfoGroupCount);
+	attrsModifiedDate = &(perDiskInfoGroups[idx].attrTime);
 }
 
 - (UTCDateTime *)attrsModifiedDate
@@ -151,17 +147,22 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 		NSUInteger i, tableIndex = self.delegate.diskUUIDIndex;
 		
 		for (i=0; i<perDiskInfoGroupCount; i++) {
-			//check if this date has actually been initialized; this entry could be here only because setCatalogNodeID was called
+			//check if this date has actually been initialized; this entry could be here only because setNodeID was called
 			if (perDiskInfoGroups[i].diskIDIndex == tableIndex && !UTCDateTimeIsEmpty(perDiskInfoGroups[i].attrTime)) {
 				attrsModifiedDate = &(perDiskInfoGroups[i].attrTime);
 				return attrsModifiedDate;
 			}
 		}
 		//this note doesn't have a file-modified date, so initialize a fairly reasonable one here
-		UTCDateTime date = fileModifiedDate;
-		setAttrModifiedDate(self, &date);
+		self.attrsModifiedDate = &fileModifiedDate;
 	}
 	return attrsModifiedDate;
+}
+
+- (void)setNodeID:(UInt32)cnid
+{
+	SetPerDiskInfoWithTableIndex(NULL, &cnid, self.delegate.diskUUIDIndex, &perDiskInfoGroups, &perDiskInfoGroupCount);
+	nodeID = cnid;
 }
 
 - (UInt32)nodeID
@@ -170,14 +171,14 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 		NSUInteger i, tableIndex = self.delegate.diskUUIDIndex;
 		
 		for (i=0; i<perDiskInfoGroupCount; i++) {
-			//check if this nodeID has actually been initialized; this entry could be here only because setAttrModifiedDate was called
+			//check if this nodeID has actually been initialized; this entry could be here only because setAttrsModifiedDate was called
 			if (perDiskInfoGroups[i].diskIDIndex == tableIndex && perDiskInfoGroups[i].nodeID != 0U) {
 				nodeID = perDiskInfoGroups[i].nodeID;
 				return nodeID;
 			}
 		}
 		//this note doesn't have a file-modified date, so initialize something that at least won't repeat this lookup
-		setCatalogNodeID(self, 1);
+		self.nodeID = 1;
 	}
 	return nodeID;
 	
@@ -461,8 +462,8 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 		filename = [(__bridge NSString*)entry->filename copy];
 		currentFormatID = [delegate currentNoteStorageFormat];
 		fileModifiedDate = entry->lastModified;
-		setAttrModifiedDate(self, &(entry->lastAttrModified));
-		setCatalogNodeID(self, entry->nodeID);
+		self.attrsModifiedDate = &(entry->lastAttrModified);
+		self.nodeID = entry->nodeID;
 		logicalSize = entry->logicalSize;
 		
 		CFUUIDRef uuidRef = CFUUIDCreate(kCFAllocatorDefault);
@@ -600,7 +601,7 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 		//woe to the exporter who also left the note files in the notes directory after switching to a singledb format
 		//his note names might not be up-to-date
 		if ([_delegate currentNoteStorageFormat] != NVDatabaseFormatSingle ||
-			![_delegate notesDirectoryContainsFile:filename returningFSRef:noteFileRefInit(self)]) {
+			![_delegate notesDirectoryContainsFile:filename returningFSRef:self.noteFileRef]) {
 			
 			[self setFilenameFromTitle];
 		}
@@ -636,7 +637,7 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 		filename = [aString copy];
 		
 		if (!externalTrigger) {
-			if ([_delegate noteFileRenamed:noteFileRefInit(self) fromName:oldName toName:filename] != noErr) {
+			if ([_delegate noteFileRenamed:self.noteFileRef fromName:oldName toName:filename] != noErr) {
 				NSLog(@"Couldn't rename note %@", titleString);
 				
 				//revert name
@@ -924,8 +925,8 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 
 - (NSString*)noteFilePath {
 	UniChar chars[256];
-	if ([_delegate refreshFileRefIfNecessary:noteFileRefInit(self) withName:filename charsBuffer:chars] == noErr)
-		return [[NSFileManager defaultManager] pathWithFSRef:noteFileRefInit(self)];
+	if ([_delegate refreshFileRefIfNecessary:self.noteFileRef withName:filename charsBuffer:chars] == noErr)
+		return [[NSFileManager defaultManager] pathWithFSRef:self.noteFileRef];
 	return nil;
 }
 
@@ -948,7 +949,7 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
     BOOL fileWasCreated = NO;
     BOOL fileIsOwned = NO;
 	
-    if ([_delegate createFileIfNotPresentInNotesDirectory:noteFileRefInit(self) forFilename:filename fileWasCreated:&fileWasCreated] != noErr)
+    if ([_delegate createFileIfNotPresentInNotesDirectory:self.noteFileRef forFilename:filename fileWasCreated:&fileWasCreated] != noErr)
 		return NO;
     
     if (fileWasCreated) {
@@ -958,7 +959,7 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
     
 	//createFileIfNotPresentInNotesDirectory: works by name, so if this file is not owned by us at this point, it was a race with moving it
     FSCatalogInfo info;
-    if ([_delegate fileInNotesDirectory:noteFileRefInit(self) isOwnedByUs:&fileIsOwned hasCatalogInfo:&info] != noErr)
+    if ([_delegate fileInNotesDirectory:self.noteFileRef isOwnedByUs:&fileIsOwned hasCatalogInfo:&info] != noErr)
 		return NO;
     
     CFAbsoluteTime timeOnDisk, lastTime;
@@ -1048,7 +1049,7 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 		//see if the file's fileModDate (if it exists) is newer than this note's current fileModificationDate
 		//could offer to merge or revert changes
 		
-		if (![_delegate writeDataToNotesDirectory:formattedData name:filename destinationRef:noteFileRefInit(self) error:&error]) {
+		if (![_delegate writeDataToNotesDirectory:formattedData name:filename destinationRef:self.noteFileRef error:&error]) {
 			NSLog(@"Unable to save note file %@", filename);
 			
 			[_delegate note:self failedToWriteWithError:error];
@@ -1057,13 +1058,14 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 		
 		//if writing plaintext set the file encoding with setxattr
 		if (NVDatabaseFormatPlain == formatID) {
-			[self writeCurrentFileEncodingToFSRef:noteFileRefInit(self)];
+			[self writeCurrentFileEncodingToFSRef:self.noteFileRef];
 		}
+		
 		NSFileManager *fileMan = [NSFileManager defaultManager];
-		[fileMan setOpenMetaTags:[self orderedLabelTitles] atFSPath:[[fileMan pathWithFSRef:noteFileRefInit(self)] fileSystemRepresentation]];
+		[fileMan setOpenMetaTags:[self orderedLabelTitles] atFSPath:[[fileMan pathWithFSRef:self.noteFileRef] fileSystemRepresentation]];
 		
 		//always hide the file extension for all types
-		LSSetExtensionHiddenForRef(noteFileRefInit(self), TRUE);
+		LSSetExtensionHiddenForRef(self.noteFileRef, TRUE);
 		
 		if (!resetFilename) {
 			//NSLog(@"resetting the file name just because.");
@@ -1096,14 +1098,14 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 	UCConvertCFAbsoluteTimeToUTCDateTime(createdDate, &catInfo.createDate);
 	UCConvertCFAbsoluteTimeToUTCDateTime(modifiedDate, &catInfo.contentModDate);
 	
-	// if this method is called anywhere else, then use [delegate refreshFileRefIfNecessary:noteFileRefInit(self) withName:filename charsBuffer:chars]; instead
+	// if this method is called anywhere else, then use [delegate refreshFileRefIfNecessary:self.noteFileRef withName:filename charsBuffer:chars]; instead
 	// for now, it is not called in any situations where the fsref might accidentally point to a moved file
 	OSStatus err = noErr;
 	do {
-		if (noErr != err || IsZeros(noteFileRefInit(self), sizeof(FSRef))) {
-			if (![_delegate notesDirectoryContainsFile:filename returningFSRef:noteFileRefInit(self)]) return fnfErr;
+		if (noErr != err || IsZeros(self.noteFileRef, sizeof(FSRef))) {
+			if (![_delegate notesDirectoryContainsFile:filename returningFSRef:self.noteFileRef]) return fnfErr;
 		}
-		err = FSSetCatalogInfo(noteFileRefInit(self), kFSCatInfoCreateDate | kFSCatInfoContentMod, &catInfo);
+		err = FSSetCatalogInfo(self.noteFileRef, kFSCatInfoCreateDate | kFSCatInfoContentMod, &catInfo);
 	} while (fnfErr == err);
 
 	if (noErr != err) {
@@ -1113,13 +1115,13 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 	
 	//regardless of whether FSSetCatalogInfo was successful, the file mod date could still have changed
 	
-	if ((err = [_delegate fileInNotesDirectory:noteFileRefInit(self) isOwnedByUs:NULL hasCatalogInfo:&catInfo]) != noErr) {
+	if ((err = [_delegate fileInNotesDirectory:self.noteFileRef isOwnedByUs:NULL hasCatalogInfo:&catInfo]) != noErr) {
 		NSLog(@"Unable to get new modification date of file %@: %d", filename, err);
 		return err;
 	}
 	fileModifiedDate = catInfo.contentModDate;
-	setAttrModifiedDate(self, &catInfo.attributeModDate);
-	setCatalogNodeID(self, catInfo.nodeID);
+	self.attrsModifiedDate = &catInfo.attributeModDate;
+	self.nodeID = catInfo.nodeID;
 	logicalSize = (UInt32)(catInfo.dataLogicalSize & 0xFFFFFFFF);
 	
 	return noErr;
@@ -1191,10 +1193,10 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 		//b) because the file is otherwise not being rewritten, and the extended attribute--if it existed--may have been different
 		
 		UniChar chars[256];
-		if ([_delegate refreshFileRefIfNecessary:noteFileRefInit(self) withName:filename charsBuffer:chars] != noErr)
+		if ([_delegate refreshFileRefIfNecessary:self.noteFileRef withName:filename charsBuffer:chars] != noErr)
 			return NO;
 		
-		if ([self writeCurrentFileEncodingToFSRef:noteFileRefInit(self)] != noErr)
+		if ([self writeCurrentFileEncodingToFSRef:self.noteFileRef] != noErr)
 			return NO;		
 		
 		if ((updated = [self updateFromFile])) {
@@ -1210,7 +1212,7 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 }
 
 - (BOOL)updateFromFile {
-    NSMutableData *data = [_delegate dataFromFileInNotesDirectory:noteFileRefInit(self) forFilename:filename];
+    NSMutableData *data = [_delegate dataFromFileInNotesDirectory:self.noteFileRef forFilename:filename];
     if (!data) {
 		NSLog(@"Couldn't update note from file on disk");
 		return NO;
@@ -1218,10 +1220,10 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 	
     if ([self updateFromData:data inFormat:currentFormatID]) {
 		FSCatalogInfo info;
-		if ([_delegate fileInNotesDirectory:noteFileRefInit(self) isOwnedByUs:NULL hasCatalogInfo:&info] == noErr) {
+		if ([_delegate fileInNotesDirectory:self.noteFileRef isOwnedByUs:NULL hasCatalogInfo:&info] == noErr) {
 			fileModifiedDate = info.contentModDate;
-			setAttrModifiedDate(self, &info.attributeModDate);
-			setCatalogNodeID(self, info.nodeID);
+			self.attrsModifiedDate = &info.attributeModDate;
+			self.nodeID = info.nodeID;
 			logicalSize = (UInt32)(info.dataLogicalSize & 0xFFFFFFFF);
 			
 			return YES;
@@ -1233,7 +1235,7 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 - (BOOL)updateFromCatalogEntry:(NoteCatalogEntry*)catEntry {
 	BOOL didRestoreLabels = NO;
 	
-    NSMutableData *data = [_delegate dataFromFileInNotesDirectory:noteFileRefInit(self) forCatalogEntry:catEntry];
+    NSMutableData *data = [_delegate dataFromFileInNotesDirectory:self.noteFileRef forCatalogEntry:catEntry];
     if (!data) {
 		NSLog(@"Couldn't update note from file on disk given catalog entry");
 		return NO;
@@ -1245,12 +1247,12 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 	[self setFilename:(__bridge NSString*)catEntry->filename withExternalTrigger:YES];
     
     fileModifiedDate = catEntry->lastModified;
-	setAttrModifiedDate(self, &(catEntry->lastAttrModified));
-    setCatalogNodeID(self, catEntry->nodeID);
+	self.attrsModifiedDate = &catEntry->lastAttrModified;
+	self.nodeID = catEntry->nodeID;
 	logicalSize = catEntry->logicalSize;
 	
 	NSMutableData *pathData = [NSMutableData dataWithLength:4 * 1024];
-	if (FSRefMakePath(noteFileRefInit(self), [pathData mutableBytes], (unsigned int)[pathData length]) == noErr) {
+	if (FSRefMakePath(self.noteFileRef, [pathData mutableBytes], (unsigned int)[pathData length]) == noErr) {
 		
 		NSArray *openMetaTags = [[NSFileManager defaultManager] getOpenMetaTagsAtFSPath:[pathData bytes]];
 		if (openMetaTags) {
@@ -1278,13 +1280,13 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 		//or if this file has just been altered, grab its newly-changed modification dates
 		
 		FSCatalogInfo info;
-		if ([_delegate fileInNotesDirectory:noteFileRefInit(self) isOwnedByUs:NULL hasCatalogInfo:&info] == noErr) {
+		if ([_delegate fileInNotesDirectory:self.noteFileRef isOwnedByUs:NULL hasCatalogInfo:&info] == noErr) {
 			if (createdDate == 0.0 && UCConvertUTCDateTimeToCFAbsoluteTime(&info.createDate, &aCreateDate) == noErr) {
 				[self setDateAdded:aCreateDate];
 			}
 			if (didRestoreLabels) {
 				fileModifiedDate = info.contentModDate;
-				setAttrModifiedDate(self, &info.attributeModDate);
+				self.attrsModifiedDate = &info.attributeModDate;
 			}
 		}
 	}
@@ -1310,7 +1312,7 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 	    break;
 	case NVDatabaseFormatPlain:
 		//try to merge/re-match attributes?
-	    if ((stringFromData = [NSMutableString newShortLivedStringFromData:data ofGuessedEncoding:&fileEncoding withPath:NULL orWithFSRef:noteFileRefInit(self)])) {
+	    if ((stringFromData = [NSMutableString newShortLivedStringFromData:data ofGuessedEncoding:&fileEncoding withPath:NULL orWithFSRef:self.noteFileRef])) {
 			attributedStringFromData = [[NSMutableAttributedString alloc] initWithString:stringFromData 
 																			  attributes:[[GlobalPrefs defaultPrefs] noteBodyAttributes]];
 	    } else {
@@ -1370,26 +1372,13 @@ static void setCatalogNodeID(NoteObject *note, UInt32 cnid) {
 
 - (void)moveFileToTrash {
 	OSStatus err = noErr;
-	if ((err = [_delegate moveFileToTrash:noteFileRefInit(self) forFilename:filename]) != noErr) {
+	if ((err = [_delegate moveFileToTrash:self.noteFileRef forFilename:filename]) != noErr) {
 		NSLog(@"Couldn't move file to trash: %d", err);
 	}
 }
 
 - (void)removeFileFromDirectory {
-#if PERMADELETE
-	OSStatus err = noErr;
-	if ((err = [delegate deleteFileInNotesDirectory:noteFileRefInit(self) forFilename:filename]) != noErr) {
-		
-		if (err != fnfErr) {
-			//what happens if we wanted to undo the deletion? moveFileToTrash will now tell the note that it shouldn't look for the file
-			//so it would not be rewritten on re-creation?
-			NSLog(@"Unable to delete file %@ (%d); moving to trash instead", filename, err);
-			[self moveFileToTrash];
-		}
-	}
-#else
 	[self moveFileToTrash];
-#endif
 }
 
 - (BOOL)removeUsingJournal:(WALStorageController*)wal {

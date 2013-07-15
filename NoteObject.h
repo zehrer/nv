@@ -70,7 +70,7 @@ typedef struct _NoteFilterContext {
 @property (nonatomic, copy, readonly) NSAttributedString *tableTitleString;
 @property (nonatomic, copy) NSString *labelString;
 
-@property (nonatomic, assign) UTCDateTime *attrsModifiedDate;
+@property (nonatomic) UTCDateTime *attrsModifiedDate;
 @property (nonatomic, strong) NSMutableArray *prefixParentNotes;
 
 @property (nonatomic, readonly) NSString *modifiedDateString;
