@@ -258,6 +258,7 @@
 		B69E26F616F0B523001C6E4B /* Pencil@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = B69E26EE16F0B523001C6E4B /* Pencil@2x.png */; };
 		B69E26F716F0B523001C6E4B /* Search@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = B69E26EF16F0B523001C6E4B /* Search@2x.png */; };
 		D3EECA00106F66C70023D7F8 /* NVPasswordGenerator.m in Sources */ = {isa = PBXBuildFile; fileRef = D3EEC9FE106F66C70023D7F8 /* NVPasswordGenerator.m */; };
+		DB0685EF1793A64100BB71FE /* NVCatalogEntry.m in Sources */ = {isa = PBXBuildFile; fileRef = DB0685EE1793A64100BB71FE /* NVCatalogEntry.m */; };
 		DB0CAD03178A52070010257C /* NSObject+NVPerformBlock.m in Sources */ = {isa = PBXBuildFile; fileRef = DB0CAD02178A51DD0010257C /* NSObject+NVPerformBlock.m */; };
 		DB23FBB71793231D00C3236F /* NSApplication+NVActivationPolicy.m in Sources */ = {isa = PBXBuildFile; fileRef = DB23FBB61793231D00C3236F /* NSApplication+NVActivationPolicy.m */; };
 		DB23FBBA179325D000C3236F /* NSObject+NVSwizzle.m in Sources */ = {isa = PBXBuildFile; fileRef = DB23FBB9179325CC00C3236F /* NSObject+NVSwizzle.m */; };
@@ -743,6 +744,8 @@
 		B69E26EF16F0B523001C6E4B /* Search@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "Search@2x.png"; path = "Images/Search@2x.png"; sourceTree = "<group>"; };
 		D3EEC9FE106F66C70023D7F8 /* NVPasswordGenerator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NVPasswordGenerator.m; sourceTree = "<group>"; };
 		D3EEC9FF106F66C70023D7F8 /* NVPasswordGenerator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NVPasswordGenerator.h; sourceTree = "<group>"; };
+		DB0685ED1793A64100BB71FE /* NVCatalogEntry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NVCatalogEntry.h; sourceTree = "<group>"; };
+		DB0685EE1793A64100BB71FE /* NVCatalogEntry.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NVCatalogEntry.m; sourceTree = "<group>"; };
 		DB0CAD01178A51DD0010257C /* NSObject+NVPerformBlock.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSObject+NVPerformBlock.h"; sourceTree = "<group>"; };
 		DB0CAD02178A51DD0010257C /* NSObject+NVPerformBlock.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSObject+NVPerformBlock.m"; sourceTree = "<group>"; };
 		DB23FBB51793231D00C3236F /* NSApplication+NVActivationPolicy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSApplication+NVActivationPolicy.h"; sourceTree = "<group>"; };
@@ -877,6 +880,8 @@
 				DB9FB5C01787A134001DC987 /* NotationTypes.m */,
 				DBAE5924178915C9007A387D /* NVViewLocationContext.h */,
 				DBAE5925178915C9007A387D /* NVViewLocationContext.m */,
+				DB0685ED1793A64100BB71FE /* NVCatalogEntry.h */,
+				DB0685EE1793A64100BB71FE /* NVCatalogEntry.m */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -1573,6 +1578,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8D11072D0486CEB800E47090 /* main.m in Sources */,
+				DB0685EF1793A64100BB71FE /* NVCatalogEntry.m in Sources */,
 				2114C11609575BD400614E74 /* AppController.m in Sources */,
 				2114C13F0957732800614E74 /* NotationController.m in Sources */,
 				2114C1460957733200614E74 /* NoteObject.m in Sources */,

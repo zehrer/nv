@@ -30,6 +30,7 @@
 @class NoteAttributeColumn;
 @class DeletionManager;
 @class GlobalPrefs;
+@class NVCatalogEntry;
 
 @protocol NotationControllerDelegate;
 
