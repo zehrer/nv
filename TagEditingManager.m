@@ -71,7 +71,7 @@
         [tagPanel orderOut:nil];
     }
     isHappening = NO;
-    self.commonTags=[NSArray array];
+    self.commonTags=@[];
     [[NSNotificationCenter defaultCenter]postNotificationName:@"TagEditorShouldRelease" object:nil];
 }
 

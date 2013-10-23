@@ -189,7 +189,7 @@
 		};
 		
 		for (i=0; i<[params count]; i++) {
-			NSString *idStr = [params objectAtIndex:i];
+			NSString *idStr = params[i];
 			
 			if ([idStr hasPrefix:@"NV="] && [idStr length] > 3) {
 				NSData *uuidData = [[[idStr substringFromIndex:3] stringByReplacingPercentEscapes] nv_dataByBase64Decoding];
@@ -199,11 +199,11 @@
 			}
 			
 			for (j=0; j<[svcs count]; j++) {
-				NSString *serviceName = [svcs objectAtIndex:j];
+				NSString *serviceName = svcs[j];
 				if ([idStr hasPrefix:[NSString stringWithFormat:@"%@=", serviceName]] && [idStr length] > [serviceName length] + 1) {
 					//lookup note with identical key for this service
 					NSString *key = [[idStr substringFromIndex:[serviceName length] + 1] stringByReplacingPercentEscapes];
-					if ((foundNote = [notationController noteForKey:key ofServiceClass:[[SyncSessionController allServiceClasses] objectAtIndex:j]]))
+					if ((foundNote = [notationController noteForKey:key ofServiceClass:[SyncSessionController allServiceClasses][j]]))
 						return handleFound();
 				}
 			}
@@ -218,7 +218,7 @@
 		//if title is missing, add the body via -[addNotesFromPasteboard:]
 		NSString *title = nil, *txtBody = nil, *htmlBody = nil, *tags = nil, *urlTxt = nil;
 		for (i=0; i<[params count]; i++) {
-			NSString *compStr = [params objectAtIndex:i];
+			NSString *compStr = params[i];
 			if ([compStr hasPrefix:@"title="] && [compStr length] > 6) {
 				title = [[compStr substringFromIndex:6] stringByReplacingPercentEscapes];
 			} else if ([compStr hasPrefix:@"txt="] && [compStr length] > 4) {
@@ -267,7 +267,7 @@
             } else if (txtBody || htmlBody) {
                 NSPasteboard *pboard = [NSPasteboard pasteboardWithUniqueName];
                 NSData *data = [htmlBody dataUsingEncoding:NSUTF8StringEncoding];
-                [pboard declareTypes:[NSArray arrayWithObject: data ? NSHTMLPboardType : NSStringPboardType] owner:nil];
+                [pboard declareTypes:@[data ? NSHTMLPboardType : NSStringPboardType] owner:nil];
                 if (data) {
                     [pboard setData:data forType:NSHTMLPboardType];
                 } else if (txtBody) {
@@ -317,7 +317,7 @@
 		//NSLog(@"paths not found in DB: %@", unknownPaths);
 		
 		for (i=0; i<[unknownPaths count]; i++) {
-			NSURL *url = [NSURL fileURLWithPath:[unknownPaths objectAtIndex:i]];
+			NSURL *url = [NSURL fileURLWithPath:unknownPaths[i]];
 			if (url) {
         NSString *linkFormat = @"<%@>%s";
         NSString *pathString = [url absoluteString];

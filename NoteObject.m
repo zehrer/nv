@@ -183,11 +183,11 @@ typedef NSRange NSRange32;
 }
 
 - (void)setSyncObjectAndKeyMD:(NSDictionary*)aDict forService:(NSString*)serviceName {
-	NSMutableDictionary *dict = [syncServicesMD objectForKey:serviceName];
+	NSMutableDictionary *dict = syncServicesMD[serviceName];
 	if (!dict) {
 		dict = [[NSMutableDictionary alloc] initWithDictionary:aDict];
 		if (!syncServicesMD) syncServicesMD = [[NSMutableDictionary alloc] init];
-		[syncServicesMD setObject:dict forKey:serviceName];
+		syncServicesMD[serviceName] = dict;
 	} else {
 		[dict addEntriesFromDictionary:aDict];
 	}
@@ -443,7 +443,7 @@ typedef NSRange NSRange32;
 - (NSAttributedString*)printableStringRelativeToBodyFont:(NSFont*)bodyFont {
 	NSFont *titleFont = [NSFont fontWithName:[bodyFont fontName] size:[bodyFont pointSize] + 6.0f];
 	
-	NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:titleFont, NSFontAttributeName, nil];
+	NSDictionary *dict = @{NSFontAttributeName: titleFont};
 	
 	NSMutableAttributedString *largeAttributedTitleString = [[NSMutableAttributedString alloc] initWithString:titleString attributes:dict];
 	
@@ -716,7 +716,7 @@ typedef NSRange NSRange32;
 	
 	unsigned int i;
 	for (i=0; i<[words count]; i++) {
-		NSString *aWord = [words objectAtIndex:i];
+		NSString *aWord = words[i];
 		
 		if ([aWord length] > 0) {
 			LabelObject *aLabel = [[LabelObject alloc] initWithTitle:aWord];
@@ -767,7 +767,7 @@ typedef NSRange NSRange32;
 	NSInteger i;
 	
 	for (i=0; i<(NSInteger)[words count]; i++) {
-		NSString *word = [words objectAtIndex:i];
+		NSString *word = words[i];
 		if ([word length]) {
 			NSImage *img = [_delegate cachedLabelImageForWord:word highlighted:isHighlighted];
 			
@@ -789,7 +789,7 @@ typedef NSRange NSRange32;
 		if (onRight) {
 			//draw images in reverse instead
 			for (i = [images count] - 1; i>=0; i--) {
-				NSImage *img = [images objectAtIndex:i];
+				NSImage *img = images[i];
 				nextBoxPoint.x -= [img size].width + 4.0;
 				[img compositeToPoint:nextBoxPoint operation:NSCompositeSourceOver];
 			}
@@ -808,16 +808,15 @@ typedef NSRange NSRange32;
 	//include all identifying keys in case the title changes later
 	NSUInteger i = 0;
 	for (i=0; i<[svcs count]; i++) {
-		NSString *syncID = [[syncServicesMD objectForKey:[svcs objectAtIndex:i]]
-							objectForKey:[[[SyncSessionController allServiceClasses] objectAtIndex:i] nameOfKeyElement]];
-		if (syncID) [idsDict setObject:syncID forKey:[svcs objectAtIndex:i]];
+		NSString *syncID = syncServicesMD[svcs[i]][[[SyncSessionController allServiceClasses][i] nameOfKeyElement]];
+		if (syncID) idsDict[svcs[i]] = syncID;
 	}
 	
 	uuid_t uuid;
 	[self.uniqueNoteID getUUIDBytes:uuid];
 	NSData *uuidData = [NSData dataWithBytes:uuid length:sizeof(uuid_t)];
 	
-	[idsDict setObject:[uuidData nv_stringByBase64Encoding] forKey:@"NV"];
+	idsDict[@"NV"] = [uuidData nv_stringByBase64Encoding];
 	
 	return [NSURL URLWithString:[@"nvalt://find/" stringByAppendingFormat:@"%@/?%@", [titleString stringWithPercentEscapes], 
 								 [idsDict URLEncodedString]]];
@@ -924,8 +923,7 @@ typedef NSRange NSRange32;
 		case NVDatabaseFormatHTML:
 			//export to HTML document here using NSHTMLTextDocumentType;
 			formattedData = [contentString dataFromRange:NSMakeRange(0, [contentString length]) 
-									  documentAttributes:[NSDictionary dictionaryWithObject:NSHTMLTextDocumentType 
-																					 forKey:NSDocumentTypeDocumentAttribute] error:&error];
+									  documentAttributes:@{NSDocumentTypeDocumentAttribute: NSHTMLTextDocumentType} error:&error];
 			//our links will always be to filenames, so hopefully we shouldn't have to change anything
 			break;
 		case NVDatabaseFormatDOC:
@@ -1348,16 +1346,14 @@ typedef NSRange NSRange32;
 			break;
 		case NVDatabaseFormatHTML:
 			formattedData = [contentMinusColor dataFromRange:NSMakeRange(0, [contentMinusColor length])
-										  documentAttributes:[NSDictionary dictionaryWithObject:NSHTMLTextDocumentType
-																						 forKey:NSDocumentTypeDocumentAttribute] error:&error];
+										  documentAttributes:@{NSDocumentTypeDocumentAttribute: NSHTMLTextDocumentType} error:&error];
 			break;
 		case NVDatabaseFormatDOC:
 			formattedData = [contentMinusColor docFormatFromRange:NSMakeRange(0, [contentMinusColor length]) documentAttributes:nil];
 			break;
 		case NVDatabaseFormatDOCX:
 			formattedData = [contentMinusColor dataFromRange:NSMakeRange(0, [contentMinusColor length])
-										  documentAttributes:[NSDictionary dictionaryWithObject:NSWordMLTextDocumentType
-																						 forKey:NSDocumentTypeDocumentAttribute] error:&error];
+										  documentAttributes:@{NSDocumentTypeDocumentAttribute: NSWordMLTextDocumentType} error:&error];
 			break;
 		default:
 			NSLog(@"Attempted to export using unknown format ID: %ld", (long)storageFormat);
@@ -1458,7 +1454,7 @@ typedef NSRange NSRange32;
 	NSString *haystack = [contentString string];
 	NSRange nextRange = NSMakeRange(NSNotFound, 0);
 	for (i=0; i<[words count]; i++) {
-		NSString *word = [words objectAtIndex:i];
+		NSString *word = words[i];
 		if ([word length] > 0) {
 			nextRange = [haystack rangeOfString:word options:opts range:inRange];
 			if (nextRange.location != NSNotFound && nextRange.length)

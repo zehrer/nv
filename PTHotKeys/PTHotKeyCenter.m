@@ -83,13 +83,13 @@ static id _sharedHotKeyCenter = nil;
         return NO;
     }
 	
-    NSNumber *kid = [NSNumber numberWithUnsignedInt:mNextKeyID];
-    [mHotKeyMap setObject:hotKey forKey:kid];
+    NSNumber *kid = @(mNextKeyID);
+    mHotKeyMap[kid] = hotKey;
     mNextKeyID += 1;
     
 
     [hotKey setCarbonHotKey:carbonHotKey];
-	[mHotKeys setObject: hotKey forKey: [hotKey name]];
+	mHotKeys[[hotKey name]] = hotKey;
 
 	[self _updateEventHandler];
 	//NSLog(@"Eo registerHotKey:");
@@ -101,7 +101,7 @@ static id _sharedHotKeyCenter = nil;
     //NSLog(@"unregisterHotKey: %@", hotKey);
 	EventHotKeyRef carbonHotKey;
 
-	if(![mHotKeys objectForKey:[hotKey name]])
+	if(!mHotKeys[[hotKey name]])
 		return;
 	
 	carbonHotKey = [hotKey carbonHotKey];
@@ -122,7 +122,7 @@ static id _sharedHotKeyCenter = nil;
 
 - (void) unregisterHotKeyForName:(NSString *)name
 {
-    [self unregisterHotKey:[mHotKeys objectForKey:name]];
+    [self unregisterHotKey:mHotKeys[name]];
 }
 
 - (void) unregisterAllHotKeys;
@@ -139,17 +139,17 @@ static id _sharedHotKeyCenter = nil;
 {
     if (ena)
     {
-        [self registerHotKey:[mHotKeys objectForKey:name]];
+        [self registerHotKey:mHotKeys[name]];
     } else
     {
-        [self unregisterHotKey:[mHotKeys objectForKey:name]];
+        [self unregisterHotKey:mHotKeys[name]];
     }
 }
 
 - (void) updateHotKey:(PTHotKey *)hk
 {
     //NSLog(@"updateHotKey: %@", hk);
-    [self unregisterHotKey:[mHotKeys objectForKey:[hk name]]];
+    [self unregisterHotKey:mHotKeys[[hk name]]];
     //NSLog(@"unreg'd: %@", hk);
     [self registerHotKey:hk];
     //NSLog(@"Eo updateHotKey:");
@@ -157,7 +157,7 @@ static id _sharedHotKeyCenter = nil;
 
 - (PTHotKey *) hotKeyForName:(NSString *)name
 {
-    return [mHotKeys objectForKey:name];
+    return mHotKeys[name];
 }
 
 - (NSArray*)allHotKeys
@@ -214,8 +214,8 @@ static id _sharedHotKeyCenter = nil;
 
 	NSAssert( hotKeyID.signature == UTGetOSTypeFromString(CFSTR("PTHk")), @"Invalid hot key id" );
 
-    NSNumber *kid = [NSNumber numberWithUnsignedInt:hotKeyID.id];
-	hotKey = [mHotKeyMap objectForKey:kid];
+    NSNumber *kid = @(hotKeyID.id);
+	hotKey = mHotKeyMap[kid];
     
     NSAssert( hotKey != nil, @"Invalid hot key id" );
 

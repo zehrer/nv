@@ -77,7 +77,7 @@ NSString *ExternalEditorsChangedNotification = @"ExternalEditorsChanged";
 		
 	if (!knownPathExtensions) knownPathExtensions = [NSMutableDictionary new];
 	NSString *extension = aNote.filename.pathExtension.lowercaseString;
-	NSNumber *canHandleNumber = [knownPathExtensions objectForKey:extension];
+	NSNumber *canHandleNumber = knownPathExtensions[extension];
 	
 	if (!canHandleNumber) {
 		NSString *path = [aNote noteFilePath];
@@ -87,7 +87,7 @@ NSString *ExternalEditorsChangedNotification = @"ExternalEditorsChanged";
 		if (noErr != err) {
 			NSLog(@"LSCanURLAcceptURL '%@' err: %d", path, err);
 		}
-		[knownPathExtensions setObject:[NSNumber numberWithBool:(BOOL)canAccept] forKey:extension];
+		knownPathExtensions[extension] = @((BOOL)canAccept);
 		
 		return (BOOL)canAccept;
 	}
@@ -98,7 +98,7 @@ NSString *ExternalEditorsChangedNotification = @"ExternalEditorsChanged";
 - (BOOL)canEditAllNotes:(NSArray*)notes {
 	NSUInteger i = 0;
 	for (i=0; i<[notes count]; i++) {
-		if (![self isODBEditor] && ![self canEditNoteDirectly:[notes objectAtIndex:i]])
+		if (![self isODBEditor] && ![self canEditNoteDirectly:notes[i]])
 			return NO;
 	}
 	return YES;
@@ -190,7 +190,7 @@ static ExternalEditorListController* sharedInstance = nil;
 	if ((self = [self init])) {
 		//TextEdit is not an ODB editor, but can be used to open files directly
 		[[NSUserDefaults standardUserDefaults] registerDefaults:
-		 [NSDictionary dictionaryWithObject:[NSArray arrayWithObject:@"com.apple.TextEdit"] forKey:UserEEIdentifiersKey]];
+		 @{UserEEIdentifiersKey: @[@"com.apple.TextEdit"]}];
 	
 		[self _initDefaults];
 	}
@@ -210,7 +210,7 @@ static ExternalEditorListController* sharedInstance = nil;
 	
 	NSUInteger i = 0;
 	for (i=0; i<[userIdentifiers count]; i++) {
-		ExternalEditor *ed = [[ExternalEditor alloc] initWithBundleID:[userIdentifiers objectAtIndex:i] resolvedURL:nil];
+		ExternalEditor *ed = [[ExternalEditor alloc] initWithBundleID:userIdentifiers[i] resolvedURL:nil];
 		[userEditorList addObject:ed];
 	}
 	
@@ -229,7 +229,7 @@ static ExternalEditorListController* sharedInstance = nil;
 		NSArray *ODBApps = [[[self class] ODBAppIdentifiers] allObjects];
 		NSUInteger i = 0;
 		for (i=0; i<[ODBApps count]; i++) {
-			ExternalEditor *ed = [[ExternalEditor alloc] initWithBundleID:[ODBApps objectAtIndex:i] resolvedURL:nil];
+			ExternalEditor *ed = [[ExternalEditor alloc] initWithBundleID:ODBApps[i] resolvedURL:nil];
 			if ([ed isInstalled]) {
 				[_installedODBEditors addObject:ed];
 			}
@@ -261,7 +261,7 @@ static ExternalEditorListController* sharedInstance = nil;
     [openPanel setResolvesAliases:YES];
     [openPanel setAllowsMultipleSelection:NO];
 	[openPanel setDirectoryURL:[NSURL fileURLWithPath:@"/Applications"]];
-	[openPanel setAllowedFileTypes:[NSArray arrayWithObject: (id)kUTTypeApplication]];
+	[openPanel setAllowedFileTypes:@[(id)kUTTypeApplication]];
     
     if ([openPanel runModal] == NSOKButton) {
 		NSURL *appURL = [openPanel URL];
@@ -304,7 +304,7 @@ static ExternalEditorListController* sharedInstance = nil;
 	NSMutableArray *array = [NSMutableArray arrayWithCapacity:[userEditorList count]];
 	NSUInteger i = 0;
 	for (i=0; i<[userEditorList count]; i++) {
-		[array addObject:[[userEditorList objectAtIndex:i] bundleIdentifier]];
+		[array addObject:[userEditorList[i] bundleIdentifier]];
 	}
 
 	return array;
@@ -361,7 +361,7 @@ static ExternalEditorListController* sharedInstance = nil;
 	
 	NSUInteger i = 0;
 	for (i=0; i<[editors count]; i++) {
-		ExternalEditor *ed = [editors objectAtIndex:i];
+		ExternalEditor *ed = editors[i];
 		
 		//change action SEL based on whether this is coming from Notes menu or preferences window
 		NSMenuItem *theMenuItem = isPrefsMenu ? 

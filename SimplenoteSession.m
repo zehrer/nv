@@ -146,9 +146,9 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 	}
 	Class numberClass = [NSNumber class];
 	//local notes lacking syncnum MD are either completely new or were synced with api1
-	if (![localEntry objectForKey:@"version"]) {
-		NSNumber *modifiedLocalNumber = [localEntry objectForKey:@"modify"];
-		NSNumber *modifiedRemoteNumber = [remoteEntry objectForKey:@"modify"];
+	if (!localEntry[@"version"]) {
+		NSNumber *modifiedLocalNumber = localEntry[@"modify"];
+		NSNumber *modifiedRemoteNumber = remoteEntry[@"modify"];
 		
 		if ([modifiedLocalNumber isKindOfClass:numberClass] && [modifiedRemoteNumber isKindOfClass:numberClass]) {
 			CFAbsoluteTime localAbsTime = floor([modifiedLocalNumber doubleValue]);
@@ -163,8 +163,8 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		}
 		return NSOrderedDescending;
 	} else {
-		NSNumber *syncnumLocalNumber = [localEntry objectForKey:@"version"];
-		NSNumber *syncnumRemoteNumber = [remoteEntry objectForKey:@"version"];
+		NSNumber *syncnumLocalNumber = localEntry[@"version"];
+		NSNumber *syncnumRemoteNumber = remoteEntry[@"version"];
 		
 		if ([syncnumLocalNumber isKindOfClass:numberClass] && [syncnumRemoteNumber isKindOfClass:numberClass]) {
 			int localSyncnum = [syncnumLocalNumber intValue];
@@ -185,7 +185,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 -(void)applyMetadataUpdatesToNote:(id <SynchronizedNote>)aNote localEntry:(NSDictionary *)localEntry remoteEntry: (NSDictionary *)remoteEntry {
 	//tags may have updated even if content wasn't, or we may never have synced tags
 	NSSet *localTagset = [NSSet setWithArray:[(NoteObject *)aNote orderedLabelTitles]];
-	NSSet *remoteTagset = [NSSet setWithArray:[remoteEntry objectForKey:@"tags"]];
+	NSSet *remoteTagset = [NSSet setWithArray:remoteEntry[@"tags"]];
 	if (![localTagset isEqualToSet:remoteTagset]) {
 		NSLog(@"Tagsets differ. Updating.");
 		NSString *newLabelString = nil;
@@ -204,37 +204,35 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 	}
 
 	//set the metadata from the server if this is the first time syncing with api2
-	if (![localEntry objectForKey:@"version"]) {
-		NSDictionary *updatedMetadata = [NSDictionary dictionaryWithObjectsAndKeys:[remoteEntry objectForKey:@"version"], @"version", [remoteEntry objectForKey:@"modify"], @"modify", nil];
+	if (!localEntry[@"version"]) {
+		NSDictionary *updatedMetadata = @{@"version": remoteEntry[@"version"], @"modify": remoteEntry[@"modify"]};
 		
 		[aNote setSyncObjectAndKeyMD: updatedMetadata forService: SimplenoteServiceName];
 	}
 }
 
 - (BOOL)remoteEntryWasMarkedDeleted:(NSDictionary*)remoteEntry {
-	return [[remoteEntry objectForKey:@"deleted"] intValue] == 1;
+	return [remoteEntry[@"deleted"] intValue] == 1;
 }
 - (BOOL)entryHasLocalChanges:(NSDictionary*)entry {
-	return [[entry objectForKey:@"dirty"] boolValue];
+	return [entry[@"dirty"] boolValue];
 }
 - (BOOL)tagsShouldBeMergedForEntry:(NSDictionary*)entry {
 	// If the local note doesn't have a syncnum, then it has not been synced with sn-api2
-	return ([entry objectForKey:@"version"] == nil);
+	return (entry[@"version"] == nil);
 }
 
 + (void)registerLocalModificationForNote:(id <SynchronizedNote>)aNote {
 	//if this note has been synced with this service at least once, mirror the mod date
 	//mod date should no longer be necessary with SN api2, but doesn't hurt. what's really important is marking the note dirty.
-	NSDictionary *aDict = [[aNote syncServicesMD] objectForKey:SimplenoteServiceName];
+	NSDictionary *aDict = [aNote syncServicesMD][SimplenoteServiceName];
 	if (aDict) {
 		NSAssert([aNote isKindOfClass:[NoteObject class]], @"can't modify a non-note!");
 		CFAbsoluteTime modified = [(NoteObject*)aNote modifiedDate];
 		NSNumber *modDate = @(modified);
-		if ([modDate compare:[aDict objectForKey:@"modify"]] != NSOrderedSame) {
-			[aNote setSyncObjectAndKeyMD:[NSDictionary dictionaryWithObjectsAndKeys:
-									  modDate, @"modify",
-									  @YES, @"dirty",
-									  nil]
+		if ([modDate compare:aDict[@"modify"]] != NSOrderedSame) {
+			[aNote setSyncObjectAndKeyMD:@{@"modify": modDate,
+									  @"dirty": @YES}
 						  forService:SimplenoteServiceName];
 		}
 	} //if note has no metadata for this service, mod times don't matter because it will be added, anyway
@@ -246,7 +244,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		return nil;
 	}
     
-    NSString *syncAccount = [[prefs syncAccountForServiceName:SimplenoteServiceName] objectForKey:@"username"];
+    NSString *syncAccount = [prefs syncAccountForServiceName:SimplenoteServiceName][@"username"];
     NSString *syncPassword = [prefs syncPasswordForServiceName:SimplenoteServiceName];
 	
 	if ((self = [self initWithUsername:syncAccount andPassword:syncPassword])) {
@@ -303,9 +301,8 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 	//init fetcher for login method; credentials POSTed in body
 	if (!loginFetcher) {
 		NSURL *loginURL = [SimplenoteSession authURLWithPath:@"/authorize/" parameters:nil];
-		NSDictionary *headers = [NSDictionary dictionaryWithObject:kSimperiumAPIKey forKey:@"X-Simperium-API-Key"];
-		NSDictionary *login = [NSDictionary dictionaryWithObjectsAndKeys:
-							   emailAddress, @"username", password, @"password", nil];
+		NSDictionary *headers = @{@"X-Simperium-API-Key": kSimperiumAPIKey};
+		NSDictionary *login = @{@"username": emailAddress, @"password": password};
 		NSData *loginJSON = [NSJSONSerialization dataWithJSONObject:login options:0 error:NULL];
 		
 		loginFetcher = [[SyncResponseFetcher alloc] initWithURL:loginURL POSTData:loginJSON headers:headers contentType:@"application/json" completion:^(SyncResponseFetcher *fetcher, NSData *data, NSString *errString) {
@@ -327,8 +324,8 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 				NSLog(@"Recieved data:%@", [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
 			}
 			
-			if ([responseDictionary objectForKey:@"access_token"]) {
-				simperiumToken = [responseDictionary objectForKey:@"access_token"];
+			if (responseDictionary[@"access_token"]) {
+				simperiumToken = responseDictionary[@"access_token"];
 			} else {
 				[self _stoppedWithErrorString:NSLocalizedString(@"No authorization token", @"Simplenote-specific error")];
 			}
@@ -342,9 +339,9 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		NSAssert(simperiumToken != nil, @"no simperium token found");
 		NSURL *listURL = nil;
 		NSMutableDictionary *params = [NSMutableDictionary dictionaryWithCapacity: 2];
-		[params setObject:[NSString stringWithFormat:@"%u", kSimplenoteSessionIndexBatchSize] forKey:@"limit"];
+		params[@"limit"] = [NSString stringWithFormat:@"%u", kSimplenoteSessionIndexBatchSize];
 		if (indexMark) {
-			[params setObject:indexMark forKey:@"mark"];
+			params[@"mark"] = indexMark;
 		}
 		listURL = [SimplenoteSession simperiumURLWithPath:@"/Note/index" parameters:params];
 
@@ -377,7 +374,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 			if (err) {
 				NSLog(@"Error while parsing Simplenote JSON index: %@", err);
 			} else if (responseDictionary) {
-				rawEntries = [responseDictionary objectForKey:@"index"];
+				rawEntries = responseDictionary[@"index"];
 			}
 			
 			if (!rawEntries) {
@@ -388,21 +385,21 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 			//convert syncnum, dates and "deleted" indicator into NSNumbers
 			entries = [NSMutableArray arrayWithCapacity:[rawEntries count]];
 			for (i=0; i<[rawEntries count]; i++) {
-				NSDictionary *rawEntry = [rawEntries objectAtIndex:i];
-				NSString *noteKey = [rawEntry objectForKey:@"id"];
-				NSNumber *version = [NSNumber numberWithInt:[[rawEntry objectForKey:@"v"] intValue]];
+				NSDictionary *rawEntry = rawEntries[i];
+				NSString *noteKey = rawEntry[@"id"];
+				NSNumber *version = @([rawEntry[@"v"] intValue]);
 				
-				NSDictionary *noteData = [rawEntry objectForKey:@"d"];
+				NSDictionary *noteData = rawEntry[@"d"];
 				NSMutableDictionary *entry = [NSMutableDictionary dictionaryWithCapacity:6];
 				if (noteData) {
-					[entry setObject:[NSNumber numberWithDouble:[[NSDate dateWithTimeIntervalSince1970:[[noteData objectForKey:@"modificationDate"] doubleValue]] timeIntervalSinceReferenceDate]] forKey:@"modify"];
-					[entry setObject:[NSNumber numberWithInt:[[noteData objectForKey:@"deleted"] intValue]] forKey:@"deleted"];
-					[entry setObject:[noteData objectForKey:@"systemTags"] forKey:@"systemtags"];
-					[entry setObject:[noteData objectForKey:@"tags"] forKey:@"tags"];
+					entry[@"modify"] = @([[NSDate dateWithTimeIntervalSince1970:[noteData[@"modificationDate"] doubleValue]] timeIntervalSinceReferenceDate]);
+					entry[@"deleted"] = @([noteData[@"deleted"] intValue]);
+					entry[@"systemtags"] = noteData[@"systemTags"];
+					entry[@"tags"] = noteData[@"tags"];
 				}
 				if ([noteKey length] && [version intValue]) {
-					[entry setObject:noteKey forKey:@"key"];
-					[entry setObject:version forKey:@"version"];
+					entry[@"key"] = noteKey;
+					entry[@"version"] = version;
 					[entries addObject:entry];
 				}
 			}
@@ -433,17 +430,17 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 			//so we don't reuse it. (we could consider extending SyncResponseFetcher to support
 			//dynamic URLS instead)
 			listFetcher = nil;
-			indexMark = [[responseDictionary objectForKey:@"mark"] copy];
+			indexMark = [responseDictionary[@"mark"] copy];
 			
 			//'current' stores the most recent change marker, if it's different between index page loads,
 			//we need to start over trying to fetch the index
-			if (lastCV && [lastCV isEqualToString:[responseDictionary objectForKey:@"current"]] == NO) {
+			if (lastCV && [lastCV isEqualToString:responseDictionary[@"current"]] == NO) {
 				//someone has made a change to notes since we started fetching index, start over
 				indexEntryBuffer = nil;
 				indexMark = nil;
 				lastCV = nil;
 			}
-			lastCV = [[responseDictionary objectForKey:@"current"] copy];
+			lastCV = [responseDictionary[@"current"] copy];
 			
 			if (indexMark || !indexEntryBuffer) {
 				[[self listFetcher] start];
@@ -462,8 +459,8 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		NSAssert(simperiumToken != nil, @"no simperium token found");
 		NSURL *changesURL = nil;
 		NSMutableDictionary *params = [NSMutableDictionary dictionaryWithCapacity: 2];
-		[params setObject:lastCV forKey:@"cv"];
-		[params setObject:@"0" forKey:@"wait"];
+		params[@"cv"] = lastCV;
+		params[@"wait"] = @"0";
 		changesURL = [SimplenoteSession simperiumURLWithPath:@"/Note/changes" parameters:params];
 
 		NSDictionary *headers = [NSMutableDictionary dictionaryWithObject:simperiumToken forKey:@"X-Simperium-Token"];
@@ -497,7 +494,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 			if (err) {
 				NSLog(@"Exception while parsing Simplenote JSON index: %@", err);
 			} else if (responseDictionary) {
-				rawEntries = [responseDictionary objectForKey:@"changes"];
+				rawEntries = responseDictionary[@"changes"];
 			}
 			
 			if (!rawEntries) {
@@ -520,18 +517,18 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 			
 			// roll these up in a dict, there may be multiple change entries per note, we only want the last one for each
 			for (i=0; i<[rawEntries count]; i++) {
-				NSDictionary *rawEntry = [rawEntries objectAtIndex:i];
-				[entriesDict setObject:[rawEntries objectAtIndex:i] forKey:[rawEntry objectForKey:@"id"]];
-				lastCV = [[rawEntry objectForKey:@"cv"] copy];
+				NSDictionary *rawEntry = rawEntries[i];
+				entriesDict[rawEntry[@"id"]] = rawEntries[i];
+				lastCV = [rawEntry[@"cv"] copy];
 			}
 			NSLog(@"remote: %lu updates", (unsigned long)[rawEntries count]);
 			for (NSString *noteKey in entriesDict) {
-				NSDictionary *rawEntry = [entriesDict objectForKey:noteKey];
-				NSNumber *version = [rawEntry objectForKey:@"ev"];
+				NSDictionary *rawEntry = entriesDict[noteKey];
+				NSNumber *version = rawEntry[@"ev"];
 				NSMutableDictionary *entry = [NSMutableDictionary dictionaryWithCapacity:2];
-				[entry setObject:noteKey forKey:@"key"];
-				[entry setObject:version forKey:@"version"];
-				if ([@"-" isEqualToString:[rawEntry objectForKey:@"o"]]) {
+				entry[@"key"] = noteKey;
+				entry[@"version"] = version;
+				if ([@"-" isEqualToString:rawEntry[@"o"]]) {
 					[removedEntries addObject:entry];
 				} else {
 					[entries addObject:entry];
@@ -654,7 +651,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 	NSUInteger i = 0;
 	NSArray *cols = [collectorsInProgress allObjects];
 	for (i=0; i<[cols count]; i++) {
-		if ([[cols objectAtIndex:i] isKindOfClass:[SimplenoteEntryModifier class]]) {
+		if ([cols[i] isKindOfClass:[SimplenoteEntryModifier class]]) {
 			return YES;
 		}
 	}
@@ -687,9 +684,9 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		NSArray *notes = [unsyncedServiceNotes allObjects];
 		NSUInteger i = 0;
 		for (i = 0; i<[notes count]; i++) {
-			id <SynchronizedNote> aNote = [notes objectAtIndex:i];
+			id <SynchronizedNote> aNote = notes[i];
 			
-			if ([[aNote syncServicesMD] objectForKey:SimplenoteServiceName]) {
+			if ([aNote syncServicesMD][SimplenoteServiceName]) {
 				//this note has already been synced; if it is a deleted note, queue it to be deleted; 
 				//otherwise queue it to be updated
 				if ([aNote isKindOfClass:[DeletedNoteObject class]]) {
@@ -710,7 +707,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 					//in which case the deleted note would have already taken the created one's place, and there'd be nothing more we'd need to do -- 
 					//UNLESS it was just queued for creation and is -about- to get metadata
 					if ([notesBeingModified containsObject:aNote] || 
-						[[[(DeletedNoteObject*)aNote originalNote] syncServicesMD] objectForKey:SimplenoteServiceName]) {
+						[[(DeletedNoteObject*)aNote originalNote] syncServicesMD][SimplenoteServiceName]) {
 						//deleted notes w/o metadata should never be sent without a predecessor note already in progress 
 						//so add aNote with the expectation that _modifyNotes will queue it; when this note is ready its originalNote will have syncMD
 						//alternatively, its originalNote might have been given metadata by now, in which case we should also add it
@@ -888,14 +885,14 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		
 	NSUInteger i = 0;
 	for (i=0; i<[entries count]; i++) {
-		NSDictionary *info = [entries objectAtIndex:i];
-		if ([[info objectForKey:@"deleted"] intValue]) {
+		NSDictionary *info = entries[i];
+		if ([info[@"deleted"] intValue]) {
 			//entry was deleted between getting the index and getting the note! it will be handled in the next sync.
 			continue;
 		}
-		NoteObject *aNote = [info objectForKey:@"NoteObject"];
+		NoteObject *aNote = info[@"NoteObject"];
 		
-		[self suppressPushingForNotes:[NSArray arrayWithObject:aNote]];
+		[self suppressPushingForNotes:@[aNote]];
 		
 		//ignore this update if we were just about to update this note ourselves
 		//allow Simplenote to perform merging based on the mod dates / version numbers
@@ -905,12 +902,12 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 			//get the new title and body from the content:
 			NSUInteger bodyLoc = 0;
 			NSString *separator = nil;
-			NSString *combinedContent = [info objectForKey:@"content"];
+			NSString *combinedContent = info[@"content"];
 			NSString *newTitle = [combinedContent syntheticTitleAndSeparatorWithContext:&separator bodyLoc:&bodyLoc oldTitle:aNote.titleString maxTitleLen:60];
 			
 			[aNote updateWithSyncBody:[combinedContent substringFromIndex:bodyLoc] andTitle:newTitle];
-			NSMutableSet *labelTitles = [NSMutableSet setWithArray:[info objectForKey:@"tags"]];
-			if ([self tagsShouldBeMergedForEntry:[[aNote syncServicesMD] objectForKey:SimplenoteServiceName]]) {
+			NSMutableSet *labelTitles = [NSMutableSet setWithArray:info[@"tags"]];
+			if ([self tagsShouldBeMergedForEntry:[aNote syncServicesMD][SimplenoteServiceName]]) {
 				[labelTitles addObjectsFromArray:[aNote orderedLabelTitles]];
 			}
 			if ([labelTitles count]) {
@@ -919,13 +916,13 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 				[aNote setLabelString:nil];
 			}
 			
-			NSNumber *modNum = [info objectForKey:@"modify"];
+			NSNumber *modNum = info[@"modify"];
 			//NSLog(@"updating mod time for note %@ to %@", aNote, modNum);
 			[aNote setDateModified:[modNum doubleValue]];
-			[aNote setSyncObjectAndKeyMD:[NSDictionary dictionaryWithObjectsAndKeys:[info objectForKey:@"version"], @"version", modNum, @"modify", separator, SimplenoteSeparatorKey, [NSNumber numberWithBool: NO], @"dirty", nil] forService:SimplenoteServiceName];
+			[aNote setSyncObjectAndKeyMD:@{@"version": info[@"version"], @"modify": modNum, SimplenoteSeparatorKey: separator, @"dirty": @NO} forService:SimplenoteServiceName];
 			[changedNotes addObject:aNote];
 		}
-		[self stopSuppressingPushingForNotes:[NSArray arrayWithObject:aNote]];
+		[self stopSuppressingPushingForNotes:@[aNote]];
 	}
 	
 	if ([changedNotes count]) {
@@ -942,13 +939,13 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 	NSUInteger i = 0;
 	//build two kinds of dicts:
 	for (i=0; i<[notes count]; i++) {
-		NoteObject *aNote = [notes objectAtIndex:i];
+		NoteObject *aNote = notes[i];
 		NSString *titleString = aNote.titleString;
 		NSMutableString *combined = [[NSMutableString alloc] initWithCapacity:[[aNote contentString] length] + titleString.length + [sep length]];
 		[combined appendString: titleString];
 		[combined appendString:sep];
 		[combined appendString:[[aNote contentString] string]];
-		[dict setObject:aNote forKey:[NSNumber numberWithUnsignedInteger:[combined hash]]];
+		dict[@([combined hash])] = aNote;
 	}
 	return dict;
 }
@@ -993,13 +990,13 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 	//update localNotes in place with keys and mod times
 	NSUInteger i = 0;
 	for (i=0; i<[serverNotes count]; i++) {
-		NoteObject *serverNote = [serverNotes objectAtIndex:i];
-		NSDictionary *info = [entries objectAtIndex:i];
-		NSNumber *contentHashNum = [NSNumber numberWithUnsignedInteger:[[info objectForKey:@"content"] hash]];
-		NoteObject *matchingLocalNote = [singleNewlineLocalNotes objectForKey:contentHashNum];
-		if (matchingLocalNote || (matchingLocalNote = [doubleNewlineLocalNotes objectForKey:contentHashNum])) {
+		NoteObject *serverNote = serverNotes[i];
+		NSDictionary *info = entries[i];
+		NSNumber *contentHashNum = @([info[@"content"] hash]);
+		NoteObject *matchingLocalNote = singleNewlineLocalNotes[contentHashNum];
+		if (matchingLocalNote || (matchingLocalNote = doubleNewlineLocalNotes[contentHashNum])) {
 			//update matchingLocalNote in place with the sync info from this entry
-			[matchingLocalNote setSyncObjectAndKeyMD:[[serverNote syncServicesMD] objectForKey:SimplenoteServiceName] forService:SimplenoteServiceName];
+			[matchingLocalNote setSyncObjectAndKeyMD:[serverNote syncServicesMD][SimplenoteServiceName] forService:SimplenoteServiceName];
 			[matchingLocalNote makeNoteDirtyUpdateTime:NO updateFile:NO];
 			
 			[notesToReportModified addObject:matchingLocalNote];
@@ -1007,7 +1004,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 			//server note probably does not exist in the database, so deliver it as added
 			[downloadedNotesToKeep addObject:serverNote];
 		}
-		[serverContentNotes setObject:serverNote forKey:contentHashNum];
+		serverContentNotes[contentHashNum] = serverNote;
 	}
 	
 	//now find local notes that are not on the server, that we must upload
@@ -1018,13 +1015,13 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 	
 	NSArray *dblLocalNoteHashes = [doubleNewlineLocalNotes allKeys];
 	for (i=0; i<[dblLocalNoteHashes count]; i++) {
-		NSNumber *hashNum = [dblLocalNoteHashes objectAtIndex:i];
-		if ([serverContentNotes objectForKey:hashNum]) [localNotesToUpload removeObject:[doubleNewlineLocalNotes objectForKey:hashNum]];
+		NSNumber *hashNum = dblLocalNoteHashes[i];
+		if (serverContentNotes[hashNum]) [localNotesToUpload removeObject:doubleNewlineLocalNotes[hashNum]];
 	}
 	NSArray *sngLocalNoteHashes = [singleNewlineLocalNotes allKeys];
 	for (i=0; i<[sngLocalNoteHashes count]; i++) {
-		NSNumber *hashNum = [sngLocalNoteHashes objectAtIndex:i];
-		if ([serverContentNotes objectForKey:hashNum]) [localNotesToUpload removeObject:[singleNewlineLocalNotes objectForKey:hashNum]];
+		NSNumber *hashNum = sngLocalNoteHashes[i];
+		if (serverContentNotes[hashNum]) [localNotesToUpload removeObject:singleNewlineLocalNotes[hashNum]];
 	}
 		
 	if ([downloadedNotesToKeep count]) {
@@ -1049,10 +1046,10 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 	NSMutableArray *newNotes = [NSMutableArray arrayWithCapacity:[entries count]];
 	NSUInteger i = 0;
 	for (i=0; i<[entries count]; i++) {
-		NSDictionary *info = [entries objectAtIndex:i];
-		NSAssert(![info objectForKey:@"NoteObject"], @"this note is supposed to be new!");
+		NSDictionary *info = entries[i];
+		NSAssert(!info[@"NoteObject"], @"this note is supposed to be new!");
 		
-		NSString *fullContent = [info objectForKey:@"content"];
+		NSString *fullContent = info[@"content"];
 		NSUInteger bodyLoc = 0;
 		NSString *separator = nil;
 		NSString *title = [fullContent syntheticTitleAndSeparatorWithContext:&separator bodyLoc:&bodyLoc oldTitle:nil maxTitleLen:60];
@@ -1062,14 +1059,14 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 		[attributedBody addLinkAttributesForRange:NSMakeRange(0, [attributedBody length])];
 		[attributedBody addStrikethroughNearDoneTagsForRange:NSMakeRange(0, [attributedBody length])];
 		
-		NSString *labelString = [[info objectForKey:@"tags"] count] ? [[info objectForKey:@"tags"] componentsJoinedByString:@" "] : nil;
+		NSString *labelString = [info[@"tags"] count] ? [info[@"tags"] componentsJoinedByString:@" "] : nil;
 		NoteObject *note = [[NoteObject alloc] initWithNoteBody:attributedBody title:title delegate:_delegate format:NVDatabaseFormatSingle labels:labelString];
 		if (note) {
-			NSNumber *modNum = [info objectForKey:@"modify"];
-			[note setDateAdded:[[info objectForKey:@"create"] doubleValue]];
+			NSNumber *modNum = info[@"modify"];
+			[note setDateAdded:[info[@"create"] doubleValue]];
 			[note setDateModified:[modNum doubleValue]];
 			//also set version, mod time, key, and sepWCtx for this note's syncServicesMD
-			[note setSyncObjectAndKeyMD:[NSDictionary dictionaryWithObjectsAndKeys:[info objectForKey:@"version"], @"version", modNum, @"modify", [info objectForKey:@"key"], @"key", separator, SimplenoteSeparatorKey, nil] forService:SimplenoteServiceName];
+			[note setSyncObjectAndKeyMD:@{@"version": info[@"version"], @"modify": modNum, @"key": info[@"key"], SimplenoteSeparatorKey: separator} forService:SimplenoteServiceName];
 			
 			[newNotes addObject:note];
 		}
@@ -1116,12 +1113,12 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 - (NSInvocation*)_popNextInvocationForNote:(id<SynchronizedNote>)aNote {
 	NSString *uuidStr = [[aNote uniqueNoteID] UUIDString];
 
-	NSMutableArray *invocations = [queuedNoteInvocations objectForKey:uuidStr];
+	NSMutableArray *invocations = queuedNoteInvocations[uuidStr];
 	if (!invocations) return nil;
 	
 	NSAssert([invocations count] != 0, @"invocations array is empty!");
 	
-	NSInvocation *invocation = [invocations objectAtIndex:0];
+	NSInvocation *invocation = invocations[0];
 	[invocations removeObjectAtIndex:0];
 	
 	if (![invocations count]) {
@@ -1134,10 +1131,10 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 - (void)_queueInvocation:(NSInvocation*)anInvocation forNote:(id<SynchronizedNote>)aNote {
 	if (!queuedNoteInvocations) queuedNoteInvocations = [[NSMutableDictionary alloc] init];
 	NSString *uuidStr = [[aNote uniqueNoteID] UUIDString];
-	NSMutableArray *invocations = [queuedNoteInvocations objectForKey:uuidStr];
+	NSMutableArray *invocations = queuedNoteInvocations[uuidStr];
 	if (!invocations) {
 		//note has no already-waiting invocations
-		[queuedNoteInvocations setObject:(invocations = [NSMutableArray array]) forKey:uuidStr];
+		queuedNoteInvocations[uuidStr] = (invocations = [NSMutableArray array]);
 	}
 	
 	NSAssert(invocations != nil, @"where is the invocations array?");
@@ -1176,7 +1173,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 			id <SynchronizedNote> noteToQueue = nil;
 			while ((noteToQueue = [enumerator nextObject])) {
 				InvocationRecorder *invRecorder = [InvocationRecorder invocationRecorder];
-				[[invRecorder prepareWithInvocationTarget:self] _modifyNotes:[NSArray arrayWithObject:noteToQueue] withMode:mode];
+				[[invRecorder prepareWithInvocationTarget:self] _modifyNotes:@[noteToQueue] withMode:mode];
 				[self _queueInvocation:[invRecorder invocation] forNote:noteToQueue];
 			}
 		}
@@ -1221,10 +1218,10 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 						//and the user will have another opportunity to remove the note
 						NSUInteger i = 0;
 						for (i = 0; i<[[modifier entriesInError] count]; i++) {
-							NSDictionary *info = [[modifier entriesInError] objectAtIndex:i];
-							if ([[info objectForKey:@"StatusCode"] intValue] == 404) {
-								NSAssert([[info objectForKey:@"NoteObject"] isKindOfClass:[DeletedNoteObject class]], @"a deleted note that generated an error is not actually a deleted note");
-								[[info objectForKey:@"NoteObject"] removeAllSyncMDForService:SimplenoteServiceName];
+							NSDictionary *info = [modifier entriesInError][i];
+							if ([info[@"StatusCode"] intValue] == 404) {
+								NSAssert([info[@"NoteObject"] isKindOfClass:[DeletedNoteObject class]], @"a deleted note that generated an error is not actually a deleted note");
+								[info[@"NoteObject"] removeAllSyncMDForService:SimplenoteServiceName];
 							}
 						}
 						break;
@@ -1258,7 +1255,7 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 	NSUInteger i = 0;
 	for (i=0; i<[finishedNotes count]; i++) {
 		//start any subsequently queued invocations for the notes that just finished being remotely modified
-		NSInvocation *invocation = [self _popNextInvocationForNote:[finishedNotes objectAtIndex:i]];
+		NSInvocation *invocation = [self _popNextInvocationForNote:finishedNotes[i]];
 		//if (invocation) NSLog(@"popped invocation %@ for %@", invocation, [finishedNotes objectAtIndex:i]);
 		[invocation invoke];
 	}
@@ -1281,10 +1278,10 @@ static void SNReachabilityCallback(SCNetworkReachabilityRef	target, SCNetworkCon
 	//and the user will have another opportunity to remove the note
 	NSUInteger i = 0;
 	for (i = 0; i<[[modifier entriesInError] count]; i++) {
-		NSDictionary *info = [[modifier entriesInError] objectAtIndex:i];
-		if ([[info objectForKey:@"StatusCode"] intValue] == 404) {
-			NSAssert([[info objectForKey:@"NoteObject"] isKindOfClass:[DeletedNoteObject class]], @"a deleted note that generated an error is not actually a deleted note");
-			[[info objectForKey:@"NoteObject"] removeAllSyncMDForService:SimplenoteServiceName];
+		NSDictionary *info = [modifier entriesInError][i];
+		if ([info[@"StatusCode"] intValue] == 404) {
+			NSAssert([info[@"NoteObject"] isKindOfClass:[DeletedNoteObject class]], @"a deleted note that generated an error is not actually a deleted note");
+			[info[@"NoteObject"] removeAllSyncMDForService:SimplenoteServiceName];
 		}
 	}
 	

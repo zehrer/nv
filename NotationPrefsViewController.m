@@ -137,7 +137,7 @@ enum {VERIFY_NOT_ATTEMPTED, VERIFY_FAILED, VERIFY_IN_PROGRESS, VERIFY_SUCCESS};
 		[confirmFileDeletionButton setState:[notationPrefs confirmFileDeletion]];
 		
 		[enabledSyncButton setState:[notationPrefs syncServiceIsEnabled:SimplenoteServiceName]];
-		NSString *username = [[notationPrefs syncAccountForServiceName:SimplenoteServiceName] objectForKey:@"username"];
+		NSString *username = [notationPrefs syncAccountForServiceName:SimplenoteServiceName][@"username"];
 		NSString *password = [notationPrefs syncPasswordForServiceName:SimplenoteServiceName];
 		[syncAccountField setStringValue:username ? username : @""];
 		[syncPasswordField setStringValue:password ? password : @""];
@@ -233,8 +233,7 @@ enum {VERIFY_NOT_ATTEMPTED, VERIFY_FAILED, VERIFY_IN_PROGRESS, VERIFY_SUCCESS};
 		
 		if ([notationPrefs indexOfChosenPathExtension] == (unsigned int)rowIndex) {
 			return [[NSAttributedString alloc] initWithString:extension attributes:
-					[NSDictionary dictionaryWithObjectsAndKeys:
-					 [NSFont boldSystemFontOfSize:[NSFont smallSystemFontSize]], NSFontAttributeName, nil]];
+					@{NSFontAttributeName: [NSFont boldSystemFontOfSize:[NSFont smallSystemFontSize]]}];
 		}
 		return extension;
 			
@@ -439,9 +438,8 @@ enum {VERIFY_NOT_ATTEMPTED, VERIFY_FAILED, VERIFY_IN_PROGRESS, VERIFY_SUCCESS};
 - (void)startLoginVerifier {
 	if (!loginVerifier && [[syncAccountField stringValue] length] && [[syncPasswordField stringValue] length]) {
 		NSURL *loginURL = [SimplenoteSession authURLWithPath:@"/authorize/" parameters:nil];
-		NSDictionary *headers = [NSDictionary dictionaryWithObject:kSimperiumAPIKey forKey:@"X-Simperium-API-Key"];
-		NSDictionary *login = [NSDictionary dictionaryWithObjectsAndKeys:
-							   [syncAccountField stringValue], @"username", [syncPasswordField stringValue], @"password", nil];
+		NSDictionary *headers = @{@"X-Simperium-API-Key": kSimperiumAPIKey};
+		NSDictionary *login = @{@"username": [syncAccountField stringValue], @"password": [syncPasswordField stringValue]};
 		NSData *loginJSON = [NSJSONSerialization dataWithJSONObject:login options:0 error:NULL];
 
 		loginVerifier = [[SyncResponseFetcher alloc] initWithURL:loginURL POSTData:loginJSON headers:headers contentType:@"application/json" completion:^(SyncResponseFetcher *fetcher, NSData *data, NSString *errString) {

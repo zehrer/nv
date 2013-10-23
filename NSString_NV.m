@@ -204,7 +204,7 @@ CFDateFormatterRef simplenoteDateFormatter(int lowPrecision) {
 			return [titles copy];
         }
     }
-	return [NSArray array];
+	return @[];
 }
 
 - (CFArrayRef)copyRangesOfWordsInString:(NSString*)findString inRange:(NSRange)limitRange {
@@ -285,7 +285,7 @@ CFDateFormatterRef simplenoteDateFormatter(int lowPrecision) {
 - (void)copyItemToPasteboard:(id)sender {
 	
 	NSPasteboard *pasteboard = [NSPasteboard generalPasteboard];
-	[pasteboard declareTypes:[NSArray arrayWithObject:NSStringPboardType] owner:nil];
+	[pasteboard declareTypes:@[NSStringPboardType] owner:nil];
 	[pasteboard setString:[sender isKindOfClass:[NSMenuItem class]] ? [sender representedObject] : self
 				  forType:NSStringPboardType];
 }
@@ -495,7 +495,7 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, unsigned charIndex) {
 		reasons = [NSDictionary dictionaryWithContentsOfFile:path];
 	}
 	
-	NSString *reason = [reasons objectForKey:[[NSNumber numberWithInt:(int)err] stringValue]];
+	NSString *reason = reasons[[@((int)err) stringValue]];
 	if (!reason)
 		return [NSString stringWithFormat:NSLocalizedString(@"an error of type %d occurred", @"string of last resort for errors not found in CarbonErrorStrings"), (int)err];
 	return reason;
@@ -541,7 +541,7 @@ BOOL IsHardLineBreakUnichar(unichar uchar, NSString *str, unsigned charIndex) {
             NSPredicate *pred=[NSPredicate predicateWithFormat:@"SELF.length > 0"];
             NSArray *comp=[thisString componentsSeparatedByCharactersInSet:[[NSCharacterSet decimalDigitCharacterSet]invertedSet]];
             comp=[comp filteredArrayUsingPredicate:pred];
-            NSString *numString=(NSString *)[comp objectAtIndex:0];
+            NSString *numString=(NSString *)comp[0];
             NSRange numRange=[thisString rangeOfString:numString];
             if(NSMaxRange(numRange)<NSMaxRange(subRange)){
                 if ([[thisString substringWithRange:NSMakeRange(NSMaxRange(numRange), 1)] isEqualToString:@"."]) {

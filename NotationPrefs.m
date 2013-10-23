@@ -79,7 +79,7 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 }
 
 + (int)appVersion {
-	return [[[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleVersion"] intValue];
+	return [[[NSBundle mainBundle] infoDictionary][@"CFBundleVersion"] intValue];
 }
 
 - (id)init {
@@ -279,7 +279,7 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 }
 
 - (NSDictionary*)syncAccountForServiceName:(NSString*)serviceName {
-	return [syncServiceAccounts objectForKey:serviceName];
+	return syncServiceAccounts[serviceName];
 }
 
 - (NSString*)syncPasswordForServiceName:(NSString*)serviceName {
@@ -287,7 +287,7 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 	
 	NSMutableDictionary *accountDict = ServiceAccountDictInit(self, serviceName);
 	
-	NSString *password = [accountDict objectForKey:@"password"];
+	NSString *password = accountDict[@"password"];
 	if (password) return password;
 	
 	//fetch keychain
@@ -307,7 +307,7 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 	password = [[NSString alloc] initWithBytes:passwordData length:passwordLength encoding:NSUTF8StringEncoding];
 	
 	//cache password found in keychain
-	[accountDict setObject:password forKey:@"password"];
+	accountDict[@"password"] = password;
 	
 	SecKeychainItemFreeContent(NULL, passwordData);
 	return password;
@@ -320,7 +320,7 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 	NSMutableDictionary *account = nil;
 	while ((account = [enumerator nextObject])) {
 		
-		if (![(NSString*)[account objectForKey:@"username"] length]) {
+		if (![(NSString*)account[@"username"] length]) {
 			//don't store the "enabled" flag if the account has no username
 			//give password the benefit of the doubt as it may eventually become available via the keychain
 			[account removeObjectForKey:@"enabled"];
@@ -332,8 +332,8 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 
 - (BOOL)syncNotesShouldMergeForServiceName:(NSString*)serviceName {
 	NSDictionary *accountDict = [self syncAccountForServiceName:serviceName];
-	NSString *username = [accountDict objectForKey:@"username"];
-	return username && [[accountDict objectForKey:@"shouldmerge"] isEqualToString:username];
+	NSString *username = accountDict[@"username"];
+	return username && [accountDict[@"shouldmerge"] isEqualToString:username];
 }
 
 - (NSUInteger)syncFrequencyInMinutesForServiceName:(NSString*)serviceName {
@@ -342,7 +342,7 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 }
 
 - (BOOL)syncServiceIsEnabled:(NSString*)serviceName {
-	return [[[self syncAccountForServiceName:serviceName] objectForKey:@"enabled"] boolValue];
+	return [[self syncAccountForServiceName:serviceName][@"enabled"] boolValue];
 }
 
 - (void)setPreferencesAreStored {
@@ -655,7 +655,7 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 	NSMutableDictionary *accountDict = ServiceAccountDictInit(self, serviceName);
 	
 	if ([self syncServiceIsEnabled:serviceName] != isEnabled) {
-		[accountDict setObject:[NSNumber numberWithBool:isEnabled] forKey:@"enabled"];
+		accountDict[@"enabled"] = @(isEnabled);
 		
 		preferencesChanged = YES;
 		[delegate syncSettingsChangedForService:serviceName];
@@ -666,7 +666,7 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 	NSMutableDictionary *accountDict = ServiceAccountDictInit(self, serviceName);
 	
 	if ([self syncFrequencyInMinutesForServiceName:serviceName] != frequencyInMinutes) {
-		[accountDict setObject:@(frequencyInMinutes) forKey:@"frequency"];
+		accountDict[@"frequency"] = @(frequencyInMinutes);
 		preferencesChanged = YES;
 		[delegate syncSettingsChangedForService:serviceName];
 	}
@@ -676,11 +676,11 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 	NSMutableDictionary *accountDict = ServiceAccountDictInit(self, serviceName);
 	
 	if ([self syncNotesShouldMergeForServiceName:serviceName] != shouldMerge) {
-		NSString *username = [accountDict objectForKey:@"username"];
+		NSString *username = accountDict[@"username"];
 		if (username) {
 			NSLog(@"%@: %d, %@", NSStringFromSelector(_cmd), shouldMerge, username);
 			if (shouldMerge) {
-				[accountDict setObject:username forKey:@"shouldmerge"];
+				accountDict[@"shouldmerge"] = username;
 			} else {
 				[accountDict removeObjectForKey:@"shouldmerge"];
 			}
@@ -695,8 +695,8 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 	
 	NSMutableDictionary *accountDict = ServiceAccountDictInit(self, serviceName);
 	
-	if (![[accountDict objectForKey:@"username"] isEqualToString:username]) {
-		[accountDict setObject:username forKey:@"username"];
+	if (![accountDict[@"username"] isEqualToString:username]) {
+		accountDict[@"username"] = username;
 		
 		preferencesChanged = YES;
 		[delegate syncSettingsChangedForService:serviceName];
@@ -704,7 +704,7 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 }
 
 - (const char*)keychainSyncAccountNameForService:(NSString*)serviceName {
-	NSString *username = [[self syncAccountForServiceName:serviceName] objectForKey:@"username"];
+	NSString *username = [self syncAccountForServiceName:serviceName][@"username"];
 	return [username length] ? [[username stringByAppendingFormat:@"-%@", serviceName] UTF8String] : NULL;
 }
 
@@ -713,8 +713,8 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 	
 	NSMutableDictionary *accountDict = ServiceAccountDictInit(self, serviceName);
 	
-	if (![[accountDict objectForKey:@"password"] isEqualToString:password]) {
-		[accountDict setObject:password forKey:@"password"];
+	if (![accountDict[@"password"] isEqualToString:password]) {
+		accountDict[@"password"] = password;
 		
 		NSData *passwordData = [password dataUsingEncoding:NSUTF8StringEncoding];
 		
@@ -758,7 +758,7 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 - (void)removeSyncPasswordForService:(NSString*)serviceName {
 	NSMutableDictionary *accountDict = ServiceAccountDictInit(self, serviceName);
 	
-	if ([accountDict objectForKey:@"password"]) {
+	if (accountDict[@"password"]) {
 		[accountDict removeObjectForKey:@"password"];
 		
 		const char *kcSyncAccountName = [self keychainSyncAccountNameForService:serviceName];
@@ -787,7 +787,7 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 	
 	NSUInteger idx = [seenDiskUUIDEntries indexOfObject: diskEntry];
 	if (NSNotFound != idx) {
-		[[seenDiskUUIDEntries objectAtIndex:idx] see];
+		[seenDiskUUIDEntries[idx] see];
 		return (UInt32)idx;
 	}
 	
@@ -812,7 +812,7 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 		NSString *syncServiceTitle = [SimplenoteSession localizedServiceTitle];
 		
 		NSDictionary *stDict = [[NSUserDefaults standardUserDefaults] persistentDomainForName:@"com.hogbaysoftware.SimpleText"];
-		NSString *simpleTextFolder = [stDict objectForKey:@"SyncedDocumentsPathKey"];
+		NSString *simpleTextFolder = stDict[@"SyncedDocumentsPathKey"];
 		if (!simpleTextFolder) simpleTextFolder = [NSHomeDirectory() stringByAppendingPathComponent:@"SimpleText"];
 		//for dropbox, a 'select value from config where key = "dropbox_path";' sqlite query would be necessary to get the true path
 		NSString *dropboxFolder = [NSHomeDirectory() stringByAppendingPathComponent:@"Dropbox"];
@@ -871,10 +871,10 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 
 - (NSString*)typeStringAtIndex:(NSInteger)typeIndex {
 
-    return [typeStrings[notesStorageFormat] objectAtIndex:typeIndex];
+    return typeStrings[notesStorageFormat][typeIndex];
 }
 - (NSString*)pathExtensionAtIndex:(NSInteger)pathIndex {
-    return [pathExtensions[notesStorageFormat] objectAtIndex:pathIndex];
+    return pathExtensions[notesStorageFormat][pathIndex];
 }
 - (NSUInteger)indexOfChosenPathExtension {
 	return chosenExtIndices[notesStorageFormat];
@@ -883,7 +883,7 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 	if (chosenExtIndices[format] >= [pathExtensions[format] count])
 		return [NotationPrefs pathExtensionForFormat:format];
 	
-	return [pathExtensions[format] objectAtIndex:chosenExtIndices[format]];
+	return pathExtensions[format][chosenExtIndices[format]];
 }
 
 - (void)updateOSTypesArray {
@@ -894,7 +894,7 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
     allowedTypes = (OSType*)realloc(allowedTypes, newSize);
 	
     for (i=0; i<[typeStrings[notesStorageFormat] count]; i++)
-		allowedTypes[i] = UTGetOSTypeFromString((__bridge CFStringRef)[typeStrings[notesStorageFormat] objectAtIndex:i]);
+		allowedTypes[i] = UTGetOSTypeFromString((__bridge CFStringRef)typeStrings[notesStorageFormat][i]);
 }
 
 - (void)addAllowedPathExtension:(NSString*)extension {
@@ -920,7 +920,7 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 }
 - (BOOL)setChosenPathExtensionAtIndex:(NSUInteger)extensionIndex {
 	if ([pathExtensions[notesStorageFormat] count] > extensionIndex &&
-		[[pathExtensions[notesStorageFormat] objectAtIndex:extensionIndex] length]) {
+		[pathExtensions[notesStorageFormat][extensionIndex] length]) {
 		chosenExtIndices[notesStorageFormat] = extensionIndex;
 		
 		preferencesChanged = YES;
@@ -953,10 +953,10 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
     if (oldIndex < [pathExtensions[notesStorageFormat] count]) {
 		
 		if ([newExtension length] > 0) { 
-			[pathExtensions[notesStorageFormat] replaceObjectAtIndex:oldIndex withObject:[newExtension stringAsSafePathExtension]];
+			pathExtensions[notesStorageFormat][oldIndex] = [newExtension stringAsSafePathExtension];
 			
 			preferencesChanged = YES;
-		} else if (![(NSString*)[pathExtensions[notesStorageFormat] objectAtIndex:oldIndex] length]) {
+		} else if (![(NSString*)pathExtensions[notesStorageFormat][oldIndex] length]) {
 			return NO;
 		}
     }
@@ -969,14 +969,14 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
     if (oldIndex < [typeStrings[notesStorageFormat] count]) {
 		
 		if ([newType length] > 0) {
-			[typeStrings[notesStorageFormat] replaceObjectAtIndex:oldIndex withObject:[newType fourCharTypeString]];
+			typeStrings[notesStorageFormat][oldIndex] = [newType fourCharTypeString];
 			[self updateOSTypesArray];
 				
 			preferencesChanged = YES;
 				
 			return YES;
 		}
-		if (!UTGetOSTypeFromString((__bridge CFStringRef)[typeStrings[notesStorageFormat] objectAtIndex:oldIndex])) {
+		if (!UTGetOSTypeFromString((__bridge CFStringRef)typeStrings[notesStorageFormat][oldIndex])) {
 			return NO;
 		}
     }
@@ -987,7 +987,7 @@ static NSMutableDictionary *ServiceAccountDictInit(NotationPrefs *prefs, NSStrin
 - (BOOL)pathExtensionAllowed:(NSString *)anExtension forFormat:(NSInteger)formatID {
 	NSUInteger i;
     for (i=0; i<[pathExtensions[formatID] count]; i++) {
-		if ([anExtension compare:[pathExtensions[formatID] objectAtIndex:i] 
+		if ([anExtension compare:pathExtensions[formatID][i] 
 						 options:NSCaseInsensitiveSearch] == NSOrderedSame) {
 			return YES;
 		}

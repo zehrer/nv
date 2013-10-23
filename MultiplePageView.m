@@ -225,7 +225,7 @@ static float defaultTextPadding(void) {
 	
 	unsigned i, totalPageCount = 0; //[tableView numberOfSelectedRows];
 	for (i=0; i<[notes count]; i++) {
-		NSAttributedString *contentString = [[notes objectAtIndex:i] printableStringRelativeToBodyFont:bodyFont];
+		NSAttributedString *contentString = [notes[i] printableStringRelativeToBodyFont:bodyFont];
 		
 		[pageStorage appendAttributedString:contentString];
 		
@@ -243,7 +243,7 @@ static float defaultTextPadding(void) {
 			
 			[pagesView addSubview:textView];
 			
-			[[[pageStorage layoutManagers] objectAtIndex:0] addTextContainer:textContainer];
+			[[pageStorage layoutManagers][0] addTextContainer:textContainer];
 			
 			
 			//add per-page header/footers here
@@ -259,10 +259,10 @@ static float defaultTextPadding(void) {
 		NSRange glyphRange;
 		if (loc >= len) loc = len - 1;
 		// Find out which glyph index the desired character index corresponds to
-		glyphRange = [[[pageStorage layoutManagers] objectAtIndex:0] glyphRangeForCharacterRange:NSMakeRange(loc, 1) actualCharacterRange:NULL];
+		glyphRange = [[pageStorage layoutManagers][0] glyphRangeForCharacterRange:NSMakeRange(loc, 1) actualCharacterRange:NULL];
 		if (glyphRange.location > 0) {
 			// Now cause layout by asking a question which has to determine where the glyph is
-			(void)[[[pageStorage layoutManagers] objectAtIndex:0] textContainerForGlyphAtIndex:glyphRange.location - 1 effectiveRange:NULL];
+			(void)[[pageStorage layoutManagers][0] textContainerForGlyphAtIndex:glyphRange.location - 1 effectiveRange:NULL];
 		}
 	}
 	return pagesView; // this has the content

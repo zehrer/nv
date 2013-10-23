@@ -30,10 +30,10 @@
 	NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithCapacity:[entries count]];
 	
 	for (i=0; i<[entries count]; i++) {
-		NSDictionary *entry = [entries objectAtIndex:i];
-		NSString *keyForService = [entry objectForKey:keyName];
+		NSDictionary *entry = entries[i];
+		NSString *keyForService = entry[keyName];
 		if (keyForService) {
-			[dict setObject:entry forKey:keyForService];
+			dict[keyForService] = entry;
 		} else {
 			NSLog(@"service key for %@ does not exist", entry);
 		}
@@ -47,9 +47,9 @@
 	NSString *serviceName = [[aSession class] serviceName];
 	
 	for (NoteObject *note in someNotes) {
-		NSDictionary *serviceDict = [[note syncServicesMD] objectForKey:serviceName];
+		NSDictionary *serviceDict = [note syncServicesMD][serviceName];
 		if (serviceDict) {
-			[dict setObject:note forKey:[serviceDict objectForKey:keyElement]];
+			dict[serviceDict[keyElement]] = note;
 		} else {
 			//NSLog(@"service key for %@ does not exist", note);
 		}
@@ -60,8 +60,7 @@
 
 - (NoteObject*)noteForKey:(NSString*)key ofServiceClass:(Class<SyncServiceSession>)serviceClass {
 	for (NoteObject *note in self.notes) {
-		if ([[[[note syncServicesMD] objectForKey:[serviceClass serviceName]]
-			  objectForKey:[serviceClass nameOfKeyElement]] isEqualToString:key])
+		if ([[note syncServicesMD][[serviceClass serviceName]][[serviceClass nameOfKeyElement]] isEqualToString:key])
 			return note;
 	}
 	return nil;
@@ -142,11 +141,11 @@
 	//full sets of notes to find out what local ones need to be removed. we rely on the partial
 	//list updates to keep us up to date.
 	for (i=0; i<[entries count]; i++) {
-		NSDictionary *remoteEntry = [entries objectAtIndex:i];
-		NSString *remoteKey = [remoteEntry objectForKey:keyName];
-		id <SynchronizedNote>note = [localNotesDict objectForKey:remoteKey];
-		NSDictionary *thisServiceInfo = [[note syncServicesMD] objectForKey:serviceName];
-		if ([localNotesDict objectForKey:remoteKey]) {
+		NSDictionary *remoteEntry = entries[i];
+		NSString *remoteKey = remoteEntry[keyName];
+		id <SynchronizedNote>note = localNotesDict[remoteKey];
+		NSDictionary *thisServiceInfo = [note syncServicesMD][serviceName];
+		if (localNotesDict[remoteKey]) {
 			if ([syncSession remoteEntryWasMarkedDeleted:remoteEntry]) {
 				[notesToDelete addObject:note];
 			} else {
@@ -166,10 +165,10 @@
 		}
 	}
 	for (i=0; i<[removedEntries count]; i++) {
-		NSDictionary *remoteEntry = [removedEntries objectAtIndex:i];
-		NSString *remoteKey = [remoteEntry objectForKey:keyName];
-		if ([localNotesDict objectForKey:remoteKey]) {
-			[notesToDelete addObject:[localNotesDict objectForKey:remoteKey]];
+		NSDictionary *remoteEntry = removedEntries[i];
+		NSString *remoteKey = remoteEntry[keyName];
+		if (localNotesDict[remoteKey]) {
+			[notesToDelete addObject:localNotesDict[remoteKey]];
 		}
 	}
 	if ([checkEntries count]) {
@@ -206,10 +205,10 @@
 	NSMutableArray *remotelyMissingNotes = [NSMutableArray array];
 	
 	for (id <SynchronizedNote> note in self.notes) {
-		NSDictionary *thisServiceInfo = [[note syncServicesMD] objectForKey:serviceName];
+		NSDictionary *thisServiceInfo = [note syncServicesMD][serviceName];
 		if (thisServiceInfo) {
 			//get corresponding note on server
-			NSDictionary *remoteInfo = [remoteDict objectForKey:[thisServiceInfo objectForKey:keyName]];
+			NSDictionary *remoteInfo = remoteDict[thisServiceInfo[keyName]];
 			if (remoteInfo) {
 				//this note already exists on the server -- check for modifications from either direction
 				NSComparisonResult changeDiff = [syncSession localEntry:thisServiceInfo compareToRemoteEntry:remoteInfo];
@@ -254,8 +253,8 @@
 	NSMutableArray *locallyDeletedNotes = [NSMutableArray arrayWithCapacity:[deletedNotes count]];
 	NSArray *deletedNotesArray = [deletedNotes allObjects];
 	for (i=0; i<[deletedNotesArray count]; i++) {
-		id <SynchronizedNote>note = [deletedNotesArray objectAtIndex:i];
-		NSDictionary *thisServiceInfo = [[note syncServicesMD] objectForKey:serviceName];
+		id <SynchronizedNote>note = deletedNotesArray[i];
+		NSDictionary *thisServiceInfo = [note syncServicesMD][serviceName];
 		if (thisServiceInfo) {
 			//find deleted notes of which this service hasn't yet been notified (e.g., deleted notes that still have an entry for this service)
 			//but if a note has been modified remotely, will we delete it and then redownload it?
@@ -270,13 +269,13 @@
 	NSDictionary *localDeletedNotesDict = [self invertedDictionaryOfNotes:locallyDeletedNotes forSession:syncSession];
 	
 	for (i=0; i<[MDEntries count]; i++) {
-		NSDictionary *remoteEntry = [MDEntries objectAtIndex:i];
+		NSDictionary *remoteEntry = MDEntries[i];
 		//a note with this sync-key for this service does not exist
-		NSString *remoteKey = [remoteEntry objectForKey:keyName];
+		NSString *remoteKey = remoteEntry[keyName];
 		if ([remoteKey length]) {
 			
 			//can't find the note in allNotes; it might be new!
-			if (![localNotesDict objectForKey:remoteKey]) {
+			if (!localNotesDict[remoteKey]) {
 				if (![syncSession remoteEntryWasMarkedDeleted:remoteEntry]) {
 					
 					//check if a remote note doesn't exist in allNotes, and guard against
@@ -285,8 +284,8 @@
 					//however if remoteEntry is _newer_ than the note in localDeletedNotesDict, then it should undo the deletion locally
 					//by allowing the entry to be added to remotelyAddedEntries and short-circuiting remote removal of the deleted note
 					
-					id <SynchronizedNote> ldn = [localDeletedNotesDict objectForKey:remoteKey];
-					if (ldn && [syncSession localEntry:[[ldn syncServicesMD] objectForKey:serviceName] compareToRemoteEntry:remoteEntry] == NSOrderedAscending) {
+					id <SynchronizedNote> ldn = localDeletedNotesDict[remoteKey];
+					if (ldn && [syncSession localEntry:[ldn syncServicesMD][serviceName] compareToRemoteEntry:remoteEntry] == NSOrderedAscending) {
 						//NSLog(@"%@ was modified on the server after being deleted locally; restoring it", remoteEntry);
 						//don't delete this note on the server, and anonymize its metadata to allow it to be purged
 						[locallyDeletedNotes removeObject:ldn];

@@ -85,7 +85,7 @@
 	
 	if (requestHeaders) {
 		for (NSString *field in [requestHeaders allKeys]) {
-			[request addValue:[requestHeaders objectForKey:field] forHTTPHeaderField:field];
+			[request addValue:requestHeaders[field] forHTTPHeaderField:field];
 		}
 	}
 	//if POSTData is nil, do a plain GET request

@@ -754,12 +754,12 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 
 	NSUInteger j, i = 0, count = [allNotesAlpha count];
 	for (i=0; i<count - 1; i++) {
-		NoteObject *shorterNote = [allNotesAlpha objectAtIndex:i];
+		NoteObject *shorterNote = allNotesAlpha[i];
 		BOOL isAPrefix = NO;
 		//scan all notes sorted beneath this one for matching prefixes
 		j = i + 1;
 		do {
-			NoteObject *longerNote = [allNotesAlpha objectAtIndex:j];
+			NoteObject *longerNote = allNotesAlpha[j];
 			if ((isAPrefix = [shorterNote titleIsPrefixOfOtherNoteTitle:longerNote])) {
 				[longerNote addPrefixParentNote:shorterNote];
 			}
@@ -818,7 +818,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	
 	if ([[self undoManager] isUndoing]) [undoManager beginUndoGrouping];
 	for (i=0; i<[noteArray count]; i++) {
-		NoteObject * note = [noteArray objectAtIndex:i];
+		NoteObject * note = noteArray[i];
 		
 		[self _addNote:note];
 		
@@ -847,7 +847,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	
 	if ([[self undoManager] isUndoing]) [undoManager beginUndoGrouping];
 	for (i=0; i<[noteArray count]; i++) {
-		NoteObject * note = [noteArray objectAtIndex:i];
+		NoteObject * note = noteArray[i];
 		
 		[self _addNote:note];
 		
@@ -1088,7 +1088,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	NSUInteger i = 0;
 	NSArray *dnArray = [deletedNotes allObjects];
 	for (i = 0; i<[dnArray count]; i++) {
-		DeletedNoteObject *dnObj = [dnArray objectAtIndex:i];
+		DeletedNoteObject *dnObj = dnArray[i];
 		if (![[dnObj syncServicesMD] count]) {
 			[deletedNotes removeObject:dnObj];
 			notesChanged = YES;
@@ -1499,8 +1499,8 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
     if ([paths count])
     {
         NSString *bundleName =
-        [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleIdentifier"];
-        path = [[paths objectAtIndex:0] stringByAppendingPathComponent:bundleName];
+        [[NSBundle mainBundle] infoDictionary][@"CFBundleIdentifier"];
+        path = [paths[0] stringByAppendingPathComponent:bundleName];
         NSError *theError = nil;
         if ((path)&&([[NSFileManager defaultManager]createDirectoryAtPath:path withIntermediateDirectories:YES attributes:nil error:&theError])) {
 //           NSLog(@"cache folder :>%@<",path);
@@ -1530,7 +1530,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	NSUInteger i, titleLen, j = 0, shortestTitleLen = UINT_MAX;
 	
 	for (i=0; i<[objs count]; i++) {
-		CFStringRef title = (__bridge CFStringRef)[(LabelObject*)[objs objectAtIndex:i] title];
+		CFStringRef title = (__bridge CFStringRef)[(LabelObject*)objs[i] title];
 		
 		if (CFStringFindWithOptions(title, prefix, CFRangeMake(0, CFStringGetLength(prefix)), kCFCompareAnchored | kCFCompareCaseInsensitive, NULL)) {
 			
@@ -1555,11 +1555,11 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 	if (!self.labelImages) self.labelImages = [NSMutableDictionary dictionary];
 	
 	NSString *imgKey = [[aWord lowercaseString] stringByAppendingFormat:@", %d", isHighlighted];
-	NSImage *img = [self.labelImages objectForKey:imgKey];
+	NSImage *img = (self.labelImages)[imgKey];
 	if (!img) {
 		//generate the image and add it to labelImages under imgKey
 		float tableFontSize = [[GlobalPrefs defaultPrefs] tableFontSize] - 1.0;
-		NSDictionary *attrs = [NSDictionary dictionaryWithObject:[NSFont systemFontOfSize:tableFontSize] forKey:NSFontAttributeName];
+		NSDictionary *attrs = @{NSFontAttributeName: [NSFont systemFontOfSize:tableFontSize]};
 		NSSize wordSize = [aWord sizeWithAttributes:attrs];
 		NSRect wordRect = NSMakeRect(0, 0, roundf(wordSize.width + 4.0), roundf(tableFontSize * 1.3));
 		
@@ -1585,7 +1585,7 @@ inline NSComparisonResult NVComparisonResult(NSInteger result) {
 		
 		[img unlockFocus];
 		
-		[self.labelImages setObject:img forKey:imgKey];
+		(self.labelImages)[imgKey] = img;
 	}
 	return img;
 }

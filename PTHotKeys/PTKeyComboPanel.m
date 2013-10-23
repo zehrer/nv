@@ -158,7 +158,7 @@ static id _sharedKeyComboPanel = nil;
 
 - (void)noteKeyBroadcast: (NSNotification*)note
 {
-	PTKeyCombo* keyCombo = [[note userInfo] objectForKey: @"keyCombo"];
+	PTKeyCombo* keyCombo = [note userInfo][@"keyCombo"];
 
 	[self setKeyCombo: keyCombo];
 }

@@ -59,7 +59,7 @@
 	NSInteger theColumn = [self columnAtPoint:theClickPoint];
 	NSTableColumn *theTableColumn = nil;
 	if (theColumn > -1)
-	    theTableColumn = [[[self tableView] tableColumns] objectAtIndex:theColumn];
+	    theTableColumn = [[self tableView] tableColumns][theColumn];
 	
 	NSMenu *theMenu = [[self tableView] performSelector:@selector(menuForColumnConfiguration:) withObject:theTableColumn];
 	return theMenu;

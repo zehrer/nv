@@ -48,12 +48,11 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 		globalPrefs = [GlobalPrefs defaultPrefs];
       
 		userDefaults = [NSUserDefaults standardUserDefaults];
-		[userDefaults registerDefaults: [NSDictionary dictionaryWithObjectsAndKeys: [NSNumber numberWithBool: NO], @"UseCtrlForSwitchingNotes", nil]];
+		[userDefaults registerDefaults: @{@"UseCtrlForSwitchingNotes": @NO}];
       
 		loadStatusString = NSLocalizedString(@"Loading Notes...",nil);
-		loadStatusAttributes = [NSDictionary dictionaryWithObjectsAndKeys:
-								 [NSFont fontWithName:@"Helvetica" size:STATUS_STRING_FONT_SIZE], NSFontAttributeName,
-								 [NSColor colorWithCalibratedRed:0.0f green:0.0f blue:0.0f alpha:0.5f], NSForegroundColorAttributeName, nil];
+		loadStatusAttributes = @{NSFontAttributeName: [NSFont fontWithName:@"Helvetica" size:STATUS_STRING_FONT_SIZE],
+								 NSForegroundColorAttributeName: [NSColor colorWithCalibratedRed:0.0f green:0.0f blue:0.0f alpha:0.5f]};
 		loadStatusStringWidth = [loadStatusString sizeWithAttributes:loadStatusAttributes].width;
 		
 		affinity = 0;
@@ -131,7 +130,7 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 	 @selector(setTableFontSize:sender:),
 	 @selector(setHorizontalLayout:sender:),@selector(setShowGrid:sender:),@selector(setAlternatingRows:sender:), nil];
 	
-	[self registerForDraggedTypes:[NSArray arrayWithObjects:NSFilenamesPboardType, NSRTFPboardType, NSRTFDPboardType, NSStringPboardType, nil]];
+	[self registerForDraggedTypes:@[NSFilenamesPboardType, NSRTFPboardType, NSRTFDPboardType, NSStringPboardType]];
 	
 	NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
 	
@@ -718,7 +717,7 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 		NSMutableArray *paths = [NSMutableArray arrayWithCapacity:[notes count]];
 		unsigned int i;
 		for (i=0;i<[notes count]; i++) {
-			NoteObject *note = [notes objectAtIndex:i];
+			NoteObject *note = notes[i];
 			//for now, allow option-dragging-out only for notes with separate file-backing stores
 			if (note.currentFormatID != NVDatabaseFormatSingle) {
 				NSString *aPath = [note noteFilePath];
@@ -729,7 +728,7 @@ static void _CopyItemWithSelectorFromMenu(NSMenu *destMenu, NSMenu *sourceMenu, 
 			NSImage *image = [[NSWorkspace sharedWorkspace] iconForFile:[paths lastObject]];
 			
 			NSPasteboard *pboard = [NSPasteboard pasteboardWithName:NSDragPboard]; 
-			[pboard declareTypes:[NSArray arrayWithObject:NSFilenamesPboardType] owner:nil];
+			[pboard declareTypes:@[NSFilenamesPboardType] owner:nil];
 			[pboard setPropertyList:paths forType:NSFilenamesPboardType];			
 			
 			[NSApp preventWindowOrdering]; 
@@ -998,7 +997,7 @@ enum { kNext_Tag = 'j', kPrev_Tag = 'k' };
                 return tags;
 		}
 	}
-	return [NSArray array];
+	return @[];
 }
 
 
@@ -1015,7 +1014,7 @@ enum { kNext_Tag = 'j', kPrev_Tag = 'k' };
 		NSPoint p = [self convertPoint:[event locationInWindow] fromView:nil];
 		
 		//mouse is inside this column's row's cell's tags frame
-		UnifiedCell *cell = [[[self tableColumns] objectAtIndex:columnIndex] dataCellForRow:rowIndex];
+		UnifiedCell *cell = [[self tableColumns][columnIndex] dataCellForRow:rowIndex];
 		NSRect tagCellRect = [cell nv_tagsRectForFrame:[self frameOfCellAtColumn:columnIndex row:rowIndex]];
 		
 		return [self mouse:p inRect:tagCellRect];
@@ -1116,7 +1115,7 @@ enum { kNext_Tag = 'j', kPrev_Tag = 'k' };
 
 - (NSArray *)labelCompletionsForString:(NSString *)fieldString index:(NSInteger)index{
     NSRange charRange = [fieldString rangeOfString:fieldString];
-    NSArray *tags = [NSArray arrayWithObject:@""];
+    NSArray *tags = @[@""];
     if (charRange.location != NSNotFound) {
 		NSCharacterSet *set = [NSCharacterSet labelSeparatorCharacterSet];
 		NSString *str = fieldString;

@@ -100,7 +100,7 @@ typedef NS_ENUM(NSInteger, AlienNoteImporterMode) {
 		//auto-detect based on bundle/extension/metadata
 		NSDictionary *pathAttributes = [[NSFileManager defaultManager] attributesOfItemAtPath:filename error:NULL];
 		if ([[filename pathExtension] caseInsensitiveCompare:@"rtfd"] != NSOrderedSame &&
-			[[pathAttributes objectForKey:NSFileType] isEqualToString:NSFileTypeDirectory]) {
+			[pathAttributes[NSFileType] isEqualToString:NSFileTypeDirectory]) {
 			
 			self.mode = AlienNoteImporterModeDirectory;
 		} else {
@@ -203,7 +203,7 @@ typedef NS_ENUM(NSInteger, AlienNoteImporterMode) {
 					NoteObject *noteObject = [[NoteObject alloc] initWithNoteBody:newString title:linkTitle ?: urlString
 																		 delegate:nil format:NVDatabaseFormatSingle labels:nil];
 					
-					[receptionDelegate noteImporter:self importedNotes:[NSArray arrayWithObject:noteObject]];
+					[receptionDelegate noteImporter:self importedNotes:@[noteObject]];
 				}
 			}
 			
@@ -249,12 +249,12 @@ typedef NS_ENUM(NSInteger, AlienNoteImporterMode) {
 	NSFileManager *fileMan = [NSFileManager defaultManager];
 	unsigned int i;
 	for (i=0; i<[paths count]; i++) {
-		NSString *path = [paths objectAtIndex:i];
+		NSString *path = paths[i];
 		NSArray *notes = nil;
 		
 		NSDictionary *pathAttributes = [fileMan attributesOfItemAtPath:path error:NULL];
 		if ([[path pathExtension] caseInsensitiveCompare:@"rtfd"] != NSOrderedSame &&
-			[[pathAttributes objectForKey:NSFileType] isEqualToString:NSFileTypeDirectory]) {
+			[pathAttributes[NSFileType] isEqualToString:NSFileTypeDirectory]) {
 			notes = [self notesInDirectory:path];
 		} else {
 			notes = [self notesInFile:path];
@@ -273,7 +273,7 @@ typedef NS_ENUM(NSInteger, AlienNoteImporterMode) {
 	//RTF, Text, Word, HTML, and anything else we can do without too much effort
 	NSString *extension = [[filename pathExtension] lowercaseString];
 	NSDictionary *attributes = [[NSFileManager defaultManager] attributesOfItemAtPath:filename error:NULL];
-	unsigned long fileType = [[attributes objectForKey:NSFileHFSTypeCode] unsignedLongValue];
+	unsigned long fileType = [attributes[NSFileHFSTypeCode] unsignedLongValue];
 	NSString *sourceIdentifierString = nil;
 	
 	NSMutableAttributedString *attributedStringFromData = nil;
@@ -297,7 +297,7 @@ typedef NS_ENUM(NSInteger, AlienNoteImporterMode) {
 		
 	} else if (fileType == RTFD_TYPE_ID || [extension isEqualToString:@"rtfd"]) {
 		NSFileWrapper *wrapper = [[NSFileWrapper alloc] initWithPath:filename];
-		if ([[attributes objectForKey:NSFileType] isEqualToString:NSFileTypeDirectory])
+		if ([attributes[NSFileType] isEqualToString:NSFileTypeDirectory])
 			attributedStringFromData = [[NSMutableAttributedString alloc] initWithRTFDFileWrapper:wrapper documentAttributes:NULL];
 		else
 			attributedStringFromData = [[NSMutableAttributedString alloc] initWithRTFD:[NSData uncachedDataFromFile:filename] documentAttributes:NULL];
@@ -378,9 +378,9 @@ typedef NS_ENUM(NSInteger, AlienNoteImporterMode) {
 		if (noteObject) {
 			if (bodyLoc > 0 && attributedStringLength >= bodyLoc + prefixedSourceLength) [noteObject setSelectedRange:NSMakeRange(prefixedSourceLength, bodyLoc)];
 			if (shouldGrabCreationDates) {
-				[noteObject setDateAdded:CFDateGetAbsoluteTime((CFDateRef)[attributes objectForKey:NSFileCreationDate])];
+				[noteObject setDateAdded:CFDateGetAbsoluteTime((CFDateRef)attributes[NSFileCreationDate])];
 			}
-			[noteObject setDateModified:CFDateGetAbsoluteTime((CFDateRef)[attributes objectForKey:NSFileModificationDate])];
+			[noteObject setDateModified:CFDateGetAbsoluteTime((CFDateRef)attributes[NSFileModificationDate])];
 			
 			return noteObject;
 		} else {
@@ -407,7 +407,7 @@ typedef NS_ENUM(NSInteger, AlienNoteImporterMode) {
 		
 			NSString *itemPath = [filename stringByAppendingPathComponent:curObject];
 				
-			if ([[[fileMan attributesOfItemAtPath:itemPath error:NULL] objectForKey:NSFileType] isEqualToString:NSFileTypeRegular]) {
+			if ([[fileMan attributesOfItemAtPath:itemPath error:NULL][NSFileType] isEqualToString:NSFileTypeRegular]) {
 				NSArray *notes = [self notesInFile:itemPath];
 				if (notes)
 					[array addObjectsFromArray:notes];
@@ -432,7 +432,7 @@ typedef NS_ENUM(NSInteger, AlienNoteImporterMode) {
 	} else {
 		NoteObject *note = [self noteWithFile:filename];
 		if (note)
-			return [NSArray arrayWithObject:note];
+			return @[note];
 	}
 	return nil;
 }
@@ -447,7 +447,7 @@ typedef NS_ENUM(NSInteger, AlienNoteImporterMode) {
     [task setLaunchPath: readabilityPath];
 	
 	NSArray *arguments;
-    arguments = [NSArray arrayWithObjects: htmlFile, nil];
+    arguments = @[htmlFile];
     [task setArguments: arguments];
 	
 	NSPipe *rpipe;
@@ -479,7 +479,7 @@ typedef NS_ENUM(NSInteger, AlienNoteImporterMode) {
     [task setLaunchPath: readabilityPath];
 	
 	NSArray *arguments;
-    arguments = [NSArray arrayWithObjects: htmlFile, nil];
+    arguments = @[htmlFile];
     [task setArguments: arguments];
 	
 	NSPipe *rpipe;
@@ -557,7 +557,7 @@ typedef NS_ENUM(NSInteger, AlienNoteImporterMode) {
 		
 		unsigned int i;
 		for (i=0; i<[stickyNotes count]; i++) {
-			StickiesDocument *doc = [stickyNotes objectAtIndex:i];
+			StickiesDocument *doc = stickyNotes[i];
 			if ([doc isKindOfClass:[StickiesDocument class]]) {
 				NSMutableAttributedString *attributedString = [[NSMutableAttributedString alloc] initWithRTFD:[doc RTFDData] documentAttributes:NULL];
 				[attributedString removeAttachments];
@@ -619,7 +619,7 @@ typedef NS_ENUM(NSInteger, AlienNoteImporterMode) {
             NSMutableString *s = [NSMutableString string];
             NSUInteger i;
             for (i = 1; i < count; ++i) {
-                NSString *entry = [fields objectAtIndex:i];
+                NSString *entry = fields[i];
                 if ([entry length] > 0)
                     [s appendString:[NSString stringWithFormat:@"%@\n", entry]];
             }
@@ -627,7 +627,7 @@ typedef NS_ENUM(NSInteger, AlienNoteImporterMode) {
             if (0 == [s length])
                 continue;
             
-            NSString *title = [fields objectAtIndex:0];
+            NSString *title = fields[0];
 			NSMutableAttributedString *attributedBody = [[NSMutableAttributedString alloc] initWithString:s attributes:[[GlobalPrefs defaultPrefs] noteBodyAttributes]];
 			[attributedBody addLinkAttributesForRange:NSMakeRange(0, [attributedBody length])];
 			[attributedBody addStrikethroughNearDoneTagsForRange:NSMakeRange(0, [attributedBody length])];

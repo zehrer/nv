@@ -126,17 +126,17 @@
 		if (ENOATTR != errno) NSLog(@"couldn't get text encoding attribute of %s: %d", path, errno);
 		return 0;
 	}
-	NSString *encodingStr = [NSString stringWithUTF8String:xattrValueBytes];
+	NSString *encodingStr = @(xattrValueBytes);
 	if (!encodingStr) {
 		NSLog(@"couldn't make attribute data from %s into a string", path);
 		return 0;
 	}
 	NSArray *segs = [encodingStr componentsSeparatedByString:@";"];
 	
-	if ([segs count] >= 2 && [(NSString*)[segs objectAtIndex:1] length] > 1) {
-		return CFStringConvertEncodingToNSStringEncoding([[segs objectAtIndex:1] intValue]);
-	} else if ([(NSString*)[segs objectAtIndex:0] length] > 1) {
-		CFStringEncoding theCFEncoding = CFStringConvertIANACharSetNameToEncoding((CFStringRef)[segs objectAtIndex:0]);
+	if ([segs count] >= 2 && [(NSString*)segs[1] length] > 1) {
+		return CFStringConvertEncodingToNSStringEncoding([segs[1] intValue]);
+	} else if ([(NSString*)segs[0] length] > 1) {
+		CFStringEncoding theCFEncoding = CFStringConvertIANACharSetNameToEncoding((CFStringRef)segs[0]);
 		if (theCFEncoding == kCFStringEncodingInvalidId) {
 			NSLog(@"couldn't convert IANA charset");
 			return 0;
