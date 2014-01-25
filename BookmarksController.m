@@ -153,8 +153,10 @@ static NSString *BMNoteUUIDStringKey = @"NoteUUIDString";
 		for (i=0; i<[array count]; i++) {
 			NSDictionary *dict = array[i];
 			NoteBookmark *bookmark = [[NoteBookmark alloc] initWithDictionary:dict];
-			bookmark.controller = self;
-			[bookmarks addObject:bookmark];
+            if (bookmark) {
+                bookmark.controller = self;
+                [bookmarks addObject:bookmark];
+            }
 		}
 	}
 
