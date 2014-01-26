@@ -170,27 +170,27 @@ NSString *ExternalEditorsChangedNotification = @"ExternalEditorsChanged";
 
 @implementation ExternalEditorListController
 
-static ExternalEditorListController* sharedInstance = nil;
-
-+ (ExternalEditorListController*)sharedInstance {	
-	if (sharedInstance == nil)
-		sharedInstance = [[ExternalEditorListController alloc] initWithUserDefaults];
++ (ExternalEditorListController*)sharedInstance {
+    static dispatch_once_t onceToken;
+    static ExternalEditorListController *sharedInstance = nil;
+    dispatch_once(&onceToken, ^{
+        sharedInstance = [[ExternalEditorListController alloc] initWithUserDefaults];
+    });
     return sharedInstance;
 }
 
-+ (id)allocWithZone:(NSZone *)zone {
-	if (sharedInstance == nil) {
-		sharedInstance = [super allocWithZone:zone];
-		return sharedInstance;  // assignment and return on first allocation
-	}
-    return nil; // on subsequent allocation attempts return nil
+- (void)commonInit
+{
+    userEditorList = [[NSMutableArray alloc] init];
 }
 
 - (id)initWithUserDefaults {
-	if ((self = [self init])) {
-		//TextEdit is not an ODB editor, but can be used to open files directly
-		[[NSUserDefaults standardUserDefaults] registerDefaults:
-		 [NSDictionary dictionaryWithObject:[NSArray arrayWithObject:@"com.apple.TextEdit"] forKey:UserEEIdentifiersKey]];
+    self = [super init];
+	if (self) {
+        [self commonInit];
+        
+		// TextEdit is not an ODB editor, but can be used to open files directly
+        [[NSUserDefaults standardUserDefaults] registerDefaults:@{UserEEIdentifiersKey: @[@"com.apple.TextEdit"]}];
 	
 		[self _initDefaults];
 	}
@@ -198,9 +198,9 @@ static ExternalEditorListController* sharedInstance = nil;
 }
 
 - (id)init {
-	if ((self = [super init])) {
-		
-		userEditorList = [[NSMutableArray alloc] init];		
+    self = [super init];
+	if (self) {
+        [self commonInit];
 	}
 	return self;
 }
