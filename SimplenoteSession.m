@@ -17,7 +17,12 @@
 
 // SimplenoteConfig.h should be copied from SimplenoteConfig-example.h and set up with your Simperium API key
 // If you choose not to use Simperium, just include an empty string in the file.
-#import "SimperiumConfig.h"
+
+//#import "SimperiumConfig.h"
+#warning TODO:Update Simperium Config
+#define kSimperiumAPIAppID @"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+#define kSimperiumAPIKeyString @"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
 #import "SimplenoteSession.h"
 #import "SyncResponseFetcher.h"
 #import "SimplenoteEntryCollector.h"
