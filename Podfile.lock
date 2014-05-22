@@ -1,12 +1,12 @@
 PODS:
-  - libextobjc/EXTKeyPathCoding (0.2.5):
+  - libextobjc/EXTKeyPathCoding (0.4):
     - libextobjc/RuntimeExtensions
-  - libextobjc/RuntimeExtensions (0.2.5)
+  - libextobjc/RuntimeExtensions (0.4)
 
 DEPENDENCIES:
   - libextobjc/EXTKeyPathCoding
 
 SPEC CHECKSUMS:
-  libextobjc: 2cbc74caf8bdc74a86fdf24673f773c83424ea98
+  libextobjc: ba42e4111f433273a886cd54f0ddaddb7f62f82f
 
-COCOAPODS: 0.29.0
+COCOAPODS: 0.32.1
